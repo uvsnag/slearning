@@ -5,7 +5,7 @@ import _ from 'lodash';
 import { FaRegFrown, FaRegSmile, FaVolumeUp } from 'react-icons/fa';
 import { gapi } from 'gapi-script';
 import config from '@/common/config.js';
-import { loadListenSheet } from '@/common/api/sheetDataRepository.js';
+import { loadListenSheet } from '@/common/api/sheetDataRepository';
 import { useSpeechSynthesis } from '@/app/hooks/useSpeechSynthesis';
 
 /** =======================
@@ -259,6 +259,7 @@ const ListenPractice: React.FC = () => {
           </div>
           <input
             type="range"
+            className="width-220 range-color"
             min="0.2"
             max="2"
             defaultValue="0.6"

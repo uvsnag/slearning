@@ -48,7 +48,7 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
   const [gptKey, setGptKey] = useState<string | null>(null);
   const [aiName, setAIName] = useState<string>('Gemini');
   const [model, setModel] = useState<ModelAI>(MODEL_AI[0]);
-  const [useHis, setUseHis] = useState<string>(props.enableHis ? 'N' : 'Y');
+  const [useHis, setUseHis] = useState<string>(props.enableHis ?? 'N');
 
   const [prompt, setPrompt] = useState<string>('');
   const [sysPrompt, setSysPrompt] = useState<string>('');
@@ -358,7 +358,7 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
           rows={3}
           value={prompt}
           onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setPrompt(e.target.value)}
-          placeholder="..."
+          placeholder=""
           onKeyDown={(e) => handleKeyDown(e, prompt)}
         />
         <br />
