@@ -9,7 +9,7 @@ import config from '@/common/config.js';
 import { load } from '@/common/api/sheetDataRepository.js';
 import PractWords from './PracticeWords';
 import { FaCircleNotch } from 'react-icons/fa';
-import { useSpeechSynthesis } from '@/slearning/hooks/useSpeechSynthesis';
+import { useSpeechSynthesis } from '@/app/hooks/useSpeechSynthesis';
 import { FaVolumeUp, FaRedo } from 'react-icons/fa';
 import { useCookies } from 'react-cookie';
 // import MulAI from '../common/MultiAI';

@@ -4,8 +4,8 @@ import './style-yout-sub.css';
 import _ from 'lodash';
 import { Sub } from './Subtitle';
 import { toggleCollapse } from '@/common/common.js';
-import MulAI, { MulAIContainerProps } from '@/slearning/multi-ai/MultiAI';
-import StackBtn from '@/common/components/StackButton';
+import MulAI, { MulAIContainerProps } from '@/app/multi-ai/MultiAI';
+import StackBtn from '@/app/common/components/StackButton';
 
 // Type definitions
 interface YouTubePlayer {
@@ -243,7 +243,7 @@ const YoutubeSub: FC = () => {
     event.target.playVideo();
 
     interval = setInterval((): void => {
-      if (!player || player.getPlayerState() !== 1) return;
+      if (!player || player?.getPlayerState() !== 1) return;
       let currTime = player.getCurrentTime().toString();
       if (currTime.includes('.')) {
         currTime = currTime.substring(0, currTime.lastIndexOf('.'));

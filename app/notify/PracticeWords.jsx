@@ -4,8 +4,8 @@ import { useEffect, useState, useRef } from 'react';
 import _ from 'lodash';
 import './style-noti.css';
 import { FaVolumeUp, FaRedo, FaVolumeMute } from 'react-icons/fa';
-import VoiceToText from '@/common/components/VoiceToText';
-import AIBoard from '@/common/components/AIBoard';
+import VoiceToText from '@/app/common/components/VoiceToText';
+import AIBoard from '@/app/common/components/AIBoard';
 
 import { validateArrStrCheck, arrStrCheckToStr } from '@/common/commonElearn';
 

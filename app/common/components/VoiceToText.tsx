@@ -1,10 +1,12 @@
 'use client';
-import 'regenerator-runtime/runtime';
 import { useEffect, useState, useRef } from 'react';
 import { MdHearing } from 'react-icons/md';
 import { FaMicrophone } from 'react-icons/fa';
 import _ from 'lodash';
-import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
+import {
+  useSpeechRecognition,
+  browserSupportsSpeechRecognition,
+} from '@/app/hooks/useSpeechRecognition';
 
 /** =======================
  *  Props
@@ -19,10 +21,12 @@ const VoiceToText: React.FC<VoiceToTextProps> = ({ setText, index }) => {
     transcript,
     resetTranscript,
     listening,
-    browserSupportsSpeechRecognition,
+    browserSupportsSpeechRecognition: supportsSpeechRecognition,
     isMicrophoneAvailable,
     interimTranscript,
     finalTranscript,
+    startListening,
+    stopListening,
   } = useSpeechRecognition();
 
   const activeIndx = useRef<string | number | null>(null);
@@ -37,17 +41,17 @@ const VoiceToText: React.FC<VoiceToTextProps> = ({ setText, index }) => {
   }, [transcript]);
 
   useEffect((): void => {
-    if (!SpeechRecognition.browserSupportsSpeechRecognition()) {
+    if (!browserSupportsSpeechRecognition) {
       alert('Browser does not support speech to text');
     }
   }, []);
 
-  const startListening = (): void => {
+  const handleStartListening = (): void => {
     activeIndx.current = index;
     setIsStartRecord(true);
     console.log('Start recoding...');
     resetTranscript();
-    SpeechRecognition.startListening({
+    startListening({
       continuous: true,
       language: 'en-US',
     });
@@ -57,15 +61,15 @@ const VoiceToText: React.FC<VoiceToTextProps> = ({ setText, index }) => {
     }, 1000);
   };
 
-  const stopListening = (): void => {
+  const handleStopListening = (): void => {
     setIsStartRecord(false);
     console.log('Stoped record');
-    SpeechRecognition.stopListening();
+    stopListening();
     activeIndx.current = null;
   };
 
   const processRecord = (): void => {
-    isStartRecord ? stopListening() : startListening();
+    isStartRecord ? handleStopListening() : handleStartListening();
   };
 
   return (

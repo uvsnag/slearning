@@ -2,11 +2,11 @@
 import { useEffect, useState, ChangeEvent } from 'react';
 import _ from 'lodash';
 
-import NotifyAuto from '@/slearning/notify/Notify';
+import NotifyAuto from '@/app/notify/Notify';
 // import SpeechRecogn from '../recognize-text/RecognizeText';
-import VoiceToText from '@/common/components/VoiceToText';
-import NextSentence from '@/slearning/next-sentence/NextSentence';
-import YoutubeSub from '@/slearning/youtube-sub/YoutubeSub';
+import VoiceToText from '@/app/common/components/VoiceToText';
+import NextSentence from '@/app/next-sentence/NextSentence';
+import YoutubeSub from '@/app/youtube-sub/YoutubeSub';
 
 import { toggleCollapse } from '@/common/common.js';
 

@@ -4,7 +4,7 @@ import type { ChangeEvent, KeyboardEvent, Dispatch, SetStateAction } from 'react
 import { GoogleGenAI } from '@google/genai';
 import { Configuration, OpenAIApi } from 'openai-edge';
 import { toggleCollapse, KEY_GPT_NM, KEY_GEMINI_NM, collapseElement } from '@/common/common.js';
-import VoiceToText from '@/common/components/VoiceToText';
+import VoiceToText from '@/app/common/components/VoiceToText';
 import '@/slearning/multi-ai/style-ai.css';
 import loadingImg from '@/public/loading.webp';
 

@@ -1,8 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
-import AIBoard from '@/common/components/AIBoard';
-import StackBtn from '@/common/components/StackButton';
-import { AIBoardProps } from '@/common/components/AIBoard';
+import AIBoard from '@/app/common/components/AIBoard';
+import StackBtn from '@/app/common/components/StackButton';
+import { AIBoardProps } from '@/app/common/components/AIBoard';
 import '@/slearning/multi-ai/style-ai.css';
 interface InstanceAIProps extends Partial<Omit<AIBoardProps, 'heightRes'>> {
   instanceNo: number;

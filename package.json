@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "deploy": "pnpm build && gh-pages -d out"
   },
   "dependencies": {
     "@google/genai": "^1.10.0",
@@ -20,7 +21,6 @@
     "bootstrap": "^5.1.3",
     "caniuse-lite": "^1.0.30001653",
     "gapi-script": "^1.2.0",
-    "gh-pages": "^3.2.3",
     "html2canvas": "^1.4.1",
     "lodash": "^4.17.21",
     "next": "16.1.1",
@@ -53,6 +53,7 @@
     "eslint-plugin-prettier": "^5.5.4",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.1",
+    "gh-pages": "^3.2.3",
     "globals": "^17.0.0",
     "jiti": "^2.6.1",
     "prettier": "^3.7.4",
