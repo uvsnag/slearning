@@ -4,6 +4,7 @@ import AIBoard from '@/app/common/components/AIBoard';
 import StackBtn from '@/app/common/components/StackButton';
 import { AIBoardProps } from '@/app/common/components/AIBoard';
 import '@/slearning/multi-ai/style-ai.css';
+// import SheetDataEditor from '../common/components/SheetDataEditor';
 interface InstanceAIProps extends Partial<Omit<AIBoardProps, 'heightRes'>> {
   instanceNo: number;
 }
@@ -68,6 +69,7 @@ const MulAI: React.FC<MulAIContainerProps> = (props) => {
             setHeight(Number(event.target.value));
           }}
         />
+        {/* <SheetDataEditor sheet="aaaa!A1" /> */}
       </div>
       <div className="container-block">
         {/* Map over configs array to create AIBoard instances */}

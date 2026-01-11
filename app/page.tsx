@@ -43,7 +43,7 @@ const Home: FC = () => {
           <Link href="/youtube-sub">YT-Sub</Link>
         </li>
         <li className="mst-menu-li">
-          <Link href="/next-sent">Next-Sentence</Link>
+          <Link href="/next-sentence">Next-Sentence</Link>
         </li>
         <li className="mst-menu-li">
           <Link href="/listen">Listen Word Prac</Link>

@@ -6,7 +6,7 @@ import './style-noti.css';
 import _ from 'lodash';
 // import { gapi } from 'gapi-script';
 import config from '@/common/config.js';
-import { load } from '@/common/api/sheetDataRepository.js';
+import { load } from '@/common/api/sheetDataRepository';
 import PractWords from './PracticeWords';
 import { FaCircleNotch } from 'react-icons/fa';
 import { useSpeechSynthesis } from '@/app/hooks/useSpeechSynthesis';
