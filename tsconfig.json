@@ -19,7 +19,9 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@/common/*": ["./app/slearning/common/*"],
+      "@/slearning/*": ["./app/slearning/*"]
     }
   },
   "include": [
@@ -29,6 +31,7 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts"
+    // "slearning/types/react-speech-kit.d.ts"
   ],
   "exclude": ["node_modules"]
 }
