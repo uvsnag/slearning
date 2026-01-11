@@ -20,8 +20,8 @@
     ],
     "paths": {
       "@/*": ["./*"],
-      "@/common/*": ["./app/slearning/common/*"],
-      "@/slearning/*": ["./app/slearning/*"]
+      "@/common/*": ["./app/common/*"],
+      "@/slearning/*": ["./app/*"]
     }
   },
   "include": [

@@ -1,9 +1,10 @@
+'use client';
 import { useEffect, useState } from 'react';
 import _ from 'lodash';
 import { copyContent } from '@/common/common.js';
-import MulAI from '@/slearning/multi-ai/MultiAI';
+import MulAI, { MulAIContainerProps } from '@/app/multi-ai/MultiAI';
 import { toggleCollapse } from '@/common/common.js';
-import AIBoard from '@/common/components/AIBoard';
+import AIBoard from '@/app/common/components/AIBoard';
 
 const currSentenceNm = 'current-sentence';
 const orgTextNm = 'org-text';
@@ -18,7 +19,15 @@ const NextSentence: React.FC<NextSentenceProps> = ({ heightProp }) => {
   // let isShowPract = useRef(false)
   const [currentSentence, setCurrentSentence] = useState('');
   const [orgText, setOrgText] = useState('');
-
+  const MUL_PROP: MulAIContainerProps = {
+    heightRes: 180,
+    configs: [
+      { instanceNo: 0, prefix: 'ntx', enableHis: 'N', collapse: 'N' },
+      { instanceNo: 1, prefix: 'ntx', enableHis: 'N', collapse: 'N' },
+      { instanceNo: 2, prefix: 'ntx', enableHis: 'N', collapse: 'N' },
+      { instanceNo: 3, prefix: 'ntx', enableHis: 'Y', collapse: 'N' },
+    ],
+  };
   useEffect(() => {
     if (!_.isEmpty(localStorage)) {
       setCurrentSentence(localStorage.getItem(currSentenceNm) || '');
@@ -57,7 +66,7 @@ const NextSentence: React.FC<NextSentenceProps> = ({ heightProp }) => {
               key={0}
               index={0}
               prefix="pract_sent"
-              enableHis={false}
+              enableHis="N"
               heightRes={140}
               isMini={true}
               statement={currentSentence}
@@ -97,7 +106,7 @@ const NextSentence: React.FC<NextSentenceProps> = ({ heightProp }) => {
           }}
         ></textarea>
       </div>
-      <MulAI size={4} prefix="nxt" enableHis={false} heightProp={heightProp}></MulAI>
+      <MulAI {...MUL_PROP}></MulAI>
     </div>
   );
 };

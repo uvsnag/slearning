@@ -1,14 +1,12 @@
 'use client';
 import { useEffect, useState } from 'react';
 import type { KeyboardEvent, ChangeEvent, CSSProperties } from 'react';
-import '../../common/style.css';
-import '../../common/style-template.css';
 import _ from 'lodash';
 import { FaRegFrown, FaRegSmile, FaVolumeUp } from 'react-icons/fa';
 import { gapi } from 'gapi-script';
 import config from '@/common/config.js';
 import { loadListenSheet } from '@/common/api/sheetDataRepository.js';
-import { useSpeechSynthesis } from '@/slearning/hooks/useSpeechSynthesis';
+import { useSpeechSynthesis } from '@/app/hooks/useSpeechSynthesis';
 
 /** =======================
  *  Types
