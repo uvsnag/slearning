@@ -6,7 +6,7 @@ import _ from 'lodash';
 import {
   useSpeechRecognition,
   browserSupportsSpeechRecognition,
-} from '@/app/hooks/useSpeechRecognition';
+} from '@/app/common/hooks/useSpeechRecognition';
 
 /** =======================
  *  Props

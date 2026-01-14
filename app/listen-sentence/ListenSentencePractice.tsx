@@ -2,7 +2,7 @@
 import { useEffect, useState, useRef } from 'react';
 import type { KeyboardEvent, ChangeEvent } from 'react';
 import { FaEyeSlash } from 'react-icons/fa';
-import { useSpeechSynthesis } from '@/app/hooks/useSpeechSynthesis';
+import { useSpeechSynthesis } from '@/app/common/hooks/useSpeechSynthesis';
 import { replaceArr, isEqualStr, getPosition } from '@/common/common.js';
 import {
   validateArrStrCheck,

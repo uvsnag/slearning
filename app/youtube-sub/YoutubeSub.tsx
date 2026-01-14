@@ -6,6 +6,7 @@ import { Sub } from './Subtitle';
 import { toggleCollapse } from '@/common/common.js';
 import MulAI, { MulAIContainerProps } from '@/app/multi-ai/MultiAI';
 import StackBtn from '@/app/common/components/StackButton';
+import PracticeWords from '../practice-word/PracticeWords';
 
 // Type definitions
 interface YouTubePlayer {
@@ -746,11 +747,12 @@ const YoutubeSub: FC = () => {
           AI
         </div>
         <div id="ai-section-yt" className="collapse-content ">
-          <MulAI {...MUL_PROP}></MulAI>
+          <PracticeWords prefix="prc-yts" enableHis="N" isMini={false} />
         </div>
         <div className="width-100" onClick={() => toggleCollapse('hide2')}>
           Sub
         </div>
+
         <div id="hide2" className="collapse-content bolder">
           <div id="hide1"></div>
           <div className="tooltip">
@@ -840,6 +842,7 @@ const YoutubeSub: FC = () => {
           <input type="submit" value="S" id="btnShow" onClick={() => onShowAll()} />
         </div>
       </div>
+      <MulAI {...MUL_PROP}></MulAI>
     </div>
   );
 };
