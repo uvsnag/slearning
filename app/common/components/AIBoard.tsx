@@ -7,7 +7,8 @@ import { toggleCollapse, KEY_GPT_NM, KEY_GEMINI_NM, collapseElement } from '@/co
 import VoiceToText from '@/app/common/components/VoiceToText';
 import '@/slearning/multi-ai/style-ai.css';
 import loadingImg from '@/public/loading.webp';
-
+import SheetDataEditor from './SheetDataEditor';
+import { FaCog, FaSave } from 'react-icons/fa';
 const TP_GEN = 1;
 const TP_GPT = 2;
 let aiType = TP_GEN;
@@ -26,7 +27,6 @@ export interface AIBoardProps {
   heightRes?: number;
   isMini?: boolean;
   statement?: string;
-  isShowPract?: boolean;
   lastSentence?: string | null;
   collapse?: string | null;
 }
@@ -53,6 +53,10 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
   const [prompt, setPrompt] = useState<string>('');
   const [sysPrompt, setSysPrompt] = useState<string>('');
   const [isUseAIMini, setIsUseAIMini] = useState<boolean>(false);
+
+  const [value1, setValue1] = useState<string>('');
+  const [value2, setValue2] = useState<string>('');
+
   useEffect((): void => {
     let gmLcal = localStorage.getItem(keyGeminiNm);
     let gptLcal = localStorage.getItem(keyChatGptNm);
@@ -128,7 +132,7 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
     let isUseMiniAI = (
       document.getElementById(`enable-ai-mini-${props.prefix}${props.index}`) as HTMLInputElement
     )?.checked;
-    if (props.isMini && promp && props.isShowPract && (isUseMiniAI || isProcess)) {
+    if (props.isMini && promp && (isUseMiniAI || isProcess)) {
       let isToggleMiniAI = (
         document.getElementById(`toggle-ai-mini-${props.prefix}${props.index}`) as HTMLInputElement
       )?.checked;
@@ -192,6 +196,8 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
     toggleClass(`loading${props.prefix}${props.index}`, false);
     // let responseTmp = response;
     addLog(formatMyQus(promVal) + '<br/>', true);
+    setValue1(promVal);
+
     try {
       if (aiType === TP_GPT) {
         responseTxt = await askChatGPT(promVal);
@@ -201,6 +207,7 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
         responseTxt = useHis === 'Y' ? await askGeminiHis(promVal) : await askGemini(promVal);
       }
       addLog(fomatRawResponse(responseTxt), false);
+      setValue2(fomatRawResponse(responseTxt));
     } catch (error) {
       addLog(String(error), false);
     }
@@ -363,7 +370,18 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
         />
         <br />
 
-        <div onClick={() => toggleCollapse(`config-${props.prefix}${props.index}`)}>Config</div>
+        <div
+          className="inline"
+          onClick={() => toggleCollapse(`config-${props.prefix}${props.index}`)}
+        >
+          <FaCog />
+        </div>
+        <div
+          className="inline"
+          onClick={() => toggleCollapse(`save-sheet-${props.prefix}${props.index}`)}
+        >
+          <FaSave />
+        </div>
         <div className="collapse-content bolder" id={`config-${props.prefix}${props.index}`}>
           <button onClick={() => askDec(prompt)} className="common-btn inline">
             Send
@@ -418,6 +436,10 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
             onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setSysPrompt(e.target.value)}
             placeholder="Sys promt"
           />
+        </div>
+
+        <div className="collapse-content bolder" id={`save-sheet-${props.prefix}${props.index}`}>
+          <SheetDataEditor value1={value1} value2={value2} />
         </div>
       </div>
     </div>

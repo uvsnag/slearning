@@ -2,6 +2,10 @@
   border: 3px solid #000000;
 }
 
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
 .option,
 .dataInput,
 .option-noti {
@@ -386,7 +390,7 @@ li.mst-menu-li a:hover {
   border-radius: 6px;
   border: 1px solid #888888;
   background: #ffffff;
-  color: #0f020f98;
+  /* color: #0f020f98; */
   padding: 5px;
 }
 /*======================== */

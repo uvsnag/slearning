@@ -1,161 +1,143 @@
 'use client';
-import { useState, ChangeEvent } from 'react';
-import { updateRange } from '@/app/common/api/sheetDataRepository';
+import { useState, ChangeEvent, useEffect } from 'react';
+import { ggSheetProcessTwoValues, SheetItem } from '@/app/common/hooks/useSheetData';
 import '@/slearning/multi-ai/style-ai.css';
 
 export interface SheetDataEditorProps {
-  sheet: string;
+  defaultSheet?: string;
+  value1?: string;
+  value2?: string;
 }
 
-const SheetDataEditor: React.FC<SheetDataEditorProps> = (props) => {
-  const [cellRange, setCellRange] = useState<string>('A1');
-  const [dataInput, setDataInput] = useState<string>('');
+export const SHEET_AUTO: SheetItem[] = [
+  { range: 'AUTO!A2:C500', name: 'ABoard1' },
+  { range: 'AUTO!E2:G500', name: 'ABoard2' },
+  { range: 'AUTO!I2:K500', name: 'ABoard3' },
+  { range: 'AUTO!M2:O500', name: 'ABoard4' },
+  { range: 'AUTO!Q2:S500', name: 'ABoard5' },
+  { range: 'AUTO!U2:W500', name: 'ABoard6' },
+  { range: 'AUTO!Y2:AA500', name: 'ABoard7' },
+];
+
+const SheetDataEditor: React.FC<SheetDataEditorProps> = (props: SheetDataEditorProps) => {
+  const [selectedRange, setSelectedRange] = useState<string>(
+    props.defaultSheet || SHEET_AUTO[0]?.range || '',
+  );
+  const [value1, setValue1] = useState<string>(props.value1 || '');
+  const [value2, setValue2] = useState<string>(props.value2 || '');
   const [message, setMessage] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [usePropsValues, setUsePropsValues] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (usePropsValues) {
+      setValue1(props.value1 || '');
+      setValue2(props.value2 || '');
+    } else {
+      setValue1('');
+      setValue2('');
+    }
+  }, [props.value1, props.value2, usePropsValues]);
 
   const handleSave = async (): Promise<void> => {
-    if (!cellRange.trim()) {
-      setMessage('❌ Please enter a cell range (e.g., A1 or A1:C1)');
+    if (!selectedRange.trim()) {
+      setMessage(' Please select a sheet range');
       return;
     }
 
     setIsLoading(true);
     setMessage('Saving...');
 
-    // try {
-    updateRange(
-      cellRange,
-      dataInput,
-      (response: any) => {
-        setIsLoading(false);
-        if (response && response.success) {
-          setMessage(`✅ Data saved successfully to ${cellRange}`);
-          setDataInput('');
-          setTimeout(() => setMessage(''), 3000);
-        } else {
-          setMessage(`❌ Error: ${response?.error || 'Unknown error'}`);
-        }
-      },
-      props.sheet,
-    );
-    // } catch (error) {
-    //   setIsLoading(false);
-    //   setMessage(`❌ Error: ${String(error)}`);
-    // }
-  };
-
-  const handleClear = (): void => {
-    setDataInput('');
-    setCellRange('A1');
-    setMessage('');
+    try {
+      await ggSheetProcessTwoValues(
+        (response: any) => {
+          if (response?.success) {
+            setMessage(' Data saved successfully!');
+            setValue1('');
+            setValue2('');
+          } else {
+            setMessage(` Error: ${response?.error || 'Failed to save data'}`);
+          }
+          setIsLoading(false);
+        },
+        selectedRange,
+        value1,
+        value2,
+      );
+    } catch (error: any) {
+      setMessage(` Error: ${error?.message || 'Failed to save data'}`);
+      setIsLoading(false);
+    }
   };
 
   return (
     <div>
-      <div className="width-100 inline" style={{ marginBottom: '10px' }}>
-        <strong>📝 Sheet Data Editor</strong>
+      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+        <input
+          type="text"
+          value={value1}
+          onChange={(e: ChangeEvent<HTMLInputElement>) => setValue1(e.target.value)}
+          placeholder="Value 1"
+          className="common-input"
+          style={{
+            width: '100px',
+          }}
+        />
+        <input
+          type="text"
+          value={value2}
+          onChange={(e: ChangeEvent<HTMLInputElement>) => setValue2(e.target.value)}
+          placeholder="Value 2"
+          className="common-input"
+          style={{
+            width: '100px',
+          }}
+        />
+        <select
+          value={selectedRange}
+          onChange={(e: ChangeEvent<HTMLSelectElement>) => setSelectedRange(e.target.value)}
+          // disabled={isLoading}
+          className="common-input"
+        >
+          {SHEET_AUTO.map((item) => (
+            <option key={item.range} value={item.range}>
+              {item.name}
+            </option>
+          ))}
+        </select>
+        <button onClick={handleSave} disabled={isLoading} className="common-btn">
+          {isLoading ? 'Saving...' : ' Save'}
+        </button>
+        {/* <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}> */}
+        <input
+          type="checkbox"
+          checked={usePropsValues}
+          onChange={(e: ChangeEvent<HTMLInputElement>) => {
+            setUsePropsValues(e.target.checked);
+            // if (e.target.checked) {
+            //   setValue1(props.value1 || '');
+            //   setValue2(props.value2 || '');
+            // }
+          }}
+        />
+        {/* <span>Use props</span> */}
+        {/* </label> */}
       </div>
-      <div
-        style={{
-          marginBottom: '10px',
-          padding: '10px',
-          border: '1px solid #ccc',
-          borderRadius: '4px',
-        }}
-      >
-        <div style={{ marginBottom: '8px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-            Cell Range:
-          </label>
-          <input
-            type="text"
-            value={cellRange}
-            onChange={(e: ChangeEvent<HTMLInputElement>) => setCellRange(e.target.value)}
-            placeholder="e.g., A1 or A1:C1 or Sheet1!A1"
-            style={{
-              width: '100%',
-              padding: '8px',
-              boxSizing: 'border-box',
-              border: '1px solid #ddd',
-              borderRadius: '4px',
-            }}
-          />
-          <small style={{ color: '#666' }}>
-            Format: A1 (single cell), A1:C1 (range), or Sheet1!A1 (with sheet name)
-          </small>
-        </div>
 
-        <div style={{ marginBottom: '8px' }}>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-            Data to Save:
-          </label>
-          <textarea
-            value={dataInput}
-            onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setDataInput(e.target.value)}
-            placeholder="Enter data to save. Leave empty to delete."
-            rows={4}
-            style={{
-              width: '100%',
-              padding: '8px',
-              boxSizing: 'border-box',
-              border: '1px solid #ddd',
-              borderRadius: '4px',
-              fontFamily: 'monospace',
-            }}
-          />
-          <small style={{ color: '#666' }}>Leave empty to delete the cell content</small>
+      {message && (
+        <div
+        // style={{
+        //   padding: '10px',
+        //   marginTop: '10px',
+        //   backgroundColor: message.startsWith('') ? '#d4edda' : '#f8d7da',
+        //   color: message.startsWith('') ? '#155724' : '#721c24',
+        //   borderRadius: '4px',
+        //   border: `1px solid ${message.startsWith('') ? '#c3e6cb' : '#f5c6cb'}`,
+        // }}
+        >
+          {message}
         </div>
-
-        <div style={{ marginBottom: '8px', display: 'flex', gap: '8px' }}>
-          <button
-            onClick={handleSave}
-            disabled={isLoading}
-            style={{
-              padding: '8px 16px',
-              backgroundColor: '#4CAF50',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: isLoading ? 'not-allowed' : 'pointer',
-              opacity: isLoading ? 0.6 : 1,
-              fontWeight: 'bold',
-            }}
-          >
-            {isLoading ? 'Saving...' : '💾 Save'}
-          </button>
-          <button
-            onClick={handleClear}
-            disabled={isLoading}
-            style={{
-              padding: '8px 16px',
-              backgroundColor: '#f44336',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: isLoading ? 'not-allowed' : 'pointer',
-              opacity: isLoading ? 0.6 : 1,
-              fontWeight: 'bold',
-            }}
-          >
-            🗑️ Clear
-          </button>
-        </div>
-
-        {message && (
-          <div
-            style={{
-              padding: '10px',
-              marginTop: '10px',
-              backgroundColor: message.startsWith('✅') ? '#d4edda' : '#f8d7da',
-              color: message.startsWith('✅') ? '#155724' : '#721c24',
-              borderRadius: '4px',
-              border: `1px solid ${message.startsWith('✅') ? '#c3e6cb' : '#f5c6cb'}`,
-            }}
-          >
-            {message}
-          </div>
-        )}
-      </div>
+      )}
     </div>
   );
 };

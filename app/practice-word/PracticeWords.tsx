@@ -1,171 +1,168 @@
 'use client';
-// this is a tools for studying english
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, RefObject } from 'react';
 import _ from 'lodash';
-import './style-noti.css';
-import { FaVolumeUp, FaRedo, FaVolumeMute } from 'react-icons/fa';
+import './style.css';
+import { FaVolumeUp, FaVolumeMute } from 'react-icons/fa';
 import VoiceToText from '@/app/common/components/VoiceToText';
 import AIBoard from '@/app/common/components/AIBoard';
+import { DataItem, STORE_ALIAS, onRemoveStoreItem } from '@/app/common/hooks/useSheetData';
 
 import { validateArrStrCheck, arrStrCheckToStr } from '@/common/commonElearn';
+import PracticeController, { ConfigControlProps } from '../common/components/PracticeController';
+import { useSpeechSynthesis } from '../common/hooks/useSpeechSynthesis';
 
-let lastEngVar = '';
-let arrLineTemp = [];
-let isCheckedRevert = false;
-const PractWords = (props) => {
+interface PractWordsProps {
+  prefix?: string;
+  enableHis?: 'Y' | 'N';
+  heightRes?: number;
+  isMini?: boolean;
+}
+
+let lastEngVar: string = '';
+let arrLineTemp: DataItem[] = [];
+let isCheckedRevert: boolean = false;
+
+const PractWords = (props: PractWordsProps) => {
+  const [voiceConfig, setVoiceConfig] = useState<ConfigControlProps>({
+    defaultSheet: 'Notify!A2:C500',
+    oderRandomS: 'random',
+    voice: 0,
+    rate: 1,
+    volume: 1,
+    index: 'pract_words',
+    items: [],
+  });
   const MODE_NONE = 'None';
   const MODE_SPEAKE_CHANGE_QUST = 'Speak';
 
-  const [question, setQuestion] = useState('');
-  const [answer, setAnswer] = useState('');
-  const [showAns, setShowAns] = useState('');
-  const [lastEng, setLastEng] = useState('');
-  const [lastVie, setLastVie] = useState('');
-  const [classPract, setClassPract] = useState('container-55');
-  const [mode, setMode] = useState(MODE_NONE);
-  const [isStartRecord, setIsStartRecord] = useState(false);
-  const [randomAns, setRandomAns] = useState([]);
-  const [remainCount, setRemainCount] = useState(0);
-  const [currEng, setCurrEng] = useState(null);
-  const inputAns = useRef(null);
+  const [question, setQuestion] = useState<string>('');
+  const [answer, setAnswer] = useState<string>('');
+  const [showAns, setShowAns] = useState<string>('');
+  const [lastEng, setLastEng] = useState<string>('');
+  const [lastVie, setLastVie] = useState<string>('');
+  const [classPract, setClassPract] = useState<string>('container-55');
+  const [mode, setMode] = useState<string>(MODE_NONE);
+  const [isStartRecord, setIsStartRecord] = useState<boolean>(false);
+  const [randomAns, setRandomAns] = useState<string[]>([]);
+  const [remainCount, setRemainCount] = useState<number>(0);
+  const [currEng, setCurrEng] = useState<string | null>(null);
+  const inputAns = useRef<HTMLInputElement>(null);
+  const { speakText } = useSpeechSynthesis();
 
   useEffect(() => {
     arrLineTemp = [];
     onChangeQuestion(true);
-  }, [props.items]);
+  }, [voiceConfig.items]);
 
-  useEffect(() => {
-    if (props.isLoadQuestion) {
-      onChangeQuestion(true);
+  function setInputAns(text: string): void {
+    if (inputAns.current) {
+      inputAns.current.value = text;
     }
-
-    inputAns.current.focus();
-    // eslint-disable-next-line
-  }, [props.isLoadQuestion]);
-
-  function setInputAns(text) {
-    inputAns.current.value = text;
   }
 
-  const onChangeQuestion = (isInit = false) => {
-    let randomAns = new Set();
-    isCheckedRevert = document.getElementById('revertAsw').checked;
+  const onChangeQuestion = (isInit: boolean = false): void => {
+    let randomAns = new Set<string>();
+    const revertCheckbox = document.getElementById('revertAsw') as HTMLInputElement;
+    isCheckedRevert = revertCheckbox?.checked ?? false;
 
-    if (!_.isEmpty(props.items)) {
-      let isStore = props?.sheet?.startsWith(props?.STORE_ALIAS);
+    if (!_.isEmpty(voiceConfig.items)) {
+      let isStore = voiceConfig.defaultSheet?.startsWith(STORE_ALIAS);
       let listSents = isStore
-        ? localStorage.getItem(props.sheet)
-          ? JSON.parse(localStorage.getItem(props.sheet))
+        ? localStorage.getItem(voiceConfig.defaultSheet)
+          ? JSON.parse(localStorage.getItem(voiceConfig.defaultSheet)!)
           : []
-        : props.items;
-      let item = null;
-      let arrTemp =
+        : voiceConfig.items;
+      let item: DataItem | null = null;
+      let arrTemp: DataItem[] =
         _.isEmpty(arrLineTemp) || isInit ? _.cloneDeep(listSents) : _.cloneDeep(arrLineTemp);
-      let fullanswers = _.cloneDeep(props.items);
       if (_.isEmpty(arrTemp)) {
         return;
       }
-      if (props.oderRandom === 'random') {
+      if (voiceConfig.oderRandomS === 'random') {
         const validOptions = arrTemp.filter((item) => item.eng !== lastEngVar);
 
         let index = Math.floor(Math.random() * validOptions.length);
         item = validOptions[index];
-        arrTemp = arrTemp.filter((it) => it.eng != item.eng);
+        if (item) {
+          arrTemp = arrTemp.filter((it) => it.eng != item!.eng);
+        }
       } else {
         item = arrTemp[0];
         arrTemp.shift();
       }
-      // setArrLineTemp(arrTemp);
       arrLineTemp = arrTemp;
       console.log('arrTemp:', arrTemp);
       setRemainCount(arrTemp.length);
-      setCurrEng(item.eng);
-      let quest = '';
-      if (_.isEmpty(item.customDefine)) {
-        // setQuestion(item.vi);
-        quest = item.vi;
-      } else {
-        quest = item.customDefine;
-        // setQuestion(item.customDefine);
+      if (item) {
+        setCurrEng(item.eng);
       }
-      if (isCheckedRevert) {
-        setAnswer(quest);
-        setQuestion(item.eng);
-        randomAns.add(quest);
-      } else {
-        setAnswer(item.eng);
-        setQuestion(quest);
-        randomAns.add(item.eng);
+      let quest = '';
+      if (item) {
+        if (_.isEmpty(item.customDefine)) {
+          quest = item.vi;
+        } else {
+          quest = item.customDefine || '';
+        }
+        if (isCheckedRevert) {
+          setAnswer(quest);
+          setQuestion(item.eng);
+          randomAns.add(quest);
+        } else {
+          setAnswer(item.eng);
+          setQuestion(quest);
+          randomAns.add(item.eng);
+        }
       }
       setShowAns('');
-      let numAnsw = Number(document.getElementById('num-of-ans').value);
-      numAnsw = numAnsw > fullanswers.length ? fullanswers.length : numAnsw;
+      const numOfAnsElement = document.getElementById('num-of-ans') as HTMLInputElement;
+      let numAnsw = Number(numOfAnsElement?.value ?? 3);
+      numAnsw = numAnsw > voiceConfig.items.length ? voiceConfig.items.length : numAnsw;
       while (randomAns.size < numAnsw) {
-        let randId = Math.floor(Math.random() * fullanswers.length);
+        let randId = Math.floor(Math.random() * voiceConfig.items.length);
         if (isCheckedRevert) {
           quest = '';
-          if (_.isEmpty(fullanswers[randId].customDefine)) {
-            quest = fullanswers[randId].vi;
+          if (_.isEmpty(voiceConfig.items[randId].customDefine)) {
+            quest = voiceConfig.items[randId].vi;
           } else {
-            quest = fullanswers[randId].customDefine;
+            quest = voiceConfig.items[randId].customDefine || '';
           }
           randomAns.add(quest);
         } else {
-          randomAns.add(fullanswers[randId].eng);
+          randomAns.add(voiceConfig.items[randId].eng);
         }
       }
     }
     setRandomAns([...randomAns].sort());
   };
 
-  function onNextQuestion() {
+  function onNextQuestion(): void {
     if (_.isEmpty(showAns)) {
       onShow();
     } else {
       nextQuestion();
     }
   }
-  const onCheck = () => {
-    // const isChecked = document.getElementById("revertAsw").checked;
-    var ans = document.getElementById('answer').value;
+  const onCheck = (): void => {
+    let ans = (document.getElementById('answer') as HTMLInputElement)?.value;
     if (_.isEmpty(ans)) {
-      ans = document.getElementById('combo-answer').value;
+      ans = (document.getElementById('combo-answer') as HTMLSelectElement)?.value;
     }
     if (!_.isNull(ans) && !_.isNull(answer)) {
-      // var answ = answer.replaceAll('.', '');
       var answ = answer;
       if (ans.trim().toUpperCase() === answ.toUpperCase().trim()) {
-        /* setErrorMs('correct!'); */
-        // document.getElementById('answer').value = "";
-        // if (isCheckedRevert) {
-        //     lastEngVar = question;
-        //      setLastEng(question);
-        //      setLastVie(answer);
-
-        // }else{
-        //     lastEngVar = answer;
-        //     setLastEng(answer);
-        //     setLastVie(question);
-        // }
-        // if(mode === MODE_SPEAKE_CHANGE_QUST){
-        //     if(isCheckedRevert){
-        //         props.speakText(question, true);
-        //     }else{
-        //         props.speakText(answer, true);
-        //     }
-        // }
-        // onChangeQuestion();
         nextQuestion();
       } else {
         let arr = validateArrStrCheck(ans, answer, 0);
         setShowAns(arrStrCheckToStr(arr));
-        /* setErrorMs('wrong!'); */
       }
     }
   };
 
-  function nextQuestion() {
-    document.getElementById('answer').value = '';
+  function nextQuestion(): void {
+    const answerInput = document.getElementById('answer') as HTMLInputElement;
+    if (answerInput) {
+      answerInput.value = '';
+    }
     if (isCheckedRevert) {
       lastEngVar = question;
       setLastEng(question);
@@ -177,16 +174,15 @@ const PractWords = (props) => {
     }
     if (mode === MODE_SPEAKE_CHANGE_QUST) {
       if (isCheckedRevert) {
-        props.speakText(question, true);
+        speakText(question, true, voiceConfig);
       } else {
-        props.speakText(answer, true);
+        speakText(answer, true, voiceConfig);
       }
     }
     onChangeQuestion();
   }
-  const handleKeyDown = (e) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
     if (e.key === 'ArrowUp') {
-      // processRecord();
     }
     if (e.key === 'Enter') {
       onCheck();
@@ -195,10 +191,10 @@ const PractWords = (props) => {
       onShow();
     }
     if (e.nativeEvent.code === 'ShiftRight') {
-      props.speakText(lastEng, true);
+      speakText(lastEng, true, voiceConfig);
     }
     if (e.nativeEvent.code === 'ControlLeft') {
-      props.speakText(answer, true);
+      speakText(answer, true, voiceConfig);
     }
     if (e.nativeEvent.code === 'ControlRight') {
       setMode(mode === MODE_NONE ? MODE_SPEAKE_CHANGE_QUST : MODE_NONE);
@@ -207,17 +203,17 @@ const PractWords = (props) => {
       nextQuestion();
     }
     if (e.nativeEvent.code === 'Home') {
-      props.getDataFromExcel();
+      // Data reload is handled by PracticeController
     }
   };
-  const onShow = () => {
+  const onShow = (): void => {
     if (_.isEmpty(showAns)) {
       setShowAns(answer);
     } else {
       setShowAns('');
     }
   };
-  const hideAI = () => {
+  const hideAI = (): void => {
     if (classPract !== 'container-55') {
       setClassPract('container-55');
     } else {
@@ -237,28 +233,11 @@ const PractWords = (props) => {
               {lastEng} : {lastVie}
               <FaVolumeUp
                 className="iconSound"
-                onClick={() => props.speakText(lastEng, true)}
+                onClick={() => speakText(lastEng, true, voiceConfig)}
               />{' '}
             </i>
           )}
         </div>
-        <select
-          className="button-33 inline "
-          value={props.sheet}
-          name="sheet"
-          id="slsheet"
-          onChange={(e) => {
-            if (e.target.value && e.target.value != props.sheet) {
-              props.setSheet(e.target.value);
-            }
-          }}
-        >
-          {props.SHEET_NAME.map((option, index) => (
-            <option key={option.range} value={option.range}>
-              {`${option.name}`}
-            </option>
-          ))}
-        </select>
         <input type="number" className="width-30" id="num-of-ans" defaultValue={3} />
         <label>
           <input id="revertAsw" type="checkbox" defaultChecked={false} />⇆
@@ -270,20 +249,15 @@ const PractWords = (props) => {
         <button
           className="common-btn inline"
           onClick={() => {
-            props.onRemoveStoreItem(currEng, nextQuestion);
+            onRemoveStoreItem(currEng || '', nextQuestion, voiceConfig.defaultSheet);
           }}
         >
           X
         </button>
 
-        <button className="common-btn inline" onClick={() => props.getDataFromExcel()}>
-          <FaRedo />
-        </button>
-
         <br />
         <div>{question}</div>
         <br />
-        {/* <div>{showAns}{_.isEmpty(showAns) ? <div></div> : <FaVolumeUp className='iconSound' onClick={() => props.speakText(showAns, true)} />}</div> */}
         <div className="" dangerouslySetInnerHTML={{ __html: showAns }}></div>
         <input
           type="text"
@@ -318,7 +292,6 @@ const PractWords = (props) => {
             </option>
           ))}
         </select>
-        {/*  <div className='msg'>{errorMs === 'wrong!' ? <FaRegFrown /> : <FaRegSmile />}</div> */}
 
         <input
           className="common-btn inline"
@@ -347,17 +320,17 @@ const PractWords = (props) => {
         </div>
         <span> {remainCount}</span>
         <button onClick={() => hideAI()}>Hide AI</button>
+        <PracticeController config={voiceConfig} onChange={setVoiceConfig} />
       </div>
       <div className="ai-pract">
         <AIBoard
           key={0}
           index={0}
-          prefix="pract_eng"
-          enableHis="N"
-          heightRes={140}
-          isMini={true}
+          prefix={props.prefix ?? 'pract_eng'}
+          enableHis={props.enableHis ?? 'N'}
+          heightRes={props.heightRes ?? 140}
+          isMini={props.isMini ?? true}
           statement={question}
-          isShowPract={props.isShowPract}
           lastSentence={lastVie}
         />
       </div>

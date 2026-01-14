@@ -5,15 +5,15 @@ import _ from 'lodash';
 import { FaRegFrown, FaRegSmile, FaVolumeUp } from 'react-icons/fa';
 import { gapi } from 'gapi-script';
 import config from '@/common/config.js';
-import { loadListenSheet } from '@/common/api/sheetDataRepository';
-import { useSpeechSynthesis } from '@/app/hooks/useSpeechSynthesis';
+import { ggSheetProcess } from '@/app/common/hooks/useSheetData';
+import { useSpeechSynthesis } from '@/app/common/hooks/useSpeechSynthesis';
 
 /** =======================
  *  Types
  *  ======================= */
 interface ListenItem {
   eng: string;
-  classItem: string;
+  customDefine: string;
 }
 
 interface LoadResult {
@@ -51,7 +51,7 @@ const ListenPractice: React.FC = () => {
    *  Effects
    *  ======================= */
   useEffect((): void => {
-    getDataFromExcel();
+    ggSheetProcess(onLoad, sheet, 'get');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -59,7 +59,7 @@ const ListenPractice: React.FC = () => {
     if (_.isEqual(indexClass, ALL_WORDS)) {
       const itemAns = ansList.filter((item) => item.eng === question);
       if (!_.isEmpty(itemAns)) {
-        const arr = ansList.filter((item) => item.classItem === itemAns[0].classItem);
+        const arr = ansList.filter((item) => item.customDefine === itemAns[0].customDefine);
         setAnsListTemp(arr);
       }
     } else {
@@ -88,9 +88,9 @@ const ListenPractice: React.FC = () => {
     const arrClassItem: ListenItem[] = [];
 
     items.forEach((item) => {
-      if (!_.isEmpty(item.classItem) && item.classItem !== indexTemp) {
+      if (!_.isEmpty(item.customDefine) && item.customDefine !== indexTemp) {
         arrClassItem.push(item);
-        indexTemp = item.classItem;
+        indexTemp = item.customDefine;
       }
     });
 
@@ -120,7 +120,7 @@ const ListenPractice: React.FC = () => {
       arrAnsList = items;
     } else {
       items.forEach((item) => {
-        if (item.classItem === indexClass) {
+        if (item.customDefine === indexClass) {
           arrAnsList.push(item);
         }
       });
@@ -133,24 +133,6 @@ const ListenPractice: React.FC = () => {
   /** =======================
    *  Data
    *  ======================= */
-  const getDataFromExcel = (): void => {
-    gapi.load('client:auth2', initClient);
-  };
-
-  const initClient = (): void => {
-    const vsheet = sheet;
-
-    gapi.client
-      .init({
-        apiKey: config.apiKey,
-        clientId: config.clientId,
-        discoveryDocs: config.discoveryDocs,
-        scope: config.scope,
-      })
-      .then(() => {
-        loadListenSheet(onLoad, vsheet);
-      });
-  };
 
   const onLoad = (data?: LoadResult, error?: unknown): void => {
     if (data) {
@@ -232,7 +214,7 @@ const ListenPractice: React.FC = () => {
         <select className="button-33" onChange={(e) => setIndexClass(e.target.value)}>
           <option value={ALL_WORDS}>All Word</option>
           {classItems.map((item) => (
-            <option value={item.classItem} key={item.eng}>
+            <option value={item.customDefine} key={item.eng}>
               {item.eng}
             </option>
           ))}

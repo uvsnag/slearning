@@ -4,9 +4,14 @@ import { useState, useEffect, useCallback } from 'react';
 interface UseSpeechSynthesisOptions {
   onEnd?: () => void;
 }
-
+// interface ConfigControl {
+//   voice: number;
+//   rate: number;
+//   volume: number;
+// }
 export interface UseSpeechSynthesisResult {
   speak: (utterance: SpeechSynthesisUtterance) => void;
+  speakText: (speakStr: string, isEng: boolean, config: any) => void;
   cancel: () => void;
   pause: () => void;
   resume: () => void;
@@ -89,8 +94,33 @@ export function useSpeechSynthesis(options?: UseSpeechSynthesisOptions): UseSpee
     setPaused(false);
   }, [supported, paused]);
 
+  const speakText = (speakStr: string, isEng: boolean, config: any): void => {
+    // const vVoiceElement = document.getElementById('voice') as HTMLSelectElement;
+    // const vVoiceVieElement = document.getElementById('voiceVie') as HTMLSelectElement;
+    // const vrateElement = document.getElementById('rate') as HTMLInputElement;
+
+    const vVoice = config.voice || '0';
+    const vVoiceVie = config.voice || '0';
+    const vrate = config.rate || '0.6';
+
+    const utterance = new window.SpeechSynthesisUtterance();
+
+    utterance.text = speakStr;
+    // utterance.lang = 'en-US';
+    utterance.rate = Number(vrate);
+    // utterance.pitch = pitch;
+    if (isEng) {
+      utterance.voice = voices[Number(vVoice)];
+    } else {
+      utterance.voice = voices[Number(vVoiceVie)];
+    }
+    utterance.volume = config.volume;
+    speak(utterance);
+  };
+
   return {
     speak,
+    speakText,
     cancel,
     pause,
     resume,

@@ -43,6 +43,9 @@ const Home: FC = () => {
           <Link href="/youtube-sub">YT-Sub</Link>
         </li>
         <li className="mst-menu-li">
+          <Link href="/practice-word">Practice Word</Link>
+        </li>
+        <li className="mst-menu-li">
           <Link href="/next-sentence">Next-Sentence</Link>
         </li>
         <li className="mst-menu-li">
