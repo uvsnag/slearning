@@ -1,11 +1,11 @@
 1:"$Sreact.fragment"
 2:I[17246,["/slearning/_next/static/chunks/41d36fb5b4c4261e.js","/slearning/_next/static/chunks/66ff6123d568c1da.js"],"ClientPageRoot"]
-3:I[15243,["/slearning/_next/static/chunks/7b576e5ae82bc7e3.js","/slearning/_next/static/chunks/c45d510aec06737c.js","/slearning/_next/static/chunks/93b79336d018ef0a.js","/slearning/_next/static/chunks/3fbd9d2427e5e251.js"],"default"]
+3:I[15243,["/slearning/_next/static/chunks/7b576e5ae82bc7e3.js","/slearning/_next/static/chunks/c45d510aec06737c.js","/slearning/_next/static/chunks/ed8102beb805494c.js","/slearning/_next/static/chunks/3fbd9d2427e5e251.js"],"default"]
 6:I[45336,["/slearning/_next/static/chunks/41d36fb5b4c4261e.js","/slearning/_next/static/chunks/66ff6123d568c1da.js"],"OutletBoundary"]
 7:"$Sreact.suspense"
 :HL["/slearning/_next/static/chunks/241b1ab5cb2d81c1.css","style"]
 :HL["/slearning/_next/static/chunks/7aa924811fb09641.css","style"]
-0:{"buildId":"FTBFIZNfdAf2bko50kvU6","rsc":["$","$1","c",{"children":[["$","$L2",null,{"Component":"$3","serverProvidedParams":{"searchParams":{},"params":{},"promises":["$@4","$@5"]}}],[["$","link","0",{"rel":"stylesheet","href":"/slearning/_next/static/chunks/241b1ab5cb2d81c1.css","precedence":"next"}],["$","link","1",{"rel":"stylesheet","href":"/slearning/_next/static/chunks/7aa924811fb09641.css","precedence":"next"}],["$","script","script-0",{"src":"/slearning/_next/static/chunks/93b79336d018ef0a.js","async":true}],["$","script","script-1",{"src":"/slearning/_next/static/chunks/3fbd9d2427e5e251.js","async":true}]],["$","$L6",null,{"children":["$","$7",null,{"name":"Next.MetadataOutlet","children":"$@8"}]}]]}],"loading":null,"isPartial":false}
+0:{"buildId":"LH6L2lW1Zkpt3P2jpFpy7","rsc":["$","$1","c",{"children":[["$","$L2",null,{"Component":"$3","serverProvidedParams":{"searchParams":{},"params":{},"promises":["$@4","$@5"]}}],[["$","link","0",{"rel":"stylesheet","href":"/slearning/_next/static/chunks/241b1ab5cb2d81c1.css","precedence":"next"}],["$","link","1",{"rel":"stylesheet","href":"/slearning/_next/static/chunks/7aa924811fb09641.css","precedence":"next"}],["$","script","script-0",{"src":"/slearning/_next/static/chunks/ed8102beb805494c.js","async":true}],["$","script","script-1",{"src":"/slearning/_next/static/chunks/3fbd9d2427e5e251.js","async":true}]],["$","$L6",null,{"children":["$","$7",null,{"name":"Next.MetadataOutlet","children":"$@8"}]}]]}],"loading":null,"isPartial":false}
 4:{}
 5:{}
 8:null
