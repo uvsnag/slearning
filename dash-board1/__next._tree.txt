@@ -1,6 +1,6 @@
-:HL["/slearning/_next/static/chunks/eaf1ac855b0a28b0.css","style"]
+:HL["/slearning/_next/static/chunks/480bf2cf1d5851d3.css","style"]
 :HL["/slearning/_next/static/chunks/241b1ab5cb2d81c1.css","style"]
 :HL["/slearning/_next/static/chunks/7aa924811fb09641.css","style"]
 :HL["/slearning/_next/static/chunks/58541dc2fadd5f99.css","style"]
-:HL["/slearning/_next/static/chunks/188e9fbe5dc41621.css","style"]
-0:{"buildId":"fvcRxinn9tXEWP2H6AQuE","tree":{"name":"","paramType":null,"paramKey":"","hasRuntimePrefetch":false,"slots":{"children":{"name":"dash-board1","paramType":null,"paramKey":"dash-board1","hasRuntimePrefetch":false,"slots":{"children":{"name":"__PAGE__","paramType":null,"paramKey":"__PAGE__","hasRuntimePrefetch":false,"slots":null,"isRootLayout":false}},"isRootLayout":false}},"isRootLayout":true},"staleTime":300}
+:HL["/slearning/_next/static/chunks/fce0c199787e87eb.css","style"]
+0:{"buildId":"n6xSLTDylJsz-ylOZP7A8","tree":{"name":"","paramType":null,"paramKey":"","hasRuntimePrefetch":false,"slots":{"children":{"name":"dash-board1","paramType":null,"paramKey":"dash-board1","hasRuntimePrefetch":false,"slots":{"children":{"name":"__PAGE__","paramType":null,"paramKey":"__PAGE__","hasRuntimePrefetch":false,"slots":null,"isRootLayout":false}},"isRootLayout":false}},"isRootLayout":true},"staleTime":300}
