@@ -69,7 +69,7 @@ const MulAI: React.FC<MulAIContainerProps> = (props) => {
             setHeight(Number(event.target.value));
           }}
         />
-        <SheetDataEditor />
+        {/* <SheetDataEditor /> */}
       </div>
       <div className="container-block">
         {/* Map over configs array to create AIBoard instances */}

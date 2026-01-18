@@ -119,8 +119,8 @@ const Notify = (): ReactElement => {
         strResult += '\n';
       }
     }
-    const txtFieldElement = document.getElementById('txtField') as HTMLTextAreaElement;
-    if (txtFieldElement) txtFieldElement.value = strResult;
+    // const txtFieldElement = document.getElementById('txtField') as HTMLTextAreaElement;
+    // if (txtFieldElement) txtFieldElement.value = strResult;
   };
 
   const execute = (): void => {
@@ -288,13 +288,13 @@ const Notify = (): ReactElement => {
           <option value={IND_SPEAK_NO_NOTI_NO_VIE}>Voice Eng</option>
           <option value={IND_SPEAK_NOTI_ENG}>noti Eng</option>
         </select>
-        <div className="option-noti bolder" id="control">
+        {/* <div className="option-noti bolder" id="control">
           <div className="option-left  notify-left">
             <textarea title="f" id="txtField"></textarea>
             <br />
           </div>
           <div className="option-right notify-right"></div>
-        </div>
+        </div> */}
         <div className="control-footer">
           <input
             className="common-btn inline"

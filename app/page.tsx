@@ -37,10 +37,10 @@ const Home: FC = () => {
     <div className="App">
       <ul className="mst-menu">
         <li className="mst-menu-li">
-          <Link href="/notify">Notify</Link>
+          <Link href="/youtube-sub">YT-Sub</Link>
         </li>
         <li className="mst-menu-li">
-          <Link href="/youtube-sub">YT-Sub</Link>
+          <Link href="/notify">Notify</Link>
         </li>
         <li className="mst-menu-li">
           <Link href="/practice-word">Practice Word</Link>

@@ -2,11 +2,13 @@
 import { useState, ChangeEvent, useEffect } from 'react';
 import { ggSheetProcessTwoValues, SheetItem } from '@/app/common/hooks/useSheetData';
 import '@/slearning/multi-ai/style-ai.css';
+import { set } from 'lodash';
 
 export interface SheetDataEditorProps {
   defaultSheet?: string;
   value1?: string;
   value2?: string;
+  isUse?: boolean;
 }
 
 export const SHEET_AUTO: SheetItem[] = [
@@ -19,6 +21,7 @@ export const SHEET_AUTO: SheetItem[] = [
   { range: 'AUTO!Y2:AA500', name: 'ABoard7' },
 ];
 
+
 const SheetDataEditor: React.FC<SheetDataEditorProps> = (props: SheetDataEditorProps) => {
   const [selectedRange, setSelectedRange] = useState<string>(
     props.defaultSheet || SHEET_AUTO[0]?.range || '',
@@ -27,7 +30,7 @@ const SheetDataEditor: React.FC<SheetDataEditorProps> = (props: SheetDataEditorP
   const [value2, setValue2] = useState<string>(props.value2 || '');
   const [message, setMessage] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [usePropsValues, setUsePropsValues] = useState<boolean>(false);
+  const [usePropsValues, setUsePropsValues] = useState<boolean>(props.isUse ||false);
 
   useEffect(() => {
     if (usePropsValues) {
@@ -68,6 +71,10 @@ const SheetDataEditor: React.FC<SheetDataEditorProps> = (props: SheetDataEditorP
       setMessage(` Error: ${error?.message || 'Failed to save data'}`);
       setIsLoading(false);
     }
+
+    setTimeout(() => {
+      setMessage('');
+    }, 5000);
   };
 
   return (
@@ -80,7 +87,7 @@ const SheetDataEditor: React.FC<SheetDataEditorProps> = (props: SheetDataEditorP
           placeholder="Value 1"
           className="common-input"
           style={{
-            width: '100px',
+            width: '140px',
           }}
         />
         <input
@@ -90,9 +97,13 @@ const SheetDataEditor: React.FC<SheetDataEditorProps> = (props: SheetDataEditorP
           placeholder="Value 2"
           className="common-input"
           style={{
-            width: '100px',
+            width: '230px',
           }}
         />
+        <button onClick={handleSave} disabled={isLoading} className="common-btn">
+          {isLoading ? 'Saving...' : ' Save'}
+        </button>
+        <br />
         <select
           value={selectedRange}
           onChange={(e: ChangeEvent<HTMLSelectElement>) => setSelectedRange(e.target.value)}
@@ -105,9 +116,7 @@ const SheetDataEditor: React.FC<SheetDataEditorProps> = (props: SheetDataEditorP
             </option>
           ))}
         </select>
-        <button onClick={handleSave} disabled={isLoading} className="common-btn">
-          {isLoading ? 'Saving...' : ' Save'}
-        </button>
+
         {/* <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}> */}
         <input
           type="checkbox"

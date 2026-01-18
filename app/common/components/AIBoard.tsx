@@ -186,6 +186,8 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
   }
 
   async function askDec(promVal: string): Promise<void> {
+    setValue1('');
+    setValue2('');
     if (!promVal || promVal.trim().length === 0) {
       return;
     }
@@ -196,7 +198,6 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
     toggleClass(`loading${props.prefix}${props.index}`, false);
     // let responseTmp = response;
     addLog(formatMyQus(promVal) + '<br/>', true);
-    setValue1(promVal);
 
     try {
       if (aiType === TP_GPT) {
@@ -207,6 +208,7 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
         responseTxt = useHis === 'Y' ? await askGeminiHis(promVal) : await askGemini(promVal);
       }
       addLog(fomatRawResponse(responseTxt), false);
+      setValue1(promVal);
       setValue2(fomatRawResponse(responseTxt));
     } catch (error) {
       addLog(String(error), false);
