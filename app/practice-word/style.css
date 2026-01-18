@@ -42,6 +42,9 @@
   border: 3px solid #020202;
   text-align: center;
 }
+.dark-90 .prac {
+  border: 3px solid #ffffff;
+}
 
 #btnHideWhenPrac {
   width: 25px;

@@ -2,7 +2,7 @@
 import { useEffect, useState, useRef, RefObject } from 'react';
 import _ from 'lodash';
 import './style.css';
-import { FaVolumeUp, FaVolumeMute } from 'react-icons/fa';
+import { FaVolumeUp, FaVolumeMute, FaCog, FaExchangeAlt, FaSyncAlt } from 'react-icons/fa';
 import VoiceToText from '@/app/common/components/VoiceToText';
 import AIBoard from '@/app/common/components/AIBoard';
 import { DataItem, STORE_ALIAS, onRemoveStoreItem } from '@/app/common/hooks/useSheetData';
@@ -10,6 +10,8 @@ import { DataItem, STORE_ALIAS, onRemoveStoreItem } from '@/app/common/hooks/use
 import { validateArrStrCheck, arrStrCheckToStr } from '@/common/commonElearn';
 import PracticeController, { ConfigControlProps } from '../common/components/PracticeController';
 import { useSpeechSynthesis } from '../common/hooks/useSpeechSynthesis';
+import { toggleCollapse } from '../common/common';
+import SheetDataEditor from '../common/components/SheetDataEditor';
 
 interface PractWordsProps {
   prefix?: string;
@@ -28,7 +30,7 @@ const PractWords = (props: PractWordsProps) => {
     oderRandomS: 'random',
     voice: 0,
     rate: 1,
-    volume: 1,
+    volume: 0.6,
     index: 'pract_words',
     items: [],
   });
@@ -131,6 +133,8 @@ const PractWords = (props: PractWordsProps) => {
           randomAns.add(voiceConfig.items[randId].eng);
         }
       }
+    }else{
+      setRemainCount(0);
     }
     setRandomAns([...randomAns].sort());
   };
@@ -147,6 +151,7 @@ const PractWords = (props: PractWordsProps) => {
     if (_.isEmpty(ans)) {
       ans = (document.getElementById('combo-answer') as HTMLSelectElement)?.value;
     }
+
     if (!_.isNull(ans) && !_.isNull(answer)) {
       var answ = answer;
       if (ans.trim().toUpperCase() === answ.toUpperCase().trim()) {
@@ -228,24 +233,17 @@ const PractWords = (props: PractWordsProps) => {
           {_.isEmpty(lastEng) ? (
             <div></div>
           ) : (
-            <i>
+            <span style={{ fontSize: 19 }}>
               {' '}
               {lastEng} : {lastVie}
               <FaVolumeUp
                 className="iconSound"
                 onClick={() => speakText(lastEng, true, voiceConfig)}
               />{' '}
-            </i>
+            </span>
           )}
-        </div>
-        <input type="number" className="width-30" id="num-of-ans" defaultValue={3} />
-        <label>
-          <input id="revertAsw" type="checkbox" defaultChecked={false} />⇆
-        </label>
+        </div><br/>
 
-        <button className="common-btn inline" onClick={() => onNextQuestion()}>
-          Next
-        </button>
         <button
           className="common-btn inline"
           onClick={() => {
@@ -255,7 +253,12 @@ const PractWords = (props: PractWordsProps) => {
           X
         </button>
 
-        <br />
+        <span>{'\u00A0\u00A0\u00A0'}</span>
+      
+        <button className="common-btn inline" onClick={() => onNextQuestion()}>
+          Next
+        </button>
+        <br /><br />
         <div>{question}</div>
         <br />
         <div className="" dangerouslySetInnerHTML={{ __html: showAns }}></div>
@@ -268,15 +271,11 @@ const PractWords = (props: PractWordsProps) => {
         />
 
         <VoiceToText setText={setInputAns} index={0}></VoiceToText>
-
+        <label>
+          <input id="revertAsw" type="checkbox" defaultChecked={false} />⇆
+        </label>
         <br />
-        <input
-          className="common-btn inline"
-          type="submit"
-          value="Check"
-          id="btnSubmit"
-          onClick={() => onCheck()}
-        />
+
         <select
           className="button-33"
           id="combo-answer"
@@ -293,13 +292,13 @@ const PractWords = (props: PractWordsProps) => {
           ))}
         </select>
 
-        <input
+        {/* <input
           className="common-btn inline"
           type="submit"
           value="Show Ans"
           id="btnShowAns"
           onClick={() => onShow()}
-        />
+        /> */}
         <button
           className="common-btn inline"
           onClick={() => setMode(mode === MODE_NONE ? MODE_SPEAKE_CHANGE_QUST : MODE_NONE)}
@@ -319,7 +318,26 @@ const PractWords = (props: PractWordsProps) => {
           </span>
         </div>
         <span> {remainCount}</span>
-        <button onClick={() => hideAI()}>Hide AI</button>
+        <br />
+        <button className="common-btn inline" onClick={() => hideAI()}>
+          Hide AI
+        </button>
+        <input type="number" className="width-30" id="num-of-ans" defaultValue={3} />
+        <input
+          className="common-btn inline"
+          type="submit"
+          value="Check"
+          id="btnSubmit"
+          onClick={() => onCheck()}
+        />
+
+          <div onClick={() => toggleCollapse(`config-pract-save-sheet`)}>
+          <FaSyncAlt/>
+          </div>
+          <div className="collapse-content bolder" id={`config-pract-save-sheet`}>
+          <SheetDataEditor value1={lastEng} value2={lastVie} isUse={true} />
+        </div>
+        
         <PracticeController config={voiceConfig} onChange={setVoiceConfig} />
       </div>
       <div className="ai-pract">

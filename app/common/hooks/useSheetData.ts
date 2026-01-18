@@ -32,10 +32,28 @@ export const SHEET_LIST: SheetItem[] = [
   { range: 'Notify!Q2:S500', name: 'Board5' },
   { range: 'Notify!U2:W500', name: 'Board6' },
   { range: 'Notify!Y2:AA500', name: 'Board7' },
+//Batch1
+  { range: 'Batch1!A2:B500', name: 'B1Board1' },
+  { range: 'Batch1!D2:E500', name: 'B1Board2' },
+  { range: 'Batch1!G2:H500', name: 'B1Board3' },
+  { range: 'Batch1!J2:K500', name: 'B1Board4' },
+  { range: 'Batch1!M2:N500', name: 'B1Board5' },
+  { range: 'Batch1!P2:Q500', name: 'B1Board6' },
+  { range: 'Batch1!S2:T500', name: 'B1Board7' },
+  { range: 'Batch1!V2:W500', name: 'B1Board8' },
+  { range: 'Batch1!Y2:Z500', name: 'B1Board9' },
+  { range: 'Batch1!AB2:AC500', name: 'B1Board10' },
+//Batch2
+{ range: 'Batch2!A2:B500', name: 'B2Board1' },
+{ range: 'Batch2!G2:H500', name: 'B2Board3' },
+{ range: 'Batch2!J2:K500', name: 'B2Board4' },
+{ range: 'Batch2!M2:N500', name: 'B2Board5' },
+//Store
   { range: `${STORE_ALIAS}1`, name: 'Store1' },
   { range: `${STORE_ALIAS}2`, name: 'Store2' },
   { range: `${STORE_ALIAS}3`, name: 'Store3' },
 ];
+
 
 /**
  * Update/Insert/Delete data in a specific range of the Google Sheet
@@ -318,7 +336,7 @@ export const getDataFromExcel = async (sheet: string, onLoad: any) => {
       onLoad(storeData);
     }
   } else {
-    ggSheetProcess(onLoad, sheet, 'get');
+    await ggSheetProcess(onLoad, sheet, 'get');
   }
 };
 

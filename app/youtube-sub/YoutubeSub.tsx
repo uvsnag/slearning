@@ -841,8 +841,14 @@ const YoutubeSub: FC = () => {
           <input type="submit" value="H" id="btnHide" onClick={() => onHideAll()} />
           <input type="submit" value="S" id="btnShow" onClick={() => onShowAll()} />
         </div>
+        <div className="width-100" onClick={() => toggleCollapse('mul-ai')}>
+          Mul-AI
+        </div>
       </div>
-      <MulAI {...MUL_PROP}></MulAI>
+
+      <div id="mul-ai" className="collapse-content bolder">
+        <MulAI {...MUL_PROP}></MulAI>
+      </div>
     </div>
   );
 };

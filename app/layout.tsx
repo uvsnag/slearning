@@ -5,7 +5,7 @@ import './globals.css';
 import Link from 'next/link';
 import { FaHome } from 'react-icons/fa';
 import { useEffect } from 'react';
-
+import logoImg from '@/public/logo.png';
 export const handleCheckboxDarkChange = (e: any) => {
   // const targetDiv = document.getElementById("root");
   const bodyElement = document.body;
@@ -27,6 +27,10 @@ export default function RootLayout({
   }, []);
   return (
     <html lang="en">
+        <head>
+        <title>SLearning</title>
+        {/* <link rel="icon" href={logoImg.src} /> */}
+      </head>
       <body>
         {/* <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}> */}
         <div>
