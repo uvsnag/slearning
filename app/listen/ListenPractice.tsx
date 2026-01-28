@@ -5,7 +5,7 @@ import _ from 'lodash';
 import { FaRegFrown, FaRegSmile, FaVolumeUp } from 'react-icons/fa';
 import { gapi } from 'gapi-script';
 import config from '@/common/config.js';
-import { ggSheetProcess } from '@/app/common/hooks/useSheetData';
+import { getDataFromExcel } from '@/app/common/hooks/useSheetData';
 import { useSpeechSynthesis } from '@/app/common/hooks/useSpeechSynthesis';
 
 /** =======================
@@ -51,7 +51,8 @@ const ListenPractice: React.FC = () => {
    *  Effects
    *  ======================= */
   useEffect((): void => {
-    ggSheetProcess(onLoad, sheet, 'get');
+    // ggSheetProcess(onLoad, sheet, 'get');
+    getDataFromExcel(sheet, onLoad);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

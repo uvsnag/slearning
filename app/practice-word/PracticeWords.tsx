@@ -18,6 +18,7 @@ interface PractWordsProps {
   enableHis?: 'Y' | 'N';
   heightRes?: number;
   isMini?: boolean;
+  showPract?: 'Y' | 'N';
 }
 
 let lastEngVar: string = '';
@@ -25,8 +26,8 @@ let arrLineTemp: DataItem[] = [];
 let isCheckedRevert: boolean = false;
 
 const PractWords = (props: PractWordsProps) => {
-  const [voiceConfig, setVoiceConfig] = useState<ConfigControlProps>({
-    defaultSheet: 'Notify!A2:C500',
+  const [sheetConfig, setSheetConfig] = useState<ConfigControlProps>({
+    propSheet: 'Notify!A2:C500',
     oderRandomS: 'random',
     voice: 0,
     rate: 1,
@@ -36,7 +37,7 @@ const PractWords = (props: PractWordsProps) => {
   });
   const MODE_NONE = 'None';
   const MODE_SPEAKE_CHANGE_QUST = 'Speak';
-
+  const [showPanel, setShowPanel] = useState<'Y' | 'N'>(props.showPract ?? 'Y');
   const [question, setQuestion] = useState<string>('');
   const [answer, setAnswer] = useState<string>('');
   const [showAns, setShowAns] = useState<string>('');
@@ -45,6 +46,7 @@ const PractWords = (props: PractWordsProps) => {
   const [classPract, setClassPract] = useState<string>('container-55');
   const [mode, setMode] = useState<string>(MODE_NONE);
   const [isStartRecord, setIsStartRecord] = useState<boolean>(false);
+  const [isShowDelete, setIsShowDelete] = useState<boolean>(false);
   const [randomAns, setRandomAns] = useState<string[]>([]);
   const [remainCount, setRemainCount] = useState<number>(0);
   const [currEng, setCurrEng] = useState<string | null>(null);
@@ -52,9 +54,15 @@ const PractWords = (props: PractWordsProps) => {
   const { speakText } = useSpeechSynthesis();
 
   useEffect(() => {
+    setIsShowDelete(
+      sheetConfig.propSheet?.startsWith(STORE_ALIAS) || sheetConfig.propSheet?.startsWith('AUTO'),
+    );
+  }, [sheetConfig.propSheet]);
+
+  useEffect(() => {
     arrLineTemp = [];
     onChangeQuestion(true);
-  }, [voiceConfig.items]);
+  }, [sheetConfig.items]);
 
   function setInputAns(text: string): void {
     if (inputAns.current) {
@@ -67,20 +75,20 @@ const PractWords = (props: PractWordsProps) => {
     const revertCheckbox = document.getElementById('revertAsw') as HTMLInputElement;
     isCheckedRevert = revertCheckbox?.checked ?? false;
 
-    if (!_.isEmpty(voiceConfig.items)) {
-      let isStore = voiceConfig.defaultSheet?.startsWith(STORE_ALIAS);
+    if (!_.isEmpty(sheetConfig.items)) {
+      let isStore = sheetConfig.propSheet?.startsWith(STORE_ALIAS);
       let listSents = isStore
-        ? localStorage.getItem(voiceConfig.defaultSheet)
-          ? JSON.parse(localStorage.getItem(voiceConfig.defaultSheet)!)
+        ? localStorage.getItem(sheetConfig.propSheet)
+          ? JSON.parse(localStorage.getItem(sheetConfig.propSheet)!)
           : []
-        : voiceConfig.items;
+        : sheetConfig.items;
       let item: DataItem | null = null;
       let arrTemp: DataItem[] =
         _.isEmpty(arrLineTemp) || isInit ? _.cloneDeep(listSents) : _.cloneDeep(arrLineTemp);
       if (_.isEmpty(arrTemp)) {
         return;
       }
-      if (voiceConfig.oderRandomS === 'random') {
+      if (sheetConfig.oderRandomS === 'random') {
         const validOptions = arrTemp.filter((item) => item.eng !== lastEngVar);
 
         let index = Math.floor(Math.random() * validOptions.length);
@@ -118,22 +126,22 @@ const PractWords = (props: PractWordsProps) => {
       setShowAns('');
       const numOfAnsElement = document.getElementById('num-of-ans') as HTMLInputElement;
       let numAnsw = Number(numOfAnsElement?.value ?? 3);
-      numAnsw = numAnsw > voiceConfig.items.length ? voiceConfig.items.length : numAnsw;
+      numAnsw = numAnsw > sheetConfig.items.length ? sheetConfig.items.length : numAnsw;
       while (randomAns.size < numAnsw) {
-        let randId = Math.floor(Math.random() * voiceConfig.items.length);
+        let randId = Math.floor(Math.random() * sheetConfig.items.length);
         if (isCheckedRevert) {
           quest = '';
-          if (_.isEmpty(voiceConfig.items[randId].customDefine)) {
-            quest = voiceConfig.items[randId].vi;
+          if (_.isEmpty(sheetConfig.items[randId].customDefine)) {
+            quest = sheetConfig.items[randId].vi;
           } else {
-            quest = voiceConfig.items[randId].customDefine || '';
+            quest = sheetConfig.items[randId].customDefine || '';
           }
           randomAns.add(quest);
         } else {
-          randomAns.add(voiceConfig.items[randId].eng);
+          randomAns.add(sheetConfig.items[randId].eng);
         }
       }
-    }else{
+    } else {
       setRemainCount(0);
     }
     setRandomAns([...randomAns].sort());
@@ -179,9 +187,9 @@ const PractWords = (props: PractWordsProps) => {
     }
     if (mode === MODE_SPEAKE_CHANGE_QUST) {
       if (isCheckedRevert) {
-        speakText(question, true, voiceConfig);
+        speakText(question, true, sheetConfig);
       } else {
-        speakText(answer, true, voiceConfig);
+        speakText(answer, true, sheetConfig);
       }
     }
     onChangeQuestion();
@@ -196,10 +204,10 @@ const PractWords = (props: PractWordsProps) => {
       onShow();
     }
     if (e.nativeEvent.code === 'ShiftRight') {
-      speakText(lastEng, true, voiceConfig);
+      speakText(lastEng, true, sheetConfig);
     }
     if (e.nativeEvent.code === 'ControlLeft') {
-      speakText(answer, true, voiceConfig);
+      speakText(answer, true, sheetConfig);
     }
     if (e.nativeEvent.code === 'ControlRight') {
       setMode(mode === MODE_NONE ? MODE_SPEAKE_CHANGE_QUST : MODE_NONE);
@@ -228,119 +236,144 @@ const PractWords = (props: PractWordsProps) => {
 
   return (
     <div className={classPract}>
-      <div className="prac">
-        <div>
-          {_.isEmpty(lastEng) ? (
-            <div></div>
-          ) : (
-            <span style={{ fontSize: 19 }}>
-              {' '}
-              {lastEng} : {lastVie}
-              <FaVolumeUp
-                className="iconSound"
-                onClick={() => speakText(lastEng, true, voiceConfig)}
-              />{' '}
-            </span>
+      {showPanel == 'Y' && (
+        <div className="prac">
+          <div>
+            {_.isEmpty(lastEng) ? (
+              <div></div>
+            ) : (
+              <span style={{ fontSize: 19 }}>
+                {' '}
+                {lastEng} : {lastVie}
+                <FaVolumeUp
+                  className="iconSound"
+                  onClick={() => speakText(lastEng, true, sheetConfig)}
+                />{' '}
+              </span>
+            )}
+          </div>
+          <br />
+
+          {isShowDelete && (
+            <button
+              className="common-btn inline"
+              onClick={() => {
+                onRemoveStoreItem(currEng || '', nextQuestion, sheetConfig.propSheet);
+              }}
+            >
+              X
+            </button>
           )}
-        </div><br/>
 
-        <button
-          className="common-btn inline"
-          onClick={() => {
-            onRemoveStoreItem(currEng || '', nextQuestion, voiceConfig.defaultSheet);
-          }}
-        >
-          X
-        </button>
+          <span>{'\u00A0\u00A0\u00A0'}</span>
 
-        <span>{'\u00A0\u00A0\u00A0'}</span>
-      
-        <button className="common-btn inline" onClick={() => onNextQuestion()}>
-          Next
-        </button>
-        <br /><br />
-        <div>{question}</div>
-        <br />
-        <div className="" dangerouslySetInnerHTML={{ __html: showAns }}></div>
-        <input
-          type="text"
-          id="answer"
-          autoComplete="off"
-          ref={inputAns}
-          onKeyDown={(e) => handleKeyDown(e)}
-        />
+          <button className="common-btn inline" onClick={() => onNextQuestion()}>
+            Next
+          </button>
+          <br />
+          <br />
+          <div>{question}</div>
+          <br />
+          <div className="" dangerouslySetInnerHTML={{ __html: showAns }}></div>
+          <input
+            type="text"
+            id="answer"
+            autoComplete="off"
+            ref={inputAns}
+            onKeyDown={(e) => handleKeyDown(e)}
+          />
 
-        <VoiceToText setText={setInputAns} index={0}></VoiceToText>
-        <label>
-          <input id="revertAsw" type="checkbox" defaultChecked={false} />⇆
-        </label>
-        <br />
+          <VoiceToText setText={setInputAns} index={0}></VoiceToText>
+          <label>
+            <input id="revertAsw" type="checkbox" defaultChecked={false} />⇆
+          </label>
+          <br />
 
-        <select
-          className="button-33"
-          id="combo-answer"
-          name="combo-ans"
-          onChange={(event) => {
-            onCheck();
-          }}
-        >
-          <option value=""></option>
-          {randomAns.map((ans, index) => (
-            <option key={ans} value={ans}>
-              {`${ans}`}
-            </option>
-          ))}
-        </select>
+          <select
+            className="button-33"
+            id="combo-answer"
+            name="combo-ans"
+            onChange={(event) => {
+              onCheck();
+            }}
+          >
+            <option value=""></option>
+            {randomAns.map((ans, index) => (
+              <option key={ans} value={ans}>
+                {`${ans}`}
+              </option>
+            ))}
+          </select>
 
-        {/* <input
+          {/* <input
           className="common-btn inline"
           type="submit"
           value="Show Ans"
           id="btnShowAns"
           onClick={() => onShow()}
         /> */}
-        <button
-          className="common-btn inline"
-          onClick={() => setMode(mode === MODE_NONE ? MODE_SPEAKE_CHANGE_QUST : MODE_NONE)}
-        >
-          {mode === MODE_NONE ? <FaVolumeMute /> : <FaVolumeUp />}
-        </button>
-        <div className="tooltip">
-          ?
-          <span className="tooltiptext">
-            <p>ArrowUp: Record/Stop</p>
-            <p>ShiftLeft: Show answer</p>
-            <p>ShiftRight: Speak Last Eng</p>
-            <p>ControlLeft: Speak Current</p>
-            <p>ControlRight: Turn On/Off Speak</p>
-            <p>Home: Reload data</p>
-            <p>End: Next Answer</p>
-          </span>
-        </div>
-        <span> {remainCount}</span>
-        <br />
-        <button className="common-btn inline" onClick={() => hideAI()}>
-          Hide AI
-        </button>
-        <input type="number" className="width-30" id="num-of-ans" defaultValue={3} />
-        <input
-          className="common-btn inline"
-          type="submit"
-          value="Check"
-          id="btnSubmit"
-          onClick={() => onCheck()}
-        />
+          <button
+            className="common-btn inline"
+            onClick={() => setMode(mode === MODE_NONE ? MODE_SPEAKE_CHANGE_QUST : MODE_NONE)}
+          >
+            {mode === MODE_NONE ? <FaVolumeMute /> : <FaVolumeUp />}
+          </button>
+          <div className="tooltip">
+            ?
+            <span className="tooltiptext">
+              <p>ArrowUp: Record/Stop</p>
+              <p>ShiftLeft: Show answer</p>
+              <p>ShiftRight: Speak Last Eng</p>
+              <p>ControlLeft: Speak Current</p>
+              <p>ControlRight: Turn On/Off Speak</p>
+              <p>Home: Reload data</p>
+              <p>End: Next Answer</p>
+            </span>
+          </div>
+          <span> {remainCount}</span>
+          <br />
+          <button className="common-btn inline" onClick={() => hideAI()}>
+            Hide AI
+          </button>
+          <input type="number" className="width-30" id="num-of-ans" defaultValue={3} />
+          <input
+            className="common-btn inline"
+            type="submit"
+            value="Check"
+            id="btnSubmit"
+            onClick={() => onCheck()}
+          />
 
           <div onClick={() => toggleCollapse(`config-pract-save-sheet`)}>
-          <FaSyncAlt/>
+            <FaSyncAlt />
           </div>
           <div className="collapse-content bolder" id={`config-pract-save-sheet`}>
-          <SheetDataEditor value1={lastEng} value2={lastVie} isUse={true} />
+            <SheetDataEditor value1={lastEng} value2={lastVie} isUse={true} />
+          </div>
+
+          <PracticeController config={sheetConfig} onChange={setSheetConfig} />
         </div>
-        
-        <PracticeController config={voiceConfig} onChange={setVoiceConfig} />
-      </div>
+      )}
+      {showPanel == 'N' && (
+        <AIBoard
+          key={0}
+          index={0}
+          prefix={`${props.prefix}pract_eng2`}
+          enableHis={props.enableHis ?? 'N'}
+          heightRes={props.heightRes ?? 167}
+          collapse={'N'}
+          // isMini={props.isMini ?? true}
+          // statement={question}
+          // lastSentence={lastVie}
+        />
+      )}
       <div className="ai-pract">
+        <button
+          className="common-btn inline"
+          onClick={() => setShowPanel((prev) => (prev === 'Y' ? 'N' : 'Y'))}
+        >
+          Change Panel
+        </button>
         <AIBoard
           key={0}
           index={0}

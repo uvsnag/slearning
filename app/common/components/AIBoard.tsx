@@ -9,6 +9,7 @@ import '@/slearning/multi-ai/style-ai.css';
 import loadingImg from '@/public/loading.webp';
 import SheetDataEditor from './SheetDataEditor';
 import { FaCog, FaSave } from 'react-icons/fa';
+import SignOutButton from './SignOutButton';
 const TP_GEN = 1;
 const TP_GPT = 2;
 let aiType = TP_GEN;
