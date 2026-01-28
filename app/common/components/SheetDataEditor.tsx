@@ -1,11 +1,12 @@
 'use client';
 import { useState, ChangeEvent, useEffect } from 'react';
-import { ggSheetProcessTwoValues, SheetItem } from '@/app/common/hooks/useSheetData';
+import { ggSheetUpdateTwoValues, SheetItem } from '@/app/common/hooks/useSheetData';
 import '@/slearning/multi-ai/style-ai.css';
 import { set } from 'lodash';
+import SignOutButton from './SignOutButton';
 
 export interface SheetDataEditorProps {
-  defaultSheet?: string;
+  propSheet?: string;
   value1?: string;
   value2?: string;
   isUse?: boolean;
@@ -21,16 +22,15 @@ export const SHEET_AUTO: SheetItem[] = [
   { range: 'AUTO!Y2:AA500', name: 'ABoard7' },
 ];
 
-
 const SheetDataEditor: React.FC<SheetDataEditorProps> = (props: SheetDataEditorProps) => {
   const [selectedRange, setSelectedRange] = useState<string>(
-    props.defaultSheet || SHEET_AUTO[0]?.range || '',
+    props.propSheet || SHEET_AUTO[0]?.range || '',
   );
   const [value1, setValue1] = useState<string>(props.value1 || '');
   const [value2, setValue2] = useState<string>(props.value2 || '');
   const [message, setMessage] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [usePropsValues, setUsePropsValues] = useState<boolean>(props.isUse ||false);
+  const [usePropsValues, setUsePropsValues] = useState<boolean>(props.isUse || false);
 
   useEffect(() => {
     if (usePropsValues) {
@@ -52,10 +52,10 @@ const SheetDataEditor: React.FC<SheetDataEditorProps> = (props: SheetDataEditorP
     setMessage('Saving...');
 
     try {
-      await ggSheetProcessTwoValues(
-        (response: any) => {
+      await ggSheetUpdateTwoValues({
+        callback: (response: any) => {
           if (response?.success) {
-            setMessage(' Data saved successfully!');
+            setMessage('Data saved successfully!');
             setValue1('');
             setValue2('');
           } else {
@@ -63,10 +63,10 @@ const SheetDataEditor: React.FC<SheetDataEditorProps> = (props: SheetDataEditorP
           }
           setIsLoading(false);
         },
-        selectedRange,
+        range: selectedRange,
         value1,
         value2,
-      );
+      });
     } catch (error: any) {
       setMessage(` Error: ${error?.message || 'Failed to save data'}`);
       setIsLoading(false);
@@ -129,6 +129,7 @@ const SheetDataEditor: React.FC<SheetDataEditorProps> = (props: SheetDataEditorP
             // }
           }}
         />
+        <SignOutButton />
         {/* <span>Use props</span> */}
         {/* </label> */}
       </div>

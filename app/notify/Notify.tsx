@@ -9,8 +9,8 @@ import { useCookies } from 'react-cookie';
 import PracticeController, { ConfigControlProps } from '../common/components/PracticeController';
 
 const Notify = (): ReactElement => {
-  const [voiceConfig, setVoiceConfig] = useState<ConfigControlProps>({
-    defaultSheet: 'Notify!A2:C500',
+  const [sheetConfig, setSheetConfig] = useState<ConfigControlProps>({
+    propSheet: 'Notify!A2:C500',
     oderRandomS: 'random',
     voice: 0,
     rate: 1,
@@ -61,15 +61,15 @@ const Notify = (): ReactElement => {
   }, []);
 
   useEffect((): void => {
-    console.log('  Voice Config Changed:', voiceConfig);
-  }, [voiceConfig]);
+    console.log('  Voice Config Changed:', sheetConfig);
+  }, [sheetConfig]);
 
   useEffect((): void => {
-    if (voiceConfig.items) {
-      // getDataFromExcel(voiceConfig.sheet, setItems);
-      setItems(voiceConfig.items);
+    if (sheetConfig.items) {
+      // getDataFromExcel(sheetConfig.sheet, setItems);
+      setItems(sheetConfig.items);
     }
-  }, [voiceConfig.items]);
+  }, [sheetConfig.items]);
 
   useEffect((): void => {
     onGSheetApi();
@@ -181,7 +181,7 @@ const Notify = (): ReactElement => {
             _.isEqual(isSpeak, IND_SPEAK_NO_NOTI_ENG) ||
             _.isEqual(isSpeak, IND_SPEAK_ALL_ENG)
           ) {
-            speakText(engStr, true, voiceConfig);
+            speakText(engStr, true, sheetConfig);
           }
 
           if (
@@ -189,7 +189,7 @@ const Notify = (): ReactElement => {
             _.isEqual(isSpeak, IND_SPEAK_NO_NOTI) ||
             _.isEqual(isSpeak, IND_SPEAK_NO_NOTI_ENG)
           ) {
-            speakText(viStr, false, voiceConfig);
+            speakText(viStr, false, sheetConfig);
           }
           if (
             _.isEqual(isSpeak, IND_SPEAK_NO_NOTI_ENG) ||
@@ -267,7 +267,7 @@ const Notify = (): ReactElement => {
   };
   return (
     <div className="">
-      <PracticeController config={voiceConfig} onChange={setVoiceConfig} />
+      <PracticeController config={sheetConfig} onChange={setSheetConfig} />
       <div id="notify-control">
         <textarea id="strContinue" value={strContinue} onChange={handleChangeCookie}></textarea>
         <br />
@@ -327,7 +327,7 @@ const Notify = (): ReactElement => {
         ) : (
           <FaVolumeUp
             className="iconSound"
-            onClick={(): void => speakText(speakStrEng, true, voiceConfig)}
+            onClick={(): void => speakText(speakStrEng, true, sheetConfig)}
           />
         )}
       </div>

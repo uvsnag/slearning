@@ -3,7 +3,6 @@ import { useEffect, useState, CSSProperties, ChangeEvent, ReactElement } from 'r
 // import './style-noti.css';
 import _ from 'lodash';
 import {
-  ggSheetProcess,
   DataItem,
   STORE_ALIAS,
   SHEET_LIST,
@@ -17,7 +16,7 @@ import { toggleCollapse } from '../common';
 import { SHEET_AUTO } from './SheetDataEditor';
 
 export interface ConfigControlProps {
-  defaultSheet: string;
+  propSheet: string;
   oderRandomS: string;
   voice: number;
   rate: number;
@@ -40,7 +39,7 @@ const PracticeController = (props: PracticeControllerProps): ReactElement => {
   const [voiceIndexVie, setVoiceIndexVie] = useState<number>(0);
   const [rate, setRate] = useState<number>(props.config.rate);
   const [volumn, setVolumn] = useState<number>(props.config.volume);
-  const [sheet, setSheet] = useState<string>(props.config.defaultSheet);
+  const [sheet, setSheet] = useState<string>(props.config.propSheet);
   // const [cookies, setCookie] = useCookies(['cookieContinue']);
 
   const [isStop, setIsStop] = useState<boolean>(true);
@@ -52,6 +51,7 @@ const PracticeController = (props: PracticeControllerProps): ReactElement => {
     if (!_.isEmpty(sheet)) {
       getDataFromExcel(sheet, setItems);
     }
+    props.onChange({ ...props.config, propSheet: sheet });
   }, [sheet]);
   useEffect((): void => {
     toggleCollapse(`config-pract-${props.config.index}`);
@@ -142,7 +142,7 @@ const PracticeController = (props: PracticeControllerProps): ReactElement => {
             }
           }}
         >
-          {[...SHEET_LIST, ...SHEET_AUTO].map((option, index) => (
+          {[...SHEET_AUTO, ...SHEET_LIST].map((option, index) => (
             <option key={option.range} value={option.range}>
               {`${option.name}`}
             </option>
@@ -260,9 +260,7 @@ const PracticeController = (props: PracticeControllerProps): ReactElement => {
               props.onChange({ ...props.config, volume: Number(event.target.value) });
             }}
           />
-          <textarea id="item-str">
-
-          </textarea>
+          <textarea id="item-str"></textarea>
         </div>
       </div>
     </div>
