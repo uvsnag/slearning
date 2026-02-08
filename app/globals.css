@@ -1,21 +1,19 @@
-
 /* Mobile ) */
-@media (max-width: 767px){
-    .container-55 {
-      display: grid !important;
-      grid-template-columns: 100%;
-      gap: 3px;
-    }
+@media (max-width: 767px) {
+  .container-55 {
+    display: grid !important;
+    grid-template-columns: 100%;
+    gap: 3px;
+  }
 }
 
-@media (min-width: 767px){
-.container-55 {
-  display: grid !important;
-  grid-template-columns: 50% 50%; /* Two equal columns */
-  gap: 3px;
+@media (min-width: 767px) {
+  .container-55 {
+    display: grid !important;
+    grid-template-columns: 50% 50%; /* Two equal columns */
+    gap: 3px;
+  }
 }
-}
-
 
 /* Desktop */
 
@@ -266,7 +264,6 @@ li.mst-menu-li a:hover {
   margin-top: 10px;
 }
 
-
 .container-64 {
   display: grid !important;
   grid-template-columns: 60% 40%; /* Two equal columns */
@@ -407,7 +404,16 @@ li.mst-menu-li a:hover {
   background: rgba(110, 109, 112, 0.327);
   color: #0f020f98;
 }
-
+.btn-mobile {
+  width: 120px;
+  height: 50px;
+  font-size: large;
+}
+.input-mobile {
+  width: 80px;
+  /* height: 50px; */
+  font-size: large;
+}
 .common-input {
   font-family: -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
   border-radius: 6px;
