@@ -2,7 +2,7 @@
 import { useEffect, useState, useRef, RefObject } from 'react';
 import _ from 'lodash';
 import './style.css';
-import { FaVolumeUp, FaVolumeMute, FaCog, FaExchangeAlt, FaSyncAlt } from 'react-icons/fa';
+import { FaVolumeUp, FaVolumeMute, FaTrash, FaExchangeAlt, FaSyncAlt } from 'react-icons/fa';
 import VoiceToText from '@/app/common/components/VoiceToText';
 import AIBoard from '@/app/common/components/AIBoard';
 import { DataItem, STORE_ALIAS, onRemoveStoreItem } from '@/app/common/hooks/useSheetData';
@@ -50,6 +50,7 @@ const PractWords = (props: PractWordsProps) => {
   const [randomAns, setRandomAns] = useState<string[]>([]);
   const [remainCount, setRemainCount] = useState<number>(0);
   const [currEng, setCurrEng] = useState<string | null>(null);
+  const [message, setMessage] = useState<string>('');
   const inputAns = useRef<HTMLInputElement>(null);
   const { speakText } = useSpeechSynthesis();
 
@@ -238,6 +239,7 @@ const PractWords = (props: PractWordsProps) => {
     <div className={classPract}>
       {showPanel == 'Y' && (
         <div className="prac">
+          <div>{message}</div>
           <div>
             {_.isEmpty(lastEng) ? (
               <div></div>
@@ -259,9 +261,11 @@ const PractWords = (props: PractWordsProps) => {
               className="common-btn inline"
               onClick={() => {
                 onRemoveStoreItem(currEng || '', nextQuestion, sheetConfig.propSheet);
+                setMessage(`🗑️:${currEng}`);
+                // setTimeout(() => setMessage(''), 2000);
               }}
             >
-              X
+              🗑️
             </button>
           )}
 
@@ -382,7 +386,7 @@ const PractWords = (props: PractWordsProps) => {
           heightRes={props.heightRes ?? 140}
           isMini={props.isMini ?? true}
           statement={question}
-          lastSentence={lastVie}
+          lastSentence={lastEng}
         />
       </div>
     </div>

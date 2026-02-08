@@ -12,11 +12,12 @@ interface InstanceAIProps extends Partial<Omit<AIBoardProps, 'heightRes'>> {
 export interface MulAIContainerProps {
   configs: InstanceAIProps[];
   heightRes?: number;
+  cols?: number;
 }
 
 const MulAI: React.FC<MulAIContainerProps> = (props) => {
   const [numAI, setNumAI] = useState<number>(props.configs.length);
-  const [column, setColumn] = useState<number>(4);
+  const [column, setColumn] = useState<number>(props?.cols ?? 4);
   const [height, setHeight] = useState<number>(props?.heightRes ?? 400);
 
   useEffect(() => {}, []);

@@ -23,6 +23,7 @@ export interface ConfigControlProps {
   volume: number;
   index: string;
   items: DataItem[];
+  isOpen?: boolean;
 }
 
 interface PracticeControllerProps {
@@ -54,8 +55,10 @@ const PracticeController = (props: PracticeControllerProps): ReactElement => {
     props.onChange({ ...props.config, propSheet: sheet });
   }, [sheet]);
   useEffect((): void => {
-    toggleCollapse(`config-pract-${props.config.index}`);
-  }, []);
+    if (props.config.isOpen) {
+      // toggleCollapse(`config-pract-${props.config.index}`);
+    }
+  }, [props.config]);
 
   useEffect((): void => {
     voices.forEach((option: any, index: number): void => {
@@ -123,10 +126,10 @@ const PracticeController = (props: PracticeControllerProps): ReactElement => {
 
   return (
     <div className="">
-      <div onClick={() => toggleCollapse(`config-pract-${props.config.index}`)}>
+      {/* <div onClick={() => toggleCollapse(`config-pract-${props.config.index}`)}>
         <FaCog />
-      </div>
-      <div className="collapse-content bolder" id={`config-pract-${props.config.index}`}>
+      </div> */}
+      <div className="bolder" id={`config-pract-${props.config.index}`}>
         {/* <div>
         <div className="option-noti bolder" id="control"> */}
         <select
@@ -151,6 +154,7 @@ const PracticeController = (props: PracticeControllerProps): ReactElement => {
         <button className="common-btn inline" onClick={() => getDataFromExcel(sheet, setItems)}>
           <FaRedo />
         </button>
+        <span>{items.length}</span>
         <div onClick={() => toggleCollapse(`config-pract2-${props.config.index}`)}>
           <FaCog />
         </div>

@@ -1,7 +1,7 @@
 'use client';
 import config from '@/common/config.js';
 import _ from 'lodash';
-import { KEY_GOOGLE_SHEET_NM } from '@/common/common.js';
+import { KEY_GOOGLE_SHEET_NM, KEY_API_SHEET } from '@/common/common.js';
 
 export interface DataItem {
   eng: string;
@@ -147,8 +147,9 @@ const ggSheetProcess = async (
 ): Promise<void> => {
   const { gapi } = await import('gapi-script');
   gapi.load('client:auth2', async () => {
+    const apiKey = localStorage.getItem(KEY_API_SHEET);
     await gapi.client.init({
-      apiKey: config.apiKey,
+      apiKey: apiKey,
       clientId: config.clientId,
       discoveryDocs: config.discoveryDocs,
       scope: config.scope,
@@ -237,8 +238,9 @@ export const ggSheetUpdateTwoValues = async ({
   }
   const { gapi } = await import('gapi-script');
   gapi.load('client:auth2', async () => {
+    const apiKey = localStorage.getItem(KEY_API_SHEET);
     await gapi.client.init({
-      apiKey: config.apiKey,
+      apiKey: apiKey,
       clientId: config.clientId,
       discoveryDocs: config.discoveryDocs,
       scope: config.scope,

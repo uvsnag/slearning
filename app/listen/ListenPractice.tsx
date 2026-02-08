@@ -1,48 +1,40 @@
 'use client';
 import { useEffect, useState } from 'react';
-import type { KeyboardEvent, ChangeEvent, CSSProperties } from 'react';
+import type { KeyboardEvent, ChangeEvent } from 'react';
 import _ from 'lodash';
 import { FaRegFrown, FaRegSmile, FaVolumeUp } from 'react-icons/fa';
-import { gapi } from 'gapi-script';
 import config from '@/common/config.js';
-import { getDataFromExcel } from '@/app/common/hooks/useSheetData';
 import { useSpeechSynthesis } from '@/app/common/hooks/useSpeechSynthesis';
-
+import PracticeController, { ConfigControlProps } from '@/app/common/components/PracticeController';
+import { DataItem } from '@/app/common/hooks/useSheetData';
 /** =======================
  *  Types
  *  ======================= */
-interface ListenItem {
-  eng: string;
-  customDefine: string;
-}
-
-interface LoadResult {
-  items: ListenItem[];
-}
 
 const ListenPractice: React.FC = () => {
-  const styleFlexRow: CSSProperties = { display: 'flex', flexDirection: 'row' };
-  const styleContainerRatePitch: CSSProperties = {
-    display: 'flex',
-    flexDirection: 'column',
-    marginBottom: 12,
-  };
-
   const ALL_WORDS = '-1';
-  const sheet: string = config.listen.sheetDefault;
+
+  const [sheetConfig, setSheetConfig] = useState<ConfigControlProps>({
+    propSheet: config.listen.sheetDefault,
+    oderRandomS: 'random',
+    voice: 0,
+    rate: 0.9,
+    volume: 1,
+    index: 'listen_prac',
+    items: [],
+    isOpen: true,
+  });
 
   const [question, setQuestion] = useState<string>('');
   const [answer, setAnswer] = useState<string>('');
   const [errorMs, setErrorMs] = useState<string>('');
   const [showAns, setShowAns] = useState<string>('');
 
-  const [items, setItems] = useState<ListenItem[]>([]);
-  const [classItems, setClassItems] = useState<ListenItem[]>([]);
-  const [voiceIndex, setVoiceIndex] = useState<number>(0);
+  const [items, setItems] = useState<DataItem[]>([]);
+  const [classItems, setClassItems] = useState<DataItem[]>([]);
   const [indexClass, setIndexClass] = useState<string | undefined>();
-  const [ansList, setAnsList] = useState<ListenItem[]>([]);
-  const [ansListTemp, setAnsListTemp] = useState<ListenItem[]>([]);
-  const [rate, setRate] = useState<number>(0.9);
+  const [ansList, setAnsList] = useState<DataItem[]>([]);
+  const [ansListTemp, setAnsListTemp] = useState<DataItem[]>([]);
   const [lastAnsw, setLastAnsw] = useState<string>('');
 
   const { speak, voices } = useSpeechSynthesis();
@@ -50,12 +42,6 @@ const ListenPractice: React.FC = () => {
   /** =======================
    *  Effects
    *  ======================= */
-  useEffect((): void => {
-    // ggSheetProcess(onLoad, sheet, 'get');
-    getDataFromExcel(sheet, onLoad);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   useEffect(() => {
     if (_.isEqual(indexClass, ALL_WORDS)) {
       const itemAns = ansList.filter((item) => item.eng === question);
@@ -83,29 +69,33 @@ const ListenPractice: React.FC = () => {
   }, [ansList]);
 
   useEffect((): void => {
-    if (_.isEmpty(items)) return;
+    console.log(sheetConfig.items);
+    if (_.isEmpty(sheetConfig.items)) return;
 
+    const arr: DataItem[] = [];
+
+    sheetConfig.items.forEach((item) => {
+      if (!_.isEmpty(item) && !_.isEmpty(item.eng)) {
+        arr.push(item);
+      }
+    });
+
+    setItems(arr);
+    setAnsListTemp(arr);
+    // Derive classItems from processed items
     let indexTemp: string | number = -1;
-    const arrClassItem: ListenItem[] = [];
+    const arrClassItem: DataItem[] = [];
 
-    items.forEach((item) => {
+    arr.forEach((item) => {
       if (!_.isEmpty(item.customDefine) && item.customDefine !== indexTemp) {
         arrClassItem.push(item);
-        indexTemp = item.customDefine;
+        indexTemp = item.customDefine || '';
       }
     });
 
     setClassItems(arrClassItem);
     setIndexClass(ALL_WORDS);
-  }, [items]);
-
-  useEffect((): void => {
-    voices.forEach((option, index) => {
-      if (option.lang.includes('en-US')) {
-        setVoiceIndex(index);
-      }
-    });
-  }, [voices]);
+  }, [sheetConfig.items]);
 
   useEffect((): void => {
     if (!_.isEmpty(answer)) {
@@ -115,7 +105,7 @@ const ListenPractice: React.FC = () => {
   }, [answer]);
 
   useEffect((): void => {
-    let arrAnsList: ListenItem[] = [];
+    let arrAnsList: DataItem[] = [];
 
     if (indexClass === ALL_WORDS) {
       arrAnsList = items;
@@ -130,26 +120,6 @@ const ListenPractice: React.FC = () => {
     setAnsList(arrAnsList);
     // eslint-disable-next-line
   }, [indexClass]);
-
-  /** =======================
-   *  Data
-   *  ======================= */
-
-  const onLoad = (data?: LoadResult, error?: unknown): void => {
-    if (data) {
-      const arr: ListenItem[] = [];
-
-      data.items.forEach((item) => {
-        if (!_.isEmpty(item) && !_.isEmpty(item.eng)) {
-          arr.push(item);
-        }
-      });
-
-      setItems(arr);
-    } else {
-      console.log(error);
-    }
-  };
 
   /** =======================
    *  Logic
@@ -183,16 +153,13 @@ const ListenPractice: React.FC = () => {
   };
 
   const speakText = (speakStr: string, isEng: boolean): void => {
-    const vVoice = (document.getElementById('voice') as HTMLSelectElement | null)?.value;
-    const vrate = (document.getElementById('rate') as HTMLInputElement | null)?.value;
-
     const utterance = new window.SpeechSynthesisUtterance();
     utterance.text = speakStr;
-    utterance.rate = Number(vrate);
-    if (isEng && vVoice !== undefined) {
-      utterance.voice = voices[Number(vVoice)];
+    utterance.rate = sheetConfig.rate;
+    if (isEng) {
+      utterance.voice = voices[sheetConfig.voice];
     }
-    utterance.volume = 1;
+    utterance.volume = sheetConfig.volume;
     speak(utterance);
   };
 
@@ -212,6 +179,12 @@ const ListenPractice: React.FC = () => {
   return (
     <div className="prac">
       <div className="">
+        <PracticeController config={sheetConfig} onChange={setSheetConfig} />
+        <div>
+          {!_.isEmpty(question) && (
+            <FaVolumeUp className="iconSound" onClick={() => speakText(question, true)} />
+          )}
+        </div>
         <select className="button-33" onChange={(e) => setIndexClass(e.target.value)}>
           <option value={ALL_WORDS}>All Word</option>
           {classItems.map((item) => (
@@ -220,63 +193,20 @@ const ListenPractice: React.FC = () => {
             </option>
           ))}
         </select>
-
-        <select
-          className="button-33 inline"
-          id="voice"
-          value={voiceIndex || ''}
-          onChange={(e) => setVoiceIndex(Number(e.target.value))}
-        >
-          <option value="">Default</option>
-          {voices.map((option, index) => (
-            <option key={option.voiceURI} value={index}>
-              {`${option.lang} - ${option.name}`}
+        <input type="text" id="answer" onKeyDown={handleKeyDown} />
+        <select className="button-33" onChange={changeAns} value={answer || ''}>
+          <option value="">Choose</option>
+          {ansListTemp.map((item) => (
+            <option value={item.eng} key={item.eng}>
+              {item.eng}
             </option>
           ))}
         </select>
-
-        <div style={styleContainerRatePitch}>
-          <div style={styleFlexRow}>
-            <label htmlFor="rate">Speed: </label>
-            <div className="rate-value">{rate}</div>
-          </div>
-          <input
-            type="range"
-            className="width-220 range-color"
-            min="0.2"
-            max="2"
-            defaultValue="0.6"
-            step="0.1"
-            id="rate"
-            onChange={(e) => setRate(Number(e.target.value))}
-          />
-        </div>
-
-        <div>
-          {!_.isEmpty(question) && (
-            <FaVolumeUp className="iconSound" onClick={() => speakText(question, true)} />
-          )}
-        </div>
+        <input className="button-33" type="submit" value="Check" onClick={onCheck} />
+        <input className="button-33" type="submit" value="Show Ans" onClick={onShow} />
       </div>
-
-      <input type="text" id="answer" onKeyDown={handleKeyDown} />
-      <br />
-
-      <select className="button-33" onChange={changeAns} value={answer || ''}>
-        <option value="">Choose</option>
-        {ansListTemp.map((item) => (
-          <option value={item.eng} key={item.eng}>
-            {item.eng}
-          </option>
-        ))}
-      </select>
-
-      <br />
-      <div className="msg">{errorMs === 'wrong!' ? <FaRegFrown /> : <FaRegSmile />}</div>
+      {/* <div className="msg">{errorMs === 'wrong!' ? <FaRegFrown /> : <FaRegSmile />}</div> */}
       {errorMs}
-      <br />
-
-      <input className="button-33" type="submit" value="Check" onClick={onCheck} />
 
       {ansListTemp.map((item) => (
         <div key={item.eng}>
@@ -284,8 +214,6 @@ const ListenPractice: React.FC = () => {
           <FaVolumeUp className="iconSound" onClick={() => speakText(item.eng, true)} />
         </div>
       ))}
-
-      <input className="common-btn" type="submit" value="Show Ans" onClick={onShow} />
 
       <div>{showAns}</div>
 
