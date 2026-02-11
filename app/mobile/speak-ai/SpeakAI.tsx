@@ -1,9 +1,17 @@
 'use client';
+import { useEffect, useMemo, useState } from 'react';
 import AIBoard from '@/app/common/components/AIBoard';
+import { DataItem, getDataFromExcel } from '@/app/common/hooks/useSheetData';
+import { SHEET_AUTO } from '@/app/common/components/SheetDataEditor';
 import '@/slearning/multi-ai/style-ai.css';
 
-const prompt = `
-PROMPT:
+const DEFAULT_SCENARIO = 'Talking to a foreign colleague during lunch';
+const SCENARIO_RANGE =
+  SHEET_AUTO.find((item) => item.name === 'ABoard7')?.range || 'AUTO!Y2:AA500';
+
+const buildPrompt = (scenario: string): string => `
+SCENARIO: ${scenario}
+
 
 You are my professional English speaking coach.
 
@@ -42,13 +50,45 @@ Explanation:
 Continue conversation:
 (Continue naturally and ask me something)
 
-SCENARIO:
-Talking to a foreign colleague during lunch
+
   `;
 const SpeakAI = () => {
+  const [scenarioOptions, setScenarioOptions] = useState<string[]>([]);
+  const [selectedScenario, setSelectedScenario] = useState<string>(DEFAULT_SCENARIO);
+
+  useEffect((): void => {
+    getDataFromExcel(SCENARIO_RANGE, (items: DataItem[]): void => {
+      const scenarios = items
+        .map((item) => item.eng?.trim())
+        .filter((item): item is string => Boolean(item));
+
+      setScenarioOptions(scenarios);
+      if (scenarios.length > 0) {
+        setSelectedScenario(scenarios[0]);
+      }
+    });
+  }, []);
+
+  const prompt = useMemo((): string => buildPrompt(selectedScenario), [selectedScenario]);
+
   return (
     <div>
+      <select
+        className="button-33 inline"
+        value={selectedScenario}
+        onChange={(e) => setSelectedScenario(e.target.value)}
+      >
+        {scenarioOptions.length === 0 && (
+          <option value={DEFAULT_SCENARIO}>{DEFAULT_SCENARIO}</option>
+        )}
+        {scenarioOptions.map((scenario) => (
+          <option key={scenario} value={scenario}>
+            {scenario}
+          </option>
+        ))}
+      </select>
       <AIBoard
+        key={selectedScenario}
         index={0}
         prefix="speak-ai"
         enableHis="Y"
