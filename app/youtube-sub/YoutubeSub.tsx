@@ -414,8 +414,18 @@ const YoutubeSub: FC = () => {
     }
   };
   const onProcess = (): void => {
-    var txtSrcMedia = (document.getElementById('txtSrcMedia') as HTMLInputElement)?.value || '';
-    var url = txtSrcMedia.substring(txtSrcMedia.lastIndexOf('=') + 1, txtSrcMedia.length).trim();
+    const txtSrcMedia = (document.getElementById('txtSrcMedia') as HTMLInputElement)?.value || '';
+    const input = txtSrcMedia.trim();
+    let url = input;
+
+    if (input.includes('youtube.com/watch')) {
+      const params = new URL(input).searchParams;
+      url = params.get('v') || '';
+    } else if (input.includes('youtu.be/')) {
+      const shortPath = input.split('youtu.be/')[1] || '';
+      url = shortPath.split('?')[0];
+    }
+
     if (player) {
       player.loadVideoById(url, 0);
     }

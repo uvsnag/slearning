@@ -45,7 +45,6 @@ let intervalCusLoop: NodeJS.Timeout | null = null;
 
 let arrTime: string[] = [];
 const urlCookieNm: string = 'lis-url';
-const subCookieNm: string = 'lis-sub';
 
 const YoutubeSub: FC = () => {
   const MUL_PROP: MulAIContainerProps = {
@@ -59,13 +58,12 @@ const YoutubeSub: FC = () => {
   };
 
   const REPLAY_NO: string = 'REPLACE_NO';
-  const REPLAY_YES: string = 'REPLACE_YES';
+  const SIZE_RATIO: number = 1.7;
   const [arrSub, setArrSub] = useState<Sub[]>([]);
   const [customLoopAs, setCustomLoopAs] = useState<string>('');
   const [customLoopBs, setCustomLoopBs] = useState<string>('');
-  const [size, setSize] = useState<number>(390 / 2);
+  const [size, setSize] = useState<number>(390 / SIZE_RATIO);
   const [subHeight, setSubHeight] = useState<number>(300);
-  const [modeReplay] = useState<string>(REPLAY_NO);
   const [url, setUrl] = useState<string>('');
 
   const LOOP_CUSTOM: string = 'LOOP_CUSTOM';
@@ -174,7 +172,7 @@ const YoutubeSub: FC = () => {
     let valueSz = Number(event.target.value);
     setSize(valueSz);
     if (player) {
-      player.setSize(valueSz * 1.7, valueSz);
+      player.setSize(valueSz * 1.7, valueSz * 1.7 * (500 / 640));
     }
   };
   const onYouTubeIframeAPIReady = (): void => {
@@ -182,15 +180,15 @@ const YoutubeSub: FC = () => {
     if (!windowWithYT.YT) return;
 
     player = new windowWithYT.YT.Player('player', {
-      height: 390 / 1.6,
-      width: 640 / 1.6,
+      height: 500 / SIZE_RATIO,
+      width: 640 / SIZE_RATIO,
       videoId: '',
       playerVars: {
         fs: 0,
         iv_load_policy: 3,
         playsinline: 1,
         modestbranding: 0,
-        // controls: 0
+        // controls: 0,
       },
       events: {
         onReady: onPlayerReady,
@@ -299,55 +297,26 @@ const YoutubeSub: FC = () => {
     }
   };
   const onProcess = (): void => {
-    var txtSrcMedia = (document.getElementById('txtSrcMedia') as HTMLInputElement)?.value || '';
-    var url = txtSrcMedia.substring(txtSrcMedia.lastIndexOf('=') + 1, txtSrcMedia.length).trim();
+    const txtSrcMedia = (document.getElementById('txtSrcMedia') as HTMLInputElement)?.value || '';
+    const input = txtSrcMedia.trim();
+    let url = input;
+
+    if (input.includes('youtube.com/watch')) {
+      const params = new URL(input).searchParams;
+      url = params.get('v') || '';
+    } else if (input.includes('youtu.be/')) {
+      const shortPath = input.split('youtu.be/')[1] || '';
+      url = shortPath.split('?')[0];
+    }
+
     if (player) {
       player.loadVideoById(url, 0);
     }
-  };
-  const removeLogo = (): void => {
-    var icon = document.querySelectorAll('.ytp-player-content.ytp-iv-player-content');
-    if (icon && icon[0]) {
-      (icon[0] as HTMLElement).style.display = 'none';
-    }
-    console.log(
-      `document.querySelectorAll(".ytp-player-content.ytp-iv-player-content")[0].style.display="none"`,
-    );
-    navigator.clipboard.writeText(
-      `document.querySelectorAll(".ytp-player-content.ytp-iv-player-content")[0].style.display="none"`,
-    );
   };
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
     if (e.key === 'Enter') {
       onProcess();
     }
-  };
-  const onShowHideVideo = (e: React.MouseEvent<HTMLInputElement>): void => {
-    let elm = document.getElementById('vd-control');
-    if (elm && elm.style.display === 'none') {
-      elm.style.display = 'block';
-    } else if (elm) {
-      elm.style.display = 'none';
-    }
-  };
-  const loopSub = (currtSub: Sub | undefined, nextSub: Sub | undefined): void => {
-    const aVal = getTimeFromSub(currtSub);
-    const bVal = getTimeFromSub(nextSub);
-    customLoopAVal = aVal;
-    customLoopBVal = bVal;
-    setCustomLoopBs(bVal?.toString() || '');
-    setCustomLoopAs(aVal?.toString() || '');
-    if (intervalCusLoop) clearInterval(intervalCusLoop);
-    createInteval();
-  };
-  const getTimeFromSub = (sub: Sub | undefined): number => {
-    if (!sub) return NOT_VALUE_TIME;
-    return Number(
-      sub.time
-        .split(':')
-        .reduce((acc: number, time: string) => 60 * acc + +time)
-        .toFixed(FIXED_VALUE),
-    );
   };
 
   const onStartStop = (e: React.MouseEvent<HTMLInputElement>): void => {
@@ -429,6 +398,7 @@ const YoutubeSub: FC = () => {
     setCustomLoopAs('');
     setCustomLoopBs('');
   };
+
   const onAddPoint = (): void => {
     if (!player) return;
     if (customLoopAVal !== NOT_VALUE_TIME && customLoopBVal !== NOT_VALUE_TIME) {
@@ -493,64 +463,56 @@ const YoutubeSub: FC = () => {
         </div>
         <div className="width-100">Control</div>
         <div id="mobile-control" className="bolder">
-          {/* <input
-            type="submit"
-            className="common-btn inline"
-            value="Remove Info"
-            onClick={() => removeLogo()}
-          /> */}
-          {/* <input
-            type="submit"
-            className="common-btn inline"
-            value="+/-"
-            onClick={() => onShowHideVideo({} as React.MouseEvent<HTMLInputElement>)}
-          /> */}
-          {/* <br /> */}
+          <div className="right">
+            <input
+              type="submit"
+              className="common-btn inline btn-mobile"
+              value=">"
+              onClick={() => next()}
+            />
+            <input
+              type="submit"
+              className="common-btn inline btn-mobile"
+              value="||"
+              onClick={() => onStartStop({} as React.MouseEvent<HTMLInputElement>)}
+            />
 
-          <input
-            type="submit"
-            className="common-btn inline btn-mobile"
-            value="<"
-            onClick={() => previous()}
-          />
-          <input
-            type="submit"
-            className="common-btn inline btn-mobile"
-            value="||"
-            onClick={() => onStartStop({} as React.MouseEvent<HTMLInputElement>)}
-          />
-          <input
-            type="submit"
-            className="common-btn inline btn-mobile"
-            value=">"
-            onClick={() => next()}
-          />
+            <input
+              type="submit"
+              className="common-btn inline btn-mobile"
+              value="<"
+              onClick={() => previous()}
+            />
+          </div>
           <br />
 
           {/* <br /> */}
-
-          <input
-            type="submit"
-            className="common-btn inline btn-mobile"
-            value="Add point"
-            onClick={() => onAddPoint()}
-          />
-          <input
-            type="submit"
-            className="common-btn inline btn-mobile"
-            value="clear"
-            onClick={() => onClearCusLoop()}
-          />
+          <div className="right">
+            <br />
+            <input
+              type="submit"
+              className="common-btn inline btn-mobile"
+              value="clear"
+              onClick={() => onClearCusLoop()}
+            />
+            <input
+              type="submit"
+              className="common-btn inline btn-mobile"
+              value="Add point"
+              onClick={() => onAddPoint()}
+            />
+          </div>
           <br />
-          <br />
-          <input type="number" className="common-input input-mobile" id="timemisus" />
-          <input
-            type="submit"
-            className="common-btn inline btn-mobile"
-            value="Change"
-            onClick={() => changeTime()}
-          />
-          <br />
+          <div className="right">
+            <br />
+            <input type="number" className="common-input input-mobile" id="timemisus" />
+            <input
+              type="submit"
+              className="common-btn inline btn-mobile"
+              value="Change"
+              onClick={() => changeTime()}
+            />
+          </div>
           <br />
 
           <input

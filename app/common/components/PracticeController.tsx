@@ -10,10 +10,11 @@ import {
   onRemoveStoreItem,
 } from '@/app/common/hooks/useSheetData';
 import { useSpeechSynthesis } from '@/app/common/hooks/useSpeechSynthesis';
-import { FaVolumeUp, FaRedo, FaCog } from 'react-icons/fa';
+import { FaRedo, FaCog } from 'react-icons/fa';
 import { useCookies } from 'react-cookie';
 import { toggleCollapse } from '../common';
 import { SHEET_AUTO } from './SheetDataEditor';
+import PracticeVoiceConfig from './PracticeVoiceConfig';
 
 export interface ConfigControlProps {
   propSheet: string;
@@ -186,42 +187,24 @@ const PracticeController = (props: PracticeControllerProps): ReactElement => {
 
           {/* <div id="sound-control"> */}
           {/* <div>Voice:</div> */}
-          <select
-            className="button-33 inline"
-            id="voice"
-            name="voice"
-            value={voiceIndex || ''}
-            onChange={(event: ChangeEvent<HTMLSelectElement>): void => {
-              setVoiceIndex(Number(event.target.value));
-              props.onChange({ ...props.config, voice: Number(event.target.value) });
+          <PracticeVoiceConfig
+            voices={voices}
+            voiceIndex={voiceIndex}
+            rate={rate}
+            volumn={volumn}
+            onVoiceChange={(value: number): void => {
+              setVoiceIndex(value);
+              props.onChange({ ...props.config, voice: value });
             }}
-          >
-            <option value="">Default</option>
-            {voices.map((option: any, index: number) => (
-              <option key={option.voiceURI} value={index}>
-                {`${option.lang} - ${option.name}`}
-              </option>
-            ))}
-          </select>
-          {/* <div style={styleContainerRatePitch}> */}
-          {/* <div style={styleFlexRow}> */}
-          <label htmlFor="rate">Speed: </label>
-          <div className="rate-value inline">{rate}</div>
-          {/* </div> */}
-          <input
-            type="range"
-            className="width-220 range-color inline"
-            min="0.2"
-            max="2"
-            defaultValue="0.6"
-            step="0.1"
-            id="rate"
-            onChange={(event: ChangeEvent<HTMLInputElement>): void => {
-              setRate(Number(event.target.value));
-              props.onChange({ ...props.config, rate: Number(event.target.value) });
+            onRateChange={(value: number): void => {
+              setRate(value);
+              props.onChange({ ...props.config, rate: value });
+            }}
+            onVolumnChange={(value: number): void => {
+              setVolumn(value);
+              props.onChange({ ...props.config, volume: value });
             }}
           />
-          {/* </div> */}
 
           {/* <div>Voice 2:</div>
               <select
@@ -240,30 +223,10 @@ const PracticeController = (props: PracticeControllerProps): ReactElement => {
                   </option>
                 ))}
               </select> */}
-          <br />
           {/* </div> */}
           {/* </div>
         <div className="control-footer"></div>
       </div> */}
-
-          <label htmlFor="volumn">
-            <FaVolumeUp className="iconSound" />{' '}
-          </label>
-          <span className="rate-value">{volumn}</span>
-          {/* </div> */}
-          <input
-            type="range"
-            className="width-220 range-color inline"
-            min="0.1"
-            max="1"
-            defaultValue="0.6"
-            step="0.1"
-            id="volumn"
-            onChange={(event: ChangeEvent<HTMLInputElement>): void => {
-              setVolumn(Number(event.target.value));
-              props.onChange({ ...props.config, volume: Number(event.target.value) });
-            }}
-          />
           <textarea id="item-str"></textarea>
         </div>
       </div>

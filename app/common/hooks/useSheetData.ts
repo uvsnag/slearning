@@ -169,9 +169,9 @@ export const getDataFromExcel = async (sheet: string, onLoad: any) => {
   if (sheet?.startsWith(STORE_ALIAS)) {
     const storeDataString = localStorage.getItem(sheet);
     const storeData: DataItem[] = storeDataString ? JSON.parse(storeDataString) : [];
-    if (!_.isEmpty(storeData)) {
-      onLoad(storeData);
-    }
+    // if (!_.isEmpty(storeData)) {
+    onLoad(storeData);
+    // }
   } else {
     await ggSheetProcess(onLoad, sheet, 'get');
   }

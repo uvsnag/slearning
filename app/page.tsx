@@ -86,6 +86,9 @@ const Home: FC = () => {
         <li className="mst-menu-li">
           <Link href="/mobile/youtube-sub">Listen Board</Link>
         </li>
+        <li className="mst-menu-li">
+          <Link href="/mobile/speak-ai">Speak</Link>
+        </li>
       </ul>
       <div id="config" className="collapse-content bolder">
         <span>gem:</span>

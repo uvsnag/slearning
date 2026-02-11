@@ -5,10 +5,12 @@ import { GoogleGenAI } from '@google/genai';
 import { Configuration, OpenAIApi } from 'openai-edge';
 import { toggleCollapse, KEY_GPT_NM, KEY_GEMINI_NM, collapseElement } from '@/common/common.js';
 import VoiceToText from '@/app/common/components/VoiceToText';
+import { useSpeechSynthesis } from '@/app/common/hooks/useSpeechSynthesis';
 import '@/slearning/multi-ai/style-ai.css';
 import loadingImg from '@/public/loading.webp';
 import SheetDataEditor from './SheetDataEditor';
-import { FaCog, FaSave } from 'react-icons/fa';
+import PracticeVoiceConfig from './PracticeVoiceConfig';
+import { FaCog, FaSave, FaVolumeUp } from 'react-icons/fa';
 import SignOutButton from './SignOutButton';
 const TP_GEN = 1;
 const TP_GPT = 2;
@@ -26,10 +28,12 @@ export interface AIBoardProps {
   index: number;
   enableHis: 'Y' | 'N' | null;
   heightRes?: number;
-  isMini?: boolean;
+  isMini?: boolean | null;
   statement?: string;
+  firstAsk?: string;
   lastSentence?: string | null;
   collapse?: string | null;
+  isSpeak?: 'Y' | 'N' | boolean | null;
 }
 
 const MODEL_AI: ModelAI[] = [
@@ -50,13 +54,22 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
   const [aiName, setAIName] = useState<string>('Gemini');
   const [model, setModel] = useState<ModelAI>(MODEL_AI[0]);
   const [useHis, setUseHis] = useState<string>(props.enableHis ?? 'N');
+  const [useSpeak, setUseSpeak] = useState<'Y' | 'N'>(
+    props.isSpeak === 'Y' || props.isSpeak === true ? 'Y' : 'N',
+  );
 
-  const [prompt, setPrompt] = useState<string>('');
+  const [prompt, setPrompt] = useState<string>(props.firstAsk ?? '');
   const [sysPrompt, setSysPrompt] = useState<string>('');
   const [isUseAIMini, setIsUseAIMini] = useState<boolean>(false);
 
   const [value1, setValue1] = useState<string>('');
   const [value2, setValue2] = useState<string>('');
+  const [lastResponseRaw, setLastResponseRaw] = useState<string>('');
+  const [voiceIndex, setVoiceIndex] = useState<number>(0);
+  const [rate, setRate] = useState<number>(1);
+  const [volumn, setVolumn] = useState<number>(0.6);
+  const { speakText, voices } = useSpeechSynthesis();
+  const isSpeakEnabled = useSpeak === 'Y';
 
   useEffect((): void => {
     let gmLcal = localStorage.getItem(keyGeminiNm);
@@ -73,6 +86,8 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
     }
     setSysPrompt(sysPromptVa);
     if (props.collapse !== 'Y') {
+      collapseElement(`gemini-${props.prefix}${props.index}`);
+      console.log('toggleCollapse');
       toggleCollapse(`gemini-${props.prefix}${props.index}`);
     }
     aiGem.current = new GoogleGenAI({ apiKey: locGem || undefined });
@@ -82,6 +97,13 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
   useEffect((): void => {
     onAskMini();
   }, [props.statement]);
+  useEffect((): void => {
+    voices.forEach((option: any, index: number): void => {
+      if (option.lang.includes('en-US')) {
+        setVoiceIndex(index);
+      }
+    });
+  }, [voices]);
 
   useEffect((): void => {
     aiType = model.type;
@@ -208,13 +230,47 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
         setAIName('Gemini');
         responseTxt = useHis === 'Y' ? await askGeminiHis(promVal) : await askGemini(promVal);
       }
+      setLastResponseRaw(responseTxt);
+      if (isSpeakEnabled && responseTxt) {
+        const cleanedResponse = sanitizeForSpeech(responseTxt);
+        if (cleanedResponse) {
+          speakText(cleanedResponse, true, {
+            voice: voiceIndex,
+            rate: rate,
+            volume: volumn,
+          });
+        }
+      }
       addLog(fomatRawResponse(responseTxt), false);
+
       setValue1(promVal);
       setValue2(fomatRawResponse(responseTxt));
     } catch (error) {
       addLog(String(error), false);
     }
     toggleClass(`loading${props.prefix}${props.index}`, true);
+  }
+
+  function sanitizeForSpeech(text: string): string {
+    return text
+      .replace(/[^\p{L}\p{N}\s.,!?;:'"()-]/gu, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  function onSpeakLastResponse(): void {
+    if (!isSpeakEnabled || !lastResponseRaw) {
+      return;
+    }
+    const cleanedResponse = sanitizeForSpeech(lastResponseRaw);
+    if (!cleanedResponse) {
+      return;
+    }
+    speakText(cleanedResponse, true, {
+      voice: voiceIndex,
+      rate: rate,
+      volume: volumn,
+    });
   }
   function toggleClass(id: string, isHiding: boolean): void {
     const content = document.getElementById(id);
@@ -372,27 +428,20 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
           onKeyDown={(e) => handleKeyDown(e, prompt)}
         />
         <br />
-
-        <div
-          className="inline"
-          onClick={() => toggleCollapse(`config-${props.prefix}${props.index}`)}
-        >
+        <VoiceToText setText={setPrompt} index={props.index}></VoiceToText>
+        <div className="" onClick={() => toggleCollapse(`config-${props.prefix}${props.index}`)}>
           <FaCog />
         </div>
-        <div
-          className="inline"
-          onClick={() => toggleCollapse(`save-sheet-${props.prefix}${props.index}`)}
-        >
-          <FaSave />
-        </div>
+
         <div className="collapse-content bolder" id={`config-${props.prefix}${props.index}`}>
           <button onClick={() => askDec(prompt)} className="common-btn inline">
             Send
           </button>
-          <VoiceToText setText={setPrompt} index={props.index}></VoiceToText>
+
           <button onClick={() => clearLog()} className="common-btn inline">
             Clear
           </button>
+
           <select
             onChange={(e: ChangeEvent<HTMLSelectElement>) => {
               setModel(MODEL_AI.find((m) => m.value === e.target.value) || MODEL_AI[0]);
@@ -409,6 +458,16 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
             value={useHis}
             onChange={(e: ChangeEvent<HTMLSelectElement>) => {
               setUseHis(e.target.value);
+            }}
+          >
+            <option value="Y">Yes</option>
+            <option value="N">No</option>
+          </select>
+          <span>Speak</span>
+          <select
+            value={useSpeak}
+            onChange={(e: ChangeEvent<HTMLSelectElement>) => {
+              setUseSpeak(e.target.value as 'Y' | 'N');
             }}
           >
             <option value="Y">Yes</option>
@@ -440,10 +499,48 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
             placeholder="Sys promt"
           />
         </div>
-
+        <div
+          className=""
+          onClick={() => toggleCollapse(`save-sheet-${props.prefix}${props.index}`)}
+        >
+          <FaSave />
+        </div>
         <div className="collapse-content bolder" id={`save-sheet-${props.prefix}${props.index}`}>
           <SheetDataEditor value1={value1} value2={value2} />
         </div>
+        {isSpeakEnabled && (
+          <div
+            className="inline"
+            onClick={() => toggleCollapse(`voice-config-${props.prefix}${props.index}`)}
+          >
+            <FaVolumeUp />
+          </div>
+        )}
+        {isSpeakEnabled && (
+          <div
+            className="collapse-content bolder"
+            id={`voice-config-${props.prefix}${props.index}`}
+          >
+            <button onClick={() => onSpeakLastResponse()} className="common-btn ">
+              Speak
+            </button>
+            <PracticeVoiceConfig
+              voices={voices}
+              voiceIndex={voiceIndex}
+              rate={rate}
+              volumn={volumn}
+              onVoiceChange={(value: number): void => {
+                setVoiceIndex(value);
+              }}
+              onRateChange={(value: number): void => {
+                setRate(value);
+              }}
+              onVolumnChange={(value: number): void => {
+                setVolumn(value);
+              }}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
