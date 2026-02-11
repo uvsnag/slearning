@@ -1,20 +1,11 @@
 'use client';
-import { useEffect, useState, CSSProperties, ChangeEvent, ReactElement } from 'react';
+import { useEffect, useState, ReactElement } from 'react';
 // import './style-noti.css';
 import _ from 'lodash';
-import {
-  DataItem,
-  STORE_ALIAS,
-  SHEET_LIST,
-  getDataFromExcel,
-  onRemoveStoreItem,
-} from '@/app/common/hooks/useSheetData';
+import { DataItem, getDataFromExcel } from '@/app/common/hooks/useSheetData';
 import { useSpeechSynthesis } from '@/app/common/hooks/useSpeechSynthesis';
-import { FaRedo, FaCog } from 'react-icons/fa';
-import { useCookies } from 'react-cookie';
-import { toggleCollapse } from '../common';
-import { SHEET_AUTO } from './SheetDataEditor';
 import PracticeVoiceConfig from './PracticeVoiceConfig';
+import PracticeSheetConfig from './PracticeSheetConfig';
 
 export interface ConfigControlProps {
   propSheet: string;
@@ -133,57 +124,20 @@ const PracticeController = (props: PracticeControllerProps): ReactElement => {
       <div className="bolder" id={`config-pract-${props.config.index}`}>
         {/* <div>
         <div className="option-noti bolder" id="control"> */}
-        <select
-          className="button-33 inline"
-          value={sheet}
-          name="sheet"
-          id="slsheet"
-          onChange={(e: ChangeEvent<HTMLSelectElement>): void => {
-            if (e.target.value && e.target.value != sheet) {
-              // props.onChange({ ...props.config, sheet: e.target.value });
-              setSheet(e.target.value);
-              // getDataFromExcel(e.target.value, setItems);
-            }
+        <PracticeSheetConfig
+          sheet={sheet}
+          itemsLength={items.length}
+          configIndex={props.config.index}
+          onSheetChange={(value: string): void => {
+            setSheet(value);
           }}
+          onReload={(): void => {
+            getDataFromExcel(sheet, setItems);
+          }}
+          onAddStore={addStore}
+          onClearStore={clearStore}
+          onChangeOrder={onChangeOrder}
         >
-          {[...SHEET_AUTO, ...SHEET_LIST].map((option, index) => (
-            <option key={option.range} value={option.range}>
-              {`${option.name}`}
-            </option>
-          ))}
-        </select>
-        <button className="common-btn inline" onClick={() => getDataFromExcel(sheet, setItems)}>
-          <FaRedo />
-        </button>
-        <span>{items.length}</span>
-        <div onClick={() => toggleCollapse(`config-pract2-${props.config.index}`)}>
-          <FaCog />
-        </div>
-        <div className="collapse-content bolder" id={`config-pract2-${props.config.index}`}>
-          {/* <div className="inline"> */}
-          <select id="store-index" name="store-index" className="common-btn inline">
-            <option value={`${STORE_ALIAS}1`}>Store1</option>
-            <option value={`${STORE_ALIAS}2`}>Store2</option>
-            <option value={`${STORE_ALIAS}3`}>Store3</option>
-          </select>
-          <button className="common-btn inline" onClick={() => addStore()}>
-            Add
-          </button>
-          <button className="common-btn inline" onClick={() => clearStore()}>
-            Clear
-          </button>
-          {/* </div> */}
-          <select
-            className="button-33 inline"
-            name="genData"
-            id="slGenData"
-            onChange={(e: ChangeEvent<HTMLSelectElement>): void => {
-              onChangeOrder(e.target.value);
-            }}
-          >
-            <option value="random">random</option>
-            <option value="order">order</option>
-          </select>
 
           {/* <div id="sound-control"> */}
           {/* <div>Voice:</div> */}
@@ -228,7 +182,7 @@ const PracticeController = (props: PracticeControllerProps): ReactElement => {
         <div className="control-footer"></div>
       </div> */}
           <textarea id="item-str"></textarea>
-        </div>
+        </PracticeSheetConfig>
       </div>
     </div>
   );

@@ -6,6 +6,8 @@ import { Sub } from './Subtitle';
 import { toggleCollapse } from '@/common/common.js';
 import MulAI, { MulAIContainerProps } from '@/app/multi-ai/MultiAI';
 import StackBtn from '@/app/common/components/StackButton';
+import { DataItem, getDataFromExcel } from '@/app/common/hooks/useSheetData';
+import { SHEET_AUTO } from '@/app/common/components/SheetDataEditor';
 
 // Type definitions
 interface YouTubePlayer {
@@ -45,6 +47,7 @@ let intervalCusLoop: NodeJS.Timeout | null = null;
 
 let arrTime: string[] = [];
 const urlCookieNm: string = 'lis-url';
+const SOURCE_RANGE = SHEET_AUTO.find((item) => item.name === 'ABoard6')?.range || 'AUTO!U2:W500';
 
 const YoutubeSub: FC = () => {
   const MUL_PROP: MulAIContainerProps = {
@@ -65,6 +68,7 @@ const YoutubeSub: FC = () => {
   const [size, setSize] = useState<number>(390 / SIZE_RATIO);
   const [subHeight, setSubHeight] = useState<number>(300);
   const [url, setUrl] = useState<string>('');
+  const [sourceOptions, setSourceOptions] = useState<DataItem[]>([]);
 
   const LOOP_CUSTOM: string = 'LOOP_CUSTOM';
   const NOT_VALUE_TIME: number = 1;
@@ -124,6 +128,12 @@ const YoutubeSub: FC = () => {
   useEffect((): void => {
     localStorage.setItem(urlCookieNm, url);
   }, [url]);
+  useEffect((): void => {
+    getDataFromExcel(SOURCE_RANGE, (items: DataItem[]): void => {
+      const sources = items.filter((item): boolean => Boolean(item.eng?.trim()));
+      setSourceOptions(sources);
+    });
+  }, []);
 
   const handleBlurA = (): void => {
     if (customLoopAs) {
@@ -525,6 +535,22 @@ const YoutubeSub: FC = () => {
               setUrl(event.target.value);
             }}
           />
+          <select
+            className="common-input"
+            value=""
+            onChange={(event) => {
+              if (event.target.value) {
+                setUrl(event.target.value);
+              }
+            }}
+          >
+            <option value="">Select from ABoard6</option>
+            {sourceOptions.map((option) => (
+              <option key={`${option.eng}-${option.vi || ''}`} value={option.eng}>
+                {`${option.vi}${option.vi ? ` - ${option.eng}` : ''}`}
+              </option>
+            ))}
+          </select>
           <input
             type="submit"
             className="common-btn inline"
