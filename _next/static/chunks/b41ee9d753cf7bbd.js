@@ -40,4 +40,4 @@ Continue conversation:
 (Continue naturally and ask me something)
 
 
-  `,[o]);return(0,a.jsxs)("div",{children:[(0,a.jsxs)("select",{className:"button-33 inline",value:o,onChange:e=>c(e.target.value),children:[0===e.length&&(0,a.jsx)("option",{value:r,children:r}),e.map(e=>(0,a.jsx)("option",{value:e,children:e},e))]}),(0,a.jsx)(s.default,{index:0,prefix:"speak-ai",enableHis:"Y",heightRes:280,isSpeak:"Y",isMini:null,firstAsk:u,collapse:"N"})]})}])},49829,e=>{e.n(e.i(77758))},6857,e=>{e.v(a=>Promise.all(["static/chunks/26dcfe4c23645568.js"].map(a=>e.l(a))).then(()=>a(17833)))}]);
+  `,[o]);return(0,a.jsxs)("div",{children:[(0,a.jsxs)("select",{className:"button-33 inline",value:o,onChange:e=>c(e.target.value),children:[0===e.length&&(0,a.jsx)("option",{value:r,children:r}),e.map(e=>(0,a.jsx)("option",{value:e,children:e},e))]}),(0,a.jsx)(s.default,{index:0,prefix:"speak-ai",enableHis:"Y",heightRes:280,isSpeak:"Y",isMini:null,firstAsk:u,collapse:"N"},o)]})}])},49829,e=>{e.n(e.i(77758))},6857,e=>{e.v(a=>Promise.all(["static/chunks/26dcfe4c23645568.js"].map(a=>e.l(a))).then(()=>a(17833)))}]);
