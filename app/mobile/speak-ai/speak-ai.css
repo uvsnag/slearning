@@ -1,0 +1,12 @@
+.mobile input,
+.mobile select,
+.mobile textarea {
+  font-size: 17px !important;
+}
+.btn-icon {
+  width: 32px;
+  height: 32px;
+  font-size: large;
+  margin-left: 10px;
+  cursor: pointer;
+}

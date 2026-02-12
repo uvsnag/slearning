@@ -145,35 +145,123 @@ const ggSheetProcess = async (
   cell?: string,
   value?: string,
 ): Promise<void> => {
-  const { gapi } = await import('gapi-script');
-  gapi.load('client:auth2', async () => {
-    const apiKey = localStorage.getItem(KEY_API_SHEET);
-    await gapi.client.init({
-      apiKey: apiKey,
-      clientId: config.clientId,
-      discoveryDocs: config.discoveryDocs,
-      scope: config.scope,
-    });
-    if (method === 'get') {
-      await gapi.client.load('sheets', 'v4', async () => {
-        getGGSheetData(gapi, callback, sheet);
+  // Return a Promise that resolves when the underlying operation calls the provided callback
+  return new Promise<void>(async (resolve, reject) => {
+    try {
+      const { gapi } = await import('gapi-script');
+      gapi.load('client:auth2', async () => {
+        try {
+          const apiKey = localStorage.getItem(KEY_API_SHEET);
+          await gapi.client.init({
+            apiKey: apiKey,
+            clientId: config.clientId,
+            discoveryDocs: config.discoveryDocs,
+            scope: config.scope,
+          });
+
+          if (method === 'get') {
+            await gapi.client.load('sheets', 'v4', async () => {
+              // Wrap the callback so we can resolve when it's invoked
+              getGGSheetData(
+                gapi,
+                (items: any) => {
+                  try {
+                    callback(items);
+                    resolve();
+                  } catch (e) {
+                    reject(e);
+                  }
+                },
+                sheet,
+              );
+            });
+            return;
+          }
+
+          if (method === 'update') {
+            updateGGSheet(
+              gapi,
+              (resp: any) => {
+                try {
+                  callback(resp);
+                  resolve();
+                } catch (e) {
+                  reject(e);
+                }
+              },
+              sheet,
+              cell || 'A1',
+              value || '',
+            );
+            return;
+          }
+
+          // If method not handled explicitly, resolve
+          resolve();
+        } catch (innerErr) {
+          reject(innerErr);
+        }
       });
-    }
-    if (method === 'update') {
-      updateGGSheet(gapi, callback, sheet, cell || 'A1', value || '');
+    } catch (err) {
+      reject(err);
     }
   });
 };
 
+// --- Loading overlay helpers (DOM) ---
+let __sheetLoadingCounter = 0;
+const LOADER_ID = 'sheet-data-loading-overlay';
+const LOADER_STYLE_ID = 'sheet-data-loading-style';
+
+const ensureLoader = () => {
+  if (typeof document === 'undefined') return;
+  if (document.getElementById(LOADER_ID)) return;
+
+  if (!document.getElementById(LOADER_STYLE_ID)) {
+    const style = document.createElement('style');
+    style.id = LOADER_STYLE_ID;
+    style.textContent = `
+      #${LOADER_ID} { position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.35); z-index:9999; }
+      #${LOADER_ID} .sloader { width:56px; height:56px; border:6px solid rgba(255,255,255,0.6); border-top-color:#2b8cf6; border-radius:50%; animation:__sheet_spin 1s linear infinite; }
+      @keyframes __sheet_spin { to { transform: rotate(360deg); } }
+    `;
+    document.head.appendChild(style);
+  }
+
+  const overlay = document.createElement('div');
+  overlay.id = LOADER_ID;
+  overlay.setAttribute('aria-hidden', 'true');
+  overlay.innerHTML = `<div class="sloader"></div>`;
+  document.body.appendChild(overlay);
+};
+
+export const showSheetLoading = () => {
+  if (typeof document === 'undefined') return;
+  ensureLoader();
+  __sheetLoadingCounter += 1;
+  const el = document.getElementById(LOADER_ID) as HTMLElement | null;
+  if (el && __sheetLoadingCounter === 1) el.style.display = 'flex';
+};
+
+export const hideSheetLoading = () => {
+  if (typeof document === 'undefined') return;
+  __sheetLoadingCounter = Math.max(0, __sheetLoadingCounter - 1);
+  const el = document.getElementById(LOADER_ID) as HTMLElement | null;
+  if (el && __sheetLoadingCounter === 0) el.style.display = 'none';
+};
+
 export const getDataFromExcel = async (sheet: string, onLoad: any) => {
-  if (sheet?.startsWith(STORE_ALIAS)) {
-    const storeDataString = localStorage.getItem(sheet);
-    const storeData: DataItem[] = storeDataString ? JSON.parse(storeDataString) : [];
-    // if (!_.isEmpty(storeData)) {
-    onLoad(storeData);
-    // }
-  } else {
-    await ggSheetProcess(onLoad, sheet, 'get');
+  showSheetLoading();
+  try {
+    if (sheet?.startsWith(STORE_ALIAS)) {
+      const storeDataString = localStorage.getItem(sheet);
+      const storeData: DataItem[] = storeDataString ? JSON.parse(storeDataString) : [];
+      onLoad(storeData);
+    } else {
+      await ggSheetProcess(onLoad, sheet, 'get');
+    }
+  } finally {
+    hideSheetLoading();
   }
 };
 

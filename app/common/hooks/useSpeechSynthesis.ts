@@ -1,17 +1,25 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 
 interface UseSpeechSynthesisOptions {
   onEnd?: () => void;
 }
-// interface ConfigControl {
-//   voice: number;
-//   rate: number;
-//   volume: number;
-// }
+
+interface SpeechConfig {
+  voice?: number;
+  rate?: number;
+  volume?: number;
+}
+
+interface NavigatorWithAudioSession extends Navigator {
+  audioSession?: {
+    type?: string;
+  };
+}
+
 export interface UseSpeechSynthesisResult {
   speak: (utterance: SpeechSynthesisUtterance) => void;
-  speakText: (speakStr: string, isEng: boolean, config: any) => void;
+  speakText: (speakStr: string, isEng: boolean, config?: SpeechConfig) => void;
   cancel: () => void;
   pause: () => void;
   resume: () => void;
@@ -21,31 +29,57 @@ export interface UseSpeechSynthesisResult {
   voices: SpeechSynthesisVoice[];
 }
 
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
+}
+
+function getInitialVoices(): SpeechSynthesisVoice[] {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+    return [];
+  }
+  return window.speechSynthesis.getVoices();
+}
+
+function trySetIOSPlaybackAudioSession(isIOS: boolean): void {
+  if (!isIOS || typeof navigator === 'undefined') return;
+
+  try {
+    const nav = navigator as NavigatorWithAudioSession;
+    if (nav.audioSession && nav.audioSession.type !== 'playback') {
+      nav.audioSession.type = 'playback';
+    }
+  } catch {
+    // iOS may block this in some contexts; safe to ignore.
+  }
+}
+
 /**
- * Custom hook for Web Speech API synthesis
- * Replaces deprecated react-speech-kit
+ * Custom hook for Web Speech API synthesis.
+ * Includes iOS/Safari-safe speech triggering and voice fallback selection.
  */
 export function useSpeechSynthesis(options?: UseSpeechSynthesisOptions): UseSpeechSynthesisResult {
-  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>(getInitialVoices);
   const [speaking, setSpeaking] = useState(false);
   const [paused, setPaused] = useState(false);
   const supported = typeof window !== 'undefined' && 'speechSynthesis' in window;
+  const hasPrimedIOSRef = useRef(false);
 
-  // Load available voices
+  const isIOS = useMemo((): boolean => {
+    if (typeof navigator === 'undefined') return false;
+    return /iPad|iPhone|iPod/.test(navigator.userAgent);
+  }, []);
+
+  // Load available voices.
   useEffect(() => {
     if (!supported) return;
 
     const synth = window.speechSynthesis;
 
-    // Handle voices loaded
     const handleVoicesChanged = () => {
       setVoices(synth.getVoices());
     };
 
-    // Initial load
-    setVoices(synth.getVoices());
-
-    // Listen for voice changes
+    handleVoicesChanged();
     synth.addEventListener('voiceschanged', handleVoicesChanged);
 
     return () => {
@@ -53,26 +87,86 @@ export function useSpeechSynthesis(options?: UseSpeechSynthesisOptions): UseSpee
     };
   }, [supported]);
 
+  // Keep iOS in playback audio session so output can route to connected Bluetooth devices.
+  useEffect(() => {
+    if (!supported || !isIOS) return;
+
+    const setPlaybackSession = () => trySetIOSPlaybackAudioSession(isIOS);
+    setPlaybackSession();
+
+    document.addEventListener('visibilitychange', setPlaybackSession);
+
+    return () => {
+      document.removeEventListener('visibilitychange', setPlaybackSession);
+    };
+  }, [supported, isIOS]);
+
+  // Prime iOS speech engine once after first user interaction.
+  useEffect(() => {
+    if (!supported || !isIOS) return;
+
+    const primeIOSSpeech = () => {
+      if (hasPrimedIOSRef.current) return;
+      hasPrimedIOSRef.current = true;
+
+      trySetIOSPlaybackAudioSession(isIOS);
+
+      const synth = window.speechSynthesis;
+      const primer = new window.SpeechSynthesisUtterance(' ');
+      primer.volume = 0;
+      primer.rate = 1;
+      primer.lang = 'en-US';
+
+      // Don't immediately cancel: let iOS initialize speech/audio route cleanly.
+      synth.speak(primer);
+    };
+
+    window.addEventListener('touchstart', primeIOSSpeech, { once: true, passive: true });
+    window.addEventListener('click', primeIOSSpeech, { once: true, passive: true });
+
+    return () => {
+      window.removeEventListener('touchstart', primeIOSSpeech);
+      window.removeEventListener('click', primeIOSSpeech);
+    };
+  }, [supported, isIOS]);
+
   const speak = useCallback(
     (utterance: SpeechSynthesisUtterance) => {
       if (!supported) return;
 
       const synth = window.speechSynthesis;
 
-      // Set up event handlers
-      utterance.onstart = () => setSpeaking(true);
+      utterance.onstart = () => {
+        setSpeaking(true);
+        setPaused(false);
+      };
       utterance.onend = () => {
         setSpeaking(false);
         setPaused(false);
         options?.onEnd?.();
       };
-      utterance.onerror = () => setSpeaking(false);
+      utterance.onerror = () => {
+        setSpeaking(false);
+        setPaused(false);
+      };
 
-      // Speak
-      synth.cancel(); // Cancel any ongoing speech
-      synth.speak(utterance);
+      const runSpeak = () => {
+        trySetIOSPlaybackAudioSession(isIOS);
+        synth.speak(utterance);
+      };
+
+      if (synth.speaking || synth.pending) {
+        synth.cancel();
+      }
+
+      // iOS Safari is more reliable with a short delay after cancel/session updates.
+      if (isIOS) {
+        window.setTimeout(runSpeak, 140);
+      } else {
+        runSpeak();
+      }
     },
-    [supported, options],
+    [supported, options, isIOS],
   );
 
   const cancel = useCallback(() => {
@@ -90,33 +184,35 @@ export function useSpeechSynthesis(options?: UseSpeechSynthesisOptions): UseSpee
 
   const resume = useCallback(() => {
     if (!supported || !paused) return;
+    trySetIOSPlaybackAudioSession(isIOS);
     window.speechSynthesis.resume();
     setPaused(false);
-  }, [supported, paused]);
+  }, [supported, paused, isIOS]);
 
-  const speakText = (speakStr: string, isEng: boolean, config: any): void => {
-    // const vVoiceElement = document.getElementById('voice') as HTMLSelectElement;
-    // const vVoiceVieElement = document.getElementById('voiceVie') as HTMLSelectElement;
-    // const vrateElement = document.getElementById('rate') as HTMLInputElement;
+  const speakText = useCallback(
+    (speakStr: string, isEng: boolean, config?: SpeechConfig): void => {
+      if (!supported) return;
 
-    const vVoice = config.voice || '0';
-    const vVoiceVie = config.voice || '0';
-    const vrate = config.rate || '0.6';
+      const text = (speakStr || '').trim();
+      if (!text) return;
 
-    const utterance = new window.SpeechSynthesisUtterance();
+      const requestedIndex = Number(config?.voice ?? 0);
+      const selectedVoice = Number.isFinite(requestedIndex) ? voices[requestedIndex] : undefined;
+      const fallbackLangPrefix = isEng ? 'en' : 'vi';
+      const fallbackVoice = voices.find((voice) =>
+        voice.lang?.toLowerCase().startsWith(fallbackLangPrefix),
+      );
 
-    utterance.text = speakStr;
-    // utterance.lang = 'en-US';
-    utterance.rate = Number(vrate);
-    // utterance.pitch = pitch;
-    if (isEng) {
-      utterance.voice = voices[Number(vVoice)];
-    } else {
-      utterance.voice = voices[Number(vVoiceVie)];
-    }
-    utterance.volume = config.volume;
-    speak(utterance);
-  };
+      const utterance = new window.SpeechSynthesisUtterance(text);
+      utterance.voice = selectedVoice ?? fallbackVoice ?? null;
+      utterance.lang = utterance.voice?.lang || (isEng ? 'en-US' : 'vi-VN');
+      utterance.rate = clamp(Number(config?.rate ?? 0.6), 0.1, 10);
+      utterance.volume = clamp(Number(config?.volume ?? 1), 0, 1);
+
+      speak(utterance);
+    },
+    [supported, voices, speak],
+  );
 
   return {
     speak,

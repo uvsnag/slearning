@@ -455,7 +455,12 @@ const YoutubeSub: FC = () => {
     }, periodLoop * 1000);
   };
   return (
-    <div className="yt-sub" id="main-content" tabIndex={0} onKeyDown={(e) => onControlKey(e)}>
+    <div
+      className="yt-sub mobile"
+      id="main-content"
+      tabIndex={0}
+      onKeyDown={(e) => onControlKey(e)}
+    >
       <div id="maincontent-yt" className="">
         <input
           type="range"
