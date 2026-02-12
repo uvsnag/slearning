@@ -429,15 +429,17 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
         />
         <br />
         <VoiceToText setText={setPrompt} index={props.index}></VoiceToText>
-        <div className="" onClick={() => toggleCollapse(`config-${props.prefix}${props.index}`)}>
+        <button onClick={() => askDec(prompt)} className="common-btn inline">
+          Send
+        </button>
+        <div
+          className="btn-icon"
+          onClick={() => toggleCollapse(`config-${props.prefix}${props.index}`)}
+        >
           <FaCog />
         </div>
 
         <div className="collapse-content bolder" id={`config-${props.prefix}${props.index}`}>
-          <button onClick={() => askDec(prompt)} className="common-btn inline">
-            Send
-          </button>
-
           <button onClick={() => clearLog()} className="common-btn inline">
             Clear
           </button>
@@ -500,7 +502,7 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
           />
         </div>
         <div
-          className=""
+          className="btn-icon"
           onClick={() => toggleCollapse(`save-sheet-${props.prefix}${props.index}`)}
         >
           <FaSave />
@@ -510,7 +512,7 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
         </div>
         {isSpeakEnabled && (
           <div
-            className="inline"
+            className="btn-icon"
             onClick={() => toggleCollapse(`voice-config-${props.prefix}${props.index}`)}
           >
             <FaVolumeUp />

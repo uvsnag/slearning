@@ -3,11 +3,13 @@ import { useEffect, useMemo, useState } from 'react';
 import AIBoard from '@/app/common/components/AIBoard';
 import { DataItem, getDataFromExcel } from '@/app/common/hooks/useSheetData';
 import { SHEET_AUTO } from '@/app/common/components/SheetDataEditor';
-import '@/slearning/multi-ai/style-ai.css';
+import '@/slearning/mobile/speak-ai/speak-ai.css';
+import { toggleCollapse } from '@/app/common/common';
+import MulAI from '@/app/multi-ai/page';
+import { MulAIContainerProps } from '@/app/multi-ai/MultiAI';
 
 const DEFAULT_SCENARIO = 'Talking to a foreign colleague during lunch';
-const SCENARIO_RANGE =
-  SHEET_AUTO.find((item) => item.name === 'ABoard7')?.range || 'AUTO!Y2:AA500';
+const SCENARIO_RANGE = SHEET_AUTO.find((item) => item.name === 'ABoard7')?.range || 'AUTO!Y2:AA500';
 
 const buildPrompt = (scenario: string): string => `
 SCENARIO: ${scenario}
@@ -50,9 +52,18 @@ Explanation:
 Continue conversation:
 (Continue naturally and ask me something)
 
-
+You talk first. Let's start the conversation now!
   `;
 const SpeakAI = () => {
+  const MUL_PROP: MulAIContainerProps = {
+    heightRes: 180,
+    cols: 1,
+    configs: [
+      { instanceNo: 0, prefix: 'yts', enableHis: 'N', collapse: 'N' },
+      { instanceNo: 1, prefix: 'yts', enableHis: 'N', collapse: 'N' },
+      { instanceNo: 2, prefix: 'yts', enableHis: 'Y', collapse: 'Y' },
+    ],
+  };
   const [scenarioOptions, setScenarioOptions] = useState<string[]>([]);
   const [selectedScenario, setSelectedScenario] = useState<string>(DEFAULT_SCENARIO);
 
@@ -72,7 +83,7 @@ const SpeakAI = () => {
   const prompt = useMemo((): string => buildPrompt(selectedScenario), [selectedScenario]);
 
   return (
-    <div>
+    <div className="mobile">
       <select
         className="button-33 inline"
         value={selectedScenario}
@@ -98,6 +109,12 @@ const SpeakAI = () => {
         firstAsk={prompt}
         collapse={'N'}
       />
+      <div className="width-100" onClick={() => toggleCollapse('mul-ai')}>
+        Mul-AI
+      </div>
+      <div id="mul-ai" className="collapse-content bolder">
+        <MulAI {...MUL_PROP}></MulAI>
+      </div>
     </div>
   );
 };
