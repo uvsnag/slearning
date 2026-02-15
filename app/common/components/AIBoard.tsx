@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import type { ChangeEvent, KeyboardEvent, Dispatch, SetStateAction } from 'react';
 import { GoogleGenAI } from '@google/genai';
 import { Configuration, OpenAIApi } from 'openai-edge';
@@ -40,6 +40,51 @@ const MODEL_AI: ModelAI[] = [
   { value: 'gemini-2.5-flash', name: 'gemini-2.5-flash', type: TP_GEN },
   { value: 'gpt-4o', name: 'gpt-4o', type: TP_GPT },
 ];
+const CLICK_TO_SPEECH_IGNORE_WORDS: string[] = [
+  'a',
+  'an',
+  'the',
+  'have',
+  'has',
+  'is',
+  'are',
+  'am',
+  'was',
+  'were',
+  'be',
+  'been',
+  'being',
+  'do',
+  'does',
+  'did',
+  'to',
+  'of',
+  'in',
+  'on',
+  'at',
+  'for',
+  'and',
+  'or',
+  'I',
+  'you',
+  'he',
+  'she',
+  'it',
+  'we',
+  'they',
+  'me',
+  'him',
+  'her',
+  'us',
+  'them',
+  'but',
+  'if',
+  'then',
+  'that',
+];
+const CLICK_TO_SPEECH_IGNORE_SET = new Set(
+  CLICK_TO_SPEECH_IGNORE_WORDS.map((word) => word.toLowerCase()),
+);
 
 const AIBoard: React.FC<AIBoardProps> = (props) => {
   const keyGeminiNm = `gemi-key-${props.prefix}${props.index}`;
@@ -57,6 +102,24 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
   const [useSpeak, setUseSpeak] = useState<'Y' | 'N'>(
     props.isSpeak === 'Y' || props.isSpeak === true ? 'Y' : 'N',
   );
+  const [useClickToSpeech, setUseClickToSpeech] = useState<'Y' | 'N'>(
+    props.isSpeak === 'Y' || props.isSpeak === true ? 'Y' : 'N',
+  );
+  const [wordPopup, setWordPopup] = useState<{
+    open: boolean;
+    word: string;
+    meaning: string;
+    loading: boolean;
+    error: string;
+  }>({
+    open: false,
+    word: '',
+    meaning: '',
+    loading: false,
+    error: '',
+  });
+  const meaningCacheRef = useRef<Record<string, string>>({});
+  const clickRequestIdRef = useRef<number>(0);
 
   const [prompt, setPrompt] = useState<string>(props.firstAsk ?? '');
   const [sysPrompt, setSysPrompt] = useState<string>('');
@@ -241,7 +304,7 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
           });
         }
       }
-      addLog(fomatRawResponse(responseTxt), false);
+      addLog(buildResponseHtml(responseTxt), false);
 
       setValue1(promVal);
       setValue2(fomatRawResponse(responseTxt));
@@ -257,6 +320,130 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
       .replace(/\s+/g, ' ')
       .trim();
   }
+
+  function normalizeWord(token: string): string {
+    return token.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, '').trim();
+  }
+
+  function buildClickableWordHtml(text: string): string {
+    const words = text.split(/\s+/).filter(Boolean);
+    return words
+      .map((word) => {
+        const displayWord = escapeHtml(word);
+        const normalizedWord = normalizeWord(word);
+        if (!normalizedWord || CLICK_TO_SPEECH_IGNORE_SET.has(normalizedWord.toLowerCase())) {
+          return `<span>${displayWord}</span>`;
+        }
+        const clickValue = encodeURIComponent(normalizedWord.toLowerCase());
+        return `<button type="button" class="common-btn inline" data-click-word="${clickValue}" style="margin:2px;padding:2px 6px;">${displayWord}</button>`;
+      })
+      .join(' ');
+  }
+
+  function buildResponseHtml(rawResponse: string): string {
+    const formattedResponse = fomatRawResponse(rawResponse);
+    if (useClickToSpeech !== 'Y') {
+      return formattedResponse;
+    }
+    const cleanedResponse = sanitizeForSpeech(rawResponse);
+    if (!cleanedResponse) {
+      return formattedResponse;
+    }
+    return `${formattedResponse}<div style="margin-top:8px;line-height:2;">${buildClickableWordHtml(cleanedResponse)}</div>`;
+  }
+
+  const fetchVietnameseMeaning = useCallback(async (word: string): Promise<string> => {
+    const normalizedWord = word.toLowerCase();
+    if (meaningCacheRef.current[normalizedWord]) {
+      return meaningCacheRef.current[normalizedWord];
+    }
+
+    const response = await fetch(
+      `https://api.mymemory.translated.net/get?q=${encodeURIComponent(
+        normalizedWord,
+      )}&langpair=en|vi`,
+    );
+    const data = await response.json();
+    const translated = data?.responseData?.translatedText;
+    const meaning =
+      typeof translated === 'string' && translated.trim() ? translated.trim() : 'No meaning found.';
+    meaningCacheRef.current[normalizedWord] = meaning;
+    return meaning;
+  }, []);
+
+  const onClickSpeechWord = useCallback(
+    async (clickedWord: string): Promise<void> => {
+      const cleanWord = normalizeWord(clickedWord);
+      if (!cleanWord) return;
+
+      speakText(cleanWord, true, {
+        voice: voiceIndex,
+        rate: rate,
+        volume: volumn,
+      });
+
+      const requestId = clickRequestIdRef.current + 1;
+      clickRequestIdRef.current = requestId;
+      setWordPopup({
+        open: true,
+        word: cleanWord,
+        meaning: '',
+        loading: true,
+        error: '',
+      });
+
+      try {
+        const meaning = await fetchVietnameseMeaning(cleanWord);
+        if (clickRequestIdRef.current !== requestId) return;
+        setWordPopup({
+          open: true,
+          word: cleanWord,
+          meaning: meaning,
+          loading: false,
+          error: '',
+        });
+      } catch (error) {
+        if (clickRequestIdRef.current !== requestId) return;
+        setWordPopup({
+          open: true,
+          word: cleanWord,
+          meaning: '',
+          loading: false,
+          error: String(error),
+        });
+      }
+    },
+    [speakText, voiceIndex, rate, volumn, fetchVietnameseMeaning],
+  );
+
+  function speakPopupWord(word: string): void {
+    const cleanWord = normalizeWord(word);
+    if (!cleanWord) return;
+    speakText(cleanWord, true, {
+      voice: voiceIndex,
+      rate: rate,
+      volume: volumn,
+    });
+  }
+
+  useEffect((): (() => void) | void => {
+    const logElement = document.getElementById(`response-ai-${props.prefix}${props.index}`);
+    if (!logElement) return;
+
+    const handleWordClick = (event: Event): void => {
+      const target = event.target as HTMLElement;
+      const wordData = target?.getAttribute('data-click-word');
+      if (!wordData || useClickToSpeech !== 'Y') return;
+      event.preventDefault();
+      const clickedWord = decodeURIComponent(wordData);
+      onClickSpeechWord(clickedWord);
+    };
+
+    logElement.addEventListener('click', handleWordClick);
+    return () => {
+      logElement.removeEventListener('click', handleWordClick);
+    };
+  }, [props.prefix, props.index, useClickToSpeech, onClickSpeechWord]);
 
   function onSpeakLastResponse(): void {
     if (!isSpeakEnabled || !lastResponseRaw) {
@@ -475,6 +662,16 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
             <option value="Y">Yes</option>
             <option value="N">No</option>
           </select>
+          <span>Click to speech</span>
+          <select
+            value={useClickToSpeech}
+            onChange={(e: ChangeEvent<HTMLSelectElement>) => {
+              setUseClickToSpeech(e.target.value as 'Y' | 'N');
+            }}
+          >
+            <option value="Y">Yes</option>
+            <option value="N">No</option>
+          </select>
           <br />
           <input
             type="text"
@@ -541,6 +738,72 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
                 setVolumn(value);
               }}
             />
+          </div>
+        )}
+        {/* {1 === 1 && ( */}
+        {wordPopup.open && (
+          <div
+            style={{
+              position: 'fixed',
+              inset: '0',
+              zIndex: 1100,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+            onClick={() =>
+              setWordPopup({
+                open: false,
+                word: '',
+                meaning: '',
+                loading: false,
+                error: '',
+              })
+            }
+          >
+            <div
+              style={{
+                // backgroundColor: '#f1f9f8',
+                // color: '#000000',
+                padding: '2px',
+                borderRadius: '8px',
+                maxWidth: '420px',
+                width: '70%',
+              }}
+              onClick={(e) => e.stopPropagation()}
+              className="popup"
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1px' }}>
+                <b>{wordPopup.word}</b>{' '}
+                <button
+                  type="button"
+                  className="common-btn inline"
+                  onClick={() => speakPopupWord(wordPopup.word)}
+                >
+                  <FaVolumeUp />
+                </button>
+              </div>
+              <div style={{ marginTop: '8px' }}>
+                {wordPopup.loading && 'Loading Vietnamese meaning...'}
+                {!wordPopup.loading && !wordPopup.error && wordPopup.meaning}
+                {!wordPopup.loading && wordPopup.error && `Error: ${wordPopup.error}`}
+              </div>
+              <button
+                onClick={() =>
+                  setWordPopup({
+                    open: false,
+                    word: '',
+                    meaning: '',
+                    loading: false,
+                    error: '',
+                  })
+                }
+                className="common-btn"
+                style={{ marginTop: '12px' }}
+              >
+                Close
+              </button>
+            </div>
           </div>
         )}
       </div>

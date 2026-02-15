@@ -24,6 +24,15 @@
   border: 3px solid #ffffff;
 }
 
+.dark-90 .popup {
+  background-color: #827947;
+  color: #ffffff;
+}
+.popup {
+  background-color: #c2f3b7;
+  color: #000000;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
