@@ -2,10 +2,8 @@
 import { useEffect, useState, useRef } from 'react';
 import { MdHearing } from 'react-icons/md';
 import { FaMicrophone } from 'react-icons/fa';
-import _ from 'lodash';
 import {
   useSpeechRecognition,
-  browserSupportsSpeechRecognition,
 } from '@/app/common/hooks/useSpeechRecognition';
 
 /** =======================
@@ -22,9 +20,6 @@ const VoiceToText: React.FC<VoiceToTextProps> = ({ setText, index }) => {
     resetTranscript,
     listening,
     browserSupportsSpeechRecognition: supportsSpeechRecognition,
-    isMicrophoneAvailable,
-    interimTranscript,
-    finalTranscript,
     startListening,
     stopListening,
   } = useSpeechRecognition();
@@ -34,6 +29,10 @@ const VoiceToText: React.FC<VoiceToTextProps> = ({ setText, index }) => {
   const [isStartRecord, setIsStartRecord] = useState<boolean>(false);
 
   useEffect((): void => {
+    setIsStartRecord(listening);
+  }, [listening]);
+
+  useEffect((): void => {
     if (index === activeIndx.current) {
       setText(transcript);
     }
@@ -41,10 +40,10 @@ const VoiceToText: React.FC<VoiceToTextProps> = ({ setText, index }) => {
   }, [transcript]);
 
   useEffect((): void => {
-    if (!browserSupportsSpeechRecognition) {
+    if (!supportsSpeechRecognition) {
       alert('Browser does not support speech to text');
     }
-  }, []);
+  }, [supportsSpeechRecognition]);
 
   const handleStartListening = (): void => {
     activeIndx.current = index;
@@ -69,7 +68,11 @@ const VoiceToText: React.FC<VoiceToTextProps> = ({ setText, index }) => {
   };
 
   const processRecord = (): void => {
-    isStartRecord ? handleStopListening() : handleStartListening();
+    if (isStartRecord) {
+      handleStopListening();
+      return;
+    }
+    handleStartListening();
   };
 
   return (

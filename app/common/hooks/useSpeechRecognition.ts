@@ -6,6 +6,42 @@ interface UseSpeechRecognitionOptions {
   language?: string;
 }
 
+interface SpeechRecognitionAlternativeLike {
+  transcript: string;
+}
+
+interface SpeechRecognitionResultLike {
+  isFinal: boolean;
+  [index: number]: SpeechRecognitionAlternativeLike;
+}
+
+interface SpeechRecognitionEventLike {
+  resultIndex: number;
+  results: ArrayLike<SpeechRecognitionResultLike>;
+}
+
+interface SpeechRecognitionErrorEventLike {
+  error: string;
+}
+
+interface SpeechRecognitionLike {
+  continuous: boolean;
+  interimResults: boolean;
+  language: string;
+  onstart: (() => void) | null;
+  onresult: ((event: SpeechRecognitionEventLike) => void) | null;
+  onerror: ((event: SpeechRecognitionErrorEventLike) => void) | null;
+  onend: (() => void) | null;
+  start: () => void;
+  stop: () => void;
+  abort: () => void;
+}
+
+interface SpeechWindow extends Window {
+  webkitSpeechRecognition?: new () => SpeechRecognitionLike;
+  SpeechRecognition?: new () => SpeechRecognitionLike;
+}
+
 export interface UseSpeechRecognitionResult {
   transcript: string;
   interimTranscript: string;
@@ -30,8 +66,10 @@ export function useSpeechRecognition(): UseSpeechRecognitionResult {
   const [listening, setListening] = useState(false);
   const [isMicrophoneAvailable, setIsMicrophoneAvailable] = useState(true);
 
-  const recognitionRef = useRef<any>(null);
-  const interimRef = useRef('');
+  const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
+  const finalTranscriptRef = useRef('');
+  const shouldRestartRef = useRef(false);
+  const isStoppingRef = useRef(false);
 
   const browserSupportsSpeechRecognition =
     typeof window !== 'undefined' &&
@@ -41,36 +79,47 @@ export function useSpeechRecognition(): UseSpeechRecognitionResult {
   useEffect(() => {
     if (!browserSupportsSpeechRecognition) return;
 
+    const speechWindow = window as SpeechWindow;
     const SpeechRecognitionAPI =
-      (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+      speechWindow.webkitSpeechRecognition || speechWindow.SpeechRecognition;
+    if (!SpeechRecognitionAPI) return;
+
     recognitionRef.current = new SpeechRecognitionAPI();
     const recognition = recognitionRef.current;
 
     recognition.onstart = () => {
       setListening(true);
       setIsMicrophoneAvailable(true);
+      isStoppingRef.current = false;
     };
 
-    recognition.onresult = (event: any) => {
+    recognition.onresult = (event: SpeechRecognitionEventLike) => {
       let interim = '';
+      let nextFinal = finalTranscriptRef.current;
 
       for (let i = event.resultIndex; i < event.results.length; i++) {
-        const transcript = event.results[i][0].transcript;
+        const transcriptChunk = event.results[i][0].transcript.trim();
+        if (!transcriptChunk) continue;
 
         if (event.results[i].isFinal) {
-          setFinalTranscript((prev) => prev + transcript + ' ');
+          nextFinal = nextFinal ? `${nextFinal} ${transcriptChunk}` : transcriptChunk;
         } else {
-          interim += transcript;
+          interim = interim ? `${interim} ${transcriptChunk}` : transcriptChunk;
         }
       }
 
-      interimRef.current = interim;
+      finalTranscriptRef.current = nextFinal;
+      setFinalTranscript(nextFinal);
       setInterimTranscript(interim);
-      setTranscript(finalTranscript + interim);
+      setTranscript([nextFinal, interim].filter(Boolean).join(' ').trim());
     };
 
-    recognition.onerror = (event: any) => {
-      if (event.error === 'no-speech') {
+    recognition.onerror = (event: SpeechRecognitionErrorEventLike) => {
+      if (
+        event.error === 'not-allowed' ||
+        event.error === 'service-not-allowed' ||
+        event.error === 'audio-capture'
+      ) {
         setIsMicrophoneAvailable(false);
       }
       console.log('Speech recognition error:', event.error);
@@ -78,6 +127,16 @@ export function useSpeechRecognition(): UseSpeechRecognitionResult {
 
     recognition.onend = () => {
       setListening(false);
+
+      if (shouldRestartRef.current && !isStoppingRef.current) {
+        setTimeout(() => {
+          try {
+            recognition.start();
+          } catch (error) {
+            console.log('Speech recognition restart error:', error);
+          }
+        }, 120);
+      }
     };
 
     return () => {
@@ -85,13 +144,13 @@ export function useSpeechRecognition(): UseSpeechRecognitionResult {
         recognition.abort();
       }
     };
-  }, [browserSupportsSpeechRecognition, finalTranscript]);
+  }, [browserSupportsSpeechRecognition]);
 
   const resetTranscript = useCallback(() => {
     setTranscript('');
     setInterimTranscript('');
     setFinalTranscript('');
-    interimRef.current = '';
+    finalTranscriptRef.current = '';
   }, []);
 
   const startListening = useCallback(
@@ -99,9 +158,14 @@ export function useSpeechRecognition(): UseSpeechRecognitionResult {
       if (!browserSupportsSpeechRecognition || !recognitionRef.current) return;
 
       const recognition = recognitionRef.current;
-      recognition.continuous = options?.continuous ?? false;
+      const continuous = options?.continuous ?? false;
+      const language = options?.language ?? 'en-US';
+      shouldRestartRef.current = continuous;
+      isStoppingRef.current = false;
+
+      recognition.continuous = continuous;
       recognition.interimResults = true;
-      recognition.language = options?.language ?? 'en-US';
+      recognition.language = language;
 
       try {
         recognition.start();
@@ -114,11 +178,15 @@ export function useSpeechRecognition(): UseSpeechRecognitionResult {
 
   const stopListening = useCallback(() => {
     if (!browserSupportsSpeechRecognition || !recognitionRef.current) return;
+    shouldRestartRef.current = false;
+    isStoppingRef.current = true;
     recognitionRef.current.stop();
   }, [browserSupportsSpeechRecognition]);
 
   const abortListening = useCallback(() => {
     if (!browserSupportsSpeechRecognition || !recognitionRef.current) return;
+    shouldRestartRef.current = false;
+    isStoppingRef.current = true;
     recognitionRef.current.abort();
   }, [browserSupportsSpeechRecognition]);
 

@@ -221,7 +221,7 @@ const ensureLoader = () => {
     const style = document.createElement('style');
     style.id = LOADER_STYLE_ID;
     style.textContent = `
-      #${LOADER_ID} { position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.35); z-index:9999; }
+      #${LOADER_ID} { position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.35); z-index:9999; pointer-events:none; }
       #${LOADER_ID} .sloader { width:56px; height:56px; border:6px solid rgba(255,255,255,0.6); border-top-color:#2b8cf6; border-radius:50%; animation:__sheet_spin 1s linear infinite; }
       @keyframes __sheet_spin { to { transform: rotate(360deg); } }
     `;
