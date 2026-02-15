@@ -3,7 +3,7 @@
 3:I[17953,["/slearning/_next/static/chunks/a8f61752e131c129.js","/slearning/_next/static/chunks/7d94774749ecc862.js","/slearning/_next/static/chunks/d5372b569cb8cb09.js","/slearning/_next/static/chunks/5234c22e73614938.js"],"default"]
 6:I[45336,["/slearning/_next/static/chunks/41d36fb5b4c4261e.js","/slearning/_next/static/chunks/66ff6123d568c1da.js"],"OutletBoundary"]
 7:"$Sreact.suspense"
-0:{"buildId":"n3blWj1MEBQK_C1CErpea","rsc":["$","$1","c",{"children":[["$","$L2",null,{"Component":"$3","serverProvidedParams":{"searchParams":{},"params":{},"promises":["$@4","$@5"]}}],[["$","script","script-0",{"src":"/slearning/_next/static/chunks/d5372b569cb8cb09.js","async":true}],["$","script","script-1",{"src":"/slearning/_next/static/chunks/5234c22e73614938.js","async":true}]],["$","$L6",null,{"children":["$","$7",null,{"name":"Next.MetadataOutlet","children":"$@8"}]}]]}],"loading":null,"isPartial":false}
+0:{"buildId":"uLgKcqmKhNlD5M74b5W_f","rsc":["$","$1","c",{"children":[["$","$L2",null,{"Component":"$3","serverProvidedParams":{"searchParams":{},"params":{},"promises":["$@4","$@5"]}}],[["$","script","script-0",{"src":"/slearning/_next/static/chunks/d5372b569cb8cb09.js","async":true}],["$","script","script-1",{"src":"/slearning/_next/static/chunks/5234c22e73614938.js","async":true}]],["$","$L6",null,{"children":["$","$7",null,{"name":"Next.MetadataOutlet","children":"$@8"}]}]]}],"loading":null,"isPartial":false}
 4:{}
 5:{}
 8:null
