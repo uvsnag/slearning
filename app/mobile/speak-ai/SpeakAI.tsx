@@ -75,7 +75,8 @@ const SpeakAI = () => {
 
       setScenarioOptions(scenarios);
       if (scenarios.length > 0) {
-        setSelectedScenario(scenarios[0]);
+        const randomIndex = Math.floor(Math.random() * scenarios.length);
+        setSelectedScenario(scenarios[randomIndex]);
       }
     });
   }, []);
@@ -86,6 +87,9 @@ const SpeakAI = () => {
     <div className="mobile">
       <select
         className="button-33 inline"
+        style={{
+          width: '100%',
+        }}
         value={selectedScenario}
         onChange={(e) => setSelectedScenario(e.target.value)}
       >
