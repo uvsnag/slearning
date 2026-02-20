@@ -33,7 +33,7 @@ export interface AIBoardProps {
   firstAsk?: string;
   lastSentence?: string | null;
   collapse?: string | null;
-  isSpeak?: 'Y' | 'N' | boolean | null;
+  isSpeak?: 'Y' | 'N' | 'A' | boolean | null;
 }
 
 const MODEL_AI: ModelAI[] = [
@@ -99,7 +99,7 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
   const [aiName, setAIName] = useState<string>('Gemini');
   const [model, setModel] = useState<ModelAI>(MODEL_AI[0]);
   const [useHis, setUseHis] = useState<string>(props.enableHis ?? 'N');
-  const [useSpeak, setUseSpeak] = useState<'Y' | 'N'>(
+  const [useSpeak, setUseSpeak] = useState<'Y' | 'N' | 'A'>(
     props.isSpeak === 'Y' || props.isSpeak === true ? 'Y' : 'N',
   );
   const [useClickToSpeech, setUseClickToSpeech] = useState<'Y' | 'N'>(
@@ -132,7 +132,7 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
   const [rate, setRate] = useState<number>(1);
   const [volumn, setVolumn] = useState<number>(0.6);
   const { speakText, voices } = useSpeechSynthesis();
-  const isSpeakEnabled = useSpeak === 'Y';
+  const isSpeakEnabled = useSpeak !== 'N';
 
   useEffect((): void => {
     let gmLcal = localStorage.getItem(keyGeminiNm);
@@ -212,6 +212,12 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
       localStorage.setItem(sysPromptNm, sysPrompt);
     }
   }, [sysPrompt]);
+
+  useEffect((): void => {
+    if (useSpeak === 'A' && useClickToSpeech !== 'Y') {
+      setUseClickToSpeech('Y');
+    }
+  }, [useSpeak, useClickToSpeech]);
 
   function onAskMini(isProcess: boolean = false, spSentence: string | null = null): void {
     let promp = spSentence ?? props.statement;
@@ -294,10 +300,13 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
         responseTxt = useHis === 'Y' ? await askGeminiHis(promVal) : await askGemini(promVal);
       }
       setLastResponseRaw(responseTxt);
-      if (isSpeakEnabled && responseTxt) {
-        const cleanedResponse = sanitizeForSpeech(responseTxt);
-        if (cleanedResponse) {
-          speakText(cleanedResponse, true, {
+      if (useSpeak !== 'N' && responseTxt) {
+        const textToSpeak =
+          useSpeak === 'A'
+            ? extractConversationSentence(responseTxt)
+            : sanitizeForSpeech(responseTxt);
+        if (textToSpeak) {
+          speakText(textToSpeak, true, {
             voice: voiceIndex,
             rate: rate,
             volume: volumn,
@@ -326,30 +335,79 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
   }
 
   function buildClickableWordHtml(text: string): string {
-    const words = text.split(/\s+/).filter(Boolean);
-    return words
-      .map((word) => {
-        const displayWord = escapeHtml(word);
-        const normalizedWord = normalizeWord(word);
-        if (!normalizedWord || CLICK_TO_SPEECH_IGNORE_SET.has(normalizedWord.toLowerCase())) {
-          return `<span>${displayWord}</span>`;
-        }
-        const clickValue = encodeURIComponent(normalizedWord.toLowerCase());
-        return `<button type="button" class="common-btn inline" data-click-word="${clickValue}" style="margin:2px;padding:2px 6px;">${displayWord}</button>`;
-      })
-      .join(' ');
+    return text
+      .split(/\n/)
+      .map((line) =>
+        line
+          .split(/\s+/)
+          .filter(Boolean)
+          .map((word) => {
+            const displayWord = escapeHtml(word);
+            const normalizedWord = normalizeWord(word);
+            if (!normalizedWord || CLICK_TO_SPEECH_IGNORE_SET.has(normalizedWord.toLowerCase())) {
+              return `<span>${displayWord}</span>`;
+            }
+            const clickValue = encodeURIComponent(normalizedWord.toLowerCase());
+            return `<button type="button" class="common-btn inline btn-word-speak" data-click-word="${clickValue}" style="margin:2px;padding:2px 6px;">${displayWord}</button>`;
+          })
+          .join(' '),
+      )
+      .join('<br/>');
   }
 
   function buildResponseHtml(rawResponse: string): string {
     const formattedResponse = fomatRawResponse(rawResponse);
-    if (useClickToSpeech !== 'Y') {
+    if (useClickToSpeech === 'N') {
       return formattedResponse;
     }
-    const cleanedResponse = sanitizeForSpeech(rawResponse);
-    if (!cleanedResponse) {
+    if (!rawResponse || !rawResponse.trim()) {
       return formattedResponse;
     }
-    return `${formattedResponse}<div style="margin-top:8px;line-height:2;">${buildClickableWordHtml(cleanedResponse)}</div>`;
+    return `<div>${buildClickableWordHtml(rawResponse)}</div>`;
+    // return `${formattedResponse}<div>${buildClickableWordHtml(cleanedResponse)}</div>`;
+  }
+
+  function extractConversationSentence(text: string): string {
+    const fullText = sanitizeForSpeech(text);
+    const normalizedText = text.replace(/\r\n/g, '\n').replace(/\*\*/g, '');
+    const lines = normalizedText.split('\n');
+    let inlineSectionBody = '';
+    let continueLineIndex = -1;
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      const match = line.match(/^[-*#\d.)\s]*continue\s+conversation\s*:\s*(.*)$/i);
+      if (match) {
+        continueLineIndex = i;
+        inlineSectionBody = (match[1] || '').trim();
+        break;
+      }
+    }
+
+    if (continueLineIndex === -1) {
+      return fullText;
+    }
+
+    const sectionLines: string[] = [];
+    if (inlineSectionBody) {
+      sectionLines.push(inlineSectionBody);
+    }
+    for (let i = continueLineIndex + 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+      if (/^[-*#\d.)\s]*[a-z][a-z\s]{1,30}:\s*$/i.test(line)) {
+        break;
+      }
+      sectionLines.push(line);
+    }
+    const sectionBody = sectionLines.join(' ').trim();
+    if (!sectionBody) {
+      return fullText;
+    }
+
+    const cleanedSection = sectionBody.replace(/^[-*0-9.)\s]+/, '').trim();
+    const conversationText = sanitizeForSpeech(cleanedSection);
+    return conversationText || fullText;
   }
 
   const fetchVietnameseMeaning = useCallback(async (word: string): Promise<string> => {
@@ -432,6 +490,7 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
 
     const handleWordClick = (event: Event): void => {
       const target = event.target as HTMLElement;
+      console.log('Clicked element:', target);
       const wordData = target?.getAttribute('data-click-word');
       if (!wordData || useClickToSpeech !== 'Y') return;
       event.preventDefault();
@@ -449,11 +508,14 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
     if (!isSpeakEnabled || !lastResponseRaw) {
       return;
     }
-    const cleanedResponse = sanitizeForSpeech(lastResponseRaw);
-    if (!cleanedResponse) {
+    const textToSpeak =
+      useSpeak === 'A'
+        ? extractConversationSentence(lastResponseRaw)
+        : sanitizeForSpeech(lastResponseRaw);
+    if (!textToSpeak) {
       return;
     }
-    speakText(cleanedResponse, true, {
+    speakText(textToSpeak, true, {
       voice: voiceIndex,
       rate: rate,
       volume: volumn,
@@ -593,14 +655,21 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
           />
         )}
       </div>
-      <div className="collapse-content bolder" id={`gemini-${props.prefix}${props.index}`}>
+      <div
+        className="collapse-content bolder"
+        style={{
+          padding: '5px',
+          borderRadius: '8px',
+        }}
+        id={`gemini-${props.prefix}${props.index}`}
+      >
         <img
           id={`loading${props.prefix}${props.index}`}
           className="collapse-content loading"
           src={loadingImg.src}
         />
         <div
-          style={{ height: `${props.heightRes}px` }}
+          style={{ height: `${props.heightRes}px`, borderRadius: '8px' }}
           id={`response-ai-${props.prefix}${props.index}`}
           className="response-ai"
         ></div>
@@ -609,6 +678,9 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
           id={`prompt-${props.prefix}${props.index}`}
           className="ai-promt"
           rows={3}
+          style={{
+            marginLeft: '5px',
+          }}
           value={prompt}
           onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setPrompt(e.target.value)}
           placeholder=""
@@ -656,11 +728,12 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
           <select
             value={useSpeak}
             onChange={(e: ChangeEvent<HTMLSelectElement>) => {
-              setUseSpeak(e.target.value as 'Y' | 'N');
+              setUseSpeak(e.target.value as 'Y' | 'N' | 'A');
             }}
           >
             <option value="Y">Yes</option>
             <option value="N">No</option>
+            <option value="A">Continue conversation</option>
           </select>
           <span>Click to speech</span>
           <select

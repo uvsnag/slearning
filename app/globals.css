@@ -437,3 +437,18 @@ li.mst-menu-li a:hover {
   height: 400px;
   width: 100%;
 }
+
+.btn-word-speak {
+  margin-left: 1px !important;
+  margin-right: 1px !important;
+  padding-left: 1px !important;
+  padding-right: 1px !important;
+  background-color: transparent !important;
+  font-size: 15px !important;
+}
+.btn-word-speak {
+  color: #000000 !important;
+}
+.dark-90 .btn-word-speak {
+  color: #ffffff !important;
+}
