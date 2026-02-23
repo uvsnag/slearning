@@ -12,7 +12,7 @@ const DEFAULT_SCENARIO = 'Talking to a foreign colleague during lunch';
 const SCENARIO_RANGE = SHEET_AUTO.find((item) => item.name === 'ABoard7')?.range || 'AUTO!Y2:AA500';
 
 const buildPrompt = (scenario: string): string => `
-SCENARIO: ${scenario}
+Scenario: ${scenario}
 
 
 You are my professional English speaking coach.
@@ -25,7 +25,7 @@ I will speak first (my English may be broken or unnatural).
 
 After I finish speaking, you must:
 
-Correct my grammar clearly.
+Correct my grammar clearly (ignores upper/lower case, and ignores punctuation).
 
 Rewrite my sentence in natural, confident spoken English.
 
@@ -89,6 +89,7 @@ const SpeakAI = () => {
         className="button-33 inline"
         style={{
           width: '100%',
+          textAlign: 'left',
         }}
         value={selectedScenario}
         onChange={(e) => setSelectedScenario(e.target.value)}
@@ -107,13 +108,13 @@ const SpeakAI = () => {
         index={0}
         prefix="speak-ai"
         enableHis="Y"
-        heightRes={280}
-        isSpeak="Y"
+        heightRes={380}
+        isSpeak="A"
         isMini={null}
         firstAsk={prompt}
         collapse={'N'}
       />
-      <div className="width-100" onClick={() => toggleCollapse('mul-ai')}>
+      <div className="btn-icon" onClick={() => toggleCollapse('mul-ai')}>
         Mul-AI
       </div>
       <div id="mul-ai" className="collapse-content bolder">
