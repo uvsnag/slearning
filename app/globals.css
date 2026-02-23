@@ -452,3 +452,14 @@ li.mst-menu-li a:hover {
 .dark-90 .btn-word-speak {
   color: #ffffff !important;
 }
+.btn-icon {
+  width: calc(100% - 10px);
+  height: 32px;
+  font-size: large;
+  padding-left: 10px;
+  cursor: pointer;
+  border-radius: 15px;
+  background-color: rgb(116, 115, 115);
+  color: #ffffff;
+  text-align: center;
+}

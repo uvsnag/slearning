@@ -17,7 +17,7 @@
 
 .ai-promt {
   border-radius: 5px;
-  width: 100%;
+  width: calc(100% - 10px);
 }
 .my-quest {
   color: rgb(51, 6, 6);

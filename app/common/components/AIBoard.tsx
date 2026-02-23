@@ -680,6 +680,7 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
           rows={3}
           style={{
             marginLeft: '5px',
+            // marginRight: '5px',
           }}
           value={prompt}
           onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setPrompt(e.target.value)}
@@ -692,10 +693,10 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
           Send
         </button>
         <div
-          className="btn-icon"
+          className="btn-icon section-ai"
           onClick={() => toggleCollapse(`config-${props.prefix}${props.index}`)}
         >
-          <FaCog />
+          {/* <FaCog /> */}Config
         </div>
 
         <div className="collapse-content bolder" id={`config-${props.prefix}${props.index}`}>
@@ -772,20 +773,20 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
           />
         </div>
         <div
-          className="btn-icon"
+          className="btn-icon section-ai"
           onClick={() => toggleCollapse(`save-sheet-${props.prefix}${props.index}`)}
         >
-          <FaSave />
+          {/* <FaSave /> */} Data
         </div>
         <div className="collapse-content bolder" id={`save-sheet-${props.prefix}${props.index}`}>
           <SheetDataEditor value1={value1} value2={value2} />
         </div>
         {isSpeakEnabled && (
           <div
-            className="btn-icon"
+            className="btn-icon section-ai"
             onClick={() => toggleCollapse(`voice-config-${props.prefix}${props.index}`)}
           >
-            <FaVolumeUp />
+            {/* <FaVolumeUp /> */}Speak
           </div>
         )}
         {isSpeakEnabled && (
