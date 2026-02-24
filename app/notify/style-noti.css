@@ -1,5 +1,6 @@
 #txtField {
   height: 95%;
-  border: 2px dashed #d1c7ac;
+  border: 2px dashed var(--color-border-dashed);
   width: 100%;
 }
+
