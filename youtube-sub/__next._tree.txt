@@ -1,5 +1,5 @@
-:HL["/slearning/_next/static/chunks/ed36082e1c556a17.css","style"]
-:HL["/slearning/_next/static/chunks/58541dc2fadd5f99.css","style"]
-:HL["/slearning/_next/static/chunks/4627cb766da1bc6d.css","style"]
-:HL["/slearning/_next/static/chunks/fce0c199787e87eb.css","style"]
-0:{"buildId":"twVVOHKrjUIPh07YvlABT","tree":{"name":"","paramType":null,"paramKey":"","hasRuntimePrefetch":false,"slots":{"children":{"name":"youtube-sub","paramType":null,"paramKey":"youtube-sub","hasRuntimePrefetch":false,"slots":{"children":{"name":"__PAGE__","paramType":null,"paramKey":"__PAGE__","hasRuntimePrefetch":false,"slots":null,"isRootLayout":false}},"isRootLayout":false}},"isRootLayout":true},"staleTime":300}
+:HL["/slearning/_next/static/chunks/518f39421cb1cd4b.css","style"]
+:HL["/slearning/_next/static/chunks/d2ab4a0f7b9d4dde.css","style"]
+:HL["/slearning/_next/static/chunks/acd1d5ecf7ef389f.css","style"]
+:HL["/slearning/_next/static/chunks/6e856cf913a91320.css","style"]
+0:{"buildId":"U0Y-QHA5YeeirjZONLQOf","tree":{"name":"","paramType":null,"paramKey":"","hasRuntimePrefetch":false,"slots":{"children":{"name":"youtube-sub","paramType":null,"paramKey":"youtube-sub","hasRuntimePrefetch":false,"slots":{"children":{"name":"__PAGE__","paramType":null,"paramKey":"__PAGE__","hasRuntimePrefetch":false,"slots":null,"isRootLayout":false}},"isRootLayout":false}},"isRootLayout":true},"staleTime":300}
