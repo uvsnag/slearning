@@ -665,6 +665,9 @@ const YoutubeSub: FC = () => {
             <input
               type="range"
               className="range-input"
+              style={{
+                width: 440,
+              }}
               id="size"
               name="vol"
               min="0"
@@ -677,10 +680,7 @@ const YoutubeSub: FC = () => {
                         <input type="range" className="range-input" id="size" name="vol" min="5" max="700" value={top} onChange={handleTop}></input><br /> */}
           </div>
         </div>
-        <div
-          className="ui-section-title yts-section-title"
-          onClick={() => toggleCollapse('mobile-control')}
-        >
+        <div className="common-toggle " onClick={() => toggleCollapse('mobile-control')}>
           Control
         </div>
         <div id="mobile-control" className="collapse-content ui-sub-panel yts-control-panel">
@@ -789,16 +789,13 @@ const YoutubeSub: FC = () => {
             ></StackBtn>
           </div>
         </div>
-        <div
-          className="ui-section-title yts-section-title"
-          onClick={() => toggleCollapse('ai-section-yt')}
-        >
+        <div className="common-toggle " onClick={() => toggleCollapse('ai-section-yt')}>
           AI
         </div>
         <div id="ai-section-yt" className="collapse-content ui-sub-panel yts-ai-panel">
           <PracticeWords prefix="prc-yts" enableHis="N" isMini={false} />
         </div>
-        <div className="ui-section-title yts-section-title" onClick={() => toggleCollapse('hide2')}>
+        <div className="common-toggle " onClick={() => toggleCollapse('hide2')}>
           Sub
         </div>
 
@@ -890,10 +887,7 @@ const YoutubeSub: FC = () => {
           <input type="submit" value="H" id="btnHide" onClick={() => onHideAll()} />
           <input type="submit" value="S" id="btnShow" onClick={() => onShowAll()} />
         </div>
-        <div
-          className="ui-section-title yts-section-title"
-          onClick={() => toggleCollapse('mul-ai')}
-        >
+        <div className="common-toggle " onClick={() => toggleCollapse('mul-ai')}>
           Mul-AI
         </div>
       </div>

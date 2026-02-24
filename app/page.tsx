@@ -71,7 +71,7 @@ const Home: FC = () => {
 
         <div className="home-menu-grid">
           <section className="ui-panel home-menu-panel">
-            <div className="ui-section-title">Desktop</div>
+            <div className="common-toggle">Desktop</div>
             <ul className="mst-menu">
               {DESKTOP_LINKS.map((link) => (
                 <li className="mst-menu-li" key={link.href}>
@@ -84,7 +84,7 @@ const Home: FC = () => {
           </section>
 
           <section className="ui-panel home-menu-panel">
-            <div className="ui-section-title">Mobile</div>
+            <div className="common-toggle">Mobile</div>
             <ul className="mst-menu">
               {MOBILE_LINKS.map((link) => (
                 <li className="mst-menu-li" key={link.href}>

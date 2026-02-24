@@ -22,7 +22,7 @@ const Board1: React.FC = () => {
 
   return (
     <div className="">
-      <div className="title-board ui-section-title" onClick={() => toggleCollapse('pract-section')}>
+      <div className="title-board common-toggle" onClick={() => toggleCollapse('pract-section')}>
         Practice
       </div>
 
@@ -31,7 +31,10 @@ const Board1: React.FC = () => {
         <br />
 
         <div>
-          <div className="title-board ui-section-title" onClick={() => toggleCollapse('speed-section')}>
+          <div
+            className="title-board common-toggle"
+            onClick={() => toggleCollapse('speed-section')}
+          >
             Speed
           </div>
 
@@ -43,7 +46,7 @@ const Board1: React.FC = () => {
         </div>
       </div>
 
-      <div className="title-board ui-section-title" onClick={() => toggleCollapse('ai-section')}>
+      <div className="title-board common-toggle" onClick={() => toggleCollapse('ai-section')}>
         AI
       </div>
 
@@ -51,7 +54,7 @@ const Board1: React.FC = () => {
         <NextSentence heightProp={300} />
       </div>
 
-      <div className="title-board ui-section-title" onClick={() => toggleCollapse('yt-section')}>
+      <div className="title-board common-toggle" onClick={() => toggleCollapse('yt-section')}>
         YT
       </div>
 

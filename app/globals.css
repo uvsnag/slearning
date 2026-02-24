@@ -357,7 +357,7 @@ body {
     0 8px 20px var(--shadow-panel-color);
 }
 
-.ui-section-title,
+/* .common-toggle, */
 .title-board {
   width: 100%;
   margin-top: 8px;
@@ -973,14 +973,17 @@ ul.mst-menu > li {
 }
 .btn-word-speak {
   color: var(--color-text-accent) !important;
+  background: var(--color-transparent) !important;
 }
 
 .btn-word-speak:hover {
-  background-color: var(--color-surface-hover) !important;
+  /* background-color: var(--color-surface-hover) !important; */
   border-color: var(--color-border-subtle) !important;
 }
 .dark-90 .btn-word-speak {
   color: var(--color-white) !important;
+  background: var(--color-transparent) !important;
+  /* border-color: var(--color-transparent) !important */
 }
 
 .dark-90 .common-btn,
@@ -1027,7 +1030,6 @@ ul.mst-menu > li {
   color: var(--color-dark-text-muted);
 }
 
-.dark-90 .ui-section-title,
 .dark-90 .title-board {
   border-color: var(--color-dark-border);
   background: linear-gradient(
@@ -1063,11 +1065,12 @@ ul.mst-menu > li {
 }
 
 .common-toggle {
-  width: 100%;
+  width: calc(100% - 10px);
   margin-top: 10px;
+
   padding: 6px 0;
   border-radius: 10px;
-  border: 1px solid var(--color-border-soft);
+  border: 5px solid var(--color-border-soft);
   background: var(--color-surface-badge);
   color: var(--color-link);
   cursor: pointer;
