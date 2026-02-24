@@ -5,10 +5,10 @@
 #media-sub {
   width: 100%;
   height: 300px;
-  border: 1px solid #d3dced;
+  border: 1px solid var(--color-border-soft);
   border-radius: 10px;
-  background: #ffffff;
-  color: #15243d;
+  background: var(--color-white);
+  color: var(--color-text);
   padding: 10px;
 }
 
@@ -16,9 +16,9 @@
   padding-top: 10px;
   height: 300px;
   overflow: scroll;
-  border: 1px solid #d5dff0;
+  border: 1px solid var(--color-border-soft);
   border-radius: 10px;
-  background: #fbfcff;
+  background: var(--color-surface-soft-2);
   padding-left: 8px;
   padding-right: 8px;
 }
@@ -30,13 +30,13 @@
 }
 
 .sub-item:hover {
-  background-color: rgba(212, 227, 255, 0.45);
+  background-color: var(--color-surface-hover-strong);
   cursor: pointer;
 }
 
 .sub-item.active {
-  background-color: #e6efff !important;
-  color: #0f2957;
+  background-color: var(--color-surface-selected) !important;
+  color: var(--color-text-accent);
 }
 
 .txt-10-pc {
@@ -49,11 +49,11 @@
 
 .yts-page {
   border-radius: 14px;
-  border: 1px solid #d6e0ef;
+  border: 1px solid var(--color-border-soft);
   background:
-    radial-gradient(circle at top right, rgba(93, 135, 228, 0.13), transparent 42%),
-    linear-gradient(180deg, #f8fbff 0%, #f1f5fc 100%);
-  box-shadow: 0 14px 30px rgba(15, 26, 45, 0.12);
+    radial-gradient(circle at top right, var(--color-light-card-accent), var(--color-transparent) 42%),
+    linear-gradient(180deg, var(--color-surface-panel-start) 0%, var(--color-surface-panel-end) 100%);
+  box-shadow: 0 14px 30px var(--shadow-card-color);
   padding: 8px 10px;
 }
 
@@ -69,20 +69,20 @@
   display: inline-block;
   margin: 4px 0;
   padding: 2px 10px;
-  border: 1px solid #cfdaee;
+  border: 1px solid var(--color-border-subtle);
   border-radius: 999px;
-  background: #eef4ff;
-  color: #17305c;
+  background: var(--color-surface-badge);
+  color: var(--color-link);
   cursor: pointer;
 }
 
 .yts-section-title {
   margin-top: 8px;
   padding: 8px 10px;
-  border: 1px solid #d7e1ef;
+  border: 1px solid var(--color-border-soft);
   border-radius: 10px;
-  background: linear-gradient(135deg, #f5f8ff 0%, #edf2fb 100%);
-  color: #10203b;
+  background: linear-gradient(135deg, var(--color-surface-header-start) 0%, var(--color-surface-header-end) 100%);
+  color: var(--color-text-strong);
   font-weight: 700;
   text-align: center;
 }
@@ -130,41 +130,42 @@
 }
 
 .dark-90 .yts-page {
-  border-color: #415069;
+  border-color: var(--color-dark-border);
   background:
-    radial-gradient(circle at top right, rgba(121, 156, 244, 0.18), transparent 42%),
-    linear-gradient(180deg, #232b38 0%, #1d2430 100%);
-  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.4);
+    radial-gradient(circle at top right, var(--color-dark-bg-accent), var(--color-transparent) 42%),
+    linear-gradient(180deg, var(--color-dark-bg-start) 0%, var(--color-dark-bg-end) 100%);
+  box-shadow: 0 14px 30px var(--shadow-dark-strong-color);
 }
 
 .dark-90 .yts-toggle-link {
-  border-color: #4a5b78;
-  background: #2e3950;
-  color: #ecf2ff;
+  border-color: var(--color-dark-border);
+  background: var(--color-dark-surface-alt);
+  color: var(--color-dark-text);
 }
 
 .dark-90 .yts-section-title {
-  border-color: #465671;
-  background: linear-gradient(135deg, #2d374b 0%, #273043 100%);
-  color: #eff4ff;
+  border-color: var(--color-dark-border);
+  background: linear-gradient(135deg, var(--color-dark-surface-alt) 0%, var(--color-dark-surface-alt) 100%);
+  color: var(--color-dark-text);
 }
 
 .dark-90 #sub-control {
-  border-color: #46566f;
-  background: #283140;
+  border-color: var(--color-dark-border);
+  background: var(--color-dark-surface-alt);
 }
 
 .dark-90 #media-sub {
-  border-color: #46566f;
-  background: #252d3b;
-  color: #edf3ff;
+  border-color: var(--color-dark-border);
+  background: var(--color-dark-surface-alt);
+  color: var(--color-dark-text);
 }
 
 .dark-90 .sub-item:hover {
-  background-color: rgba(120, 154, 236, 0.24);
+  background-color: var(--color-dark-hover);
 }
 
 .dark-90 .sub-item.active {
-  background-color: #31405c !important;
-  color: #ecf2ff;
+  background-color: var(--color-dark-surface-alt) !important;
+  color: var(--color-dark-text);
 }
+

@@ -8,19 +8,19 @@
 
 #answer:focus {
   outline: none;
-  border-color: #2f6df6;
-  box-shadow: 0 0 0 3px rgba(47, 109, 246, 0.2);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
 }
 
 .btn-prac {
-  background-color: rgb(252, 244, 210) !important;
+  background-color: var(--color-warning-bg) !important;
   box-shadow:
-    rgba(173, 143, 9, 0.2) 0 -25px 18px -14px inset,
-    rgba(173, 143, 9, 0.15) 0 1px 2px,
-    rgba(173, 143, 9, 0.15) 0 2px 4px,
-    rgba(173, 143, 9, 0.15) 0 4px 8px,
-    rgba(173, 143, 9, 0.15) 0 8px 16px,
-    rgba(173, 143, 9, 0.15) 0 16px 32px !important;
+    var(--color-warning-shadow-strong) 0 -25px 18px -14px inset,
+    var(--color-warning-shadow) 0 1px 2px,
+    var(--color-warning-shadow) 0 2px 4px,
+    var(--color-warning-shadow) 0 4px 8px,
+    var(--color-warning-shadow) 0 8px 16px,
+    var(--color-warning-shadow) 0 16px 32px !important;
   width: 25% !important;
   margin-left: 20px;
 }
@@ -28,17 +28,17 @@
 .msg {
   font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
   font-size: 30px;
-  color: #1c771c;
+  color: var(--color-success-strong);
   margin-top: 10px;
   margin-bottom: 10px;
 }
 
 .prac {
-  border: 1px solid #d6dfed;
+  border: 1px solid var(--color-border);
   text-align: center;
 }
 .dark-90 .prac {
-  border: 1px solid #46536c;
+  border: 1px solid var(--color-dark-border);
 }
 
 #btnHideWhenPrac {
@@ -50,22 +50,22 @@
   padding: 15px 15px 15px 15px;
   border-radius: 14px;
   background:
-    radial-gradient(circle at top right, rgba(99, 139, 231, 0.13), transparent 42%),
-    linear-gradient(180deg, #f9fbff 0%, #f3f7fd 100%);
-  box-shadow: 0 12px 28px rgba(19, 30, 50, 0.1);
+    radial-gradient(circle at top right, var(--color-light-card-accent), var(--color-transparent) 42%),
+    linear-gradient(180deg, var(--color-surface-panel-start) 0%, var(--color-surface-panel-end) 100%);
+  box-shadow: 0 12px 28px var(--shadow-soft-card-color);
 }
 .ans-check-right {
-  color: #1c9a65;
+  color: var(--color-success);
 }
 .ans-check-wrong {
-  color: #bb3d3d;
+  color: var(--color-danger);
 }
 .ans-check-hint {
-  color: #c69211 !important;
+  color: var(--color-warning) !important;
 }
 #txtField {
   height: 95%;
-  border: 2px dashed #d1c7ac;
+  border: 2px dashed var(--color-border-dashed);
   width: 100%;
 }
 .listen-prac #answer {
@@ -84,18 +84,18 @@
 .practice-message {
   min-height: 20px;
   font-weight: 600;
-  color: #1e3d77;
+  color: var(--color-text-muted);
 }
 
 .practice-last-answer {
   min-height: 28px;
-  color: #17243d;
+  color: var(--color-text);
 }
 
 .practice-question {
   font-size: 1.05rem;
   font-weight: 700;
-  color: #101c31;
+  color: var(--color-text-strong);
 }
 
 .practice-answer-preview {
@@ -108,7 +108,7 @@
 }
 
 .practice-tooltip {
-  border-bottom-color: #65789b;
+  border-bottom-color: var(--color-border-strong);
 }
 
 .practice-remain-count {
@@ -116,9 +116,9 @@
   min-width: 34px;
   padding: 2px 8px;
   border-radius: 999px;
-  background: #e6eefc;
-  border: 1px solid #d1dcf5;
-  color: #13305f;
+  background: var(--color-surface-badge);
+  border: 1px solid var(--color-border-soft);
+  color: var(--color-text-accent);
   font-weight: 700;
 }
 
@@ -135,29 +135,30 @@
 .dark-90 .practice-message,
 .dark-90 .practice-last-answer,
 .dark-90 .practice-question {
-  color: #eef3ff;
+  color: var(--color-dark-text);
 }
 
 .dark-90 #answer {
-  background: #252d3b;
-  color: #ecf2ff;
-  border-color: #46536d;
+  background: var(--color-dark-surface-alt);
+  color: var(--color-dark-text);
+  border-color: var(--color-dark-border);
 }
 
 .dark-90 #answer:focus {
-  border-color: #7aa1ff;
-  box-shadow: 0 0 0 3px rgba(122, 161, 255, 0.25);
+  border-color: var(--color-primary-soft);
+  box-shadow: 0 0 0 3px var(--color-focus-ring-dark);
 }
 
 .dark-90 .prac {
   background:
-    radial-gradient(circle at top right, rgba(117, 151, 239, 0.16), transparent 42%),
-    linear-gradient(180deg, #232b38 0%, #1d2430 100%);
-  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.35);
+    radial-gradient(circle at top right, var(--color-dark-card-accent-alt), var(--color-transparent) 42%),
+    linear-gradient(180deg, var(--color-dark-bg-start) 0%, var(--color-dark-bg-end) 100%);
+  box-shadow: 0 14px 30px var(--shadow-dark-color);
 }
 
 .dark-90 .practice-remain-count {
-  background: #2f3c53;
-  border-color: #4b5c7c;
-  color: #eef3ff;
+  background: var(--color-dark-surface-alt);
+  border-color: var(--color-dark-border);
+  color: var(--color-dark-text);
 }
+
