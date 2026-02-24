@@ -51,8 +51,16 @@
   border-radius: 14px;
   border: 1px solid var(--color-border-soft);
   background:
-    radial-gradient(circle at top right, var(--color-light-card-accent), var(--color-transparent) 42%),
-    linear-gradient(180deg, var(--color-surface-panel-start) 0%, var(--color-surface-panel-end) 100%);
+    radial-gradient(
+      circle at top right,
+      var(--color-light-card-accent),
+      var(--color-transparent) 42%
+    ),
+    linear-gradient(
+      180deg,
+      var(--color-surface-panel-start) 0%,
+      var(--color-surface-panel-end) 100%
+    );
   box-shadow: 0 14px 30px var(--shadow-card-color);
   padding: 8px 10px;
 }
@@ -74,17 +82,6 @@
   background: var(--color-surface-badge);
   color: var(--color-link);
   cursor: pointer;
-}
-
-.yts-section-title {
-  margin-top: 8px;
-  padding: 8px 10px;
-  border: 1px solid var(--color-border-soft);
-  border-radius: 10px;
-  background: linear-gradient(135deg, var(--color-surface-header-start) 0%, var(--color-surface-header-end) 100%);
-  color: var(--color-text-strong);
-  font-weight: 700;
-  text-align: center;
 }
 
 .yts-loop-control {
@@ -143,12 +140,6 @@
   color: var(--color-dark-text);
 }
 
-.dark-90 .yts-section-title {
-  border-color: var(--color-dark-border);
-  background: linear-gradient(135deg, var(--color-dark-surface-alt) 0%, var(--color-dark-surface-alt) 100%);
-  color: var(--color-dark-text);
-}
-
 .dark-90 #sub-control {
   border-color: var(--color-dark-border);
   background: var(--color-dark-surface-alt);
@@ -168,4 +159,3 @@
   background-color: var(--color-dark-surface-alt) !important;
   color: var(--color-dark-text);
 }
-

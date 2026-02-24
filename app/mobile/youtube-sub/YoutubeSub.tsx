@@ -476,7 +476,7 @@ const YoutubeSub: FC = () => {
           <div id="player"></div>
           <br />
         </div>
-        <div className="ui-section-title">Control</div>
+        <div className="common-toggle">Control</div>
         <div id="mobile-control" className="bolder">
           <div className="right">
             <input
@@ -594,7 +594,7 @@ const YoutubeSub: FC = () => {
           </div>
         </div>
 
-        <div className="ui-section-title" onClick={() => toggleCollapse('mul-ai')}>
+        <div className="common-toggle" onClick={() => toggleCollapse('mul-ai')}>
           Mul-AI
         </div>
       </div>
