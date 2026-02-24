@@ -40,12 +40,13 @@ const PracticeVoiceConfig = ({
           </option>
         ))}
       </select>
-
+      <br />
       <label htmlFor="rate">Speed: </label>
       <div className="rate-value inline">{rate}</div>
+      <br />
       <input
         type="range"
-        className="width-220 range-color inline"
+        className="width-220 range-input inline"
         min="0.2"
         max="2"
         defaultValue="0.6"
@@ -61,9 +62,10 @@ const PracticeVoiceConfig = ({
         <FaVolumeUp className="iconSound" />{' '}
       </label>
       <span className="rate-value">{volumn}</span>
+      <br />
       <input
         type="range"
-        className="width-220 range-color inline"
+        className="width-220 range-input inline"
         min="0.1"
         max="1"
         defaultValue="0.6"

@@ -48,42 +48,41 @@
   --color-warning: #c69211;
   --color-warning-bg: #fcf4d2;
   --color-warning-shadow: rgba(173, 143, 9, 0.15);
-  /* ==============================Theme2 start============================== */
-  /* Theme preset values: Studio Model */
-  --theme-studio-text: #1d2027;
-  --theme-studio-text-muted: #445069;
-  --theme-studio-bg-page-start: #f7f3eb;
-  --theme-studio-bg-page-end: #ece2d2;
-  --theme-studio-bg-page-accent: rgba(188, 140, 85, 0.18);
-  --theme-studio-surface-hover: #efe1c7;
-  --theme-studio-border: #d7c4a3;
-  --theme-studio-border-strong: #9d8058;
-  --theme-studio-border-dashed: #bea27a;
-  --theme-studio-primary: #a06a32;
-  --theme-studio-focus-ring: rgba(160, 106, 50, 0.22);
-  --theme-studio-focus-ring-dark: rgba(207, 154, 102, 0.26);
+  /* ==============================Theme 2 start============================== */
+  --theme-2-text: #1d2027;
+  --theme-2-text-muted: #445069;
+  --theme-2-bg-page-start: #f7f3eb;
+  --theme-2-bg-page-end: #ece2d2;
+  --theme-2-bg-page-accent: rgba(188, 140, 85, 0.18);
+  --theme-2-surface-hover: #efe1c7;
+  --theme-2-border: #d7c4a3;
+  --theme-2-border-strong: #9d8058;
+  --theme-2-border-dashed: #bea27a;
+  --theme-2-primary: #a06a32;
+  --theme-2-focus-ring: rgba(160, 106, 50, 0.22);
+  --theme-2-focus-ring-dark: rgba(207, 154, 102, 0.26);
 
-  --theme-studio-dark-bg-start: #1d1812;
-  --theme-studio-dark-bg-end: #15110d;
-  --theme-studio-dark-surface: #2c231a;
-  --theme-studio-dark-border: #69543b;
-  --theme-studio-dark-text: #f3e8d5;
-  --theme-studio-dark-text-muted: #d2bea3;
-  --theme-studio-dark-hover: rgba(214, 170, 119, 0.22);
-  --theme-studio-dark-card-accent: rgba(203, 147, 85, 0.2);
-  --theme-studio-light-card-accent: rgba(192, 145, 92, 0.16);
+  --theme-2-dark-bg-start: #1d1812;
+  --theme-2-dark-bg-end: #15110d;
+  --theme-2-dark-surface: #2c231a;
+  --theme-2-dark-border: #69543b;
+  --theme-2-dark-text: #f3e8d5;
+  --theme-2-dark-text-muted: #d2bea3;
+  --theme-2-dark-hover: rgba(214, 170, 119, 0.22);
+  --theme-2-dark-card-accent: rgba(203, 147, 85, 0.2);
+  --theme-2-light-card-accent: rgba(192, 145, 92, 0.16);
 
-  --theme-studio-shadow-base: rgba(68, 43, 16, 0.14);
-  --theme-studio-shadow-soft: rgba(74, 45, 18, 0.1);
-  --theme-studio-shadow-overlay: rgba(42, 23, 7, 0.26);
-  --theme-studio-shadow-dark: rgba(0, 0, 0, 0.45);
-  --theme-studio-shadow-dark-strong: rgba(0, 0, 0, 0.52);
+  --theme-2-shadow-base: rgba(68, 43, 16, 0.14);
+  --theme-2-shadow-soft: rgba(74, 45, 18, 0.1);
+  --theme-2-shadow-overlay: rgba(42, 23, 7, 0.26);
+  --theme-2-shadow-dark: rgba(0, 0, 0, 0.45);
+  --theme-2-shadow-dark-strong: rgba(0, 0, 0, 0.52);
 
-  --theme-studio-success: #3a8d64;
-  --theme-studio-danger: #b6504a;
-  --theme-studio-warning: #b8862a;
-  --theme-studio-warning-bg: #f5e7ca;
-  --theme-studio-warning-shadow: rgba(166, 118, 44, 0.2);
+  --theme-2-success: #3a8d64;
+  --theme-2-danger: #b6504a;
+  --theme-2-warning: #b8862a;
+  --theme-2-warning-bg: #f5e7ca;
+  --theme-2-warning-shadow: rgba(166, 118, 44, 0.2);
   /* ==============================Theme2 end============================== */
   /* Alias tokens to keep CSS readable and backward compatible */
 
@@ -167,41 +166,115 @@
   --studio-dark-text: var(--color-dark-text);
 }
 
-body.theme-studio-model {
-  --color-text: var(--theme-studio-text);
-  --color-text-muted: var(--theme-studio-text-muted);
-  --color-bg-page-start: var(--theme-studio-bg-page-start);
-  --color-bg-page-end: var(--theme-studio-bg-page-end);
-  --color-bg-page-accent: var(--theme-studio-bg-page-accent);
-  --color-surface-hover: var(--theme-studio-surface-hover);
-  --color-border: var(--theme-studio-border);
-  --color-border-strong: var(--theme-studio-border-strong);
-  --color-border-dashed: var(--theme-studio-border-dashed);
-  --color-primary: var(--theme-studio-primary);
-  --color-focus-ring: var(--theme-studio-focus-ring);
-  --color-focus-ring-dark: var(--theme-studio-focus-ring-dark);
+body.theme-2-model {
+  --color-text: var(--theme-2-text);
+  --color-text-muted: var(--theme-2-text-muted);
+  --color-bg-page-start: var(--theme-2-bg-page-start);
+  --color-bg-page-end: var(--theme-2-bg-page-end);
+  --color-bg-page-accent: var(--theme-2-bg-page-accent);
+  --color-surface-hover: var(--theme-2-surface-hover);
+  --color-border: var(--theme-2-border);
+  --color-border-strong: var(--theme-2-border-strong);
+  --color-border-dashed: var(--theme-2-border-dashed);
+  --color-primary: var(--theme-2-primary);
+  --color-focus-ring: var(--theme-2-focus-ring);
+  --color-focus-ring-dark: var(--theme-2-focus-ring-dark);
 
-  --color-dark-bg-start: var(--theme-studio-dark-bg-start);
-  --color-dark-bg-end: var(--theme-studio-dark-bg-end);
-  --color-dark-surface: var(--theme-studio-dark-surface);
-  --color-dark-border: var(--theme-studio-dark-border);
-  --color-dark-text: var(--theme-studio-dark-text);
-  --color-dark-text-muted: var(--theme-studio-dark-text-muted);
-  --color-dark-hover: var(--theme-studio-dark-hover);
-  --color-dark-card-accent: var(--theme-studio-dark-card-accent);
-  --color-light-card-accent: var(--theme-studio-light-card-accent);
+  --color-dark-bg-start: var(--theme-2-dark-bg-start);
+  --color-dark-bg-end: var(--theme-2-dark-bg-end);
+  --color-dark-surface: var(--theme-2-dark-surface);
+  --color-dark-border: var(--theme-2-dark-border);
+  --color-dark-text: var(--theme-2-dark-text);
+  --color-dark-text-muted: var(--theme-2-dark-text-muted);
+  --color-dark-hover: var(--theme-2-dark-hover);
+  --color-dark-card-accent: var(--theme-2-dark-card-accent);
+  --color-dark-bg-accent: var(--theme-2-dark-card-accent);
+  --color-dark-card-accent-alt: var(--theme-2-dark-card-accent);
+  --color-light-card-accent: var(--theme-2-light-card-accent);
 
-  --shadow-base: var(--theme-studio-shadow-base);
-  --shadow-soft: var(--theme-studio-shadow-soft);
-  --shadow-overlay: var(--theme-studio-shadow-overlay);
-  --shadow-dark: var(--theme-studio-shadow-dark);
-  --shadow-dark-strong: var(--theme-studio-shadow-dark-strong);
+  --shadow-base: var(--theme-2-shadow-base);
+  --shadow-soft: var(--theme-2-shadow-soft);
+  --shadow-overlay: var(--theme-2-shadow-overlay);
+  --shadow-dark: var(--theme-2-shadow-dark);
+  --shadow-dark-strong: var(--theme-2-shadow-dark-strong);
 
-  --color-success: var(--theme-studio-success);
-  --color-danger: var(--theme-studio-danger);
-  --color-warning: var(--theme-studio-warning);
-  --color-warning-bg: var(--theme-studio-warning-bg);
-  --color-warning-shadow: var(--theme-studio-warning-shadow);
+  --color-success: var(--theme-2-success);
+  --color-danger: var(--theme-2-danger);
+  --color-warning: var(--theme-2-warning);
+  --color-warning-bg: var(--theme-2-warning-bg);
+  --color-warning-shadow: var(--theme-2-warning-shadow);
+
+  /* Re-declare derived aliases in theme scope so all dependent UI updates */
+  --color-range-track: var(--color-border-strong);
+  --color-range-track-dark: var(--color-border-strong);
+  --color-range-accent: var(--color-border-strong);
+  --color-range-thumb: var(--color-range-track);
+  --color-range-thumb-hover: var(--color-range-thumb);
+  --color-range-thumb-active: var(--color-range-thumb);
+  --color-range-thumb-alt: var(--color-range-thumb);
+
+  --color-surface-soft: var(--color-bg-page-start);
+  --color-surface-panel-end: var(--color-bg-page-end);
+  --color-surface-header-start: var(--color-bg-page-start);
+  --color-surface-header-end: var(--color-bg-page-end);
+  --color-surface-panel-start: var(--color-surface-header-start);
+  --color-surface-highlight: var(--color-surface-hover);
+  --color-surface-code: var(--color-surface-soft);
+  --color-surface-badge: var(--color-surface-hover);
+  --color-surface-soft-2: var(--color-surface-soft);
+  --color-surface-hover-strong: var(--color-surface-hover);
+  --color-surface-selected: var(--color-surface-hover);
+
+  --color-text-strong: var(--color-text);
+  --color-text-accent: var(--color-text-muted);
+  --color-link: var(--color-text-muted);
+
+  --color-border-hover: var(--color-border-strong);
+  --color-border-soft: var(--color-border);
+  --color-border-subtle: var(--color-border);
+  --color-neutral-500: var(--color-border-strong);
+
+  --color-success-strong: var(--color-success);
+  --color-primary-soft: var(--color-primary);
+  --color-focus-ring-strong: var(--color-focus-ring);
+  --color-warning-shadow-strong: var(--color-warning-shadow);
+
+  --color-dark-surface-alt: var(--color-dark-surface);
+  --color-dark-header-start: var(--color-dark-surface);
+  --color-dark-header-end: var(--color-dark-surface);
+  --color-dark-panel-start: var(--color-dark-surface);
+  --color-dark-panel-end: var(--color-dark-surface);
+
+  --shadow-ambient-color: var(--shadow-base);
+  --shadow-overlay-color: var(--shadow-overlay);
+  --shadow-soft-color: var(--shadow-soft);
+  --shadow-panel-color: var(--shadow-soft);
+  --shadow-button-color: var(--shadow-base);
+  --shadow-button-hover-color: var(--shadow-base);
+  --shadow-button-active-color: var(--shadow-base);
+  --shadow-card-color: var(--shadow-base);
+  --shadow-soft-card-color: var(--shadow-soft);
+  --shadow-float-color: var(--shadow-soft);
+  --shadow-dark-color: var(--shadow-dark);
+  --shadow-dark-strong-color: var(--shadow-dark-strong);
+
+  --studio-border: var(--color-border);
+  --studio-surface-2: var(--color-bg-page-end);
+  --studio-text: var(--color-text);
+  --studio-primary: var(--color-primary);
+  --studio-shadow: 0 10px 28px var(--shadow-ambient-color);
+  --studio-panel-bg: linear-gradient(
+    180deg,
+    var(--color-white) 0%,
+    var(--color-surface-header-start) 100%
+  );
+  --studio-title-bg: linear-gradient(
+    135deg,
+    var(--color-surface-header-start) 0%,
+    var(--color-surface-header-end) 100%
+  );
+  --studio-dark-border: var(--color-dark-border);
+  --studio-dark-text: var(--color-dark-text);
 }
 
 @media (max-width: 767px) {
@@ -584,10 +657,6 @@ body {
   width: 220px;
 }
 
-.range-color {
-  accent-color: var(--color-range-accent);
-}
-
 /* @media only screen and (min-width: 900px) {
   .mobile {
     display: none;
@@ -647,7 +716,7 @@ ul.mst-menu > li {
 }
 
 .range-input {
-  width: 400px;
+  /* accent-color: var(--color-range-accent); */
 }
 
 .dark-90 {
@@ -748,7 +817,7 @@ ul.mst-menu > li {
 
 .range-input[type='range'] {
   -webkit-appearance: none;
-  width: 300px;
+  width: 100%;
   height: 8px;
   background: var(--color-range-track);
   border-radius: 4px;

@@ -122,6 +122,7 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
   const clickRequestIdRef = useRef<number>(0);
 
   const [prompt, setPrompt] = useState<string>(props.firstAsk ?? '');
+  const [isPromptExpanded, setIsPromptExpanded] = useState<boolean>(false);
   const [sysPrompt, setSysPrompt] = useState<string>('');
   const [isUseAIMini, setIsUseAIMini] = useState<boolean>(false);
 
@@ -680,7 +681,7 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
         <textarea
           id={`prompt-${props.prefix}${props.index}`}
           className="ai-promt"
-          rows={3}
+          rows={isPromptExpanded ? 10 : 3}
           style={
             {
               // marginLeft: '5px',
@@ -696,6 +697,9 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
         <VoiceToText setText={setPrompt} index={props.index}></VoiceToText>
         <button onClick={() => askDec(prompt)} className="common-btn">
           Send
+        </button>
+        <button onClick={() => setIsPromptExpanded((prev) => !prev)} className="common-btn">
+          {isPromptExpanded ? 'Collapse' : 'Expand'}
         </button>
         <div
           className="common-toggle"

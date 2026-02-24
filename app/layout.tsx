@@ -6,20 +6,20 @@ import type { ChangeEvent } from 'react';
 import { useEffect, useState } from 'react';
 
 const THEME_STORAGE_KEY = 'sl_theme_mode';
-const THEME_CURRENT = 'current';
-const THEME_STUDIO_MODEL = 'studio-model';
-const STUDIO_THEME_CLASS = 'theme-studio-model';
+const THEME_1 = 'current';
+const THEME_2 = 'studio-model';
+const THEME_2_CLASS = 'theme-2-model';
 
-type ThemeMode = typeof THEME_CURRENT | typeof THEME_STUDIO_MODEL;
+type ThemeMode = typeof THEME_1 | typeof THEME_2;
 
 const applyThemeClass = (theme: ThemeMode) => {
   const bodyElement = document.body;
   if (!bodyElement) {
     return;
   }
-  bodyElement.classList.remove(STUDIO_THEME_CLASS);
-  if (theme === THEME_STUDIO_MODEL) {
-    bodyElement.classList.add(STUDIO_THEME_CLASS);
+  bodyElement.classList.remove(THEME_2_CLASS);
+  if (theme === THEME_2) {
+    bodyElement.classList.add(THEME_2_CLASS);
   }
 };
 export const handleCheckboxDarkChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -38,19 +38,18 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [themeMode, setThemeMode] = useState<ThemeMode>(THEME_CURRENT);
+  const [themeMode, setThemeMode] = useState<ThemeMode>(THEME_1);
 
   useEffect(() => {
     const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
-    const initialTheme = storedTheme === THEME_STUDIO_MODEL ? THEME_STUDIO_MODEL : THEME_CURRENT;
+    const initialTheme = storedTheme === THEME_2 ? THEME_2 : THEME_1;
     setThemeMode(initialTheme);
     applyThemeClass(initialTheme);
     document.body.classList.add('dark-90');
   }, []);
 
   const handleThemeModeChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    const selectedTheme =
-      event.target.value === THEME_STUDIO_MODEL ? THEME_STUDIO_MODEL : THEME_CURRENT;
+    const selectedTheme = event.target.value === THEME_2 ? THEME_2 : THEME_1;
     setThemeMode(selectedTheme);
     applyThemeClass(selectedTheme);
     localStorage.setItem(THEME_STORAGE_KEY, selectedTheme);
@@ -79,8 +78,8 @@ export default function RootLayout({
                 value={themeMode}
                 onChange={handleThemeModeChange}
               >
-                <option value={THEME_CURRENT}>Current Theme</option>
-                <option value={THEME_STUDIO_MODEL}>Studio Model</option>
+                <option value={THEME_1}>Theme 1</option>
+                <option value={THEME_2}>Theme 2</option>
               </select>
             </label>
           </div>

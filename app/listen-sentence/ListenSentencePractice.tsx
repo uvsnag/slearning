@@ -317,7 +317,7 @@ const ListenSentencePractice: React.FC = () => {
         </div>
         <br />
         <input
-          className="width-220 range-color"
+          className="width-220 range-input"
           type="range"
           min="0.2"
           max="1.5"
