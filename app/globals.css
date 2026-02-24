@@ -48,7 +48,43 @@
   --color-warning: #c69211;
   --color-warning-bg: #fcf4d2;
   --color-warning-shadow: rgba(173, 143, 9, 0.15);
+  /* ==============================Theme2 start============================== */
+  /* Theme preset values: Studio Model */
+  --theme-studio-text: #1d2027;
+  --theme-studio-text-muted: #445069;
+  --theme-studio-bg-page-start: #f7f3eb;
+  --theme-studio-bg-page-end: #ece2d2;
+  --theme-studio-bg-page-accent: rgba(188, 140, 85, 0.18);
+  --theme-studio-surface-hover: #efe1c7;
+  --theme-studio-border: #d7c4a3;
+  --theme-studio-border-strong: #9d8058;
+  --theme-studio-border-dashed: #bea27a;
+  --theme-studio-primary: #a06a32;
+  --theme-studio-focus-ring: rgba(160, 106, 50, 0.22);
+  --theme-studio-focus-ring-dark: rgba(207, 154, 102, 0.26);
 
+  --theme-studio-dark-bg-start: #1d1812;
+  --theme-studio-dark-bg-end: #15110d;
+  --theme-studio-dark-surface: #2c231a;
+  --theme-studio-dark-border: #69543b;
+  --theme-studio-dark-text: #f3e8d5;
+  --theme-studio-dark-text-muted: #d2bea3;
+  --theme-studio-dark-hover: rgba(214, 170, 119, 0.22);
+  --theme-studio-dark-card-accent: rgba(203, 147, 85, 0.2);
+  --theme-studio-light-card-accent: rgba(192, 145, 92, 0.16);
+
+  --theme-studio-shadow-base: rgba(68, 43, 16, 0.14);
+  --theme-studio-shadow-soft: rgba(74, 45, 18, 0.1);
+  --theme-studio-shadow-overlay: rgba(42, 23, 7, 0.26);
+  --theme-studio-shadow-dark: rgba(0, 0, 0, 0.45);
+  --theme-studio-shadow-dark-strong: rgba(0, 0, 0, 0.52);
+
+  --theme-studio-success: #3a8d64;
+  --theme-studio-danger: #b6504a;
+  --theme-studio-warning: #b8862a;
+  --theme-studio-warning-bg: #f5e7ca;
+  --theme-studio-warning-shadow: rgba(166, 118, 44, 0.2);
+  /* ==============================Theme2 end============================== */
   /* Alias tokens to keep CSS readable and backward compatible */
 
   --color-range-track: var(--color-border-strong);
@@ -129,6 +165,43 @@
   );
   --studio-dark-border: var(--color-dark-border);
   --studio-dark-text: var(--color-dark-text);
+}
+
+body.theme-studio-model {
+  --color-text: var(--theme-studio-text);
+  --color-text-muted: var(--theme-studio-text-muted);
+  --color-bg-page-start: var(--theme-studio-bg-page-start);
+  --color-bg-page-end: var(--theme-studio-bg-page-end);
+  --color-bg-page-accent: var(--theme-studio-bg-page-accent);
+  --color-surface-hover: var(--theme-studio-surface-hover);
+  --color-border: var(--theme-studio-border);
+  --color-border-strong: var(--theme-studio-border-strong);
+  --color-border-dashed: var(--theme-studio-border-dashed);
+  --color-primary: var(--theme-studio-primary);
+  --color-focus-ring: var(--theme-studio-focus-ring);
+  --color-focus-ring-dark: var(--theme-studio-focus-ring-dark);
+
+  --color-dark-bg-start: var(--theme-studio-dark-bg-start);
+  --color-dark-bg-end: var(--theme-studio-dark-bg-end);
+  --color-dark-surface: var(--theme-studio-dark-surface);
+  --color-dark-border: var(--theme-studio-dark-border);
+  --color-dark-text: var(--theme-studio-dark-text);
+  --color-dark-text-muted: var(--theme-studio-dark-text-muted);
+  --color-dark-hover: var(--theme-studio-dark-hover);
+  --color-dark-card-accent: var(--theme-studio-dark-card-accent);
+  --color-light-card-accent: var(--theme-studio-light-card-accent);
+
+  --shadow-base: var(--theme-studio-shadow-base);
+  --shadow-soft: var(--theme-studio-shadow-soft);
+  --shadow-overlay: var(--theme-studio-shadow-overlay);
+  --shadow-dark: var(--theme-studio-shadow-dark);
+  --shadow-dark-strong: var(--theme-studio-shadow-dark-strong);
+
+  --color-success: var(--theme-studio-success);
+  --color-danger: var(--theme-studio-danger);
+  --color-warning: var(--theme-studio-warning);
+  --color-warning-bg: var(--theme-studio-warning-bg);
+  --color-warning-shadow: var(--theme-studio-warning-shadow);
 }
 
 @media (max-width: 767px) {
@@ -304,6 +377,43 @@ body {
 
 .app-dark-switch input {
   accent-color: var(--studio-primary);
+}
+
+.app-topbar-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.app-theme-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.app-theme-select {
+  min-height: 32px;
+  min-width: 155px;
+  padding: 4px 8px;
+  border-radius: 10px;
+  border: 1px solid var(--studio-border);
+  background: var(--color-white);
+  color: var(--studio-text);
+}
+
+.app-theme-select:focus {
+  outline: none;
+  border-color: var(--studio-primary);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
+}
+
+.dark-90 .app-theme-select {
+  border-color: var(--color-dark-border);
+  background: var(--color-dark-surface);
+  color: var(--color-dark-text);
 }
 
 .home-shell {
