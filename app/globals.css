@@ -1,41 +1,26 @@
 /* Mobile ) */
 :root {
-  /* Core palette (hardcoded only here) */
+  /* main color big effect: change these to retheme the whole app */
+  /* Neutrals */
   --color-transparent: transparent;
   --color-white: #ffffff;
   --color-black: #000000;
 
+  /* Light theme core */
   --color-text: #15233b;
   --color-text-muted: #29426d;
   --color-bg-page-start: #f7faff;
   --color-bg-page-end: #eef3fb;
   --color-bg-page-accent: rgba(113, 150, 233, 0.13);
-
-  --color-surface-soft: #f8faff;
   --color-surface-hover: #e9f0ff;
-  --color-surface-panel-end: #f4f7fc;
-
   --color-border: #d6dfed;
   --color-border-strong: #8b9cbc;
   --color-border-dashed: #d1c7ac;
-
   --color-primary: #2f6df6;
   --color-focus-ring: rgba(47, 109, 246, 0.2);
   --color-focus-ring-dark: rgba(122, 161, 255, 0.25);
 
-  --color-success: #1c9a65;
-  --color-danger: #bb3d3d;
-  --color-warning: #c69211;
-  --color-warning-bg: #fcf4d2;
-  --color-warning-shadow: rgba(173, 143, 9, 0.15);
-
-  --color-tooltip-bg: #555555;
-
-  --color-range-track: #2e2f3086;
-  --color-range-thumb: #2e2f3082;
-  --color-range-track-dark: #ffffffd2;
-  --color-range-accent: #585757;
-
+  /* Dark theme core */
   --color-dark-bg-start: #232b38;
   --color-dark-bg-end: #1d2430;
   --color-dark-surface: #2a3344;
@@ -46,6 +31,7 @@
   --color-dark-card-accent: rgba(126, 158, 255, 0.13);
   --color-light-card-accent: rgba(93, 135, 228, 0.13);
 
+  /* Elevation */
   --shadow-base: rgba(20, 34, 62, 0.11);
   --shadow-soft: rgba(20, 34, 62, 0.08);
   --shadow-overlay: rgba(11, 21, 38, 0.22);
@@ -56,7 +42,21 @@
   --shadow-inset-strong: rgba(255, 255, 255, 0.9);
   --shadow-inset-pressed: rgba(255, 255, 255, 0.7);
 
+  /* Feedback/status (smaller global impact) */
+  --color-success: #1c9a65;
+  --color-danger: #bb3d3d;
+  --color-warning: #c69211;
+  --color-warning-bg: #fcf4d2;
+  --color-warning-shadow: rgba(173, 143, 9, 0.15);
+
   /* Alias tokens to keep CSS readable and backward compatible */
+
+  --color-range-track: var(--color-border-strong);
+  --color-range-track-dark: var(--color-border-strong);
+  --color-range-accent: var(--color-border-strong);
+  --color-surface-soft: var(--color-bg-page-start);
+  --color-surface-panel-end: var(--color-bg-page-end);
+  --color-range-thumb: var(--color-range-track);
   --color-text-strong: var(--color-text);
   --color-text-accent: var(--color-text-muted);
   --color-link: var(--color-text-muted);
@@ -157,7 +157,11 @@
 }
 
 .popup {
-  background: linear-gradient(180deg, var(--color-surface-panel-start) 0%, var(--color-surface-header-end) 100%);
+  background: linear-gradient(
+    180deg,
+    var(--color-surface-panel-start) 0%,
+    var(--color-surface-header-end) 100%
+  );
   border: 1px solid var(--studio-border);
   color: var(--studio-text);
   box-shadow: 0 14px 34px var(--shadow-overlay-color);
@@ -411,7 +415,7 @@ body {
 .tooltip .tooltiptext {
   visibility: hidden;
   width: 400px;
-  background-color: var(--color-tooltip-bg);
+  background-color: var(--color-dark-surface-alt);
   color: var(--color-tooltip-text);
   border-radius: 6px;
   padding: 5px 0;
@@ -431,7 +435,8 @@ body {
   margin-left: -5px;
   border-width: 5px;
   border-style: solid;
-  border-color: var(--color-tooltip-bg) var(--color-transparent) var(--color-transparent) var(--color-transparent);
+  border-color: var(--color-dark-surface-alt) var(--color-transparent) var(--color-transparent)
+    var(--color-transparent);
 }
 
 .tooltip:hover .tooltiptext {
@@ -808,7 +813,11 @@ ul.mst-menu > li {
 
 .dark-90 .popup {
   border-color: var(--color-dark-border);
-  background: linear-gradient(180deg, var(--color-dark-surface-alt) 0%, var(--color-dark-surface-alt) 100%);
+  background: linear-gradient(
+    180deg,
+    var(--color-dark-surface-alt) 0%,
+    var(--color-dark-surface-alt) 100%
+  );
   color: var(--color-dark-text);
 }
 
@@ -816,7 +825,11 @@ ul.mst-menu > li {
 .dark-90 .ui-panel,
 .dark-90 .ui-collapse-panel.open {
   border-color: var(--studio-dark-border);
-  background: linear-gradient(180deg, var(--color-dark-surface) 0%, var(--color-dark-surface-alt) 100%);
+  background: linear-gradient(
+    180deg,
+    var(--color-dark-surface) 0%,
+    var(--color-dark-surface-alt) 100%
+  );
   box-shadow: 0 14px 30px var(--shadow-dark-color);
 }
 
@@ -838,7 +851,11 @@ ul.mst-menu > li {
 .dark-90 .ui-section-title,
 .dark-90 .title-board {
   border-color: var(--color-dark-border);
-  background: linear-gradient(135deg, var(--color-dark-header-start) 0%, var(--color-dark-header-end) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-dark-header-start) 0%,
+    var(--color-dark-header-end) 100%
+  );
   color: var(--color-dark-text);
 }
 
@@ -852,7 +869,11 @@ ul.mst-menu > li {
 .dark-90 .home-nav-link,
 .dark-90 .home-menu-button {
   border-color: var(--color-dark-border);
-  background: linear-gradient(180deg, var(--color-dark-surface) 0%, var(--color-dark-header-end) 100%);
+  background: linear-gradient(
+    180deg,
+    var(--color-dark-surface) 0%,
+    var(--color-dark-header-end) 100%
+  );
   color: var(--color-dark-text);
 }
 
@@ -874,4 +895,3 @@ ul.mst-menu > li {
   text-align: center;
   /* height: 20px; */
 }
-
