@@ -60,7 +60,7 @@ const MulAI: React.FC<MulAIContainerProps> = (props) => {
         </button>
         <i>{height}</i>
         <input
-          className="width-220 range-color"
+          className="width-220 range-input"
           type="range"
           min="10"
           max="800"
