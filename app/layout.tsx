@@ -1,12 +1,10 @@
 'use client';
-import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 import Link from 'next/link';
 import { FaHome } from 'react-icons/fa';
+import type { ChangeEvent } from 'react';
 import { useEffect } from 'react';
-import logoImg from '@/public/logo.png';
-export const handleCheckboxDarkChange = (e: any) => {
+export const handleCheckboxDarkChange = (e: ChangeEvent<HTMLInputElement>) => {
   // const targetDiv = document.getElementById("root");
   const bodyElement = document.body;
   if (bodyElement) {
@@ -27,17 +25,16 @@ export default function RootLayout({
   }, []);
   return (
     <html lang="en">
-        <head>
+      <head>
         <title>SLearning</title>
-        {/* <link rel="icon" href={logoImg.src} /> */}
       </head>
       <body>
-        {/* <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}> */}
-        <div>
-          <Link href="/">
+        <div className="app-topbar ui-panel">
+          <Link href="/" className="app-home-link">
             <FaHome />
+            <label>Home</label>
           </Link>
-          <label>
+          <label className="app-dark-switch">
             <input type="checkbox" onChange={handleCheckboxDarkChange} defaultChecked={true} />
             Dark mode
           </label>

@@ -185,7 +185,7 @@ const ListenPractice: React.FC = () => {
             <FaVolumeUp className="iconSound" onClick={() => speakText(question, true)} />
           )}
         </div>
-        <select className="button-33" onChange={(e) => setIndexClass(e.target.value)}>
+        <select className="common-input" onChange={(e) => setIndexClass(e.target.value)}>
           <option value={ALL_WORDS}>All Word</option>
           {classItems.map((item) => (
             <option value={item.customDefine} key={item.eng}>
@@ -194,7 +194,7 @@ const ListenPractice: React.FC = () => {
           ))}
         </select>
         <input type="text" id="answer" onKeyDown={handleKeyDown} />
-        <select className="button-33" onChange={changeAns} value={answer || ''}>
+        <select className="common-input" onChange={changeAns} value={answer || ''}>
           <option value="">Choose</option>
           {ansListTemp.map((item) => (
             <option value={item.eng} key={item.eng}>
@@ -202,8 +202,8 @@ const ListenPractice: React.FC = () => {
             </option>
           ))}
         </select>
-        <input className="button-33" type="submit" value="Check" onClick={onCheck} />
-        <input className="button-33" type="submit" value="Show Ans" onClick={onShow} />
+        <input className="common-input" type="submit" value="Check" onClick={onCheck} />
+        <input className="common-input" type="submit" value="Show Ans" onClick={onShow} />
       </div>
       {/* <div className="msg">{errorMs === 'wrong!' ? <FaRegFrown /> : <FaRegSmile />}</div> */}
       {errorMs}

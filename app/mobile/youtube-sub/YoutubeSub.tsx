@@ -476,25 +476,25 @@ const YoutubeSub: FC = () => {
           <div id="player"></div>
           <br />
         </div>
-        <div className="width-100">Control</div>
+        <div className="ui-section-title">Control</div>
         <div id="mobile-control" className="bolder">
           <div className="right">
             <input
               type="submit"
-              className="common-btn inline btn-mobile"
+              className="common-btn btn-mobile"
               value=">"
               onClick={() => next()}
             />
             <input
               type="submit"
-              className="common-btn inline btn-mobile"
+              className="common-btn btn-mobile"
               value="||"
               onClick={() => onStartStop({} as React.MouseEvent<HTMLInputElement>)}
             />
 
             <input
               type="submit"
-              className="common-btn inline btn-mobile"
+              className="common-btn btn-mobile"
               value="<"
               onClick={() => previous()}
             />
@@ -506,13 +506,13 @@ const YoutubeSub: FC = () => {
             <br />
             <input
               type="submit"
-              className="common-btn inline btn-mobile"
+              className="common-btn btn-mobile"
               value="clear"
               onClick={() => onClearCusLoop()}
             />
             <input
               type="submit"
-              className="common-btn inline btn-mobile"
+              className="common-btn btn-mobile"
               value="Add point"
               onClick={() => onAddPoint()}
             />
@@ -523,7 +523,7 @@ const YoutubeSub: FC = () => {
             <input type="number" className="common-input input-mobile" id="timemisus" />
             <input
               type="submit"
-              className="common-btn inline btn-mobile"
+              className="common-btn btn-mobile"
               value="Change"
               onClick={() => changeTime()}
             />
@@ -558,7 +558,7 @@ const YoutubeSub: FC = () => {
           </select>
           <input
             type="submit"
-            className="common-btn inline"
+            className="common-btn"
             value="Load"
             id="btnExecute"
             onClick={() => onProcess()}
@@ -594,12 +594,12 @@ const YoutubeSub: FC = () => {
           </div>
         </div>
 
-        <div className="width-100" onClick={() => toggleCollapse('mul-ai')}>
+        <div className="ui-section-title" onClick={() => toggleCollapse('mul-ai')}>
           Mul-AI
         </div>
       </div>
 
-      <div id="mul-ai" className="collapse-content bolder">
+      <div id="mul-ai" className="collapse-content ui-sub-panel">
         <MulAI {...MUL_PROP}></MulAI>
       </div>
     </div>

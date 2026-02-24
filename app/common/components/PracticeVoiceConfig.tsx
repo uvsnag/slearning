@@ -25,7 +25,7 @@ const PracticeVoiceConfig = ({
   return (
     <>
       <select
-        className="button-33 inline"
+        className="common-input inline"
         id="voice"
         name="voice"
         value={voiceIndex || ''}

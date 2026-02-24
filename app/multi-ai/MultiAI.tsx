@@ -35,7 +35,7 @@ const MulAI: React.FC<MulAIContainerProps> = (props) => {
         <span>Instances:</span>
         <input
           type="number"
-          className="width-30 common-input"
+          className="width-60 common-input"
           value={numAI}
           onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
             setNumAI(Number(event.target.value));
@@ -55,7 +55,7 @@ const MulAI: React.FC<MulAIContainerProps> = (props) => {
           onUp={() => setColumn(column + 1)}
           onDown={() => setColumn(column - 1)}
         ></StackBtn>
-        <button onClick={() => clearAllLog()} className="common-btn inline">
+        <button onClick={() => clearAllLog()} className="common-btn">
           Clear All
         </button>
         <i>{height}</i>

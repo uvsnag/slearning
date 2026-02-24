@@ -2,9 +2,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { MdHearing } from 'react-icons/md';
 import { FaMicrophone } from 'react-icons/fa';
-import {
-  useSpeechRecognition,
-} from '@/app/common/hooks/useSpeechRecognition';
+import { useSpeechRecognition } from '@/app/common/hooks/useSpeechRecognition';
 
 /** =======================
  *  Props
@@ -76,7 +74,7 @@ const VoiceToText: React.FC<VoiceToTextProps> = ({ setText, index }) => {
   };
 
   return (
-    <button className="common-btn inline" onClick={processRecord}>
+    <button className="common-btn" onClick={processRecord}>
       {isStartRecord ? <MdHearing /> : <FaMicrophone />}
     </button>
   );

@@ -100,10 +100,10 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
   const [model, setModel] = useState<ModelAI>(MODEL_AI[0]);
   const [useHis, setUseHis] = useState<string>(props.enableHis ?? 'N');
   const [useSpeak, setUseSpeak] = useState<'Y' | 'N' | 'A'>(
-    props.isSpeak === 'Y' || props.isSpeak === true ? 'Y' : 'N',
+    props.isSpeak === 'Y' || props.isSpeak === 'A' ? 'Y' : 'N',
   );
   const [useClickToSpeech, setUseClickToSpeech] = useState<'Y' | 'N'>(
-    props.isSpeak === 'Y' || props.isSpeak === true ? 'Y' : 'N',
+    props.isSpeak === 'Y' || props.isSpeak === 'A' ? 'Y' : 'N',
   );
   const [wordPopup, setWordPopup] = useState<{
     open: boolean;
@@ -348,7 +348,7 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
               return `<span>${displayWord}</span>`;
             }
             const clickValue = encodeURIComponent(normalizedWord.toLowerCase());
-            return `<button type="button" class="common-btn inline btn-word-speak" data-click-word="${clickValue}" style="margin:2px;padding:2px 6px;">${displayWord}</button>`;
+            return `<button type="button" class="common-btn btn-word-speak" data-click-word="${clickValue}" style="margin:2px;padding:2px 6px;">${displayWord}</button>`;
           })
           .join(' '),
       )
@@ -618,9 +618,9 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
   }
 
   return (
-    <div>
+    <div className="ai-board">
       <div
-        className="width-100 inline"
+        className="ai-board-header width-100 inline"
         onClick={() => toggleCollapse(`gemini-${props.prefix}${props.index}`)}
       >
         {`Instance ${props.index + 1}`}
@@ -646,9 +646,12 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
             Toggle
           </label>
         )}
-        {props.isMini && <input onClick={() => reloadMini()} type="submit" value="Curr" />}
+        {props.isMini && (
+          <input className="common-btn" onClick={() => reloadMini()} type="submit" value="Curr" />
+        )}
         {props.isMini && (
           <input
+            className="common-btn"
             onClick={() => specSentAIMini(props.lastSentence || '')}
             type="submit"
             value="Last"
@@ -656,7 +659,7 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
         )}
       </div>
       <div
-        className="collapse-content bolder"
+        className="ai-board-shell collapse-content bolder"
         style={{
           padding: '5px',
           borderRadius: '8px',
@@ -671,17 +674,19 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
         <div
           style={{ height: `${props.heightRes}px`, borderRadius: '8px' }}
           id={`response-ai-${props.prefix}${props.index}`}
-          className="response-ai"
+          className="response-ai ai-response-panel"
         ></div>
         <br />
         <textarea
           id={`prompt-${props.prefix}${props.index}`}
           className="ai-promt"
           rows={3}
-          style={{
-            marginLeft: '5px',
-            // marginRight: '5px',
-          }}
+          style={
+            {
+              // marginLeft: '5px',
+              // marginRight: '5px',
+            }
+          }
           value={prompt}
           onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setPrompt(e.target.value)}
           placeholder=""
@@ -689,22 +694,26 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
         />
         <br />
         <VoiceToText setText={setPrompt} index={props.index}></VoiceToText>
-        <button onClick={() => askDec(prompt)} className="common-btn inline">
+        <button onClick={() => askDec(prompt)} className="common-btn">
           Send
         </button>
         <div
-          className="btn-icon section-ai"
+          className="common-toggle"
           onClick={() => toggleCollapse(`config-${props.prefix}${props.index}`)}
         >
           {/* <FaCog /> */}Config
         </div>
 
-        <div className="collapse-content bolder" id={`config-${props.prefix}${props.index}`}>
-          <button onClick={() => clearLog()} className="common-btn inline">
+        <div
+          className="collapse-content ui-sub-panel ai-config-panel"
+          id={`config-${props.prefix}${props.index}`}
+        >
+          <button onClick={() => clearLog()} className="common-btn">
             Clear
           </button>
 
           <select
+            className="common-input"
             onChange={(e: ChangeEvent<HTMLSelectElement>) => {
               setModel(MODEL_AI.find((m) => m.value === e.target.value) || MODEL_AI[0]);
             }}
@@ -717,6 +726,7 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
           </select>
           <span>History</span>
           <select
+            className="common-input"
             value={useHis}
             onChange={(e: ChangeEvent<HTMLSelectElement>) => {
               setUseHis(e.target.value);
@@ -727,6 +737,7 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
           </select>
           <span>Speak</span>
           <select
+            className="common-input"
             value={useSpeak}
             onChange={(e: ChangeEvent<HTMLSelectElement>) => {
               setUseSpeak(e.target.value as 'Y' | 'N' | 'A');
@@ -738,6 +749,7 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
           </select>
           <span>Click to speech</span>
           <select
+            className="common-input"
             value={useClickToSpeech}
             onChange={(e: ChangeEvent<HTMLSelectElement>) => {
               setUseClickToSpeech(e.target.value as 'Y' | 'N');
@@ -748,6 +760,7 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
           </select>
           <br />
           <input
+            className="common-input"
             type="text"
             value={gemKey || ''}
             onChange={(event: ChangeEvent<HTMLInputElement>) => {
@@ -756,6 +769,7 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
             placeholder="gem"
           />
           <input
+            className="common-input"
             type="text"
             value={gptKey || ''}
             onChange={(event: ChangeEvent<HTMLInputElement>) => {
@@ -773,17 +787,20 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
           />
         </div>
         <div
-          className="btn-icon section-ai"
+          className="common-toggle"
           onClick={() => toggleCollapse(`save-sheet-${props.prefix}${props.index}`)}
         >
           {/* <FaSave /> */} Data
         </div>
-        <div className="collapse-content bolder" id={`save-sheet-${props.prefix}${props.index}`}>
+        <div
+          className="collapse-content ui-sub-panel ai-data-panel"
+          id={`save-sheet-${props.prefix}${props.index}`}
+        >
           <SheetDataEditor value1={value1} value2={value2} />
         </div>
         {isSpeakEnabled && (
           <div
-            className="btn-icon section-ai"
+            className="common-toggle"
             onClick={() => toggleCollapse(`voice-config-${props.prefix}${props.index}`)}
           >
             {/* <FaVolumeUp /> */}Speak
@@ -791,7 +808,7 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
         )}
         {isSpeakEnabled && (
           <div
-            className="collapse-content bolder"
+            className="collapse-content ui-sub-panel ai-voice-panel"
             id={`voice-config-${props.prefix}${props.index}`}
           >
             <button onClick={() => onSpeakLastResponse()} className="common-btn ">
@@ -851,7 +868,7 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
                 <b>{wordPopup.word}</b>{' '}
                 <button
                   type="button"
-                  className="common-btn inline"
+                  className="common-btn"
                   onClick={() => speakPopupWord(wordPopup.word)}
                 >
                   <FaVolumeUp />

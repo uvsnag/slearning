@@ -644,17 +644,24 @@ const YoutubeSub: FC = () => {
     if (hide2) hide2.style.display = 'none';
   };
   return (
-    <div className="yt-sub" id="main-content" tabIndex={0} onKeyDown={(e) => onControlKey(e)}>
-      <div id="maincontent-yt" className="media-left ">
+    <div
+      className="yt-sub yts-page"
+      id="main-content"
+      tabIndex={0}
+      onKeyDown={(e) => onControlKey(e)}
+    >
+      <div id="maincontent-yt" className="media-left yts-shell">
         <div id="vd-control">
           <div id="player"></div>
           <br />
         </div>
-        <div className="">
-          <input type="number" className="width-30 right common-input" id="timemisus" />
+        <div className="yts-inline-control">
+          <input type="number" className="width-60 right common-input" id="timemisus" />
           <br />
-          <span onClick={() => toggleCollapse('hide-control-frame')}>+/-</span>
-          <div id="hide-control-frame" className="collapse-content bolder">
+          <span className="yts-toggle-link" onClick={() => toggleCollapse('hide-control-frame')}>
+            +/-
+          </span>
+          <div id="hide-control-frame" className="collapse-content ui-sub-panel yts-resize-panel">
             <input
               type="range"
               className="range-input"
@@ -670,14 +677,17 @@ const YoutubeSub: FC = () => {
                         <input type="range" className="range-input" id="size" name="vol" min="5" max="700" value={top} onChange={handleTop}></input><br /> */}
           </div>
         </div>
-        <div className="width-100" onClick={() => toggleCollapse('mobile-control')}>
+        <div
+          className="ui-section-title yts-section-title"
+          onClick={() => toggleCollapse('mobile-control')}
+        >
           Control
         </div>
-        <div id="mobile-control" className="collapse-content bolder">
+        <div id="mobile-control" className="collapse-content ui-sub-panel yts-control-panel">
           <input
             type="text"
             id="txtSrcMedia"
-            className="common-input"
+            className="common-input responsive-input-full"
             value={url}
             onKeyDown={(e) => handleKeyDown(e)}
             onChange={(event) => {
@@ -685,7 +695,7 @@ const YoutubeSub: FC = () => {
             }}
           />
           <select
-            className="common-input"
+            className="common-input responsive-input-full"
             value=""
             onChange={(event) => {
               if (event.target.value) {
@@ -702,36 +712,36 @@ const YoutubeSub: FC = () => {
           </select>
           <input
             type="submit"
-            className="common-btn inline"
+            className="common-btn"
             value="Load"
             id="btnExecute"
             onClick={() => onProcess()}
           />
           <input
             type="submit"
-            className="common-btn inline"
+            className="common-btn"
             value="Remove Info"
             onClick={() => removeLogo()}
           />
           <input
             type="submit"
-            className="common-btn inline"
+            className="common-btn"
             value="+/-"
             onClick={() => onShowHideVideo({} as React.MouseEvent<HTMLInputElement>)}
           />
           {/* <br /> */}
 
-          <input type="submit" className="common-btn inline" value="<" onClick={() => previous()} />
+          <input type="submit" className="common-btn" value="<" onClick={() => previous()} />
           <input
             type="submit"
-            className="common-btn inline"
+            className="common-btn"
             value="||"
             onClick={() => onStartStop({} as React.MouseEvent<HTMLInputElement>)}
           />
-          <input type="submit" className="common-btn inline" value=">" onClick={() => next()} />
+          <input type="submit" className="common-btn" value=">" onClick={() => next()} />
           <input
             type="submit"
-            className="common-btn inline"
+            className="common-btn"
             value="Change times"
             onClick={() => changeTime()}
           />
@@ -739,17 +749,17 @@ const YoutubeSub: FC = () => {
 
           <input
             type="submit"
-            className="common-btn inline"
+            className="common-btn"
             value="Add point"
             onClick={() => onAddPoint()}
           />
           <input
             type="submit"
-            className="common-btn inline"
+            className="common-btn"
             value="clear"
             onClick={() => onClearCusLoop()}
           />
-          <div id="cus-loop-control">
+          <div id="cus-loop-control" className="yts-loop-control">
             <input
               className="common-input"
               type="text"
@@ -779,19 +789,22 @@ const YoutubeSub: FC = () => {
             ></StackBtn>
           </div>
         </div>
-        <div className="width-100" onClick={() => toggleCollapse('ai-section-yt')}>
+        <div
+          className="ui-section-title yts-section-title"
+          onClick={() => toggleCollapse('ai-section-yt')}
+        >
           AI
         </div>
-        <div id="ai-section-yt" className="collapse-content ">
+        <div id="ai-section-yt" className="collapse-content ui-sub-panel yts-ai-panel">
           <PracticeWords prefix="prc-yts" enableHis="N" isMini={false} />
         </div>
-        <div className="width-100" onClick={() => toggleCollapse('hide2')}>
+        <div className="ui-section-title yts-section-title" onClick={() => toggleCollapse('hide2')}>
           Sub
         </div>
 
-        <div id="hide2" className="collapse-content bolder">
+        <div id="hide2" className="collapse-content ui-sub-panel yts-sub-panel">
           <div id="hide1"></div>
-          <div className="tooltip">
+          <div className="tooltip yts-tooltip">
             ???
             <span className="tooltiptext">arrow , and Crtl: clear/ shift: loop</span>
           </div>
@@ -839,7 +852,7 @@ const YoutubeSub: FC = () => {
               value=">>"
               onClick={() => onNextLine({} as React.MouseEvent<HTMLInputElement>)}
             />
-            <div id="sub-control">
+            <div id="sub-control" className="yts-sub-list">
               {arrSub.map((item, index) => (
                 <LineSub key={`${item.time}${item.value}`} time={item.time} value={item.value} />
               ))}
@@ -855,7 +868,7 @@ const YoutubeSub: FC = () => {
             {' '}
             <br />
           </div>
-          <div id="load-sub">
+          <div id="load-sub" className="yts-load-sub">
             <input
               type="submit"
               className="common-btn margin-zr"
@@ -877,12 +890,15 @@ const YoutubeSub: FC = () => {
           <input type="submit" value="H" id="btnHide" onClick={() => onHideAll()} />
           <input type="submit" value="S" id="btnShow" onClick={() => onShowAll()} />
         </div>
-        <div className="width-100" onClick={() => toggleCollapse('mul-ai')}>
+        <div
+          className="ui-section-title yts-section-title"
+          onClick={() => toggleCollapse('mul-ai')}
+        >
           Mul-AI
         </div>
       </div>
 
-      <div id="mul-ai" className="collapse-content bolder">
+      <div id="mul-ai" className="collapse-content ui-sub-panel yts-mulai-panel">
         <MulAI {...MUL_PROP}></MulAI>
       </div>
     </div>

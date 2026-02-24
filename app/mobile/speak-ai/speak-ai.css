@@ -7,3 +7,35 @@
 .response-ai {
   font-size: 16px;
 }
+
+.speak-ai-page {
+  padding: 10px;
+  border-radius: 14px;
+  border: 1px solid #d9e2f0;
+  background:
+    radial-gradient(circle at top right, rgba(78, 122, 224, 0.12), transparent 45%),
+    linear-gradient(180deg, #f9fbff 0%, #f4f7fc 100%);
+  box-shadow: 0 10px 28px rgba(17, 26, 44, 0.08);
+}
+
+.speak-ai-scenario {
+  margin-bottom: 8px !important;
+  font-weight: 600;
+  color: #152540;
+}
+
+.speak-ai-toggle {
+  margin-top: 10px;
+}
+
+.dark-90 .speak-ai-page {
+  border-color: #3b475f;
+  background:
+    radial-gradient(circle at top right, rgba(126, 158, 255, 0.13), transparent 45%),
+    linear-gradient(180deg, #232b38 0%, #1e2430 100%);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+}
+
+.dark-90 .speak-ai-scenario {
+  color: #eff4ff;
+}

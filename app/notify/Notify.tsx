@@ -272,7 +272,7 @@ const Notify = (): ReactElement => {
         <textarea id="strContinue" value={strContinue} onChange={handleChangeCookie}></textarea>
         <br />
         <select
-          className="button-33"
+          className="common-input"
           name="isUseVoice"
           id="slIsUseVoice"
           onChange={(e: ChangeEvent<HTMLSelectElement>): void => {
@@ -297,18 +297,18 @@ const Notify = (): ReactElement => {
         </div> */}
         <div className="control-footer">
           <input
-            className="common-btn inline"
+            className="common-btn"
             type="submit"
             value="Start"
             id="btnStart"
             onClick={(): void => onStart()}
           />
-          <button className="common-btn inline" id="btnStop" onClick={(): void => onStop()}>
+          <button className="common-btn" id="btnStop" onClick={(): void => onStop()}>
             Stop
           </button>
-          <input className="button-33" type="text" id="timeValue" />
+          <input className="common-input" type="text" id="timeValue" />
           <input
-            className="common-btn inline"
+            className="common-btn"
             type="submit"
             id="isNotify"
             value={!isStop ? IND_VALUE_ON : IND_VALUE_OFF}

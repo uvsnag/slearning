@@ -7,15 +7,14 @@ export const SignOutButton: React.FC = () => {
     const { gapi } = await import('gapi-script');
     const auth = await gapi.auth2.getAuthInstance();
     await auth.signOut();
-    await auth.signIn()
+    await auth.signIn();
   };
 
   return (
-    <button type="button" className="common-input" onClick={handleSignOut}>
-     log in
+    <button type="button" className="common-btn" onClick={handleSignOut}>
+      log in
     </button>
   );
 };
 
 export default SignOutButton;
-
