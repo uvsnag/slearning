@@ -6,6 +6,7 @@ import { DataItem, getDataFromExcel } from '@/app/common/hooks/useSheetData';
 import { useSpeechSynthesis } from '@/app/common/hooks/useSpeechSynthesis';
 import PracticeVoiceConfig from './PracticeVoiceConfig';
 import PracticeSheetConfig from './PracticeSheetConfig';
+import { toggleCollapse } from '../common';
 
 export interface ConfigControlProps {
   propSheet: string;
@@ -118,12 +119,18 @@ const PracticeController = (props: PracticeControllerProps): ReactElement => {
 
   return (
     <div className="">
-      {/* <div onClick={() => toggleCollapse(`config-pract-${props.config.index}`)}>
-        <FaCog />
-      </div> */}
-      <div className="bolder" id={`config-pract-${props.config.index}`}>
+      <div
+        onClick={() => toggleCollapse(`config-pract-${props.config.index}`)}
+        className="common-toggle"
+      >
+        Sheet Config
+      </div>
+      <div
+        className=" collapse-content ui-sub-panel open"
+        id={`config-pract-${props.config.index}`}
+      >
         {/* <div>
-        <div className="option-noti bolder" id="control"> */}
+        <div className="option-noti " id="control"> */}
         <PracticeSheetConfig
           sheet={sheet}
           itemsLength={items.length}
@@ -138,7 +145,6 @@ const PracticeController = (props: PracticeControllerProps): ReactElement => {
           onClearStore={clearStore}
           onChangeOrder={onChangeOrder}
         >
-
           {/* <div id="sound-control"> */}
           {/* <div>Voice:</div> */}
           <PracticeVoiceConfig
@@ -162,7 +168,7 @@ const PracticeController = (props: PracticeControllerProps): ReactElement => {
 
           {/* <div>Voice 2:</div>
               <select
-                className="button-33"
+                className="common-input"
                 id="voiceVie"
                 name="voiceVie"
                 value={voiceIndexVie || ''}

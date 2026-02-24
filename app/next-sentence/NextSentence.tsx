@@ -76,14 +76,14 @@ const NextSentence: React.FC<NextSentenceProps> = ({ heightProp }) => {
         </div>
         <input
           type="submit"
-          className="common-btn inline"
+          className="common-btn"
           value="Next"
           id="btnExecute"
           onClick={() => onProcess()}
         />
         <input
           type="submit"
-          className="common-btn inline"
+          className="common-btn"
           value="Copy"
           id="btnCoppy"
           onClick={() => copyContent('note')}
@@ -91,11 +91,11 @@ const NextSentence: React.FC<NextSentenceProps> = ({ heightProp }) => {
       </div>
       <input
         type="submit"
-        className="common-btn inline"
+        className="common-btn"
         value="Source"
         onClick={() => toggleCollapse('maincontent-nw')}
       />
-      <input type="submit" className="common-btn inline" value="+/-" onClick={() => onHideShow()} />
+      <input type="submit" className="common-btn" value="+/-" onClick={() => onHideShow()} />
       <div id="maincontent-nw" className="collapse-content bolder">
         <textarea
           id="sentence-text"

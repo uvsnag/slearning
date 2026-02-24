@@ -84,9 +84,9 @@ const SpeakAI = () => {
   const prompt = useMemo((): string => buildPrompt(selectedScenario), [selectedScenario]);
 
   return (
-    <div className="mobile">
+    <div className="mobile speak-ai-page">
       <select
-        className="button-33 inline"
+        className="common-input inline speak-ai-scenario"
         style={{
           width: '100%',
           textAlign: 'left',
@@ -114,10 +114,10 @@ const SpeakAI = () => {
         firstAsk={prompt}
         collapse={'N'}
       />
-      <div className="btn-icon" onClick={() => toggleCollapse('mul-ai')}>
+      <div className=" speak-ai-toggle" onClick={() => toggleCollapse('mul-ai')}>
         Mul-AI
       </div>
-      <div id="mul-ai" className="collapse-content bolder">
+      <div id="mul-ai" className="collapse-content ui-sub-panel speak-ai-mulai">
         <MulAI {...MUL_PROP}></MulAI>
       </div>
     </div>

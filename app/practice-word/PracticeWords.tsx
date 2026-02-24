@@ -236,11 +236,11 @@ const PractWords = (props: PractWordsProps) => {
   };
 
   return (
-    <div className={classPract}>
+    <div className={`${classPract} practice-words-page`}>
       {showPanel == 'Y' && (
-        <div className="prac">
-          <div>{message}</div>
-          <div>
+        <div className="prac practice-card">
+          <div className="practice-message">{message}</div>
+          <div className="practice-last-answer">
             {_.isEmpty(lastEng) ? (
               <div></div>
             ) : (
@@ -258,7 +258,7 @@ const PractWords = (props: PractWordsProps) => {
 
           {isShowDelete && (
             <button
-              className="common-btn inline"
+              className="common-btn"
               onClick={() => {
                 onRemoveStoreItem(currEng || '', nextQuestion, sheetConfig.propSheet);
                 setMessage(`🗑️:${currEng}`);
@@ -271,20 +271,24 @@ const PractWords = (props: PractWordsProps) => {
 
           <span>{'\u00A0\u00A0\u00A0'}</span>
 
-          <button className="common-btn inline" onClick={() => onNextQuestion()}>
+          <button className="common-btn" onClick={() => onNextQuestion()}>
             Next
           </button>
           <br />
           <br />
-          <div>{question}</div>
+          <div className="practice-question">{question}</div>
           <br />
-          <div className="" dangerouslySetInnerHTML={{ __html: showAns }}></div>
+          <div
+            className="practice-answer-preview"
+            dangerouslySetInnerHTML={{ __html: showAns }}
+          ></div>
           <input
             type="text"
             id="answer"
             autoComplete="off"
             ref={inputAns}
             onKeyDown={(e) => handleKeyDown(e)}
+            className="common-input"
           />
 
           <VoiceToText setText={setInputAns} index={0}></VoiceToText>
@@ -294,7 +298,7 @@ const PractWords = (props: PractWordsProps) => {
           <br />
 
           <select
-            className="button-33"
+            className="common-input practice-answer-select"
             id="combo-answer"
             name="combo-ans"
             onChange={(event) => {
@@ -310,19 +314,19 @@ const PractWords = (props: PractWordsProps) => {
           </select>
 
           {/* <input
-          className="common-btn inline"
+          className="common-btn"
           type="submit"
           value="Show Ans"
           id="btnShowAns"
           onClick={() => onShow()}
         /> */}
           <button
-            className="common-btn inline"
+            className="common-btn"
             onClick={() => setMode(mode === MODE_NONE ? MODE_SPEAKE_CHANGE_QUST : MODE_NONE)}
           >
             {mode === MODE_NONE ? <FaVolumeMute /> : <FaVolumeUp />}
           </button>
-          <div className="tooltip">
+          <div className="tooltip practice-tooltip">
             ?
             <span className="tooltiptext">
               <p>ArrowUp: Record/Stop</p>
@@ -334,24 +338,29 @@ const PractWords = (props: PractWordsProps) => {
               <p>End: Next Answer</p>
             </span>
           </div>
-          <span> {remainCount}</span>
+          <span className="practice-remain-count"> {remainCount}</span>
           <br />
-          <button className="common-btn inline" onClick={() => hideAI()}>
+          <button className="common-btn" onClick={() => hideAI()}>
             Hide AI
           </button>
-          <input type="number" className="width-30" id="num-of-ans" defaultValue={3} />
           <input
-            className="common-btn inline"
+            type="number"
+            className="width-30 practice-num-ans common-input"
+            id="num-of-ans"
+            defaultValue={3}
+          />
+          <input
+            className="common-btn"
             type="submit"
             value="Check"
             id="btnSubmit"
             onClick={() => onCheck()}
           />
 
-          <div onClick={() => toggleCollapse(`config-pract-save-sheet`)}>
+          <div className="common-toggle" onClick={() => toggleCollapse(`config-pract-save-sheet`)}>
             <FaSyncAlt />
           </div>
-          <div className="collapse-content bolder" id={`config-pract-save-sheet`}>
+          <div className="collapse-content  ui-sub-panel" id={`config-pract-save-sheet`}>
             <SheetDataEditor value1={lastEng} value2={lastVie} isUse={true} />
           </div>
 
@@ -371,9 +380,9 @@ const PractWords = (props: PractWordsProps) => {
           // lastSentence={lastVie}
         />
       )}
-      <div className="ai-pract">
+      <div className="ai-pract practice-ai-panel">
         <button
-          className="common-btn inline"
+          className="common-btn"
           onClick={() => setShowPanel((prev) => (prev === 'Y' ? 'N' : 'Y'))}
         >
           Change Panel

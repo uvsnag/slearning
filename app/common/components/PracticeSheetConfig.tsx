@@ -31,7 +31,7 @@ const PracticeSheetConfig = ({
   return (
     <>
       <select
-        className="button-33 inline"
+        className="common-input inline"
         value={sheet}
         name="sheet"
         id="slsheet"
@@ -47,27 +47,27 @@ const PracticeSheetConfig = ({
           </option>
         ))}
       </select>
-      <button className="common-btn inline" onClick={onReload}>
+      <button className="common-btn" onClick={onReload}>
         <FaRedo />
       </button>
       <span>{itemsLength}</span>
-      <div onClick={() => toggleCollapse(`config-pract2-${configIndex}`)}>
+      <div className="common-toggle" onClick={() => toggleCollapse(`config-pract2-${configIndex}`)}>
         <FaCog />
       </div>
       <div className="collapse-content bolder" id={`config-pract2-${configIndex}`}>
-        <select id="store-index" name="store-index" className="common-btn inline">
+        <select id="store-index" name="store-index" className="common-btn">
           <option value={`${STORE_ALIAS}1`}>Store1</option>
           <option value={`${STORE_ALIAS}2`}>Store2</option>
           <option value={`${STORE_ALIAS}3`}>Store3</option>
         </select>
-        <button className="common-btn inline" onClick={onAddStore}>
+        <button className="common-btn" onClick={onAddStore}>
           Add
         </button>
-        <button className="common-btn inline" onClick={onClearStore}>
+        <button className="common-btn" onClick={onClearStore}>
           Clear
         </button>
         <select
-          className="button-33 inline"
+          className="common-input inline"
           name="genData"
           id="slGenData"
           onChange={(e: ChangeEvent<HTMLSelectElement>): void => {

@@ -272,20 +272,20 @@ const ListenSentencePractice: React.FC = () => {
           onKeyDown={(e: KeyboardEvent<HTMLTextAreaElement>) => handleKeyDownInput(e)}
         ></textarea>
         <br />
-        <button className="common-btn inline" id="hideBtn" onClick={() => onHideInput('inputTxt')}>
+        <button className="common-btn" id="hideBtn" onClick={() => onHideInput('inputTxt')}>
           <FaEyeSlash />
         </button>
         <span> </span>
-        <button className="common-btn inline" id="Start" onClick={() => onStart()}>
+        <button className="common-btn" id="Start" onClick={() => onStart()}>
           Start
         </button>
-        <button className="common-btn inline" onClick={() => onStartCountW()}>
+        <button className="common-btn" onClick={() => onStartCountW()}>
           St2
         </button>
         <input id="numWordBreak" className="width-30" />
         <span> </span>
         <select
-          className="common-btn inline width-120 "
+          className="common-btn width-120 "
           id="voice"
           name="voice"
           value={voiceIndex || ''}
@@ -303,15 +303,15 @@ const ListenSentencePractice: React.FC = () => {
         <input id="numbWord" className="width-30" />
         <span> </span>
         <div className="mobile">
-          <button className="common-btn inline" onClick={() => onCheck()}>
+          <button className="common-btn" onClick={() => onCheck()}>
             c
           </button>
           <span> </span>
-          <button className="common-btn inline" onClick={() => speakI()}>
+          <button className="common-btn" onClick={() => speakI()}>
             ci
           </button>
           <span> </span>
-          <button className="common-btn inline" onClick={() => speakText(getNextSubAns())}>
+          <button className="common-btn" onClick={() => speakText(getNextSubAns())}>
             ce
           </button>
         </div>

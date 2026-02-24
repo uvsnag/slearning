@@ -9,21 +9,34 @@ import {
   KEY_API_SHEET,
 } from '@/common/common';
 
+const DESKTOP_LINKS = [
+  { href: '/youtube-sub', label: 'Listen Board' },
+  { href: '/notify', label: 'Notify' },
+  { href: '/practice-word', label: 'Word (Meaning)' },
+  { href: '/next-sentence', label: 'Sentence' },
+  { href: '/listen', label: 'Word (Listen)' },
+  { href: '/dash-board1', label: 'Board1' },
+];
+
+const MOBILE_LINKS = [
+  { href: '/mobile/youtube-sub', label: 'Listen Board' },
+  { href: '/mobile/speak-ai', label: 'Speak AI' },
+];
+
+const getStoredValue = (key: string): string | null => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+  return localStorage.getItem(key);
+};
+
 const Home: FC = () => {
-  const [gemKey, setGemKey] = useState<string | null>(null);
-  const [gptKey, setGptKey] = useState<string | null>(null);
-  const [googleSheetKey, setGoogleSheetKey] = useState<string | null>(null);
-  const [apiKey, setApiKey] = useState<string | null>(null);
-  useEffect(() => {
-    let locGem = localStorage.getItem(KEY_GEMINI_NM);
-    let locgpt = localStorage.getItem(KEY_GPT_NM);
-    let locGoogleSheet = localStorage.getItem(KEY_GOOGLE_SHEET_NM);
-    let locApi = localStorage.getItem(KEY_API_SHEET);
-    setGemKey(locGem);
-    setGptKey(locgpt);
-    setGoogleSheetKey(locGoogleSheet);
-    setApiKey(locApi);
-  }, []);
+  const [gemKey, setGemKey] = useState<string | null>(() => getStoredValue(KEY_GEMINI_NM));
+  const [gptKey, setGptKey] = useState<string | null>(() => getStoredValue(KEY_GPT_NM));
+  const [googleSheetKey, setGoogleSheetKey] = useState<string | null>(() =>
+    getStoredValue(KEY_GOOGLE_SHEET_NM),
+  );
+  const [apiKey, setApiKey] = useState<string | null>(() => getStoredValue(KEY_API_SHEET));
   useEffect(() => {
     if (gemKey) {
       localStorage.setItem(KEY_GEMINI_NM, gemKey);
@@ -49,87 +62,95 @@ const Home: FC = () => {
   }, [apiKey]);
 
   return (
-    <div className="App">
-      <ul className="mst-menu">
-        <li className="mst-menu-li">
-          <Link href="/youtube-sub">Listen Board</Link>
-        </li>
-        <li className="mst-menu-li">
-          <Link href="/notify">Notify</Link>
-        </li>
-        <li className="mst-menu-li">
-          <Link href="/practice-word">Word(Meanning)</Link>
-        </li>
-        <li className="mst-menu-li">
-          <Link href="/next-sentence">Sentence</Link>
-        </li>
-        <li className="mst-menu-li">
-          <Link href="/listen">Word(Listen) </Link>
-        </li>
-        {/* <li className="mst-menu-li">
-          <Link href="/voiceToText">Speed To Text</Link>
-        </li> */}
-        <li className="mst-menu-li">
-          <Link href="/dash-board1">Board1</Link>
-        </li>
-        {/* <li className="mst-menu-li">
-          <Link href="/ai">AI</Link>
-        </li> */}
-        <li className="mst-menu-li" onClick={() => toggleCollapse(`config`)}>
+    <div className="ui-page">
+      <div className="ui-page-shell home-shell">
+        <h1 className="ui-title">SLearning Studio</h1>
+        <p className="ui-subtitle">
+          Unified navigation for desktop and mobile tools, with shared UI tokens.
+        </p>
+
+        <div className="home-menu-grid">
+          <section className="ui-panel home-menu-panel">
+            <div className="ui-section-title">Desktop</div>
+            <ul className="mst-menu">
+              {DESKTOP_LINKS.map((link) => (
+                <li className="mst-menu-li" key={link.href}>
+                  <Link className="home-nav-link" href={link.href}>
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section className="ui-panel home-menu-panel">
+            <div className="ui-section-title">Mobile</div>
+            <ul className="mst-menu">
+              {MOBILE_LINKS.map((link) => (
+                <li className="mst-menu-li" key={link.href}>
+                  <Link className="home-nav-link" href={link.href}>
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </div>
+        <button type="button" className="home-menu-button" onClick={() => toggleCollapse('config')}>
           Config
-        </li>
-      </ul>
-      <ul className="mst-menu">
-        <li>
-          <b>Mobile</b>
-        </li>
-        <li className="mst-menu-li">
-          <Link href="/mobile/youtube-sub">Listen Board</Link>
-        </li>
-        <li className="mst-menu-li">
-          <Link href="/mobile/speak-ai">Speak</Link>
-        </li>
-      </ul>
-      <div id="config" className="collapse-content bolder">
-        <span>gem:</span>
-        <input
-          type="text"
-          value={gemKey ?? ''}
-          onChange={(event: ChangeEvent<HTMLInputElement>) => {
-            setGemKey(event.target.value);
-          }}
-          placeholder="gem"
-        />
-        <span>gpt:</span>
-        <input
-          type="text"
-          value={gptKey ?? ''}
-          onChange={(event: ChangeEvent<HTMLInputElement>) => {
-            setGptKey(event.target.value);
-          }}
-          placeholder="gpt"
-        />
-        <br />
-        <span>Google sheet:</span>
-        <input
-          type="text"
-          value={googleSheetKey ?? ''}
-          onChange={(event: ChangeEvent<HTMLInputElement>) => {
-            setGoogleSheetKey(event.target.value);
-          }}
-          placeholder="google sheet key"
-        />
-        <br />
-        <span>API Key:</span>
-        <input
-          type="text"
-          value={apiKey ?? ''}
-          onChange={(event: ChangeEvent<HTMLInputElement>) => {
-            setApiKey(event.target.value);
-          }}
-          placeholder="api key"
-        />
-        <br />
+        </button>
+        <div id="config" className="collapse-content ui-collapse-panel home-config-panel">
+          <div className="home-config-grid">
+            <label className="home-config-field">
+              <span>Gemini Key</span>
+              <input
+                className="common-input"
+                type="text"
+                value={gemKey ?? ''}
+                onChange={(event: ChangeEvent<HTMLInputElement>) => {
+                  setGemKey(event.target.value);
+                }}
+                placeholder="gem"
+              />
+            </label>
+            <label className="home-config-field">
+              <span>GPT Key</span>
+              <input
+                className="common-input"
+                type="text"
+                value={gptKey ?? ''}
+                onChange={(event: ChangeEvent<HTMLInputElement>) => {
+                  setGptKey(event.target.value);
+                }}
+                placeholder="gpt"
+              />
+            </label>
+            <label className="home-config-field">
+              <span>Google Sheet Key</span>
+              <input
+                className="common-input"
+                type="text"
+                value={googleSheetKey ?? ''}
+                onChange={(event: ChangeEvent<HTMLInputElement>) => {
+                  setGoogleSheetKey(event.target.value);
+                }}
+                placeholder="google sheet key"
+              />
+            </label>
+            <label className="home-config-field">
+              <span>API Key</span>
+              <input
+                className="common-input"
+                type="text"
+                value={apiKey ?? ''}
+                onChange={(event: ChangeEvent<HTMLInputElement>) => {
+                  setApiKey(event.target.value);
+                }}
+                placeholder="api key"
+              />
+            </label>
+          </div>
+        </div>
       </div>
     </div>
   );

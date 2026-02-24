@@ -5,4 +5,14 @@ import dynamic from 'next/dynamic';
 const ListenPractice = dynamic(() => import('./ListenPractice'), {
   ssr: false,
 });
-export default ListenPractice;
+const ListenPage = () => {
+  return (
+    <div className="ui-page">
+      <div className="ui-page-shell">
+        <ListenPractice />
+      </div>
+    </div>
+  );
+};
+
+export default ListenPage;
