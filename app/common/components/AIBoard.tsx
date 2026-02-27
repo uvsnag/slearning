@@ -33,6 +33,8 @@ export interface AIBoardProps {
   firstAsk?: string;
   lastSentence?: string | null;
   collapse?: string | null;
+  title?: string | null;
+  defaultPrompt?: string | null;
   isSpeak?: 'Y' | 'N' | 'A' | boolean | null;
 }
 
@@ -140,7 +142,7 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
     let gptLcal = localStorage.getItem(keyChatGptNm);
     let locGem = gmLcal ? gmLcal : localStorage.getItem(KEY_GEMINI_NM);
     let locgpt = gptLcal ? gptLcal : localStorage.getItem(KEY_GPT_NM);
-    let sysPromptVa = localStorage.getItem(sysPromptNm) ?? '';
+    let sysPromptVa = localStorage.getItem(sysPromptNm) ?? props.defaultPrompt ?? '';
     console.log(locGem);
     if (gmLcal) {
       setGemKey(locGem);
@@ -624,7 +626,7 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
         className="ai-board-header width-100 inline"
         onClick={() => toggleCollapse(`gemini-${props.prefix}${props.index}`)}
       >
-        {`Instance ${props.index + 1}`}
+        {props.title ?? `Instance ${props.index + 1}`}
         {props.isMini && (
           <label>
             {' '}

@@ -375,6 +375,7 @@ const PractWords = (props: PractWordsProps) => {
           enableHis={props.enableHis ?? 'N'}
           heightRes={props.heightRes ?? 167}
           collapse={'N'}
+
           // isMini={props.isMini ?? true}
           // statement={question}
           // lastSentence={lastVie}
@@ -385,7 +386,7 @@ const PractWords = (props: PractWordsProps) => {
           className="common-btn"
           onClick={() => setShowPanel((prev) => (prev === 'Y' ? 'N' : 'Y'))}
         >
-          Change Panel
+          Pract/AI
         </button>
         <AIBoard
           key={0}
@@ -396,6 +397,14 @@ const PractWords = (props: PractWordsProps) => {
           isMini={props.isMini ?? true}
           statement={question}
           lastSentence={lastEng}
+          title={'Add Excel'}
+          defaultPrompt={`dịch từ này sang tiếng anh, trả lời ngắn gọn
+              Ví dụ 1 (từ có 1 nghĩa):
+              tôi chat: dog
+              trả lời: con chó (n)
+              Ví dụ 2 (từ có nhiều nghĩa, liệt kê hết nghĩa):
+              tôi chat: book
+              trả lời: cuốn sách (n), đặt phòng (v)`}
         />
       </div>
     </div>

@@ -24,6 +24,14 @@ const MulAI: React.FC<MulAIContainerProps> = (props) => {
 
   useEffect(() => {}, [column]);
 
+  const handleNumAIChange = (value: number): void => {
+    if (Number.isNaN(value)) {
+      setNumAI(0);
+      return;
+    }
+    setNumAI(Math.max(0, value));
+  };
+
   function clearAllLog(): void {
     document.querySelectorAll('div.response-ai').forEach((el: Element) => {
       (el as HTMLElement).innerHTML = '';
@@ -38,14 +46,17 @@ const MulAI: React.FC<MulAIContainerProps> = (props) => {
           className="width-60 common-input"
           value={numAI}
           onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-            setNumAI(Number(event.target.value));
+            handleNumAIChange(Number(event.target.value));
           }}
         />
-        <StackBtn onUp={() => setNumAI(numAI + 1)} onDown={() => setNumAI(numAI - 1)}></StackBtn>
+        <StackBtn
+          onUp={() => handleNumAIChange(numAI + 1)}
+          onDown={() => handleNumAIChange(numAI - 1)}
+        ></StackBtn>
         <span>Cols:</span>
         <input
           type="number"
-          className="width-30 common-input"
+          className="width-60 common-input"
           value={column}
           onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
             setColumn(Number(event.target.value));
@@ -73,22 +84,29 @@ const MulAI: React.FC<MulAIContainerProps> = (props) => {
         {/* <SheetDataEditor /> */}
       </div>
       <div className="container-block">
-        {/* Map over configs array to create AIBoard instances */}
-        {props.configs.slice(0, numAI).map((config) => (
-          <div key={config.instanceNo} className={`block block-${column}cols`}>
-            <AIBoard
-              index={config.instanceNo}
-              prefix={config.prefix || 'default'}
-              enableHis={config.enableHis ?? 'N'}
-              heightRes={height}
-              isMini={config.isMini}
-              statement={config.statement}
-              // isShowPract={config.isShowPract}
-              lastSentence={config.lastSentence}
-              collapse={config.collapse}
-            />
-          </div>
-        ))}
+        {/* Render by numAI and apply config with same index */}
+        {Array.from({ length: numAI }).map((_, index) => {
+          const config = props.configs[index];
+          const instanceNo = config?.instanceNo ?? index;
+
+          return (
+            <div key={instanceNo} className={`block block-${column}cols`}>
+              <AIBoard
+                index={instanceNo}
+                prefix={config?.prefix || 'default'}
+                enableHis={config?.enableHis ?? 'N'}
+                heightRes={height}
+                isMini={config?.isMini}
+                statement={config?.statement}
+                title={config?.title}
+                defaultPrompt={config?.defaultPrompt}
+                // isShowPract={config.isShowPract}
+                lastSentence={config?.lastSentence}
+                collapse={config?.collapse}
+              />
+            </div>
+          );
+        })}
       </div>
     </div>
   );

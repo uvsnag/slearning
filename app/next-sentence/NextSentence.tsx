@@ -22,9 +22,35 @@ const NextSentence: React.FC<NextSentenceProps> = ({ heightProp }) => {
   const MUL_PROP: MulAIContainerProps = {
     heightRes: 180,
     configs: [
-      { instanceNo: 0, prefix: 'ntx', enableHis: 'N', collapse: 'N' },
-      { instanceNo: 1, prefix: 'ntx', enableHis: 'N', collapse: 'N' },
-      { instanceNo: 2, prefix: 'ntx', enableHis: 'N', collapse: 'N' },
+      {
+        instanceNo: 0,
+        prefix: 'ntx',
+        enableHis: 'N',
+        collapse: 'N',
+        title: 'Grammar',
+        defaultPrompt: `Tôi sẽ viết bằng tiếng Anh. Hãy giúp tôi sửa ngữ pháp trong câu bằng cách trả lời ngắn gọn những yêu cầu sau: 
+1. hãy phân loại rõ ràng trong câu chỗ nào là sai, chỗ nào là đúng nhưng chưa tự nhiên bằng tiếng việt 
+2. đưa ra 1 câu tiếng anh được sửa những chỗ sai ngữ pháp dựa theo câu gốc 
+3. đưa ra câu tiếng anh được sửa những chỗ sai ngữ pháp và những chỗ chưa tự nhiên dựa theo câu gốc			
+			`,
+      },
+      {
+        instanceNo: 1,
+        prefix: 'ntx',
+        enableHis: 'N',
+        collapse: 'N',
+        title: 'Eng-Vie',
+        defaultPrompt: 'dịch sang tiếng việt',
+      },
+      {
+        instanceNo: 2,
+        prefix: 'ntx',
+        enableHis: 'N',
+        collapse: 'N',
+        title: 'Vie-Eng',
+        defaultPrompt:
+          'translate the following text from Vietnamese to English, shortly, give me 3 ways to translate',
+      },
       { instanceNo: 3, prefix: 'ntx', enableHis: 'Y', collapse: 'N' },
     ],
   };
