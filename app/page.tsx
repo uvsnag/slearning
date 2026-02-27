@@ -10,17 +10,17 @@ import {
 } from '@/common/common';
 
 const DESKTOP_LINKS = [
-  { href: '/youtube-sub', label: 'Listen Board' },
-  { href: '/notify', label: 'Notify' },
+  { href: '/youtube-sub', label: 'Board YT' },
+  { href: '/dash-board1', label: 'Board Sentence' },
   { href: '/practice-word', label: 'Word (Meaning)' },
-  { href: '/next-sentence', label: 'Sentence' },
   { href: '/listen', label: 'Word (Listen)' },
-  { href: '/dash-board1', label: 'Board1' },
+  { href: '/notify', label: 'Notify' },
+  { href: '/next-sentence', label: 'Sentence' },
 ];
 
 const MOBILE_LINKS = [
-  { href: '/mobile/youtube-sub', label: 'Listen Board' },
   { href: '/mobile/speak-ai', label: 'Speak AI' },
+  { href: '/mobile/youtube-sub', label: 'Listen Board' },
 ];
 
 const getStoredValue = (key: string): string | null => {

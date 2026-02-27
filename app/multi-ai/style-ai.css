@@ -74,7 +74,11 @@
   padding: 8px 10px;
   border: 1px solid var(--studio-border);
   border-radius: 10px;
-  background: linear-gradient(135deg, var(--color-surface-header-start) 0%, var(--color-surface-header-end) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-surface-header-start) 0%,
+    var(--color-surface-header-end) 100%
+  );
   color: var(--color-text-strong);
   font-weight: 700;
   letter-spacing: 0.2px;
@@ -82,7 +86,11 @@
 
 .ai-board-shell {
   border: 1px solid var(--studio-border);
-  background: linear-gradient(180deg, var(--color-surface-panel-start) 0%, var(--color-surface-panel-end) 100%);
+  background: linear-gradient(
+    180deg,
+    var(--color-surface-panel-start) 0%,
+    var(--color-surface-panel-end) 100%
+  );
   box-shadow: 0 8px 24px var(--shadow-float-color);
 }
 
@@ -110,7 +118,11 @@
 }
 
 .dark-90 .ai-board-header {
-  background: linear-gradient(135deg, var(--color-dark-panel-start) 0%, var(--color-dark-panel-end) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-dark-panel-start) 0%,
+    var(--color-dark-panel-end) 100%
+  );
   border-color: var(--color-dark-border);
   color: var(--color-dark-text);
 }
@@ -130,4 +142,3 @@
   width: 26px;
   height: 18px;
 }
-
