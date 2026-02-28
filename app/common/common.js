@@ -113,5 +113,7 @@ export const copyContent = (nm) => {
 
 export const KEY_GEMINI_NM = 'gemi-key'
 export const KEY_GPT_NM = 'gpt-key'
+export const KEY_GITHUB_NM = 'github-key'
+export const KEY_OPENROUTER_NM = 'openrouter-key'
 export const KEY_GOOGLE_SHEET_NM = 'google-sheet-key'
 export const KEY_API_SHEET = 'api-sheet-key'
