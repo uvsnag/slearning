@@ -22,6 +22,11 @@ interface ModelAI {
   type: number;
 }
 
+interface ConversationTurn {
+  question: string;
+  response: string;
+}
+
 export interface AIBoardProps {
   size?: number;
   prefix: string;
@@ -40,6 +45,8 @@ export interface AIBoardProps {
 
 const MODEL_AI: ModelAI[] = [
   { value: 'gemini-2.5-flash', name: 'gemini-2.5-flash', type: TP_GEN },
+  { value: 'gemini-2.5-flash-lite', name: 'gemini-2.5-flash-lite', type: TP_GEN },
+  { value: 'gemini-3.1-pro-preview', name: 'gemini-3.1-pro-preview', type: TP_GEN },
   { value: 'gpt-4o', name: 'gpt-4o', type: TP_GPT },
 ];
 const CLICK_TO_SPEECH_IGNORE_WORDS: string[] = [
@@ -87,14 +94,18 @@ const CLICK_TO_SPEECH_IGNORE_WORDS: string[] = [
 const CLICK_TO_SPEECH_IGNORE_SET = new Set(
   CLICK_TO_SPEECH_IGNORE_WORDS.map((word) => word.toLowerCase()),
 );
+const MAX_HISTORY_TURNS = 15;
 
 const AIBoard: React.FC<AIBoardProps> = (props) => {
   const keyGeminiNm = `gemi-key-${props.prefix}${props.index}`;
   const keyChatGptNm = `gpt-key-${props.prefix}${props.index}`;
   const sysPromptNm = `sys-promt-${props.prefix}${props.index}`;
+  const conversationHistoryKey = `ai-history-${props.prefix}${props.index}`;
   let aiGem = useRef<GoogleGenAI | null>(null);
   let aiGemHis = useRef<any>(null);
   let openai = useRef<OpenAIApi | null>(null);
+  const historyTurnsRef = useRef<ConversationTurn[]>([]);
+  const responseStoreRef = useRef<string[]>([]);
 
   const [gemKey, setGemKey] = useState<string | null>(null);
   const [gptKey, setGptKey] = useState<string | null>(null);
@@ -134,7 +145,7 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
   const [voiceIndex, setVoiceIndex] = useState<number>(0);
   const [rate, setRate] = useState<number>(1);
   const [volumn, setVolumn] = useState<number>(0.6);
-  const { speakText, voices } = useSpeechSynthesis();
+  const { speakText, voices, cancel, speaking } = useSpeechSynthesis();
   const isSpeakEnabled = useSpeak !== 'N';
 
   useEffect((): void => {
@@ -158,6 +169,8 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
     }
     aiGem.current = new GoogleGenAI({ apiKey: locGem || undefined });
     openai.current = new OpenAIApi(new Configuration({ apiKey: locgpt || undefined }));
+    historyTurnsRef.current = loadConversationHistory();
+    renderConversationHistory(historyTurnsRef.current);
   }, []);
 
   useEffect((): void => {
@@ -221,6 +234,10 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
       setUseClickToSpeech('Y');
     }
   }, [useSpeak, useClickToSpeech]);
+
+  useEffect((): void => {
+    renderConversationHistory(historyTurnsRef.current);
+  }, [useClickToSpeech]);
 
   function onAskMini(isProcess: boolean = false, spSentence: string | null = null): void {
     let promp = spSentence ?? props.statement;
@@ -316,7 +333,8 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
           });
         }
       }
-      addLog(buildResponseHtml(responseTxt), false);
+      addLog(buildResponseLogHtml(responseTxt), false);
+      appendConversationTurn(promVal, responseTxt);
 
       setValue1(promVal);
       setValue2(fomatRawResponse(responseTxt));
@@ -368,6 +386,18 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
     }
     return `<div>${buildClickableWordHtml(rawResponse)}</div>`;
     // return `${formattedResponse}<div>${buildClickableWordHtml(cleanedResponse)}</div>`;
+  }
+
+  function buildResponseActionButtonsHtml(responseIndex: number): string {
+    return `<div class="ai-response-actions" style="display:flex;gap:6px;margin-top:6px;">
+      <button type="button" class="common-btn" data-response-action="speak" data-response-index="${responseIndex}" title="Speak response">🔊</button>
+      <button type="button" class="common-btn" data-response-action="copy" data-response-index="${responseIndex}" title="Copy response">📋</button>
+    </div>`;
+  }
+
+  function buildResponseLogHtml(rawResponse: string): string {
+    const responseIndex = responseStoreRef.current.push(rawResponse) - 1;
+    return `<div>${buildResponseHtml(rawResponse)}</div>${buildResponseActionButtonsHtml(responseIndex)}`;
   }
 
   function extractConversationSentence(text: string): string {
@@ -477,6 +507,33 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
     [speakText, voiceIndex, rate, volumn, fetchVietnameseMeaning],
   );
 
+  const onSpeakResponse = useCallback(
+    (responseText: string): void => {
+      if (speaking) {
+        cancel();
+        return;
+      }
+      const textToSpeak = sanitizeForSpeech(responseText);
+      if (!textToSpeak) {
+        return;
+      }
+      speakText(textToSpeak, true, {
+        voice: voiceIndex,
+        rate: rate,
+        volume: volumn,
+      });
+    },
+    [speakText, voiceIndex, rate, volumn, speaking, cancel],
+  );
+
+  const onCopyResponse = useCallback(async (responseText: string): Promise<void> => {
+    try {
+      await navigator.clipboard.writeText(responseText);
+    } catch (error) {
+      console.log('Copy response failed:', error);
+    }
+  }, []);
+
   function speakPopupWord(word: string): void {
     const cleanWord = normalizeWord(word);
     if (!cleanWord) return;
@@ -494,7 +551,23 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
     const handleWordClick = (event: Event): void => {
       const target = event.target as HTMLElement;
       console.log('Clicked element:', target);
-      const wordData = target?.getAttribute('data-click-word');
+      const actionButton = target.closest('[data-response-action]') as HTMLElement | null;
+      if (actionButton) {
+        event.preventDefault();
+        const action = actionButton.getAttribute('data-response-action');
+        const responseIndex = Number(actionButton.getAttribute('data-response-index'));
+        const responseText = responseStoreRef.current[responseIndex];
+        if (!responseText) return;
+        if (action === 'speak') {
+          onSpeakResponse(responseText);
+        } else if (action === 'copy') {
+          void onCopyResponse(responseText);
+        }
+        return;
+      }
+
+      const wordButton = target.closest('[data-click-word]') as HTMLElement | null;
+      const wordData = wordButton?.getAttribute('data-click-word');
       if (!wordData || useClickToSpeech !== 'Y') return;
       event.preventDefault();
       const clickedWord = decodeURIComponent(wordData);
@@ -505,9 +578,20 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
     return () => {
       logElement.removeEventListener('click', handleWordClick);
     };
-  }, [props.prefix, props.index, useClickToSpeech, onClickSpeechWord]);
+  }, [
+    props.prefix,
+    props.index,
+    useClickToSpeech,
+    onClickSpeechWord,
+    onSpeakResponse,
+    onCopyResponse,
+  ]);
 
   function onSpeakLastResponse(): void {
+    if (speaking) {
+      cancel();
+      return;
+    }
     if (!isSpeakEnabled || !lastResponseRaw) {
       return;
     }
@@ -554,9 +638,62 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
       }, 100);
     }
   }
+  function loadConversationHistory(): ConversationTurn[] {
+    const raw = localStorage.getItem(conversationHistoryKey);
+    if (!raw) {
+      return [];
+    }
+    try {
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) {
+        return [];
+      }
+      return parsed
+        .filter((item: unknown): item is ConversationTurn =>
+          Boolean(
+            item &&
+            typeof item === 'object' &&
+            typeof (item as ConversationTurn).question === 'string' &&
+            typeof (item as ConversationTurn).response === 'string',
+          ),
+        )
+        .slice(-MAX_HISTORY_TURNS);
+    } catch {
+      return [];
+    }
+  }
+  function saveConversationHistory(turns: ConversationTurn[]): void {
+    localStorage.setItem(conversationHistoryKey, JSON.stringify(turns.slice(-MAX_HISTORY_TURNS)));
+  }
+  function appendConversationTurn(question: string, response: string): void {
+    const nextTurns = [...historyTurnsRef.current, { question, response }].slice(
+      -MAX_HISTORY_TURNS,
+    );
+    historyTurnsRef.current = nextTurns;
+    saveConversationHistory(nextTurns);
+  }
+  function renderConversationHistory(turns: ConversationTurn[]): void {
+    let logElement = document.getElementById(`response-ai-${props.prefix}${props.index}`);
+    if (!logElement) return;
+    logElement.innerHTML = '';
+    responseStoreRef.current = [];
+    turns.forEach((turn) => {
+      const questionEntry = document.createElement('div');
+      questionEntry.innerHTML = `${formatMyQus(turn.question)}<br/>`;
+      logElement.appendChild(questionEntry);
+
+      const responseEntry = document.createElement('div');
+      responseEntry.innerHTML = buildResponseLogHtml(turn.response);
+      logElement.appendChild(responseEntry);
+    });
+    logElement.scrollTop = logElement.scrollHeight;
+  }
   function clearLog(): void {
     let logElement = document.getElementById(`response-ai-${props.prefix}${props.index}`);
     if (logElement) logElement.innerHTML = '';
+    historyTurnsRef.current = [];
+    responseStoreRef.current = [];
+    localStorage.removeItem(conversationHistoryKey);
   }
   function handleKeyDown(e: KeyboardEvent<HTMLTextAreaElement>, promVal: string): void {
     if (e.key === 'Enter' && e.shiftKey) {
@@ -571,10 +708,21 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
     // input = input.replaceAll(`\n`, '<br/>');
     input = replaceNewlinesExceptInTags(input, ['pre']);
     input = input.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>'); // ** -> <b>
-    input = input.replaceAll(`<br/>* `, '<br/>➤');
-    input = input.replaceAll(`<br/>### `, '<br/>⚙️');
+    input = input.replaceAll(`<br/>* `, '<br/>👉');
+    input = input.replaceAll(`<br/>### `, '<br/>✅');
     input = input.replaceAll(`<br/>## `, '<br/>📌');
-    input = input.replace(/\*(.*?)\*/g, '<i>$1</i>');
+    input = input.replace(/\*(.*?)\*/g, '<p>$1</p>');
+    input = input.replace(`<br/>1. `, '<br/>1️⃣ ');
+    input = input.replace(`<br/>2. `, '<br/>2️⃣ ');
+    input = input.replace(`<br/>3. `, '<br/>3️⃣ ');
+    input = input.replace(`<br/>4. `, '<br/>4️⃣ ');
+    input = input.replace(`<br/>5. `, '<br/>5️⃣ ');
+    input = input.replace(`<br/>6. `, '<br/>6️⃣ ');
+    input = input.replace(`<br/>7. `, '<br/>7️⃣ ');
+    input = input.replace(`<br/>8. `, '<br/>8️⃣ ');
+    input = input.replace(`<br/>9. `, '<br/>9️⃣ ');
+    input = input.replace(`<br/>10. `, '<br/>🔟 ');
+    // input = input.replace(`<p>$1</p>`, '');
 
     return input;
   }
@@ -818,7 +966,7 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
             id={`voice-config-${props.prefix}${props.index}`}
           >
             <button onClick={() => onSpeakLastResponse()} className="common-btn ">
-              Speak
+              {speaking ? 'Stop' : 'Speak'}
             </button>
             <PracticeVoiceConfig
               voices={voices}
