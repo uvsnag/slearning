@@ -66,9 +66,9 @@ const MulAI: React.FC<MulAIContainerProps> = (props) => {
           onUp={() => setColumn(column + 1)}
           onDown={() => setColumn(column - 1)}
         ></StackBtn>
-        <button onClick={() => clearAllLog()} className="common-btn">
+        {/* <button onClick={() => clearAllLog()} className="common-btn">
           Clear All
-        </button>
+        </button> */}
         <i>{height}</i>
         <input
           className="width-220 range-input"

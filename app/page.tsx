@@ -9,9 +9,12 @@ import {
   KEY_API_SHEET,
 } from '@/common/common';
 
-const DESKTOP_LINKS = [
-  { href: '/youtube-sub', label: 'Board YT' },
-  { href: '/dash-board1', label: 'Board Sentence' },
+const DASHBOARD_LINKS = [
+  { href: '/dash-board2', label: 'AI Only' },
+  { href: '/youtube-sub', label: 'YT' },
+  { href: '/dash-board1', label: 'Sentence & YT' },
+];
+const SINGLE_PRACT_LINKS = [
   { href: '/practice-word', label: 'Word (Meaning)' },
   { href: '/listen', label: 'Word (Listen)' },
   { href: '/notify', label: 'Notify' },
@@ -71,9 +74,21 @@ const Home: FC = () => {
 
         <div className="home-menu-grid">
           <section className="ui-panel home-menu-panel">
-            <div className="common-toggle">Desktop</div>
+            <div className="common-toggle">Dash Board</div>
             <ul className="mst-menu">
-              {DESKTOP_LINKS.map((link) => (
+              {DASHBOARD_LINKS.map((link) => (
+                <li className="mst-menu-li" key={link.href}>
+                  <Link className="home-nav-link" href={link.href}>
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+          <section className="ui-panel home-menu-panel">
+            <div className="common-toggle">Single Practice</div>
+            <ul className="mst-menu">
+              {SINGLE_PRACT_LINKS.map((link) => (
                 <li className="mst-menu-li" key={link.href}>
                   <Link className="home-nav-link" href={link.href}>
                     {link.label}

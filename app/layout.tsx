@@ -45,7 +45,7 @@ export default function RootLayout({
     const initialTheme = storedTheme === THEME_2 ? THEME_2 : THEME_1;
     setThemeMode(initialTheme);
     applyThemeClass(initialTheme);
-    document.body.classList.add('dark-90');
+    // document.body.classList.add('dark-90');
   }, []);
 
   const handleThemeModeChange = (event: ChangeEvent<HTMLSelectElement>) => {
@@ -68,7 +68,7 @@ export default function RootLayout({
           </Link>
           <div className="app-topbar-controls">
             <label className="app-dark-switch">
-              <input type="checkbox" onChange={handleCheckboxDarkChange} defaultChecked={true} />
+              <input type="checkbox" onChange={handleCheckboxDarkChange} defaultChecked={false} />
               Dark mode
             </label>
             <label className="app-theme-switch">
