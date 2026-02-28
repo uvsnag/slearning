@@ -5,6 +5,8 @@ import {
   toggleCollapse,
   KEY_GPT_NM,
   KEY_GEMINI_NM,
+  KEY_GITHUB_NM,
+  KEY_OPENROUTER_NM,
   KEY_GOOGLE_SHEET_NM,
   KEY_API_SHEET,
 } from '@/common/common';
@@ -36,6 +38,10 @@ const getStoredValue = (key: string): string | null => {
 const Home: FC = () => {
   const [gemKey, setGemKey] = useState<string | null>(() => getStoredValue(KEY_GEMINI_NM));
   const [gptKey, setGptKey] = useState<string | null>(() => getStoredValue(KEY_GPT_NM));
+  const [githubKey, setGithubKey] = useState<string | null>(() => getStoredValue(KEY_GITHUB_NM));
+  const [openRouterKey, setOpenRouterKey] = useState<string | null>(() =>
+    getStoredValue(KEY_OPENROUTER_NM),
+  );
   const [googleSheetKey, setGoogleSheetKey] = useState<string | null>(() =>
     getStoredValue(KEY_GOOGLE_SHEET_NM),
   );
@@ -51,6 +57,18 @@ const Home: FC = () => {
       localStorage.setItem(KEY_GPT_NM, gptKey);
     }
   }, [gptKey]);
+
+  useEffect(() => {
+    if (githubKey) {
+      localStorage.setItem(KEY_GITHUB_NM, githubKey);
+    }
+  }, [githubKey]);
+
+  useEffect(() => {
+    if (openRouterKey) {
+      localStorage.setItem(KEY_OPENROUTER_NM, openRouterKey);
+    }
+  }, [openRouterKey]);
 
   useEffect(() => {
     if (googleSheetKey) {
@@ -138,6 +156,30 @@ const Home: FC = () => {
                   setGptKey(event.target.value);
                 }}
                 placeholder="gpt"
+              />
+            </label>
+            <label className="home-config-field">
+              <span>GitHub Models Key</span>
+              <input
+                className="common-input"
+                type="text"
+                value={githubKey ?? ''}
+                onChange={(event: ChangeEvent<HTMLInputElement>) => {
+                  setGithubKey(event.target.value);
+                }}
+                placeholder="github token"
+              />
+            </label>
+            <label className="home-config-field">
+              <span>OpenRouter Key</span>
+              <input
+                className="common-input"
+                type="text"
+                value={openRouterKey ?? ''}
+                onChange={(event: ChangeEvent<HTMLInputElement>) => {
+                  setOpenRouterKey(event.target.value);
+                }}
+                placeholder="openrouter key"
               />
             </label>
             <label className="home-config-field">

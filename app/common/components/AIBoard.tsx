@@ -3,7 +3,14 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import type { ChangeEvent, KeyboardEvent, Dispatch, SetStateAction } from 'react';
 import { GoogleGenAI } from '@google/genai';
 import { Configuration, OpenAIApi } from 'openai-edge';
-import { toggleCollapse, KEY_GPT_NM, KEY_GEMINI_NM, collapseElement } from '@/common/common.js';
+import {
+  toggleCollapse,
+  KEY_GPT_NM,
+  KEY_GEMINI_NM,
+  KEY_GITHUB_NM,
+  KEY_OPENROUTER_NM,
+  collapseElement,
+} from '@/common/common.js';
 import VoiceToText from '@/app/common/components/VoiceToText';
 import { useSpeechSynthesis } from '@/app/common/hooks/useSpeechSynthesis';
 import '@/slearning/multi-ai/style-ai.css';
@@ -14,6 +21,8 @@ import { FaCog, FaSave, FaVolumeUp } from 'react-icons/fa';
 import SignOutButton from './SignOutButton';
 const TP_GEN = 1;
 const TP_GPT = 2;
+const TP_GITHUB = 3;
+const TP_OPENROUTER = 4;
 let aiType = TP_GEN;
 
 interface ModelAI {
@@ -25,6 +34,23 @@ interface ModelAI {
 interface ConversationTurn {
   question: string;
   response: string;
+  modelName?: string;
+}
+
+interface OpenAIMessage {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
+}
+
+interface OpenAIChatResponse {
+  choices?: Array<{
+    message?: {
+      content?: string | null;
+    };
+  }>;
+  error?: {
+    message?: string;
+  };
 }
 
 export interface AIBoardProps {
@@ -44,10 +70,23 @@ export interface AIBoardProps {
 }
 
 const MODEL_AI: ModelAI[] = [
+  { value: 'openai/gpt-4o-mini', name: 'github/openai-gpt-4o-mini', type: TP_GITHUB },
+  { value: 'openai/gpt-4.1', name: 'github/openai-gpt-4.1', type: TP_GITHUB },
   { value: 'gemini-2.5-flash', name: 'gemini-2.5-flash', type: TP_GEN },
-  { value: 'gemini-2.5-flash-lite', name: 'gemini-2.5-flash-lite', type: TP_GEN },
-  { value: 'gemini-3.1-pro-preview', name: 'gemini-3.1-pro-preview', type: TP_GEN },
-  { value: 'gpt-4o', name: 'gpt-4o', type: TP_GPT },
+  // { value: 'gemini-2.5-flash-lite', name: 'gemini-2.5-flash-lite', type: TP_GEN },
+  // { value: 'gemini-3.1-pro-preview', name: 'gemini-3.1-pro-preview', type: TP_GEN },
+  // { value: 'gpt-4o', name: 'gpt-4o', type: TP_GPT },
+  // { value: 'openai/gpt-5-nano', name: 'openrouter/gpt-5-nano', type: TP_OPENROUTER },
+  // {
+  //   value: 'openai/gpt-5-mini',
+  //   name: 'openrouter/gpt-5-mini',
+  //   type: TP_OPENROUTER,
+  // },
+  // {
+  //   value: 'openai/gpt-4o-mini',
+  //   name: 'openrouter/gpt-4o-mini',
+  //   type: TP_OPENROUTER,
+  // },
 ];
 const CLICK_TO_SPEECH_IGNORE_WORDS: string[] = [
   'a',
@@ -95,20 +134,33 @@ const CLICK_TO_SPEECH_IGNORE_SET = new Set(
   CLICK_TO_SPEECH_IGNORE_WORDS.map((word) => word.toLowerCase()),
 );
 const MAX_HISTORY_TURNS = 15;
+const MAX_OPENAI_HISTORY_MESSAGES = 30;
+const GITHUB_INFERENCE_BASE_PATH = 'https://models.github.ai/inference';
+const OPENROUTER_BASE_PATH = 'https://openrouter.ai/api/v1';
 
 const AIBoard: React.FC<AIBoardProps> = (props) => {
   const keyGeminiNm = `gemi-key-${props.prefix}${props.index}`;
   const keyChatGptNm = `gpt-key-${props.prefix}${props.index}`;
+  const keyGithubNm = `github-key-${props.prefix}${props.index}`;
+  const keyOpenRouterNm = `openrouter-key-${props.prefix}${props.index}`;
   const sysPromptNm = `sys-promt-${props.prefix}${props.index}`;
   const conversationHistoryKey = `ai-history-${props.prefix}${props.index}`;
   let aiGem = useRef<GoogleGenAI | null>(null);
   let aiGemHis = useRef<any>(null);
   let openai = useRef<OpenAIApi | null>(null);
+  let githubAI = useRef<OpenAIApi | null>(null);
+  let openRouterAI = useRef<OpenAIApi | null>(null);
+  const gptHisRef = useRef<OpenAIMessage[]>([]);
+  const githubHisRef = useRef<OpenAIMessage[]>([]);
+  const openRouterHisRef = useRef<OpenAIMessage[]>([]);
   const historyTurnsRef = useRef<ConversationTurn[]>([]);
+  const questionStoreRef = useRef<string[]>([]);
   const responseStoreRef = useRef<string[]>([]);
 
   const [gemKey, setGemKey] = useState<string | null>(null);
   const [gptKey, setGptKey] = useState<string | null>(null);
+  const [githubKey, setGithubKey] = useState<string | null>(null);
+  const [openRouterKey, setOpenRouterKey] = useState<string | null>(null);
   const [aiName, setAIName] = useState<string>('Gemini');
   const [model, setModel] = useState<ModelAI>(MODEL_AI[0]);
   const [useHis, setUseHis] = useState<string>(props.enableHis ?? 'N');
@@ -148,11 +200,39 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
   const { speakText, voices, cancel, speaking } = useSpeechSynthesis();
   const isSpeakEnabled = useSpeak !== 'N';
 
+  function createOpenAIClient(apiKey: string | null, basePath?: string): OpenAIApi {
+    const configuration: { apiKey?: string; basePath?: string } = {
+      apiKey: apiKey || undefined,
+    };
+    if (basePath) {
+      configuration.basePath = basePath;
+    }
+    return new OpenAIApi(new Configuration(configuration));
+  }
+
+  function trimOpenAIHistory(messages: OpenAIMessage[]): OpenAIMessage[] {
+    const hasSystemMessage = messages.length > 0 && messages[0].role === 'system';
+    const systemMessage = hasSystemMessage ? [messages[0]] : [];
+    const chatMessages = hasSystemMessage ? messages.slice(1) : messages;
+    const limitedChatMessages = chatMessages.slice(-MAX_OPENAI_HISTORY_MESSAGES);
+    return [...systemMessage, ...limitedChatMessages];
+  }
+
+  function resetOpenAIHistoryRefs(): void {
+    gptHisRef.current = [];
+    githubHisRef.current = [];
+    openRouterHisRef.current = [];
+  }
+
   useEffect((): void => {
     let gmLcal = localStorage.getItem(keyGeminiNm);
     let gptLcal = localStorage.getItem(keyChatGptNm);
+    let githubLcal = localStorage.getItem(keyGithubNm);
+    let openRouterLcal = localStorage.getItem(keyOpenRouterNm);
     let locGem = gmLcal ? gmLcal : localStorage.getItem(KEY_GEMINI_NM);
     let locgpt = gptLcal ? gptLcal : localStorage.getItem(KEY_GPT_NM);
+    let locGithub = githubLcal ? githubLcal : localStorage.getItem(KEY_GITHUB_NM);
+    let locOpenRouter = openRouterLcal ? openRouterLcal : localStorage.getItem(KEY_OPENROUTER_NM);
     let sysPromptVa = localStorage.getItem(sysPromptNm) ?? props.defaultPrompt ?? '';
     console.log(locGem);
     if (gmLcal) {
@@ -161,6 +241,12 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
     if (gptLcal) {
       setGptKey(locgpt);
     }
+    if (githubLcal) {
+      setGithubKey(locGithub);
+    }
+    if (openRouterLcal) {
+      setOpenRouterKey(locOpenRouter);
+    }
     setSysPrompt(sysPromptVa);
     if (props.collapse !== 'Y') {
       collapseElement(`gemini-${props.prefix}${props.index}`);
@@ -168,7 +254,9 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
       toggleCollapse(`gemini-${props.prefix}${props.index}`);
     }
     aiGem.current = new GoogleGenAI({ apiKey: locGem || undefined });
-    openai.current = new OpenAIApi(new Configuration({ apiKey: locgpt || undefined }));
+    openai.current = createOpenAIClient(locgpt);
+    githubAI.current = createOpenAIClient(locGithub, GITHUB_INFERENCE_BASE_PATH);
+    openRouterAI.current = createOpenAIClient(locOpenRouter, OPENROUTER_BASE_PATH);
     historyTurnsRef.current = loadConversationHistory();
     renderConversationHistory(historyTurnsRef.current);
   }, []);
@@ -186,25 +274,29 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
 
   useEffect((): void => {
     aiType = model.type;
-    if (useHis === 'Y' && aiGem.current) {
+    if (useHis === 'Y' && aiGem.current && model.type === TP_GEN) {
       aiGemHis.current = aiGem.current.chats.create({
         model: model.value,
       });
+    }
+    if (useHis !== 'Y') {
+      resetOpenAIHistoryRefs();
     }
   }, [useHis]);
   useEffect((): void => {
     aiType = model.type;
-    if (useHis === 'Y' && aiGem.current) {
+    if (useHis === 'Y' && aiGem.current && model.type === TP_GEN) {
       aiGemHis.current = aiGem.current.chats.create({
         model: model.value,
       });
     }
+    resetOpenAIHistoryRefs();
   }, [model]);
   useEffect((): void => {
     let key = gemKey ? gemKey : localStorage.getItem(KEY_GEMINI_NM);
     aiGem.current = new GoogleGenAI({ apiKey: key || undefined });
     localStorage.setItem(keyGeminiNm, gemKey || '');
-    if (useHis === 'Y' && aiGem.current) {
+    if (useHis === 'Y' && aiGem.current && model.type === TP_GEN) {
       aiGemHis.current = aiGem.current.chats.create({
         model: model.value,
       });
@@ -216,17 +308,39 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
 
   useEffect((): void => {
     let key = gptKey ? gptKey : localStorage.getItem(KEY_GPT_NM);
-    openai.current = new OpenAIApi(new Configuration({ apiKey: key || undefined }));
+    openai.current = createOpenAIClient(key);
     localStorage.setItem(keyChatGptNm, gptKey || '');
+    gptHisRef.current = [];
     if (gptKey === null) {
       setGptKey('');
     }
   }, [gptKey]);
 
   useEffect((): void => {
+    let key = githubKey ? githubKey : localStorage.getItem(KEY_GITHUB_NM);
+    githubAI.current = createOpenAIClient(key, GITHUB_INFERENCE_BASE_PATH);
+    localStorage.setItem(keyGithubNm, githubKey || '');
+    githubHisRef.current = [];
+    if (githubKey === null) {
+      setGithubKey('');
+    }
+  }, [githubKey]);
+
+  useEffect((): void => {
+    let key = openRouterKey ? openRouterKey : localStorage.getItem(KEY_OPENROUTER_NM);
+    openRouterAI.current = createOpenAIClient(key, OPENROUTER_BASE_PATH);
+    localStorage.setItem(keyOpenRouterNm, openRouterKey || '');
+    openRouterHisRef.current = [];
+    if (openRouterKey === null) {
+      setOpenRouterKey('');
+    }
+  }, [openRouterKey]);
+
+  useEffect((): void => {
     if (sysPrompt) {
       localStorage.setItem(sysPromptNm, sysPrompt);
     }
+    resetOpenAIHistoryRefs();
   }, [sysPrompt]);
 
   useEffect((): void => {
@@ -283,18 +397,65 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
     return aiResponse.text;
   }
 
-  async function askChatGPT(promVal: string): Promise<any> {
-    const completion = await openai.current!.createChatCompletion({
-      model: model.value,
-      messages: [
-        { role: 'system', content: sysPrompt },
-        { role: 'user', content: promVal },
-      ],
-      temperature: 0,
-      stream: true,
-    });
+  async function askOpenAICompatible(
+    client: OpenAIApi | null,
+    promVal: string,
+    historyRef: { current: OpenAIMessage[] },
+  ): Promise<string> {
+    if (!client) {
+      throw new Error('AI provider is not initialized.');
+    }
 
-    console.log(completion);
+    const systemPrompt = sysPrompt?.trim();
+    let messages: OpenAIMessage[] = [];
+    if (useHis === 'Y') {
+      if (historyRef.current.length === 0 && systemPrompt) {
+        historyRef.current = [{ role: 'system', content: systemPrompt }];
+      }
+      historyRef.current = trimOpenAIHistory([
+        ...historyRef.current,
+        { role: 'user', content: promVal },
+      ]);
+      messages = [...historyRef.current];
+    } else {
+      if (systemPrompt) {
+        messages.push({ role: 'system', content: systemPrompt });
+      }
+      messages.push({ role: 'user', content: promVal });
+    }
+
+    const completion = await client.createChatCompletion({
+      model: model.value,
+      messages: messages,
+      temperature: 0,
+      stream: false,
+    });
+    const completionJson = (await completion.json()) as OpenAIChatResponse;
+    if (!completion.ok) {
+      throw new Error(completionJson?.error?.message || `Request failed (${completion.status})`);
+    }
+
+    const responseText = completionJson?.choices?.[0]?.message?.content || '';
+    if (useHis === 'Y' && responseText) {
+      historyRef.current = trimOpenAIHistory([
+        ...historyRef.current,
+        { role: 'assistant', content: responseText },
+      ]);
+    }
+
+    return responseText;
+  }
+
+  async function askChatGPT(promVal: string): Promise<string> {
+    return askOpenAICompatible(openai.current, promVal, gptHisRef);
+  }
+
+  async function askGitHub(promVal: string): Promise<string> {
+    return askOpenAICompatible(githubAI.current, promVal, githubHisRef);
+  }
+
+  async function askOpenRouter(promVal: string): Promise<string> {
+    return askOpenAICompatible(openRouterAI.current, promVal, openRouterHisRef);
   }
 
   async function askDec(promVal: string): Promise<void> {
@@ -309,12 +470,19 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
     }, 100);
     toggleClass(`loading${props.prefix}${props.index}`, false);
     // let responseTmp = response;
-    addLog(formatMyQus(promVal) + '<br/>', true);
+    addLog(buildQuestionLogHtml(promVal), true);
+    const usedModelName = model.name;
 
     try {
       if (aiType === TP_GPT) {
         responseTxt = await askChatGPT(promVal);
         setAIName('GPT');
+      } else if (aiType === TP_GITHUB) {
+        responseTxt = await askGitHub(promVal);
+        setAIName('GitHub');
+      } else if (aiType === TP_OPENROUTER) {
+        responseTxt = await askOpenRouter(promVal);
+        setAIName('OpenRouter');
       } else {
         setAIName('Gemini');
         responseTxt = useHis === 'Y' ? await askGeminiHis(promVal) : await askGemini(promVal);
@@ -333,8 +501,8 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
           });
         }
       }
-      addLog(buildResponseLogHtml(responseTxt), false);
-      appendConversationTurn(promVal, responseTxt);
+      addLog(buildResponseLogHtml(responseTxt, usedModelName), false);
+      appendConversationTurn(promVal, responseTxt, usedModelName);
 
       setValue1(promVal);
       setValue2(fomatRawResponse(responseTxt));
@@ -381,11 +549,34 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
     if (useClickToSpeech === 'N') {
       return formattedResponse;
     }
+    if (hasMarkdownTable(rawResponse)) {
+      return formattedResponse;
+    }
     if (!rawResponse || !rawResponse.trim()) {
       return formattedResponse;
     }
     return `<div>${buildClickableWordHtml(rawResponse)}</div>`;
     // return `${formattedResponse}<div>${buildClickableWordHtml(cleanedResponse)}</div>`;
+  }
+
+  function buildQuestionActionButtonsHtml(questionIndex: number): string {
+    return `<div class="ai-question-actions" style="display:flex;gap:6px;margin-top:4px;justify-content:flex-end;">
+      <button type="button" class="common-btn" data-question-action="copy" data-question-index="${questionIndex}" title="Copy question">📋</button>
+    </div>`;
+  }
+
+  function buildQuestionLogHtml(questionText: string): string {
+    const questionIndex = questionStoreRef.current.push(questionText) - 1;
+    return `${formatMyQus(questionText)}${buildQuestionActionButtonsHtml(questionIndex)}<br/>`;
+  }
+
+  function buildResponseModelInfoHtml(modelName?: string): string {
+    if (!modelName) {
+      return '';
+    }
+    return `<div class="ai-response-model" style="font-size:11px;opacity:0.75;margin-top:6px;"> ${escapeHtml(
+      modelName,
+    )}</div>`;
   }
 
   function buildResponseActionButtonsHtml(responseIndex: number): string {
@@ -395,9 +586,9 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
     </div>`;
   }
 
-  function buildResponseLogHtml(rawResponse: string): string {
+  function buildResponseLogHtml(rawResponse: string, modelName?: string): string {
     const responseIndex = responseStoreRef.current.push(rawResponse) - 1;
-    return `<div>${buildResponseHtml(rawResponse)}</div>${buildResponseActionButtonsHtml(responseIndex)}`;
+    return `<div>${buildResponseHtml(rawResponse)}</div>${buildResponseModelInfoHtml(modelName)}${buildResponseActionButtonsHtml(responseIndex)}`;
   }
 
   function extractConversationSentence(text: string): string {
@@ -551,6 +742,19 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
     const handleWordClick = (event: Event): void => {
       const target = event.target as HTMLElement;
       console.log('Clicked element:', target);
+      const questionActionButton = target.closest('[data-question-action]') as HTMLElement | null;
+      if (questionActionButton) {
+        event.preventDefault();
+        const action = questionActionButton.getAttribute('data-question-action');
+        const questionIndex = Number(questionActionButton.getAttribute('data-question-index'));
+        const questionText = questionStoreRef.current[questionIndex];
+        if (!questionText) return;
+        if (action === 'copy') {
+          void onCopyResponse(questionText);
+        }
+        return;
+      }
+
       const actionButton = target.closest('[data-response-action]') as HTMLElement | null;
       if (actionButton) {
         event.preventDefault();
@@ -654,7 +858,9 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
             item &&
             typeof item === 'object' &&
             typeof (item as ConversationTurn).question === 'string' &&
-            typeof (item as ConversationTurn).response === 'string',
+            typeof (item as ConversationTurn).response === 'string' &&
+            ((item as ConversationTurn).modelName === undefined ||
+              typeof (item as ConversationTurn).modelName === 'string'),
           ),
         )
         .slice(-MAX_HISTORY_TURNS);
@@ -665,8 +871,8 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
   function saveConversationHistory(turns: ConversationTurn[]): void {
     localStorage.setItem(conversationHistoryKey, JSON.stringify(turns.slice(-MAX_HISTORY_TURNS)));
   }
-  function appendConversationTurn(question: string, response: string): void {
-    const nextTurns = [...historyTurnsRef.current, { question, response }].slice(
+  function appendConversationTurn(question: string, response: string, modelName?: string): void {
+    const nextTurns = [...historyTurnsRef.current, { question, response, modelName }].slice(
       -MAX_HISTORY_TURNS,
     );
     historyTurnsRef.current = nextTurns;
@@ -676,14 +882,15 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
     let logElement = document.getElementById(`response-ai-${props.prefix}${props.index}`);
     if (!logElement) return;
     logElement.innerHTML = '';
+    questionStoreRef.current = [];
     responseStoreRef.current = [];
     turns.forEach((turn) => {
       const questionEntry = document.createElement('div');
-      questionEntry.innerHTML = `${formatMyQus(turn.question)}<br/>`;
+      questionEntry.innerHTML = buildQuestionLogHtml(turn.question);
       logElement.appendChild(questionEntry);
 
       const responseEntry = document.createElement('div');
-      responseEntry.innerHTML = buildResponseLogHtml(turn.response);
+      responseEntry.innerHTML = buildResponseLogHtml(turn.response, turn.modelName);
       logElement.appendChild(responseEntry);
     });
     logElement.scrollTop = logElement.scrollHeight;
@@ -692,6 +899,7 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
     let logElement = document.getElementById(`response-ai-${props.prefix}${props.index}`);
     if (logElement) logElement.innerHTML = '';
     historyTurnsRef.current = [];
+    questionStoreRef.current = [];
     responseStoreRef.current = [];
     localStorage.removeItem(conversationHistoryKey);
   }
@@ -701,6 +909,86 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
     } else if (e.key === 'Enter') {
       askDec(promVal);
     }
+  }
+
+  function isMarkdownTableLine(line: string): boolean {
+    const trimmed = line.trim();
+    return (trimmed.match(/\|/g) || []).length >= 2;
+  }
+
+  function isMarkdownTableSeparator(line: string): boolean {
+    const trimmed = line.trim();
+    return /^\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?$/.test(trimmed);
+  }
+
+  function parseMarkdownTableCells(line: string): string[] {
+    const trimmed = line.trim().replace(/^\|/, '').replace(/\|$/, '');
+    return trimmed.split('|').map((cell) => cell.trim());
+  }
+
+  function hasMarkdownTable(input: string): boolean {
+    const lines = input.replace(/\r\n/g, '\n').split('\n');
+    for (let i = 0; i < lines.length - 1; i++) {
+      if (isMarkdownTableLine(lines[i]) && isMarkdownTableSeparator(lines[i + 1])) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function buildMarkdownTableHtml(headers: string[], rows: string[][]): string {
+    const safeHeaders = headers.map((header) => header || '&nbsp;');
+    const headHtml = safeHeaders
+      .map(
+        (header) =>
+          `<th style="border:1px solid #5f5f5f;padding:6px;background:var(--color-dark-surface-alt);color:var(--color-white);">${header}</th>`,
+      )
+      .join('');
+    const bodyHtml = rows
+      .map((row) => {
+        const normalizedRow = Array.from(
+          { length: safeHeaders.length },
+          (_, index) => row[index] || '',
+        );
+        return `<tr>${normalizedRow
+          .map(
+            (cell) =>
+              `<td style="border:1px solid #5f5f5f;padding:6px;vertical-align:top;">${cell || '&nbsp;'}</td>`,
+          )
+          .join('')}</tr>`;
+      })
+      .join('');
+    return `<div class="ai-response-table-wrap" style="overflow:auto;margin-top:6px;"><table class="ai-response-table" style="width:100%;border-collapse:collapse;font-size:12px;"><thead><tr>${headHtml}</tr></thead><tbody>${bodyHtml}</tbody></table></div>`;
+  }
+
+  function convertMarkdownTablesInHtml(input: string): string {
+    const lines = input.split('<br/>');
+    const output: string[] = [];
+
+    for (let i = 0; i < lines.length; i++) {
+      const current = lines[i];
+      const next = lines[i + 1];
+      if (!next || !isMarkdownTableLine(current) || !isMarkdownTableSeparator(next)) {
+        output.push(current);
+        continue;
+      }
+
+      const headers = parseMarkdownTableCells(current);
+      const rows: string[][] = [];
+      i += 2;
+      while (
+        i < lines.length &&
+        isMarkdownTableLine(lines[i]) &&
+        !isMarkdownTableSeparator(lines[i])
+      ) {
+        rows.push(parseMarkdownTableCells(lines[i]));
+        i++;
+      }
+      i -= 1;
+      output.push(buildMarkdownTableHtml(headers, rows));
+    }
+
+    return output.join('<br/>');
   }
 
   function fomatRawResponse(input: string): string {
@@ -722,6 +1010,7 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
     input = input.replace(`<br/>8. `, '<br/>8️⃣ ');
     input = input.replace(`<br/>9. `, '<br/>9️⃣ ');
     input = input.replace(`<br/>10. `, '<br/>🔟 ');
+    input = convertMarkdownTablesInHtml(input);
     // input = input.replace(`<p>$1</p>`, '');
 
     return input;
@@ -920,7 +1209,7 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
             onChange={(event: ChangeEvent<HTMLInputElement>) => {
               setGemKey(event.target.value);
             }}
-            placeholder="gem"
+            placeholder="GEM"
           />
           <input
             className="common-input"
@@ -929,7 +1218,25 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
             onChange={(event: ChangeEvent<HTMLInputElement>) => {
               setGptKey(event.target.value);
             }}
-            placeholder="gpt"
+            placeholder="GPT"
+          />
+          <input
+            className="common-input"
+            type="text"
+            value={githubKey || ''}
+            onChange={(event: ChangeEvent<HTMLInputElement>) => {
+              setGithubKey(event.target.value);
+            }}
+            placeholder="GITHUB"
+          />
+          <input
+            className="common-input"
+            type="text"
+            value={openRouterKey || ''}
+            onChange={(event: ChangeEvent<HTMLInputElement>) => {
+              setOpenRouterKey(event.target.value);
+            }}
+            placeholder="OPENROUTER"
           />
           <br />
           <textarea
@@ -937,7 +1244,7 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
             rows={3}
             value={sysPrompt}
             onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setSysPrompt(e.target.value)}
-            placeholder="Sys promt"
+            // placeholder="Sys promt"
           />
         </div>
         <div
