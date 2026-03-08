@@ -29,6 +29,7 @@
   font-size: 16px;
   font-family: -apple-system, BlinkMacSystemFont, Roboto, sans-serif !important;
 }
+
 .ai-promt:focus {
   border-color: var(--color-primary);
   outline: none;
@@ -145,4 +146,19 @@
 .button-stack button {
   width: 26px;
   height: 18px;
+}
+.mobile .button-stack {
+  display: inline;
+  flex-direction: row;
+  margin-top: 0px;
+  /* position: absolute; */
+}
+.mobile .button-stack button {
+  display: inline;
+  height: 40px;
+  width: 50px;
+}
+
+.mobile .offset-top-10 {
+  top: 0px;
 }

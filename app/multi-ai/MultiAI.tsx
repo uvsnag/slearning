@@ -7,6 +7,7 @@ import '@/slearning/multi-ai/style-ai.css';
 import SheetDataEditor from '../common/components/SheetDataEditor';
 interface InstanceAIProps extends Partial<Omit<AIBoardProps, 'heightRes'>> {
   instanceNo: number;
+  // defaultModel?: string | null;
 }
 
 export interface MulAIContainerProps {
@@ -100,6 +101,7 @@ const MulAI: React.FC<MulAIContainerProps> = (props) => {
                 statement={config?.statement}
                 title={config?.title}
                 defaultPrompt={config?.defaultPrompt}
+                defaultModel={config?.defaultModel}
                 // isShowPract={config.isShowPract}
                 lastSentence={config?.lastSentence}
                 collapse={config?.collapse}

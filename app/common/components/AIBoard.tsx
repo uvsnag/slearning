@@ -66,13 +66,15 @@ export interface AIBoardProps {
   collapse?: string | null;
   title?: string | null;
   defaultPrompt?: string | null;
+  defaultModel?: string | null;
   isSpeak?: 'Y' | 'N' | 'A' | boolean | null;
 }
 
 const MODEL_AI: ModelAI[] = [
-  { value: 'openai/gpt-4o-mini', name: 'github/openai-gpt-4o-mini', type: TP_GITHUB },
-  { value: 'openai/gpt-4.1', name: 'github/openai-gpt-4.1', type: TP_GITHUB },
   { value: 'gemini-2.5-flash', name: 'gemini-2.5-flash', type: TP_GEN },
+  // { value: 'openai/gpt-4o-mini', name: 'github/gpt-4o-mini', type: TP_GITHUB },
+  { value: 'openai/gpt-4.1', name: 'github/gpt-4.1', type: TP_GITHUB },
+  // { value: 'openai/gpt-5-mini', name: 'github/gpt-5-mini', type: TP_GITHUB },
   // { value: 'gemini-2.5-flash-lite', name: 'gemini-2.5-flash-lite', type: TP_GEN },
   // { value: 'gemini-3.1-pro-preview', name: 'gemini-3.1-pro-preview', type: TP_GEN },
   // { value: 'gpt-4o', name: 'gpt-4o', type: TP_GPT },
@@ -138,12 +140,17 @@ const MAX_OPENAI_HISTORY_MESSAGES = 30;
 const GITHUB_INFERENCE_BASE_PATH = 'https://models.github.ai/inference';
 const OPENROUTER_BASE_PATH = 'https://openrouter.ai/api/v1';
 
+function resolveModel(modelValue?: string | null): ModelAI {
+  return MODEL_AI.find((m) => m.value === modelValue) || MODEL_AI[0];
+}
+
 const AIBoard: React.FC<AIBoardProps> = (props) => {
   const keyGeminiNm = `gemi-key-${props.prefix}${props.index}`;
   const keyChatGptNm = `gpt-key-${props.prefix}${props.index}`;
   const keyGithubNm = `github-key-${props.prefix}${props.index}`;
   const keyOpenRouterNm = `openrouter-key-${props.prefix}${props.index}`;
   const sysPromptNm = `sys-promt-${props.prefix}${props.index}`;
+  const modelAiStoreKey = `model-ai-${props.prefix}${props.index}`;
   const conversationHistoryKey = `ai-history-${props.prefix}${props.index}`;
   let aiGem = useRef<GoogleGenAI | null>(null);
   let aiGemHis = useRef<any>(null);
@@ -162,7 +169,18 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
   const [githubKey, setGithubKey] = useState<string | null>(null);
   const [openRouterKey, setOpenRouterKey] = useState<string | null>(null);
   const [aiName, setAIName] = useState<string>('Gemini');
-  const [model, setModel] = useState<ModelAI>(MODEL_AI[0]);
+  const [model, setModel] = useState<ModelAI>(() => {
+    if (props.defaultModel) {
+      return resolveModel(props.defaultModel);
+    }
+    if (typeof window !== 'undefined') {
+      const storedModel = localStorage.getItem(modelAiStoreKey);
+      if (storedModel) {
+        return resolveModel(storedModel);
+      }
+    }
+    return MODEL_AI[0];
+  });
   const [useHis, setUseHis] = useState<string>(props.enableHis ?? 'N');
   const [useSpeak, setUseSpeak] = useState<'Y' | 'N' | 'A'>(
     props.isSpeak === 'Y' || props.isSpeak === 'A' ? 'Y' : 'N',
@@ -348,6 +366,23 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
       setUseClickToSpeech('Y');
     }
   }, [useSpeak, useClickToSpeech]);
+
+  useEffect((): void => {
+    if (props.defaultModel) {
+      setModel(resolveModel(props.defaultModel));
+      return;
+    }
+    const storedModel = localStorage.getItem(modelAiStoreKey);
+    if (storedModel) {
+      setModel(resolveModel(storedModel));
+      return;
+    }
+    setModel(MODEL_AI[0]);
+  }, [props.defaultModel, modelAiStoreKey]);
+
+  useEffect((): void => {
+    localStorage.setItem(modelAiStoreKey, model.value);
+  }, [modelAiStoreKey, model.value]);
 
   useEffect((): void => {
     renderConversationHistory(historyTurnsRef.current);
@@ -1157,8 +1192,9 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
 
           <select
             className="common-input"
+            value={model.value}
             onChange={(e: ChangeEvent<HTMLSelectElement>) => {
-              setModel(MODEL_AI.find((m) => m.value === e.target.value) || MODEL_AI[0]);
+              setModel(resolveModel(e.target.value));
             }}
           >
             {MODEL_AI.map((option, index) => (

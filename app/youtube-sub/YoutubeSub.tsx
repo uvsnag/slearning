@@ -9,6 +9,7 @@ import StackBtn from '@/app/common/components/StackButton';
 import PracticeWords from '../practice-word/PracticeWords';
 import { DataItem, getDataFromExcel } from '@/app/common/hooks/useSheetData';
 import { SHEET_AUTO } from '@/app/common/components/SheetDataEditor';
+import SpeakPracticeInput from '../mobile/youtube-sub/SpeakPracticeInput';
 
 // Type definitions
 interface YouTubePlayer {
@@ -92,6 +93,7 @@ const YoutubeSub: FC = () => {
   const [arrSub, setArrSub] = useState<Sub[]>([]);
   const [customLoopAs, setCustomLoopAs] = useState<string>('');
   const [customLoopBs, setCustomLoopBs] = useState<string>('');
+  const [tempText, setTempText] = useState<string>('');
   const [size, setSize] = useState<number>(390);
   const [height, setHeight] = useState<number>(10);
   const [top, setTop] = useState<number>(0);
@@ -827,6 +829,16 @@ const YoutubeSub: FC = () => {
         </div>
         <div className="common-toggle " onClick={() => toggleCollapse('ai-section-yt')}>
           AI
+        </div>
+        <div className="common-toggle " onClick={() => toggleCollapse('speech-temp')}>
+          Speech
+        </div>
+        <div id="speech-temp" className="collapse-content ui-sub-panel yts-ai-panel">
+          <SpeakPracticeInput
+            value={tempText}
+            onChange={setTempText}
+            voiceIndex="youtube-speech-practice"
+          />
         </div>
         <div id="ai-section-yt" className="collapse-content ui-sub-panel yts-ai-panel">
           <PracticeWords prefix="prc-yts" enableHis="N" isMini={false} />
