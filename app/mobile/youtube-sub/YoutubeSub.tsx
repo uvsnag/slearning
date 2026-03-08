@@ -6,6 +6,7 @@ import { Sub } from './Subtitle';
 import { toggleCollapse } from '@/common/common.js';
 import MulAI, { MulAIContainerProps } from '@/app/multi-ai/MultiAI';
 import StackBtn from '@/app/common/components/StackButton';
+import SpeakPracticeInput from './SpeakPracticeInput';
 import { DataItem, getDataFromExcel } from '@/app/common/hooks/useSheetData';
 import { SHEET_AUTO } from '@/app/common/components/SheetDataEditor';
 
@@ -68,6 +69,7 @@ const YoutubeSub: FC = () => {
   const [size, setSize] = useState<number>(390 / SIZE_RATIO);
   const [subHeight, setSubHeight] = useState<number>(300);
   const [url, setUrl] = useState<string>('');
+  const [tempText, setTempText] = useState<string>('');
   const [sourceOptions, setSourceOptions] = useState<DataItem[]>([]);
 
   const LOOP_CUSTOM: string = 'LOOP_CUSTOM';
@@ -182,7 +184,7 @@ const YoutubeSub: FC = () => {
     let valueSz = Number(event.target.value);
     setSize(valueSz);
     if (player) {
-      player.setSize(valueSz * 1.7, valueSz * 1.7 * (500 / 640));
+      player.setSize(valueSz * 1.7, valueSz * 1.7 * (400 / 640));
     }
   };
   const onYouTubeIframeAPIReady = (): void => {
@@ -190,8 +192,8 @@ const YoutubeSub: FC = () => {
     if (!windowWithYT.YT) return;
 
     player = new windowWithYT.YT.Player('player', {
-      height: 500 / SIZE_RATIO,
-      width: 640 / SIZE_RATIO,
+      height: 320 / SIZE_RATIO,
+      width: 510 / SIZE_RATIO,
       videoId: '',
       playerVars: {
         fs: 0,
@@ -476,7 +478,7 @@ const YoutubeSub: FC = () => {
           <div id="player"></div>
           <br />
         </div>
-        <div className="common-toggle">Control</div>
+        {/* <div className="common-toggle">Control</div> */}
         <div id="mobile-control" className="bolder">
           <div className="right">
             <input
@@ -500,73 +502,41 @@ const YoutubeSub: FC = () => {
             />
           </div>
           <br />
-
           {/* <br /> */}
           <div className="right">
-            <br />
+            {/* <br /> */}
+            <input
+              // type="number"
+              className="common-input input-mobile"
+              style={{ width: 35 }}
+              id="timemisus"
+            />
             <input
               type="submit"
-              className="common-btn btn-mobile"
+              className="common-btn btn-mobile input-width-small"
+              value="Change"
+              onClick={() => changeTime()}
+            />
+            <input
+              type="submit"
+              className="common-btn btn-mobile input-width-small"
               value="clear"
               onClick={() => onClearCusLoop()}
             />
             <input
               type="submit"
-              className="common-btn btn-mobile"
-              value="Add point"
+              className="common-btn btn-mobile input-width-small"
+              value="Add"
               onClick={() => onAddPoint()}
             />
           </div>
           <br />
-          <div className="right">
-            <br />
-            <input type="number" className="common-input input-mobile" id="timemisus" />
-            <input
-              type="submit"
-              className="common-btn btn-mobile"
-              value="Change"
-              onClick={() => changeTime()}
-            />
-          </div>
-          <br />
 
-          <input
-            type="text"
-            id="txtSrcMedia"
-            className="common-input"
-            value={url}
-            onKeyDown={(e) => handleKeyDown(e)}
-            onChange={(event) => {
-              setUrl(event.target.value);
-            }}
-          />
-          <select
-            className="common-input"
-            value=""
-            onChange={(event) => {
-              if (event.target.value) {
-                setUrl(event.target.value);
-              }
-            }}
-          >
-            <option value="">Select from ABoard6</option>
-            {sourceOptions.map((option) => (
-              <option key={`${option.eng}-${option.vi || ''}`} value={option.eng}>
-                {`${option.vi}${option.vi ? ` - ${option.eng}` : ''}`}
-              </option>
-            ))}
-          </select>
-          <input
-            type="submit"
-            className="common-btn"
-            value="Load"
-            id="btnExecute"
-            onClick={() => onProcess()}
-          />
           <div id="cus-loop-control">
             <input
-              className="common-input width-100"
+              className="common-input"
               type="text"
+              style={{ width: 45 }}
               value={customLoopAs}
               onChange={(event) => {
                 setCustomLoopAs(event.target.value);
@@ -580,7 +550,8 @@ const YoutubeSub: FC = () => {
             <span>-</span>
             <input
               type="text"
-              className="common-input width-100"
+              style={{ width: 45 }}
+              className="common-input"
               value={customLoopBs}
               onChange={(event) => {
                 setCustomLoopBs(event.target.value);
@@ -593,7 +564,11 @@ const YoutubeSub: FC = () => {
             ></StackBtn>
           </div>
         </div>
-
+        <SpeakPracticeInput
+          value={tempText}
+          onChange={setTempText}
+          voiceIndex="youtube-speech-practice"
+        />
         <div className="common-toggle" onClick={() => toggleCollapse('mul-ai')}>
           Mul-AI
         </div>
@@ -601,6 +576,43 @@ const YoutubeSub: FC = () => {
 
       <div id="mul-ai" className="collapse-content ui-sub-panel">
         <MulAI {...MUL_PROP}></MulAI>
+      </div>
+      <div>
+        <input
+          type="text"
+          id="txtSrcMedia"
+          style={{ width: 100 }}
+          className="common-input inline"
+          value={url}
+          onKeyDown={(e) => handleKeyDown(e)}
+          onChange={(event) => {
+            setUrl(event.target.value);
+          }}
+        />
+        <select
+          style={{ width: 110 }}
+          className="common-input inline"
+          value=""
+          onChange={(event) => {
+            if (event.target.value) {
+              setUrl(event.target.value);
+            }
+          }}
+        >
+          <option value="">Select from ABoard6</option>
+          {sourceOptions.map((option) => (
+            <option key={`${option.eng}-${option.vi || ''}`} value={option.eng}>
+              {`${option.vi}${option.vi ? ` - ${option.eng}` : ''}`}
+            </option>
+          ))}
+        </select>
+        <input
+          type="submit"
+          className="common-btn"
+          value="Load"
+          id="btnExecute"
+          onClick={() => onProcess()}
+        />
       </div>
     </div>
   );

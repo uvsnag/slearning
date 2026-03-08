@@ -113,8 +113,9 @@ const SpeakAI = () => {
         isMini={null}
         firstAsk={prompt}
         collapse={'N'}
+        title={'Board'}
       />
-      <div className=" speak-ai-toggle" onClick={() => toggleCollapse('mul-ai')}>
+      <div className="common-toggle" onClick={() => toggleCollapse('mul-ai')}>
         Mul-AI
       </div>
       <div id="mul-ai" className="collapse-content ui-sub-panel speak-ai-mulai">
