@@ -7,7 +7,9 @@ import {
   toggleCollapse,
   KEY_GPT_NM,
   KEY_GEMINI_NM,
+  KEY_GEMINI_NM_2,
   KEY_GITHUB_NM,
+  KEY_GITHUB_NM_2,
   KEY_OPENROUTER_NM,
   collapseElement,
 } from '@/common/common.js';
@@ -23,6 +25,8 @@ const TP_GEN = 1;
 const TP_GPT = 2;
 const TP_GITHUB = 3;
 const TP_OPENROUTER = 4;
+const TP_GEN_2 = 5;
+const TP_GITHUB_2 = 6;
 let aiType = TP_GEN;
 
 interface ModelAI {
@@ -72,23 +76,15 @@ export interface AIBoardProps {
 
 const MODEL_AI: ModelAI[] = [
   { value: 'gemini-2.5-flash', name: 'gemini-2.5-flash', type: TP_GEN },
+  { value: 'gemini-2.5-flash', name: 'gemini-2.5-flash (Key 2)', type: TP_GEN_2 },
   // { value: 'openai/gpt-4o-mini', name: 'github/gpt-4o-mini', type: TP_GITHUB },
   { value: 'openai/gpt-4.1', name: 'github/gpt-4.1', type: TP_GITHUB },
+  { value: 'openai/gpt-4.1', name: 'github/gpt-4.1 (Key 2)', type: TP_GITHUB_2 },
   // { value: 'openai/gpt-5-mini', name: 'github/gpt-5-mini', type: TP_GITHUB },
   // { value: 'gemini-2.5-flash-lite', name: 'gemini-2.5-flash-lite', type: TP_GEN },
   // { value: 'gemini-3.1-pro-preview', name: 'gemini-3.1-pro-preview', type: TP_GEN },
   // { value: 'gpt-4o', name: 'gpt-4o', type: TP_GPT },
-  // { value: 'openai/gpt-5-nano', name: 'openrouter/gpt-5-nano', type: TP_OPENROUTER },
-  // {
-  //   value: 'openai/gpt-5-mini',
-  //   name: 'openrouter/gpt-5-mini',
-  //   type: TP_OPENROUTER,
-  // },
-  // {
-  //   value: 'openai/gpt-4o-mini',
-  //   name: 'openrouter/gpt-4o-mini',
-  //   type: TP_OPENROUTER,
-  // },
+  { value: 'openai/gpt-5-nano', name: 'openrouter/gpt-5-nano', type: TP_OPENROUTER },
 ];
 const CLICK_TO_SPEECH_IGNORE_WORDS: string[] = [
   'a',
@@ -140,33 +136,48 @@ const MAX_OPENAI_HISTORY_MESSAGES = 30;
 const GITHUB_INFERENCE_BASE_PATH = 'https://models.github.ai/inference';
 const OPENROUTER_BASE_PATH = 'https://openrouter.ai/api/v1';
 
-function resolveModel(modelValue?: string | null): ModelAI {
+function resolveModel(modelValue?: string | null, modelType?: number | null): ModelAI {
+  if (modelType != null) {
+    return (
+      MODEL_AI.find((m) => m.value === modelValue && m.type === modelType) ||
+      MODEL_AI.find((m) => m.value === modelValue) ||
+      MODEL_AI[0]
+    );
+  }
   return MODEL_AI.find((m) => m.value === modelValue) || MODEL_AI[0];
 }
 
 const AIBoard: React.FC<AIBoardProps> = (props) => {
   const keyGeminiNm = `gemi-key-${props.prefix}${props.index}`;
+  const keyGeminiNm2 = `gemi-key-2-${props.prefix}${props.index}`;
   const keyChatGptNm = `gpt-key-${props.prefix}${props.index}`;
   const keyGithubNm = `github-key-${props.prefix}${props.index}`;
+  const keyGithubNm2 = `github-key-2-${props.prefix}${props.index}`;
   const keyOpenRouterNm = `openrouter-key-${props.prefix}${props.index}`;
   const sysPromptNm = `sys-promt-${props.prefix}${props.index}`;
   const modelAiStoreKey = `model-ai-${props.prefix}${props.index}`;
+  const modelAiTypeStoreKey = `model-ai-type-${props.prefix}${props.index}`;
   const conversationHistoryKey = `ai-history-${props.prefix}${props.index}`;
   let aiGem = useRef<GoogleGenAI | null>(null);
+  let aiGem2 = useRef<GoogleGenAI | null>(null);
   let aiGemHis = useRef<any>(null);
   let openai = useRef<OpenAIApi | null>(null);
   let githubAI = useRef<OpenAIApi | null>(null);
+  let githubAI2 = useRef<OpenAIApi | null>(null);
   let openRouterAI = useRef<OpenAIApi | null>(null);
   const gptHisRef = useRef<OpenAIMessage[]>([]);
   const githubHisRef = useRef<OpenAIMessage[]>([]);
+  const githubHis2Ref = useRef<OpenAIMessage[]>([]);
   const openRouterHisRef = useRef<OpenAIMessage[]>([]);
   const historyTurnsRef = useRef<ConversationTurn[]>([]);
   const questionStoreRef = useRef<string[]>([]);
   const responseStoreRef = useRef<string[]>([]);
 
   const [gemKey, setGemKey] = useState<string | null>(null);
+  const [gemKey2, setGemKey2] = useState<string | null>(null);
   const [gptKey, setGptKey] = useState<string | null>(null);
   const [githubKey, setGithubKey] = useState<string | null>(null);
+  const [githubKey2, setGithubKey2] = useState<string | null>(null);
   const [openRouterKey, setOpenRouterKey] = useState<string | null>(null);
   const [aiName, setAIName] = useState<string>('Gemini');
   const [model, setModel] = useState<ModelAI>(() => {
@@ -175,8 +186,9 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
     }
     if (typeof window !== 'undefined') {
       const storedModel = localStorage.getItem(modelAiStoreKey);
+      const storedType = localStorage.getItem(modelAiTypeStoreKey);
       if (storedModel) {
-        return resolveModel(storedModel);
+        return resolveModel(storedModel, storedType ? Number(storedType) : null);
       }
     }
     return MODEL_AI[0];
@@ -206,8 +218,15 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
 
   const [prompt, setPrompt] = useState<string>(props.firstAsk ?? '');
   const [isPromptExpanded, setIsPromptExpanded] = useState<boolean>(false);
+  const [responseHeight, setResponseHeight] = useState<number>(props.heightRes ?? 300);
   const [sysPrompt, setSysPrompt] = useState<string>('');
   const [isUseAIMini, setIsUseAIMini] = useState<boolean>(false);
+
+  useEffect((): void => {
+    if (props.heightRes != null) {
+      setResponseHeight(props.heightRes);
+    }
+  }, [props.heightRes]);
 
   const [value1, setValue1] = useState<string>('');
   const [value2, setValue2] = useState<string>('');
@@ -239,28 +258,39 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
   function resetOpenAIHistoryRefs(): void {
     gptHisRef.current = [];
     githubHisRef.current = [];
+    githubHis2Ref.current = [];
     openRouterHisRef.current = [];
   }
 
   useEffect((): void => {
     let gmLcal = localStorage.getItem(keyGeminiNm);
+    let gmLcal2 = localStorage.getItem(keyGeminiNm2);
     let gptLcal = localStorage.getItem(keyChatGptNm);
     let githubLcal = localStorage.getItem(keyGithubNm);
+    let githubLcal2 = localStorage.getItem(keyGithubNm2);
     let openRouterLcal = localStorage.getItem(keyOpenRouterNm);
     let locGem = gmLcal ? gmLcal : localStorage.getItem(KEY_GEMINI_NM);
+    let locGem2 = gmLcal2 ? gmLcal2 : localStorage.getItem(KEY_GEMINI_NM_2);
     let locgpt = gptLcal ? gptLcal : localStorage.getItem(KEY_GPT_NM);
     let locGithub = githubLcal ? githubLcal : localStorage.getItem(KEY_GITHUB_NM);
+    let locGithub2 = githubLcal2 ? githubLcal2 : localStorage.getItem(KEY_GITHUB_NM_2);
     let locOpenRouter = openRouterLcal ? openRouterLcal : localStorage.getItem(KEY_OPENROUTER_NM);
     let sysPromptVa = localStorage.getItem(sysPromptNm) ?? props.defaultPrompt ?? '';
     console.log(locGem);
     if (gmLcal) {
       setGemKey(locGem);
     }
+    if (gmLcal2) {
+      setGemKey2(locGem2);
+    }
     if (gptLcal) {
       setGptKey(locgpt);
     }
     if (githubLcal) {
       setGithubKey(locGithub);
+    }
+    if (githubLcal2) {
+      setGithubKey2(locGithub2);
     }
     if (openRouterLcal) {
       setOpenRouterKey(locOpenRouter);
@@ -272,8 +302,10 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
       toggleCollapse(`gemini-${props.prefix}${props.index}`);
     }
     aiGem.current = new GoogleGenAI({ apiKey: locGem || undefined });
+    aiGem2.current = new GoogleGenAI({ apiKey: locGem2 || undefined });
     openai.current = createOpenAIClient(locgpt);
     githubAI.current = createOpenAIClient(locGithub, GITHUB_INFERENCE_BASE_PATH);
+    githubAI2.current = createOpenAIClient(locGithub2, GITHUB_INFERENCE_BASE_PATH);
     openRouterAI.current = createOpenAIClient(locOpenRouter, OPENROUTER_BASE_PATH);
     historyTurnsRef.current = loadConversationHistory();
     renderConversationHistory(historyTurnsRef.current);
@@ -292,8 +324,13 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
 
   useEffect((): void => {
     aiType = model.type;
-    if (useHis === 'Y' && aiGem.current && model.type === TP_GEN) {
+    if (useHis === 'Y' && model.type === TP_GEN && aiGem.current) {
       aiGemHis.current = aiGem.current.chats.create({
+        model: model.value,
+      });
+    }
+    if (useHis === 'Y' && model.type === TP_GEN_2 && aiGem2.current) {
+      aiGemHis.current = aiGem2.current.chats.create({
         model: model.value,
       });
     }
@@ -303,8 +340,13 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
   }, [useHis]);
   useEffect((): void => {
     aiType = model.type;
-    if (useHis === 'Y' && aiGem.current && model.type === TP_GEN) {
+    if (useHis === 'Y' && model.type === TP_GEN && aiGem.current) {
       aiGemHis.current = aiGem.current.chats.create({
+        model: model.value,
+      });
+    }
+    if (useHis === 'Y' && model.type === TP_GEN_2 && aiGem2.current) {
+      aiGemHis.current = aiGem2.current.chats.create({
         model: model.value,
       });
     }
@@ -325,6 +367,20 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
   }, [gemKey]);
 
   useEffect((): void => {
+    let key = gemKey2 ? gemKey2 : localStorage.getItem(KEY_GEMINI_NM_2);
+    aiGem2.current = new GoogleGenAI({ apiKey: key || undefined });
+    localStorage.setItem(keyGeminiNm2, gemKey2 || '');
+    if (useHis === 'Y' && aiGem2.current && model.type === TP_GEN_2) {
+      aiGemHis.current = aiGem2.current.chats.create({
+        model: model.value,
+      });
+    }
+    if (gemKey2 === null) {
+      setGemKey2('');
+    }
+  }, [gemKey2]);
+
+  useEffect((): void => {
     let key = gptKey ? gptKey : localStorage.getItem(KEY_GPT_NM);
     openai.current = createOpenAIClient(key);
     localStorage.setItem(keyChatGptNm, gptKey || '');
@@ -343,6 +399,16 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
       setGithubKey('');
     }
   }, [githubKey]);
+
+  useEffect((): void => {
+    let key = githubKey2 ? githubKey2 : localStorage.getItem(KEY_GITHUB_NM_2);
+    githubAI2.current = createOpenAIClient(key, GITHUB_INFERENCE_BASE_PATH);
+    localStorage.setItem(keyGithubNm2, githubKey2 || '');
+    githubHis2Ref.current = [];
+    if (githubKey2 === null) {
+      setGithubKey2('');
+    }
+  }, [githubKey2]);
 
   useEffect((): void => {
     let key = openRouterKey ? openRouterKey : localStorage.getItem(KEY_OPENROUTER_NM);
@@ -373,8 +439,9 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
       return;
     }
     const storedModel = localStorage.getItem(modelAiStoreKey);
+    const storedType = localStorage.getItem(modelAiTypeStoreKey);
     if (storedModel) {
-      setModel(resolveModel(storedModel));
+      setModel(resolveModel(storedModel, storedType ? Number(storedType) : null));
       return;
     }
     setModel(MODEL_AI[0]);
@@ -382,7 +449,8 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
 
   useEffect((): void => {
     localStorage.setItem(modelAiStoreKey, model.value);
-  }, [modelAiStoreKey, model.value]);
+    localStorage.setItem(modelAiTypeStoreKey, String(model.type));
+  }, [modelAiStoreKey, modelAiTypeStoreKey, model.value, model.type]);
 
   useEffect((): void => {
     renderConversationHistory(historyTurnsRef.current);
@@ -415,6 +483,17 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
 
   async function askGemini(promVal: string): Promise<string> {
     const aiResponse = await aiGem.current!.models.generateContent({
+      model: model.value,
+      contents: promVal,
+      config: {
+        systemInstruction: sysPrompt,
+      },
+    });
+    return aiResponse.text || '';
+  }
+
+  async function askGemini2(promVal: string): Promise<string> {
+    const aiResponse = await aiGem2.current!.models.generateContent({
       model: model.value,
       contents: promVal,
       config: {
@@ -489,6 +568,10 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
     return askOpenAICompatible(githubAI.current, promVal, githubHisRef);
   }
 
+  async function askGitHub2(promVal: string): Promise<string> {
+    return askOpenAICompatible(githubAI2.current, promVal, githubHis2Ref);
+  }
+
   async function askOpenRouter(promVal: string): Promise<string> {
     return askOpenAICompatible(openRouterAI.current, promVal, openRouterHisRef);
   }
@@ -515,9 +598,15 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
       } else if (aiType === TP_GITHUB) {
         responseTxt = await askGitHub(promVal);
         setAIName('GitHub');
+      } else if (aiType === TP_GITHUB_2) {
+        responseTxt = await askGitHub2(promVal);
+        setAIName('GitHub (Key 2)');
       } else if (aiType === TP_OPENROUTER) {
         responseTxt = await askOpenRouter(promVal);
         setAIName('OpenRouter');
+      } else if (aiType === TP_GEN_2) {
+        setAIName('Gemini (Key 2)');
+        responseTxt = useHis === 'Y' ? await askGeminiHis(promVal) : await askGemini2(promVal);
       } else {
         setAIName('Gemini');
         responseTxt = useHis === 'Y' ? await askGeminiHis(promVal) : await askGemini(promVal);
@@ -870,8 +959,8 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
       setTimeout((): void => {
         let extraHeight = logEntry.offsetHeight;
         logElement!.scrollBy({
-          top: -Number(extraHeight) + Number(props.heightRes) - 40, // negative value scrolls up
-          // top: (-extraHeight + props.heightRes - 40), // negative value scrolls up
+          top: -Number(extraHeight) + Number(responseHeight) - 40, // negative value scrolls up
+          // top: (-extraHeight + responseHeight - 40), // negative value scrolls up
           behavior: 'smooth', // optional for smooth scroll
         });
       }, 100);
@@ -1147,7 +1236,7 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
           src={loadingImg.src}
         />
         <div
-          style={{ height: `${props.heightRes}px`, borderRadius: '8px' }}
+          style={{ height: `${responseHeight}px`, borderRadius: '8px' }}
           id={`response-ai-${props.prefix}${props.index}`}
           className="response-ai ai-response-panel"
         ></div>
@@ -1192,13 +1281,17 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
 
           <select
             className="common-input"
-            value={model.value}
+            value={`${model.value}::${model.type}`}
             onChange={(e: ChangeEvent<HTMLSelectElement>) => {
-              setModel(resolveModel(e.target.value));
+              const [val, tp] = e.target.value.split('::');
+              setModel(resolveModel(val, Number(tp)));
             }}
           >
             {MODEL_AI.map((option, index) => (
-              <option key={option.value} value={option.value}>
+              <option
+                key={`${option.value}-${option.type}`}
+                value={`${option.value}::${option.type}`}
+              >
                 {`${option.name}`}
               </option>
             ))}
@@ -1237,6 +1330,19 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
             <option value="Y">Yes</option>
             <option value="N">No</option>
           </select>
+          <br />
+          {/* <label>Height: {responseHeight}px</label> */}
+          <input
+            type="range"
+            className="width-220 range-input inline"
+            min="100"
+            max="1000"
+            step="10"
+            value={responseHeight}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => {
+              setResponseHeight(Number(e.target.value));
+            }}
+          />
           <br />
           <input
             className="common-input"

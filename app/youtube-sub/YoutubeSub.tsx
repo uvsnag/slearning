@@ -233,7 +233,7 @@ const YoutubeSub: FC = () => {
     setTop(0);
     setAttTop(0);
     if (player) {
-      player.setSize(valueSz * 1.7, valueSz);
+      player.setSize(valueSz * (16 / 9), valueSz);
     }
   };
   const handleSubChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
@@ -244,7 +244,7 @@ const YoutubeSub: FC = () => {
     const heightVal = Number(event.target.value);
     setHeight(heightVal);
     if (player) {
-      player.setSize(size * 1.7, size * (heightVal / 10));
+      player.setSize(size * (16 / 9), size * (heightVal / 10));
     }
   };
   const handleTop = (event: React.ChangeEvent<HTMLInputElement>): void => {
@@ -261,10 +261,10 @@ const YoutubeSub: FC = () => {
   const onYouTubeIframeAPIReady = (): void => {
     const windowWithYT = window as WindowWithYT;
     if (!windowWithYT.YT) return;
-
+    const DEFAULT_HEIGHT = 729;
     player = new windowWithYT.YT.Player('player', {
-      height: 390 * 1.47,
-      width: 640 * 1.47,
+      height: DEFAULT_HEIGHT,
+      width: DEFAULT_HEIGHT * (16 / 9),
       videoId: '',
       playerVars: {
         fs: 0,
@@ -709,7 +709,7 @@ const YoutubeSub: FC = () => {
               id="size"
               name="vol"
               min="0"
-              max="1000"
+              max="1300"
               value={size}
               onChange={handleSizeChange}
             ></input>
@@ -717,6 +717,12 @@ const YoutubeSub: FC = () => {
             {/* <input type="range" className="range-input" id="size" name="vol" min="5" max="20" value={height} onChange={handleMaskMedia}></input><br />
                         <input type="range" className="range-input" id="size" name="vol" min="5" max="700" value={top} onChange={handleTop}></input><br /> */}
           </div>
+        </div>
+        <div className="common-toggle " onClick={() => toggleCollapse('ai-section-yt')}>
+          AI
+        </div>
+        <div id="ai-section-yt" className="collapse-content ui-sub-panel yts-ai-panel">
+          <PracticeWords prefix="prc-yts" enableHis="N" isMini={false} showPract={''} />
         </div>
         <div className="common-toggle " onClick={() => toggleCollapse('mobile-control')}>
           Control
@@ -827,9 +833,6 @@ const YoutubeSub: FC = () => {
             ></StackBtn>
           </div>
         </div>
-        <div className="common-toggle " onClick={() => toggleCollapse('ai-section-yt')}>
-          AI
-        </div>
         <div className="common-toggle " onClick={() => toggleCollapse('speech-temp')}>
           Speech
         </div>
@@ -840,101 +843,7 @@ const YoutubeSub: FC = () => {
             voiceIndex="youtube-speech-practice"
           />
         </div>
-        <div id="ai-section-yt" className="collapse-content ui-sub-panel yts-ai-panel">
-          <PracticeWords prefix="prc-yts" enableHis="N" isMini={false} />
-        </div>
-        <div className="common-toggle " onClick={() => toggleCollapse('hide2')}>
-          Sub
-        </div>
 
-        <div id="hide2" className="collapse-content ui-sub-panel yts-sub-panel">
-          <div id="hide1"></div>
-          <div className="tooltip yts-tooltip">
-            ???
-            <span className="tooltiptext">arrow , and Crtl: clear/ shift: loop</span>
-          </div>
-
-          <div id="subline-control">
-            <input
-              type="range"
-              className="range-input"
-              id="size"
-              name="vol"
-              min="30"
-              max="500"
-              value={subHeight}
-              onChange={handleSubChange}
-            ></input>
-            <br />
-            <select
-              value={modeReplay}
-              onChange={(e) => {
-                setModeReplay(e.target.value);
-              }}
-            >
-              <option value={REPLAY_YES}>REPLAY_YES</option>
-              <option value={REPLAY_NO}>REPLAY_NO</option>
-            </select>
-            <select
-              value={modeKara}
-              onChange={(e) => {
-                setModeKara(e.target.value);
-              }}
-            >
-              <option value="Y">Y</option>
-              <option value="N">N</option>
-            </select>
-            <input type="submit" value="Continue" onClick={() => onChangeReplay()} />
-
-            {/* <input className="width-30" placeholder="control-form" onKeyDown={e => onControlKeyListen(e)} /> */}
-            <input
-              type="submit"
-              value="<<"
-              onClick={() => onPrevLine({} as React.MouseEvent<HTMLInputElement>)}
-            />
-            <input
-              type="submit"
-              value=">>"
-              onClick={() => onNextLine({} as React.MouseEvent<HTMLInputElement>)}
-            />
-            <div id="sub-control" className="yts-sub-list">
-              {arrSub.map((item, index) => (
-                <LineSub key={`${item.time}${item.value}`} time={item.time} value={item.value} />
-              ))}
-            </div>
-            <input
-              type="submit"
-              value="+/-"
-              onClick={() => onShowHide({} as React.MouseEvent<HTMLInputElement>)}
-            />
-          </div>
-
-          <div className="option-right">
-            {' '}
-            <br />
-          </div>
-          <div id="load-sub" className="yts-load-sub">
-            <input
-              type="submit"
-              className="common-btn margin-zr"
-              value="loadSub"
-              id="btnLoadSube"
-              onClick={() => loadSub()}
-            />
-            <br />
-            <textarea
-              id="media-sub"
-              value={sub}
-              onChange={(event) => {
-                setSub(event.target.value);
-              }}
-            ></textarea>
-          </div>
-
-          <br />
-          <input type="submit" value="H" id="btnHide" onClick={() => onHideAll()} />
-          <input type="submit" value="S" id="btnShow" onClick={() => onShowAll()} />
-        </div>
         <div className="common-toggle " onClick={() => toggleCollapse('mul-ai')}>
           Mul-AI
         </div>
@@ -942,6 +851,98 @@ const YoutubeSub: FC = () => {
 
       <div id="mul-ai" className="collapse-content ui-sub-panel yts-mulai-panel">
         <MulAI {...MUL_PROP}></MulAI>
+      </div>
+      <div className="common-toggle " onClick={() => toggleCollapse('hide2')}>
+        Sub
+      </div>
+
+      <div id="hide2" className="collapse-content ui-sub-panel yts-sub-panel">
+        <div id="hide1"></div>
+        <div className="tooltip yts-tooltip">
+          ???
+          <span className="tooltiptext">arrow , and Crtl: clear/ shift: loop</span>
+        </div>
+
+        <div id="subline-control">
+          <input
+            type="range"
+            className="range-input"
+            id="size"
+            name="vol"
+            min="30"
+            max="500"
+            value={subHeight}
+            onChange={handleSubChange}
+          ></input>
+          <br />
+          <select
+            value={modeReplay}
+            onChange={(e) => {
+              setModeReplay(e.target.value);
+            }}
+          >
+            <option value={REPLAY_YES}>REPLAY_YES</option>
+            <option value={REPLAY_NO}>REPLAY_NO</option>
+          </select>
+          <select
+            value={modeKara}
+            onChange={(e) => {
+              setModeKara(e.target.value);
+            }}
+          >
+            <option value="Y">Y</option>
+            <option value="N">N</option>
+          </select>
+          <input type="submit" value="Continue" onClick={() => onChangeReplay()} />
+
+          {/* <input className="width-30" placeholder="control-form" onKeyDown={e => onControlKeyListen(e)} /> */}
+          <input
+            type="submit"
+            value="<<"
+            onClick={() => onPrevLine({} as React.MouseEvent<HTMLInputElement>)}
+          />
+          <input
+            type="submit"
+            value=">>"
+            onClick={() => onNextLine({} as React.MouseEvent<HTMLInputElement>)}
+          />
+          <div id="sub-control" className="yts-sub-list">
+            {arrSub.map((item, index) => (
+              <LineSub key={`${item.time}${item.value}`} time={item.time} value={item.value} />
+            ))}
+          </div>
+          <input
+            type="submit"
+            value="+/-"
+            onClick={() => onShowHide({} as React.MouseEvent<HTMLInputElement>)}
+          />
+        </div>
+
+        <div className="option-right">
+          {' '}
+          <br />
+        </div>
+        <div id="load-sub" className="yts-load-sub">
+          <input
+            type="submit"
+            className="common-btn margin-zr"
+            value="loadSub"
+            id="btnLoadSube"
+            onClick={() => loadSub()}
+          />
+          <br />
+          <textarea
+            id="media-sub"
+            value={sub}
+            onChange={(event) => {
+              setSub(event.target.value);
+            }}
+          ></textarea>
+        </div>
+
+        <br />
+        <input type="submit" value="H" id="btnHide" onClick={() => onHideAll()} />
+        <input type="submit" value="S" id="btnShow" onClick={() => onShowAll()} />
       </div>
     </div>
   );
