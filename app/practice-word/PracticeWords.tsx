@@ -18,7 +18,7 @@ interface PractWordsProps {
   enableHis?: 'Y' | 'N';
   heightRes?: number;
   isMini?: boolean;
-  showPract?: 'Y' | 'N';
+  showPract?: 'Y' | 'N' | '';
 }
 
 let lastEngVar: string = '';
@@ -37,13 +37,13 @@ const PractWords = (props: PractWordsProps) => {
   });
   const MODE_NONE = 'None';
   const MODE_SPEAKE_CHANGE_QUST = 'Speak';
-  const [showPanel, setShowPanel] = useState<'Y' | 'N'>(props.showPract ?? 'Y');
+  const [showPanel, setShowPanel] = useState<'Y' | 'N' | ''>(props.showPract ?? 'Y');
   const [question, setQuestion] = useState<string>('');
   const [answer, setAnswer] = useState<string>('');
   const [showAns, setShowAns] = useState<string>('');
   const [lastEng, setLastEng] = useState<string>('');
   const [lastVie, setLastVie] = useState<string>('');
-  const [classPract, setClassPract] = useState<string>('container-55');
+  const [classPract, setClassPract] = useState<string>(props.showPract ? 'container-55' : '');
   const [mode, setMode] = useState<string>(MODE_NONE);
   const [isStartRecord, setIsStartRecord] = useState<boolean>(false);
   const [isShowDelete, setIsShowDelete] = useState<boolean>(false);
@@ -373,7 +373,7 @@ const PractWords = (props: PractWordsProps) => {
           index={0}
           prefix={`${props.prefix}pract_eng2`}
           enableHis={props.enableHis ?? 'N'}
-          heightRes={props.heightRes ?? 167}
+          heightRes={props.heightRes ?? 220}
           collapse={'N'}
 
           // isMini={props.isMini ?? true}
@@ -381,19 +381,15 @@ const PractWords = (props: PractWordsProps) => {
           // lastSentence={lastVie}
         />
       )}
-      <div className="ai-pract practice-ai-panel">
-        <button
-          className="common-btn"
-          onClick={() => setShowPanel((prev) => (prev === 'Y' ? 'N' : 'Y'))}
-        >
-          Pract/AI
-        </button>
+      <div
+      // className="ai-pract practice-ai-panel"
+      >
         <AIBoard
           key={0}
           index={0}
           prefix={props.prefix ?? 'pract_eng'}
           enableHis={props.enableHis ?? 'N'}
-          heightRes={props.heightRes ?? 140}
+          heightRes={props.heightRes ?? 220}
           isMini={props.isMini ?? true}
           statement={question}
           lastSentence={lastEng}
@@ -406,6 +402,47 @@ const PractWords = (props: PractWordsProps) => {
               tôi chat: book
               trả lời: cuốn sách (n), đặt phòng (v)`}
         />
+        <div className="panel-radio-group">
+          <label className="panel-radio">
+            <input
+              type="radio"
+              name="panel"
+              value="Y"
+              checked={showPanel === 'Y'}
+              onChange={() => {
+                setShowPanel('Y');
+                setClassPract('container-55');
+              }}
+            />
+            Pract
+          </label>
+          <label className="panel-radio">
+            <input
+              type="radio"
+              name="panel"
+              value="N"
+              checked={showPanel === 'N'}
+              onChange={() => {
+                setShowPanel('N');
+                setClassPract('container-55');
+              }}
+            />
+            AI
+          </label>
+          <label className="panel-radio">
+            <input
+              type="radio"
+              name="panel"
+              value=""
+              checked={showPanel === ''}
+              onChange={() => {
+                setShowPanel('');
+                setClassPract('');
+              }}
+            />
+            Single
+          </label>
+        </div>
       </div>
     </div>
   );

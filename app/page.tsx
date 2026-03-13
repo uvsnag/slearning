@@ -5,7 +5,9 @@ import {
   toggleCollapse,
   KEY_GPT_NM,
   KEY_GEMINI_NM,
+  KEY_GEMINI_NM_2,
   KEY_GITHUB_NM,
+  KEY_GITHUB_NM_2,
   KEY_OPENROUTER_NM,
   KEY_GOOGLE_SHEET_NM,
   KEY_API_SHEET,
@@ -37,8 +39,12 @@ const getStoredValue = (key: string): string | null => {
 
 const Home: FC = () => {
   const [gemKey, setGemKey] = useState<string | null>(() => getStoredValue(KEY_GEMINI_NM));
+  const [gemKey2, setGemKey2] = useState<string | null>(() => getStoredValue(KEY_GEMINI_NM_2));
   const [gptKey, setGptKey] = useState<string | null>(() => getStoredValue(KEY_GPT_NM));
   const [githubKey, setGithubKey] = useState<string | null>(() => getStoredValue(KEY_GITHUB_NM));
+  const [githubKey2, setGithubKey2] = useState<string | null>(() =>
+    getStoredValue(KEY_GITHUB_NM_2),
+  );
   const [openRouterKey, setOpenRouterKey] = useState<string | null>(() =>
     getStoredValue(KEY_OPENROUTER_NM),
   );
@@ -53,6 +59,12 @@ const Home: FC = () => {
   }, [gemKey]);
 
   useEffect(() => {
+    if (gemKey2) {
+      localStorage.setItem(KEY_GEMINI_NM_2, gemKey2);
+    }
+  }, [gemKey2]);
+
+  useEffect(() => {
     if (gptKey) {
       localStorage.setItem(KEY_GPT_NM, gptKey);
     }
@@ -63,6 +75,12 @@ const Home: FC = () => {
       localStorage.setItem(KEY_GITHUB_NM, githubKey);
     }
   }, [githubKey]);
+
+  useEffect(() => {
+    if (githubKey2) {
+      localStorage.setItem(KEY_GITHUB_NM_2, githubKey2);
+    }
+  }, [githubKey2]);
 
   useEffect(() => {
     if (openRouterKey) {
@@ -147,17 +165,18 @@ const Home: FC = () => {
               />
             </label>
             <label className="home-config-field">
-              <span>GPT Key</span>
+              <span>Gemini Key 2</span>
               <input
                 className="common-input"
                 type="text"
-                value={gptKey ?? ''}
+                value={gemKey2 ?? ''}
                 onChange={(event: ChangeEvent<HTMLInputElement>) => {
-                  setGptKey(event.target.value);
+                  setGemKey2(event.target.value);
                 }}
-                placeholder="gpt"
+                placeholder="gem 2"
               />
             </label>
+
             <label className="home-config-field">
               <span>GitHub Models Key</span>
               <input
@@ -168,6 +187,30 @@ const Home: FC = () => {
                   setGithubKey(event.target.value);
                 }}
                 placeholder="github token"
+              />
+            </label>
+            <label className="home-config-field">
+              <span>GitHub Models Key 2</span>
+              <input
+                className="common-input"
+                type="text"
+                value={githubKey2 ?? ''}
+                onChange={(event: ChangeEvent<HTMLInputElement>) => {
+                  setGithubKey2(event.target.value);
+                }}
+                placeholder="github token 2"
+              />
+            </label>
+            <label className="home-config-field">
+              <span>GPT Key</span>
+              <input
+                className="common-input"
+                type="text"
+                value={gptKey ?? ''}
+                onChange={(event: ChangeEvent<HTMLInputElement>) => {
+                  setGptKey(event.target.value);
+                }}
+                placeholder="gpt"
               />
             </label>
             <label className="home-config-field">
