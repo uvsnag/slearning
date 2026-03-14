@@ -1,4 +1,4 @@
-:HL["/slearning/_next/static/chunks/a2808b54f2f2fa02.css","style"]
+:HL["/slearning/_next/static/chunks/3d8adf0bbd3cced2.css","style"]
 :HL["/slearning/_next/static/chunks/6e856cf913a91320.css","style"]
 :HL["/slearning/_next/static/chunks/757ddc99b2f4718d.css","style"]
-0:{"buildId":"SbUA_mD6QTYtvWLWmYLBz","tree":{"name":"","paramType":null,"paramKey":"","hasRuntimePrefetch":false,"slots":{"children":{"name":"practice-word","paramType":null,"paramKey":"practice-word","hasRuntimePrefetch":false,"slots":{"children":{"name":"__PAGE__","paramType":null,"paramKey":"__PAGE__","hasRuntimePrefetch":false,"slots":null,"isRootLayout":false}},"isRootLayout":false}},"isRootLayout":true},"staleTime":300}
+0:{"buildId":"Xn_-4LvARytlJJc99Qan3","tree":{"name":"","paramType":null,"paramKey":"","hasRuntimePrefetch":false,"slots":{"children":{"name":"practice-word","paramType":null,"paramKey":"practice-word","hasRuntimePrefetch":false,"slots":{"children":{"name":"__PAGE__","paramType":null,"paramKey":"__PAGE__","hasRuntimePrefetch":false,"slots":null,"isRootLayout":false}},"isRootLayout":false}},"isRootLayout":true},"staleTime":300}
