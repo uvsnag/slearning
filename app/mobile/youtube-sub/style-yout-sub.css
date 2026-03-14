@@ -2,3 +2,37 @@
   font-size: 17px;
 }
 
+#vd-control {
+  z-index: 999;
+}
+@media only screen and (min-width: 600px) {
+  #maincontent-yt {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* Size range slider stays full width above the columns */
+  #maincontent-yt > input.range-input {
+    width: 100%;
+    flex: 0 0 100%;
+  }
+
+  /* Column 1: video */
+  .yt-video-col {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  /* Column 2: controls */
+  .yt-controls-col {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  /* Items after the two columns go full width */
+  #maincontent-yt > .common-toggle,
+  #maincontent-yt > div:not(.yt-video-col):not(.yt-controls-col) {
+    flex: 0 0 100%;
+  }
+}
