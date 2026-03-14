@@ -909,8 +909,8 @@ ul.mst-menu > li {
     box-shadow 0.2s ease,
     border-color 0.2s ease;
   height: 35px;
-  padding-left: 20px;
-  padding-right: 20px;
+  /* padding-left: 20px;
+  padding-right: 20px; */
   /* padding-top: 9px; */
   display: inline;
   margin-right: 4px;
@@ -942,9 +942,9 @@ ul.mst-menu > li {
     0 4px 11px var(--shadow-button-active-color);
 }
 .btn-mobile {
-  width: 92px !important;
+  width: 62px !important;
   height: 40px !important;
-  font-size: large;
+  font-size: 10px !important;
 }
 .common-btn.input-width-small {
   width: 80px !important;

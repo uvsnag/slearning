@@ -3,7 +3,7 @@ import { useEffect, useState, FC } from 'react';
 import './style-yout-sub.css';
 import _ from 'lodash';
 import { Sub } from './Subtitle';
-import { toggleCollapse } from '@/common/common.js';
+import { toggleCollapse, KEY_YT_CONTROLS } from '@/common/common.js';
 import MulAI, { MulAIContainerProps } from '@/app/multi-ai/MultiAI';
 import StackBtn from '@/app/common/components/StackButton';
 import SpeakPracticeInput from './SpeakPracticeInput';
@@ -20,6 +20,7 @@ interface YouTubePlayer {
   loadVideoById: (videoId: string, startSeconds: number) => void;
   seekTo: (seconds: number, allowSeekAhead: boolean) => void;
   getVideoUrl: () => string;
+  destroy: () => void;
 }
 
 interface WindowWithYT extends Window {
@@ -48,6 +49,7 @@ let intervalCusLoop: NodeJS.Timeout | null = null;
 
 let arrTime: string[] = [];
 const urlCookieNm: string = 'lis-url';
+const bookmarkTimeNm: string = 'yt-bookmark-time';
 const SOURCE_RANGE = SHEET_AUTO.find((item) => item.name === 'ABoard6')?.range || 'AUTO!U2:W500';
 
 const YoutubeSub: FC = () => {
@@ -62,7 +64,7 @@ const YoutubeSub: FC = () => {
   };
 
   const REPLAY_NO: string = 'REPLACE_NO';
-  const SIZE_RATIO: number = 1.7;
+  const SIZE_RATIO: number = 1.62;
   const [arrSub, setArrSub] = useState<Sub[]>([]);
   const [customLoopAs, setCustomLoopAs] = useState<string>('');
   const [customLoopBs, setCustomLoopBs] = useState<string>('');
@@ -71,6 +73,8 @@ const YoutubeSub: FC = () => {
   const [url, setUrl] = useState<string>('');
   const [tempText, setTempText] = useState<string>('');
   const [sourceOptions, setSourceOptions] = useState<DataItem[]>([]);
+  const [bookmarkTime, setBookmarkTime] = useState<string>('');
+  const [ytControls, setYtControls] = useState<string>('0');
 
   const LOOP_CUSTOM: string = 'LOOP_CUSTOM';
   const NOT_VALUE_TIME: number = 1;
@@ -79,6 +83,8 @@ const YoutubeSub: FC = () => {
   useEffect((): (() => void) => {
     if (!_.isEmpty(localStorage)) {
       setUrl(localStorage.getItem(urlCookieNm) || '');
+      setBookmarkTime(localStorage.getItem(bookmarkTimeNm) || '');
+      setYtControls(localStorage.getItem(KEY_YT_CONTROLS) || '0');
     }
 
     const windowWithYT = window as WindowWithYT;
@@ -191,6 +197,17 @@ const YoutubeSub: FC = () => {
     const windowWithYT = window as WindowWithYT;
     if (!windowWithYT.YT) return;
 
+    if (interval) clearInterval(interval);
+    if (player && typeof player.destroy === 'function') {
+      try {
+        player.destroy();
+      } catch (e) {
+        console.error('Error destroying player:', e);
+      }
+    }
+
+    const ytControlsVal = Number(localStorage.getItem(KEY_YT_CONTROLS) ?? '0');
+
     player = new windowWithYT.YT.Player('player', {
       height: 320 / SIZE_RATIO,
       width: 510 / SIZE_RATIO,
@@ -200,7 +217,10 @@ const YoutubeSub: FC = () => {
         iv_load_policy: 3,
         playsinline: 1,
         modestbranding: 0,
-        // controls: 0,
+
+        controls: ytControlsVal,
+        cc_lang_pref: 'en',
+        cc_load_policy: 1,
       },
       events: {
         onReady: onPlayerReady,
@@ -474,65 +494,13 @@ const YoutubeSub: FC = () => {
           value={size}
           onChange={handleSizeChange}
         ></input>
-        <div id="vd-control">
+        <div id="vd-control" className="yt-video-col">
           <div id="player"></div>
           <br />
         </div>
         {/* <div className="common-toggle">Control</div> */}
-        <div id="mobile-control" className="bolder">
-          <div className="right">
-            <input
-              type="submit"
-              className="common-btn btn-mobile"
-              value=">"
-              onClick={() => next()}
-            />
-            <input
-              type="submit"
-              className="common-btn btn-mobile"
-              value="||"
-              onClick={() => onStartStop({} as React.MouseEvent<HTMLInputElement>)}
-            />
-
-            <input
-              type="submit"
-              className="common-btn btn-mobile"
-              value="<"
-              onClick={() => previous()}
-            />
-          </div>
-          <br />
-          {/* <br /> */}
-          <div className="right">
-            {/* <br /> */}
-            <input
-              // type="number"
-              className="common-input input-mobile"
-              style={{ width: 35 }}
-              id="timemisus"
-            />
-            <input
-              type="submit"
-              className="common-btn btn-mobile input-width-small"
-              value="Change"
-              onClick={() => changeTime()}
-            />
-            <input
-              type="submit"
-              className="common-btn btn-mobile input-width-small"
-              value="clear"
-              onClick={() => onClearCusLoop()}
-            />
-            <input
-              type="submit"
-              className="common-btn btn-mobile input-width-small"
-              value="Add"
-              onClick={() => onAddPoint()}
-            />
-          </div>
-          <br />
-
-          <div id="cus-loop-control">
+        <div className="yt-controls-col">
+          <div className="right" id="cus-loop-control">
             <input
               className="common-input"
               type="text"
@@ -563,6 +531,57 @@ const YoutubeSub: FC = () => {
               onDown={() => changeTimeLoop(false, false)}
             ></StackBtn>
           </div>
+          {/* <br /> */}
+          <div className="right">
+            {/* <br /> */}
+            <input
+              // type="number"
+              className="common-input input-mobile"
+              style={{ width: 35 }}
+              id="timemisus"
+            />
+            <input
+              type="submit"
+              className="common-btn btn-mobile "
+              value="Change"
+              onClick={() => changeTime()}
+            />
+            <input
+              type="submit"
+              className="common-btn btn-mobile "
+              value="clear"
+              onClick={() => onClearCusLoop()}
+            />
+            <input
+              type="submit"
+              className="common-btn btn-mobile "
+              value="Add"
+              onClick={() => onAddPoint()}
+            />
+          </div>
+
+          <div className="right">
+            <input
+              type="submit"
+              style={{ width: 85 }}
+              className="common-btn btn-mobile"
+              value=">"
+              onClick={() => next()}
+            />
+            <input
+              type="submit"
+              className="common-btn btn-mobile"
+              value="||"
+              onClick={() => onStartStop({} as React.MouseEvent<HTMLInputElement>)}
+            />
+
+            <input
+              type="submit"
+              className="common-btn btn-mobile"
+              value="<"
+              onClick={() => previous()}
+            />
+          </div>
         </div>
         <SpeakPracticeInput
           value={tempText}
@@ -577,7 +596,7 @@ const YoutubeSub: FC = () => {
       <div id="mul-ai" className="collapse-content ui-sub-panel">
         <MulAI {...MUL_PROP}></MulAI>
       </div>
-      <div>
+      <div id="media-processing">
         <input
           type="text"
           id="txtSrcMedia"
@@ -613,6 +632,77 @@ const YoutubeSub: FC = () => {
           id="btnExecute"
           onClick={() => onProcess()}
         />
+        <br />
+        <input
+          type="text"
+          style={{ width: 70 }}
+          className="common-input inline"
+          value={bookmarkTime}
+          onChange={(event) => {
+            setBookmarkTime(event.target.value);
+            localStorage.setItem(bookmarkTimeNm, event.target.value);
+          }}
+          placeholder="time(s)"
+        />
+        <input
+          type="submit"
+          className="common-btn"
+          value="Set"
+          onClick={() => {
+            if (player) {
+              const t = Number(player.getCurrentTime().toFixed(FIXED_VALUE));
+              const tStr = t.toString();
+              setBookmarkTime(tStr);
+              localStorage.setItem(bookmarkTimeNm, tStr);
+            }
+          }}
+        />
+        <input
+          type="submit"
+          className="common-btn"
+          value="Load"
+          onClick={() => {
+            if (player && bookmarkTime) {
+              player.seekTo(Number(bookmarkTime), true);
+            }
+          }}
+        />
+        <div
+          className="home-config-grid"
+          style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}
+        >
+          <span style={{ fontSize: '13px', fontWeight: 'bold' }}>Controls:</span>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px' }}>
+            <input
+              type="radio"
+              name="ytControls"
+              value="0"
+              checked={ytControls === '0'}
+              onChange={(e) => {
+                const val = e.target.value;
+                setYtControls(val);
+                localStorage.setItem(KEY_YT_CONTROLS, val);
+                onYouTubeIframeAPIReady();
+              }}
+            />
+            Hide
+          </label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px' }}>
+            <input
+              type="radio"
+              name="ytControls"
+              value="1"
+              checked={ytControls === '1'}
+              onChange={(e) => {
+                const val = e.target.value;
+                setYtControls(val);
+                localStorage.setItem(KEY_YT_CONTROLS, val);
+                onYouTubeIframeAPIReady();
+              }}
+            />
+            Show
+          </label>
+        </div>
       </div>
     </div>
   );

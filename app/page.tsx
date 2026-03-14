@@ -11,6 +11,7 @@ import {
   KEY_OPENROUTER_NM,
   KEY_GOOGLE_SHEET_NM,
   KEY_API_SHEET,
+  KEY_DARK_MODE,
 } from '@/common/common';
 
 const DASHBOARD_LINKS = [
@@ -52,6 +53,14 @@ const Home: FC = () => {
     getStoredValue(KEY_GOOGLE_SHEET_NM),
   );
   const [apiKey, setApiKey] = useState<string | null>(() => getStoredValue(KEY_API_SHEET));
+  const [darkMode, setDarkMode] = useState<string>('Y');
+  const mountedRef = React.useRef(false);
+
+  useEffect(() => {
+    setDarkMode(localStorage.getItem(KEY_DARK_MODE) ?? 'Y');
+    mountedRef.current = true;
+  }, []);
+
   useEffect(() => {
     if (gemKey) {
       localStorage.setItem(KEY_GEMINI_NM, gemKey);
@@ -100,12 +109,17 @@ const Home: FC = () => {
     }
   }, [apiKey]);
 
+  useEffect(() => {
+    if (!mountedRef.current) return;
+    localStorage.setItem(KEY_DARK_MODE, darkMode);
+  }, [darkMode]);
+
   return (
     <div className="ui-page">
       <div className="ui-page-shell home-shell">
         <h1 className="ui-title">SLearning Studio</h1>
         <p className="ui-subtitle">
-          Unified navigation for desktop and mobile tools, with shared UI tokens.
+          {/* Unified navigation for desktop and mobile tools, with shared UI tokens. */}
         </p>
 
         <div className="home-menu-grid">
@@ -248,6 +262,33 @@ const Home: FC = () => {
                 }}
                 placeholder="api key"
               />
+            </label>
+          </div>
+          <div className="home-config-grid" style={{ marginTop: '12px' }}>
+            <label className="home-config-field">
+              <span>Default Dark Mode</span>
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <label>
+                  <input
+                    type="radio"
+                    name="darkMode"
+                    value="Y"
+                    checked={darkMode === 'Y'}
+                    onChange={(e) => setDarkMode(e.target.value)}
+                  />
+                  On
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    name="darkMode"
+                    value="N"
+                    checked={darkMode === 'N'}
+                    onChange={(e) => setDarkMode(e.target.value)}
+                  />
+                  Off
+                </label>
+              </div>
             </label>
           </div>
         </div>

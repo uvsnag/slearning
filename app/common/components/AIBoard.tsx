@@ -275,7 +275,9 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
     let locGithub = githubLcal ? githubLcal : localStorage.getItem(KEY_GITHUB_NM);
     let locGithub2 = githubLcal2 ? githubLcal2 : localStorage.getItem(KEY_GITHUB_NM_2);
     let locOpenRouter = openRouterLcal ? openRouterLcal : localStorage.getItem(KEY_OPENROUTER_NM);
-    let sysPromptVa = localStorage.getItem(sysPromptNm) ?? props.defaultPrompt ?? '';
+    let sysPromptVa = localStorage.getItem(sysPromptNm)
+      ? localStorage.getItem(sysPromptNm)
+      : (props.defaultPrompt ?? '');
     console.log(locGem);
     if (gmLcal) {
       setGemKey(locGem);
@@ -295,7 +297,7 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
     if (openRouterLcal) {
       setOpenRouterKey(locOpenRouter);
     }
-    setSysPrompt(sysPromptVa);
+    setSysPrompt(sysPromptVa || '');
     if (props.collapse !== 'Y') {
       collapseElement(`gemini-${props.prefix}${props.index}`);
       console.log('toggleCollapse');
@@ -421,9 +423,7 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
   }, [openRouterKey]);
 
   useEffect((): void => {
-    if (sysPrompt) {
-      localStorage.setItem(sysPromptNm, sysPrompt);
-    }
+    localStorage.setItem(sysPromptNm, sysPrompt || '');
     resetOpenAIHistoryRefs();
   }, [sysPrompt]);
 
@@ -627,9 +627,9 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
       }
       addLog(buildResponseLogHtml(responseTxt, usedModelName), false);
       appendConversationTurn(promVal, responseTxt, usedModelName);
-
-      setValue1(promVal);
-      setValue2(fomatRawResponse(responseTxt));
+      const resStr = fomatRawResponse(responseTxt);
+      setValue1(resStr?.split('<br/>')?.[0]);
+      setValue2(resStr?.split('<br/>')?.[1]);
     } catch (error) {
       addLog(String(error), false);
     }
@@ -1264,12 +1264,50 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
         <button onClick={() => setIsPromptExpanded((prev) => !prev)} className="common-btn">
           {isPromptExpanded ? 'Collapse' : 'Expand'}
         </button>
+        <button
+          onClick={() => toggleCollapse(`save-sheet-${props.prefix}${props.index}`)}
+          className="common-btn"
+        >
+          Data
+        </button>
+        <button
+          onClick={() => toggleCollapse(`config-${props.prefix}${props.index}`)}
+          className="common-btn"
+        >
+          Config
+        </button>
+        {/* <div
+          className="common-toggle"
+          onClick={() => toggleCollapse(`save-sheet-${props.prefix}${props.index}`)}
+        >
+           Data
+        </div> */}
+        {isSpeakEnabled && (
+          <button
+            onClick={() => toggleCollapse(`voice-config-${props.prefix}${props.index}`)}
+            className="common-btn"
+          >
+            Speak
+          </button>
+          /*    <div
+            className="common-toggle"
+            onClick={() => toggleCollapse(`voice-config-${props.prefix}${props.index}`)}
+          >
+            Speak
+          </div> */
+        )}
         <div
+          className="collapse-content ui-sub-panel ai-data-panel"
+          id={`save-sheet-${props.prefix}${props.index}`}
+        >
+          <SheetDataEditor value1={value1} value2={value2} />
+        </div>
+        {/* <div
           className="common-toggle"
           onClick={() => toggleCollapse(`config-${props.prefix}${props.index}`)}
         >
-          {/* <FaCog /> */}Config
-        </div>
+       Config
+        </div> */}
 
         <div
           className="collapse-content ui-sub-panel ai-config-panel"
@@ -1389,26 +1427,7 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
             // placeholder="Sys promt"
           />
         </div>
-        <div
-          className="common-toggle"
-          onClick={() => toggleCollapse(`save-sheet-${props.prefix}${props.index}`)}
-        >
-          {/* <FaSave /> */} Data
-        </div>
-        <div
-          className="collapse-content ui-sub-panel ai-data-panel"
-          id={`save-sheet-${props.prefix}${props.index}`}
-        >
-          <SheetDataEditor value1={value1} value2={value2} />
-        </div>
-        {isSpeakEnabled && (
-          <div
-            className="common-toggle"
-            onClick={() => toggleCollapse(`voice-config-${props.prefix}${props.index}`)}
-          >
-            {/* <FaVolumeUp /> */}Speak
-          </div>
-        )}
+
         {isSpeakEnabled && (
           <div
             className="collapse-content ui-sub-panel ai-voice-panel"

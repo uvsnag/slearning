@@ -394,13 +394,29 @@ const PractWords = (props: PractWordsProps) => {
           statement={question}
           lastSentence={lastEng}
           title={'Add Excel'}
-          defaultPrompt={`dịch từ này sang tiếng anh, trả lời ngắn gọn
-              Ví dụ 1 (từ có 1 nghĩa):
-              tôi chat: dog
-              trả lời: con chó (n)
-              Ví dụ 2 (từ có nhiều nghĩa, liệt kê hết nghĩa):
-              tôi chat: book
-              trả lời: cuốn sách (n), đặt phòng (v)`}
+          defaultPrompt={`dịch từ này sang tiếng anh, trả lời ngắn gọn theo format:
+"viết lại từ tiếng anh (sửa chính tả)
+nghĩa tiếng việt ngắn gọn"
+
+Ví dụ 1 (từ có 1 nghĩa):
+tôi chat: dog
+trả lời: 
+Dog
+con chó (n)
+
+
+Ví dụ 2 (từ có nhiều nghĩa, liệt kê hết nghĩa):
+tôi chat: book
+trả lời: 
+Book
+cuốn sách (n), đặt phòng (v)
+
+
+Ví dụ 3:
+tôi chat: it wasnt mean to be	
+trả lời: 
+It wasn't meant to be	
+Không phải định mệnh, Không có duyên.`}
         />
         <div className="panel-radio-group">
           <label className="panel-radio">

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { FaHome } from 'react-icons/fa';
 import type { ChangeEvent } from 'react';
 import { useEffect, useState } from 'react';
+import { KEY_DARK_MODE } from '@/common/common.js';
 
 const THEME_STORAGE_KEY = 'sl_theme_mode';
 const THEME_1 = 'current';
@@ -23,13 +24,14 @@ const applyThemeClass = (theme: ThemeMode) => {
   }
 };
 export const handleCheckboxDarkChange = (e: ChangeEvent<HTMLInputElement>) => {
-  // const targetDiv = document.getElementById("root");
   const bodyElement = document.body;
   if (bodyElement) {
     if (e.target.checked) {
       bodyElement.classList.add('dark-90');
+      localStorage.setItem(KEY_DARK_MODE, 'Y');
     } else {
       bodyElement.classList.remove('dark-90');
+      localStorage.setItem(KEY_DARK_MODE, 'N');
     }
   }
 };
@@ -39,13 +41,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const [themeMode, setThemeMode] = useState<ThemeMode>(THEME_1);
+  const [isDark, setIsDark] = useState<boolean>(true);
 
   useEffect(() => {
     const storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
     const initialTheme = storedTheme === THEME_2 ? THEME_2 : THEME_1;
     setThemeMode(initialTheme);
     applyThemeClass(initialTheme);
-    // document.body.classList.add('dark-90');
+
+    const storedDark = localStorage.getItem(KEY_DARK_MODE);
+    const darkEnabled = storedDark !== 'N';
+    setIsDark(darkEnabled);
+    if (darkEnabled) {
+      document.body.classList.add('dark-90');
+    } else {
+      document.body.classList.remove('dark-90');
+    }
   }, []);
 
   const handleThemeModeChange = (event: ChangeEvent<HTMLSelectElement>) => {
@@ -68,7 +79,12 @@ export default function RootLayout({
           </Link>
           <div className="app-topbar-controls">
             <label className="app-dark-switch">
-              <input type="checkbox" onChange={handleCheckboxDarkChange} defaultChecked={false} />
+              <input
+                type="checkbox"
+                onChange={handleCheckboxDarkChange}
+                checked={isDark}
+                onClick={() => setIsDark((prev) => !prev)}
+              />
               Dark mode
             </label>
             <label className="app-theme-switch">
