@@ -109,7 +109,8 @@ const SpeakAI = () => {
         prefix="speak-ai"
         enableHis="Y"
         heightRes={380}
-        isSpeak="A"
+        isSpeak="L"
+        speakSplitter="Continue conversation:"
         isMini={null}
         firstAsk={prompt}
         collapse={'N'}
