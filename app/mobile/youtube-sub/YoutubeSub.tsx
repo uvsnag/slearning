@@ -3,7 +3,7 @@ import { useEffect, useState, FC } from 'react';
 import './style-yout-sub.css';
 import _ from 'lodash';
 import { Sub } from './Subtitle';
-import { toggleCollapse, KEY_YT_CONTROLS } from '@/common/common.js';
+import { toggleCollapse, KEY_YT_CONTROLS, COMMON_PROMPT } from '@/common/common.js';
 import MulAI, { MulAIContainerProps } from '@/app/multi-ai/MultiAI';
 import StackBtn from '@/app/common/components/StackButton';
 import SpeakPracticeInput from './SpeakPracticeInput';
@@ -57,7 +57,16 @@ const YoutubeSub: FC = () => {
     heightRes: 180,
     cols: 1,
     configs: [
-      { instanceNo: 0, prefix: 'yts', enableHis: 'N', collapse: 'N' },
+      {
+        instanceNo: 0,
+        prefix: 'yts',
+        enableHis: 'N',
+        collapse: 'N',
+        title: 'Add Excel',
+        isSpeak: 'F',
+        speakSplitter: `\n`,
+        defaultPrompt: COMMON_PROMPT.ADD_EXCEL_ENG,
+      },
       // { instanceNo: 1, prefix: 'yts', enableHis: 'N', collapse: 'N' },
       // { instanceNo: 2, prefix: 'yts', enableHis: 'Y', collapse: 'Y' },
     ],

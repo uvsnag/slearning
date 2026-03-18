@@ -12,6 +12,7 @@ import {
   KEY_GOOGLE_SHEET_NM,
   KEY_API_SHEET,
   KEY_DARK_MODE,
+  KEY_SHOW_LOADING,
 } from '@/common/common';
 
 const DASHBOARD_LINKS = [
@@ -54,10 +55,12 @@ const Home: FC = () => {
   );
   const [apiKey, setApiKey] = useState<string | null>(() => getStoredValue(KEY_API_SHEET));
   const [darkMode, setDarkMode] = useState<string>('Y');
+  const [showLoading, setShowLoading] = useState<string>('Y');
   const mountedRef = React.useRef(false);
 
   useEffect(() => {
     setDarkMode(localStorage.getItem(KEY_DARK_MODE) ?? 'Y');
+    setShowLoading(localStorage.getItem(KEY_SHOW_LOADING) ?? 'Y');
     mountedRef.current = true;
   }, []);
 
@@ -113,6 +116,11 @@ const Home: FC = () => {
     if (!mountedRef.current) return;
     localStorage.setItem(KEY_DARK_MODE, darkMode);
   }, [darkMode]);
+
+  useEffect(() => {
+    if (!mountedRef.current) return;
+    localStorage.setItem(KEY_SHOW_LOADING, showLoading);
+  }, [showLoading]);
 
   return (
     <div className="ui-page">
@@ -285,6 +293,31 @@ const Home: FC = () => {
                     value="N"
                     checked={darkMode === 'N'}
                     onChange={(e) => setDarkMode(e.target.value)}
+                  />
+                  Off
+                </label>
+              </div>
+            </label>
+            <label className="home-config-field">
+              <span>Show Loading</span>
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <label>
+                  <input
+                    type="radio"
+                    name="showLoading"
+                    value="Y"
+                    checked={showLoading === 'Y'}
+                    onChange={(e) => setShowLoading(e.target.value)}
+                  />
+                  On
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    name="showLoading"
+                    value="N"
+                    checked={showLoading === 'N'}
+                    onChange={(e) => setShowLoading(e.target.value)}
                   />
                   Off
                 </label>

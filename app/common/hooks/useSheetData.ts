@@ -1,7 +1,7 @@
 'use client';
 import config from '@/common/config.js';
 import _ from 'lodash';
-import { KEY_GOOGLE_SHEET_NM, KEY_API_SHEET } from '@/common/common.js';
+import { KEY_GOOGLE_SHEET_NM, KEY_API_SHEET, KEY_SHOW_LOADING } from '@/common/common.js';
 
 export interface DataItem {
   eng: string;
@@ -215,6 +215,7 @@ const LOADER_STYLE_ID = 'sheet-data-loading-style';
 
 const ensureLoader = () => {
   if (typeof document === 'undefined') return;
+  if (localStorage.getItem(KEY_SHOW_LOADING) === 'N') return;
   if (document.getElementById(LOADER_ID)) return;
 
   if (!document.getElementById(LOADER_STYLE_ID)) {

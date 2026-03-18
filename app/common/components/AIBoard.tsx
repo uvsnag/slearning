@@ -71,7 +71,8 @@ export interface AIBoardProps {
   title?: string | null;
   defaultPrompt?: string | null;
   defaultModel?: string | null;
-  isSpeak?: 'Y' | 'N' | 'A' | boolean | null;
+  isSpeak?: 'Y' | 'N' | 'F' | 'L' | boolean | null;
+  speakSplitter?: string | null;
 }
 
 const MODEL_AI: ModelAI[] = [
@@ -194,11 +195,14 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
     return MODEL_AI[0];
   });
   const [useHis, setUseHis] = useState<string>(props.enableHis ?? 'N');
-  const [useSpeak, setUseSpeak] = useState<'Y' | 'N' | 'A'>(
-    props.isSpeak === 'Y' || props.isSpeak === 'A' ? 'Y' : 'N',
+  const [useSpeak, setUseSpeak] = useState<'Y' | 'N' | 'F' | 'L'>(
+    props.isSpeak === 'Y' || props.isSpeak === 'F' || props.isSpeak === 'L'
+      ? (props.isSpeak as 'Y' | 'F' | 'L')
+      : 'N',
   );
+  const [speakSplitText, setSpeakSplitText] = useState<string>(props.speakSplitter ?? '\n');
   const [useClickToSpeech, setUseClickToSpeech] = useState<'Y' | 'N'>(
-    props.isSpeak === 'Y' || props.isSpeak === 'A' ? 'Y' : 'N',
+    props.isSpeak === 'Y' || props.isSpeak === 'F' || props.isSpeak === 'L' ? 'Y' : 'N',
   );
   const [wordPopup, setWordPopup] = useState<{
     open: boolean;
@@ -428,7 +432,7 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
   }, [sysPrompt]);
 
   useEffect((): void => {
-    if (useSpeak === 'A' && useClickToSpeech !== 'Y') {
+    if ((useSpeak === 'F' || useSpeak === 'L') && useClickToSpeech !== 'Y') {
       setUseClickToSpeech('Y');
     }
   }, [useSpeak, useClickToSpeech]);
@@ -613,10 +617,7 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
       }
       setLastResponseRaw(responseTxt);
       if (useSpeak !== 'N' && responseTxt) {
-        const textToSpeak =
-          useSpeak === 'A'
-            ? extractConversationSentence(responseTxt)
-            : sanitizeForSpeech(responseTxt);
+        const textToSpeak = getSplitTextForSpeak(responseTxt);
         if (textToSpeak) {
           speakText(textToSpeak, true, {
             voice: voiceIndex,
@@ -715,49 +716,6 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
     return `<div>${buildResponseHtml(rawResponse)}</div>${buildResponseModelInfoHtml(modelName)}${buildResponseActionButtonsHtml(responseIndex)}`;
   }
 
-  function extractConversationSentence(text: string): string {
-    const fullText = sanitizeForSpeech(text);
-    const normalizedText = text.replace(/\r\n/g, '\n').replace(/\*\*/g, '');
-    const lines = normalizedText.split('\n');
-    let inlineSectionBody = '';
-    let continueLineIndex = -1;
-
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i].trim();
-      const match = line.match(/^[-*#\d.)\s]*continue\s+conversation\s*:\s*(.*)$/i);
-      if (match) {
-        continueLineIndex = i;
-        inlineSectionBody = (match[1] || '').trim();
-        break;
-      }
-    }
-
-    if (continueLineIndex === -1) {
-      return fullText;
-    }
-
-    const sectionLines: string[] = [];
-    if (inlineSectionBody) {
-      sectionLines.push(inlineSectionBody);
-    }
-    for (let i = continueLineIndex + 1; i < lines.length; i++) {
-      const line = lines[i].trim();
-      if (!line) continue;
-      if (/^[-*#\d.)\s]*[a-z][a-z\s]{1,30}:\s*$/i.test(line)) {
-        break;
-      }
-      sectionLines.push(line);
-    }
-    const sectionBody = sectionLines.join(' ').trim();
-    if (!sectionBody) {
-      return fullText;
-    }
-
-    const cleanedSection = sectionBody.replace(/^[-*0-9.)\s]+/, '').trim();
-    const conversationText = sanitizeForSpeech(cleanedSection);
-    return conversationText || fullText;
-  }
-
   const fetchVietnameseMeaning = useCallback(async (word: string): Promise<string> => {
     const normalizedWord = word.toLowerCase();
     if (meaningCacheRef.current[normalizedWord]) {
@@ -822,13 +780,32 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
     [speakText, voiceIndex, rate, volumn, fetchVietnameseMeaning],
   );
 
+  const useSpeakRef = useRef(useSpeak);
+  useSpeakRef.current = useSpeak;
+  const speakSplitTextRef = useRef(speakSplitText);
+  speakSplitTextRef.current = speakSplitText;
+
+  const getSplitTextForSpeak = useCallback((raw: string): string => {
+    const mode = useSpeakRef.current;
+    if (mode === 'F' || mode === 'L') {
+      const resolvedSplitter = speakSplitTextRef.current
+        .replace(/\\n/g, '\n')
+        .replace(/\\r/g, '\r')
+        .replace(/\\t/g, '\t');
+      const parts = raw.split(resolvedSplitter);
+      const chosen = mode === 'F' ? parts[0] : (parts[1] ?? '');
+      return sanitizeForSpeech(chosen);
+    }
+    return sanitizeForSpeech(raw);
+  }, []);
+
   const onSpeakResponse = useCallback(
     (responseText: string): void => {
       if (speaking) {
         cancel();
         return;
       }
-      const textToSpeak = sanitizeForSpeech(responseText);
+      const textToSpeak = getSplitTextForSpeak(responseText);
       if (!textToSpeak) {
         return;
       }
@@ -838,7 +815,7 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
         volume: volumn,
       });
     },
-    [speakText, voiceIndex, rate, volumn, speaking, cancel],
+    [speakText, voiceIndex, rate, volumn, speaking, cancel, getSplitTextForSpeak],
   );
 
   const onCopyResponse = useCallback(async (responseText: string): Promise<void> => {
@@ -923,10 +900,12 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
     if (!isSpeakEnabled || !lastResponseRaw) {
       return;
     }
-    const textToSpeak =
-      useSpeak === 'A'
-        ? extractConversationSentence(lastResponseRaw)
-        : sanitizeForSpeech(lastResponseRaw);
+    let textToSpeak: string;
+    if (useSpeak === 'F' || useSpeak === 'L') {
+      textToSpeak = getSplitTextForSpeak(lastResponseRaw);
+    } else {
+      textToSpeak = sanitizeForSpeech(lastResponseRaw);
+    }
     if (!textToSpeak) {
       return;
     }
@@ -1350,13 +1329,23 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
             className="common-input"
             value={useSpeak}
             onChange={(e: ChangeEvent<HTMLSelectElement>) => {
-              setUseSpeak(e.target.value as 'Y' | 'N' | 'A');
+              setUseSpeak(e.target.value as 'Y' | 'N' | 'F' | 'L');
             }}
           >
             <option value="Y">Yes</option>
             <option value="N">No</option>
-            <option value="A">Continue conversation</option>
+            <option value="F">First (split)</option>
+            <option value="L">Last (split)</option>
           </select>
+          <input
+            className="common-input"
+            type="text"
+            style={{ width: 80 }}
+            value={speakSplitText}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => setSpeakSplitText(e.target.value)}
+            placeholder="split text"
+            title="Custom sentence to split response for F/L speak mode"
+          />
           <span>Click to speech</span>
           <select
             className="common-input"

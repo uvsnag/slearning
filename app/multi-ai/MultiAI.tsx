@@ -105,6 +105,8 @@ const MulAI: React.FC<MulAIContainerProps> = (props) => {
                 // isShowPract={config.isShowPract}
                 lastSentence={config?.lastSentence}
                 collapse={config?.collapse}
+                isSpeak={config?.isSpeak}
+                speakSplitter={config?.speakSplitter}
               />
             </div>
           );
