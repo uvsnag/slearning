@@ -3,7 +3,7 @@ export default {
     sheetDefault: 'Notify!A2:C500',
   },
   listen: {
-    sheetDefault: 'Notify!Y2:AA500',
+    // sheetDefault: 'AUTO!Q2:R500',
   },
   // apiKey: '',
   // clientId: '897570143608-h6kp1rvlpc1ve71tu2kch3mtukueae4a.apps.googleusercontent.com',

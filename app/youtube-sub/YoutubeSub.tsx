@@ -50,6 +50,7 @@ let intervalCusLoop: NodeJS.Timeout | null = null;
 let arrTime: string[] = [];
 const urlCookieNm: string = 'lis-url';
 const subCookieNm: string = 'lis-sub';
+const KEY_YT_PLAYER_SIZE: string = 'yt-player-size';
 const SOURCE_RANGE = SHEET_AUTO.find((item) => item.name === 'ABoard6')?.range || 'AUTO!U2:W500';
 
 const YoutubeSub: FC = () => {
@@ -111,6 +112,10 @@ const YoutubeSub: FC = () => {
     if (!_.isEmpty(localStorage)) {
       setUrl(localStorage.getItem(urlCookieNm) || '');
       setSub(localStorage.getItem(subCookieNm) || '');
+      const storedSize = Number(localStorage.getItem(KEY_YT_PLAYER_SIZE));
+      if (Number.isFinite(storedSize) && storedSize > 0) {
+        setSize(storedSize);
+      }
     }
 
     const windowWithYT = window as WindowWithYT;
@@ -166,6 +171,12 @@ const YoutubeSub: FC = () => {
   useEffect((): void => {
     localStorage.setItem(urlCookieNm, url);
   }, [url]);
+  useEffect((): void => {
+    localStorage.setItem(KEY_YT_PLAYER_SIZE, String(size));
+    if (player) {
+      player.setSize(size * (16 / 9), size);
+    }
+  }, [size]);
   useEffect((): void => {
     getDataFromExcel(SOURCE_RANGE, (items: DataItem[]): void => {
       const sources = items.filter((item): boolean => Boolean(item.eng?.trim()));
@@ -227,9 +238,6 @@ const YoutubeSub: FC = () => {
     setHeight(10);
     setTop(0);
     setAttTop(0);
-    if (player) {
-      player.setSize(valueSz * (16 / 9), valueSz);
-    }
   };
   const handleSubChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     setSubHeight(Number(event.target.value));
@@ -256,7 +264,7 @@ const YoutubeSub: FC = () => {
   const onYouTubeIframeAPIReady = (): void => {
     const windowWithYT = window as WindowWithYT;
     if (!windowWithYT.YT) return;
-    const DEFAULT_HEIGHT = 729;
+    const DEFAULT_HEIGHT = Number(localStorage.getItem(KEY_YT_PLAYER_SIZE)) ?? 729;
     player = new windowWithYT.YT.Player('player', {
       height: DEFAULT_HEIGHT,
       width: DEFAULT_HEIGHT * (16 / 9),
@@ -832,11 +840,7 @@ const YoutubeSub: FC = () => {
           Speech
         </div>
         <div id="speech-temp" className="collapse-content ui-sub-panel yts-ai-panel">
-          <SpeakPracticeInput
-            value={tempText}
-            onChange={setTempText}
-            voiceIndex="youtube-speech-practice"
-          />
+          <SpeakPracticeInput voiceIndex="youtube-speech-practice" type="TEXTAREA" rows={3} />
         </div>
 
         <div className="common-toggle " onClick={() => toggleCollapse('mul-ai')}>
