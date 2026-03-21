@@ -1,6 +1,6 @@
-:HL["/slearning/_next/static/chunks/8f6ec7ec6e217b0f.css","style"]
+:HL["/slearning/_next/static/chunks/f9c1f4a4bb008d48.css","style"]
 :HL["/slearning/_next/static/chunks/ba822fb05dc2e5c2.css","style"]
 :HL["/slearning/_next/static/chunks/757ddc99b2f4718d.css","style"]
 :HL["/slearning/_next/static/chunks/e4adea5dadb53185.css","style"]
 :HL["/slearning/_next/static/chunks/6e856cf913a91320.css","style"]
-0:{"buildId":"kTNfj6diwG0r9HO7vn5eA","tree":{"name":"","paramType":null,"paramKey":"","hasRuntimePrefetch":false,"slots":{"children":{"name":"dash-board1","paramType":null,"paramKey":"dash-board1","hasRuntimePrefetch":false,"slots":{"children":{"name":"__PAGE__","paramType":null,"paramKey":"__PAGE__","hasRuntimePrefetch":false,"slots":null,"isRootLayout":false}},"isRootLayout":false}},"isRootLayout":true},"staleTime":300}
+0:{"buildId":"-c4VTgCrHRwdNS_F4W3oG","tree":{"name":"","paramType":null,"paramKey":"","hasRuntimePrefetch":false,"slots":{"children":{"name":"dash-board1","paramType":null,"paramKey":"dash-board1","hasRuntimePrefetch":false,"slots":{"children":{"name":"__PAGE__","paramType":null,"paramKey":"__PAGE__","hasRuntimePrefetch":false,"slots":null,"isRootLayout":false}},"isRootLayout":false}},"isRootLayout":true},"staleTime":300}
