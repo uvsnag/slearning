@@ -54,13 +54,15 @@ const Home: FC = () => {
     getStoredValue(KEY_GOOGLE_SHEET_NM),
   );
   const [apiKey, setApiKey] = useState<string | null>(() => getStoredValue(KEY_API_SHEET));
-  const [darkMode, setDarkMode] = useState<string>('Y');
-  const [showLoading, setShowLoading] = useState<string>('Y');
+  const [darkMode, setDarkMode] = useState<string>(() => getStoredValue(KEY_DARK_MODE) ?? 'Y');
+  const [showLoading, setShowLoading] = useState<string>(
+    () => getStoredValue(KEY_SHOW_LOADING) ?? 'Y',
+  );
   const mountedRef = React.useRef(false);
 
   useEffect(() => {
-    setDarkMode(localStorage.getItem(KEY_DARK_MODE) ?? 'Y');
-    setShowLoading(localStorage.getItem(KEY_SHOW_LOADING) ?? 'Y');
+    // setDarkMode(localStorage.getItem(KEY_DARK_MODE) ?? 'Y');
+    // setShowLoading(localStorage.getItem(KEY_SHOW_LOADING) ?? 'Y');
     mountedRef.current = true;
   }, []);
 

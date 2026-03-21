@@ -1240,9 +1240,9 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
         <button onClick={() => askDec(prompt)} className="common-btn">
           Send
         </button>
-        <button onClick={() => setIsPromptExpanded((prev) => !prev)} className="common-btn">
+        {/* <button onClick={() => setIsPromptExpanded((prev) => !prev)} className="common-btn">
           {isPromptExpanded ? 'Collapse' : 'Expand'}
-        </button>
+        </button> */}
         <button
           onClick={() => toggleCollapse(`save-sheet-${props.prefix}${props.index}`)}
           className="common-btn"

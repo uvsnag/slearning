@@ -14,6 +14,7 @@ import { SHEET_AUTO } from '@/app/common/components/SheetDataEditor';
 interface YouTubePlayer {
   getPlayerState: () => number;
   getCurrentTime: () => number;
+  getDuration: () => number;
   playVideo: () => void;
   pauseVideo: () => void;
   setSize: (width: number, height: number) => void;
@@ -50,7 +51,19 @@ let intervalCusLoop: NodeJS.Timeout | null = null;
 let arrTime: string[] = [];
 const urlCookieNm: string = 'lis-url';
 const bookmarkTimeNm: string = 'yt-bookmark-time';
+const KEY_YT_PLAYER_SIZE: string = 'yt-player-size';
 const SOURCE_RANGE = SHEET_AUTO.find((item) => item.name === 'ABoard6')?.range || 'AUTO!U2:W500';
+
+const formatTime = (timeInSeconds: number): string => {
+  if (isNaN(timeInSeconds)) {
+    return '00:00';
+  }
+  const minutes = Math.floor(timeInSeconds / 60);
+  const seconds = Math.floor(timeInSeconds % 60);
+  const formattedMinutes = String(minutes).padStart(2, '0');
+  const formattedSeconds = String(seconds).padStart(2, '0');
+  return `${formattedMinutes}:${formattedSeconds}`;
+};
 
 const YoutubeSub: FC = () => {
   const MUL_PROP: MulAIContainerProps = {
@@ -73,17 +86,17 @@ const YoutubeSub: FC = () => {
   };
 
   const REPLAY_NO: string = 'REPLACE_NO';
-  const SIZE_RATIO: number = 1.62;
   const [arrSub, setArrSub] = useState<Sub[]>([]);
   const [customLoopAs, setCustomLoopAs] = useState<string>('');
   const [customLoopBs, setCustomLoopBs] = useState<string>('');
-  const [size, setSize] = useState<number>(390 / SIZE_RATIO);
+  const [size, setSize] = useState<number>(200);
   const [subHeight, setSubHeight] = useState<number>(300);
   const [url, setUrl] = useState<string>('');
-  const [tempText, setTempText] = useState<string>('');
   const [sourceOptions, setSourceOptions] = useState<DataItem[]>([]);
   const [bookmarkTime, setBookmarkTime] = useState<string>('');
   const [ytControls, setYtControls] = useState<string>('0');
+  const [videoPercent, setVideoPercent] = useState<number>(0);
+  const [duration, setDuration] = useState<string>('');
 
   const LOOP_CUSTOM: string = 'LOOP_CUSTOM';
   const NOT_VALUE_TIME: number = 1;
@@ -94,6 +107,10 @@ const YoutubeSub: FC = () => {
       setUrl(localStorage.getItem(urlCookieNm) || '');
       setBookmarkTime(localStorage.getItem(bookmarkTimeNm) || '');
       setYtControls(localStorage.getItem(KEY_YT_CONTROLS) || '0');
+      const storedSize = Number(localStorage.getItem(KEY_YT_PLAYER_SIZE));
+      if (Number.isFinite(storedSize) && storedSize > 0) {
+        setSize(storedSize);
+      }
     }
 
     const windowWithYT = window as WindowWithYT;
@@ -145,6 +162,12 @@ const YoutubeSub: FC = () => {
   useEffect((): void => {
     localStorage.setItem(urlCookieNm, url);
   }, [url]);
+  useEffect((): void => {
+    localStorage.setItem(KEY_YT_PLAYER_SIZE, String(size));
+    if (player) {
+      player.setSize(size * (16 / 9), size);
+    }
+  }, [size]);
   useEffect((): void => {
     getDataFromExcel(SOURCE_RANGE, (items: DataItem[]): void => {
       const sources = items.filter((item): boolean => Boolean(item.eng?.trim()));
@@ -198,9 +221,6 @@ const YoutubeSub: FC = () => {
   const handleSizeChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     let valueSz = Number(event.target.value);
     setSize(valueSz);
-    if (player) {
-      player.setSize(valueSz * 1.7, valueSz * 1.7 * (400 / 640));
-    }
   };
   const onYouTubeIframeAPIReady = (): void => {
     const windowWithYT = window as WindowWithYT;
@@ -216,10 +236,10 @@ const YoutubeSub: FC = () => {
     }
 
     const ytControlsVal = Number(localStorage.getItem(KEY_YT_CONTROLS) ?? '0');
-
+    const DEFAULT_HEIGHT = Number(localStorage.getItem(KEY_YT_PLAYER_SIZE)) ?? 175;
     player = new windowWithYT.YT.Player('player', {
-      height: 320 / SIZE_RATIO,
-      width: 510 / SIZE_RATIO,
+      height: DEFAULT_HEIGHT,
+      width: DEFAULT_HEIGHT * (16 / 9),
       videoId: '',
       playerVars: {
         fs: 0,
@@ -230,6 +250,7 @@ const YoutubeSub: FC = () => {
         controls: ytControlsVal,
         cc_lang_pref: 'en',
         cc_load_policy: 1,
+        rel: 0,
       },
       events: {
         onReady: onPlayerReady,
@@ -311,6 +332,11 @@ const YoutubeSub: FC = () => {
           subControl.scrollTo({ top: scrollDiv, behavior: 'smooth' });
         }
       }
+      // format setDuration to 00:00 / 00:00
+      if (player) {
+        setDuration(`${formatTime(player.getCurrentTime())} / ${formatTime(player.getDuration())}`);
+      }
+      // setVideoPercent(Number(((player.getCurrentTime() / player.getDuration()) * 100).toFixed(2)));
     }, 200);
   };
 
@@ -493,110 +519,114 @@ const YoutubeSub: FC = () => {
       onKeyDown={(e) => onControlKey(e)}
     >
       <div id="maincontent-yt" className="">
-        <input
-          type="range"
-          className="range-input"
-          id="size"
-          name="vol"
-          min="0"
-          max="1000"
-          value={size}
-          onChange={handleSizeChange}
-        ></input>
         <div id="vd-control" className="yt-video-col">
           <div id="player"></div>
           <br />
+          <div style={{}} className="inline common-btn btn-mobile">
+            {duration}
+          </div>
+          <input
+            type="range"
+            className="range-input"
+            id="size"
+            name="vol"
+            min="0"
+            max="1000"
+            value={size}
+            onChange={handleSizeChange}
+          ></input>
         </div>
         {/* <div className="common-toggle">Control</div> */}
         <div className="yt-controls-col">
-          <div className="right" id="cus-loop-control">
-            <input
-              className="common-input"
-              type="text"
-              style={{ width: 45 }}
-              value={customLoopAs}
-              onChange={(event) => {
-                setCustomLoopAs(event.target.value);
-              }}
-              onBlur={handleBlurA}
-            />
-            <StackBtn
-              onUp={() => changeTimeLoop(true, true)}
-              onDown={() => changeTimeLoop(true, false)}
-            ></StackBtn>
-            <span>-</span>
-            <input
-              type="text"
-              style={{ width: 45 }}
-              className="common-input"
-              value={customLoopBs}
-              onChange={(event) => {
-                setCustomLoopBs(event.target.value);
-              }}
-              onBlur={handleBlurB}
-            />
-            <StackBtn
-              onUp={() => changeTimeLoop(false, true)}
-              onDown={() => changeTimeLoop(false, false)}
-            ></StackBtn>
-          </div>
-          {/* <br /> */}
           <div className="right">
-            {/* <br /> */}
-            <input
-              // type="number"
-              className="common-input input-mobile"
-              style={{ width: 35 }}
-              id="timemisus"
-            />
-            <input
-              type="submit"
-              className="common-btn btn-mobile "
-              value="Change"
-              onClick={() => changeTime()}
-            />
-            <input
-              type="submit"
-              className="common-btn btn-mobile "
-              value="clear"
-              onClick={() => onClearCusLoop()}
-            />
-            <input
-              type="submit"
-              className="common-btn btn-mobile "
-              value="Add"
-              onClick={() => onAddPoint()}
-            />
-          </div>
+            <div id="cus-loop-control">
+              <div className="mobile-control-group">
+                <input
+                  className="common-input"
+                  type="text"
+                  style={{ width: 45 }}
+                  value={customLoopAs}
+                  onChange={(event) => {
+                    setCustomLoopAs(event.target.value);
+                  }}
+                  onBlur={handleBlurA}
+                />
+                <StackBtn
+                  onUp={() => changeTimeLoop(true, true)}
+                  onDown={() => changeTimeLoop(true, false)}
+                ></StackBtn>
+              </div>
+              <div className="mobile-control-group">
+                <input
+                  type="text"
+                  style={{ width: 45 }}
+                  className="common-input"
+                  value={customLoopBs}
+                  onChange={(event) => {
+                    setCustomLoopBs(event.target.value);
+                  }}
+                  onBlur={handleBlurB}
+                />
+                <StackBtn
+                  onUp={() => changeTimeLoop(false, true)}
+                  onDown={() => changeTimeLoop(false, false)}
+                ></StackBtn>
+              </div>
+            </div>
 
-          <div className="right">
-            <input
-              type="submit"
-              style={{ width: 85 }}
-              className="common-btn btn-mobile"
-              value=">"
-              onClick={() => next()}
-            />
-            <input
-              type="submit"
-              className="common-btn btn-mobile"
-              value="||"
-              onClick={() => onStartStop({} as React.MouseEvent<HTMLInputElement>)}
-            />
-
-            <input
-              type="submit"
-              className="common-btn btn-mobile"
-              value="<"
-              onClick={() => previous()}
-            />
+            <div className="mobile-control-parent-group">
+              <div className="mobile-control-group">
+                <input
+                  type="submit"
+                  className="common-btn btn-mobile"
+                  value="<"
+                  onClick={() => previous()}
+                />
+              </div>
+              <div className="mobile-control-group">
+                <input
+                  type="submit"
+                  style={{ width: 85 }}
+                  className="common-btn btn-mobile"
+                  value=">"
+                  onClick={() => next()}
+                />
+                <input
+                  type="submit"
+                  className="common-btn btn-mobile"
+                  value="||"
+                  onClick={() => onStartStop({} as React.MouseEvent<HTMLInputElement>)}
+                />
+              </div>
+            </div>
+            <div className="mobile-control-parent-group">
+              <div className="mobile-control-group">
+                <input className="common-input input-mobile" style={{ width: 35 }} id="timemisus" />
+                <input
+                  type="submit"
+                  className="common-btn btn-mobile "
+                  value="Change"
+                  onClick={() => changeTime()}
+                />
+              </div>
+              <div className="mobile-control-group">
+                <input
+                  type="submit"
+                  className="common-btn btn-mobile "
+                  value="Add"
+                  onClick={() => onAddPoint()}
+                />
+                <input
+                  type="submit"
+                  className="common-btn btn-mobile "
+                  value="clear"
+                  onClick={() => onClearCusLoop()}
+                />
+              </div>
+            </div>
           </div>
         </div>
-        <SpeakPracticeInput
-          value={tempText}
-          onChange={setTempText}
-          voiceIndex="youtube-speech-practice"
-        />
+        <SpeakPracticeInput voiceIndex="youtube-speech-practice" />
         <div className="common-toggle" onClick={() => toggleCollapse('mul-ai')}>
           Mul-AI
         </div>
