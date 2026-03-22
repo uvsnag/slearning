@@ -12,6 +12,8 @@ interface StickyAIBoardProps {
   stickyBottom?: number;
   defaultPrompt?: string;
   pathIcon?: ReactNode;
+  isVisible?: boolean;
+  onOpen?: () => void;
 }
 
 export interface StickyAIBoardHandle {
@@ -28,6 +30,8 @@ const StickyAIBoard = forwardRef<StickyAIBoardHandle, StickyAIBoardProps>(
       stickyBottom,
       defaultPrompt,
       pathIcon,
+      isVisible = true,
+      onOpen,
     },
     ref,
   ) => {
@@ -42,6 +46,8 @@ const StickyAIBoard = forwardRef<StickyAIBoardHandle, StickyAIBoardProps>(
     return (
       <div
         className={`right sticky-ai-card ${isSticky === 'Y' ? 'sticky-ai-float' : ''} ${
+          isVisible ? '' : 'sticky-item-hidden'
+        } ${
           isOpen ? 'open' : ''
         }`}
         style={
@@ -73,7 +79,13 @@ const StickyAIBoard = forwardRef<StickyAIBoardHandle, StickyAIBoardProps>(
           aria-expanded={isOpen}
           aria-label={isOpen ? 'Collapse AI panel' : 'Expand AI panel'}
           aria-controls={`${boardPrefix}-${boardIndex}-panel`}
-          onClick={() => setIsOpen((prev) => !prev)}
+          onClick={() => {
+            const nextIsOpen = !isOpen;
+            if (nextIsOpen) {
+              onOpen?.();
+            }
+            setIsOpen(nextIsOpen);
+          }}
         >
           <svg className="sticky-ai-toggle-caret" viewBox="0 0 24 24" role="img" aria-hidden="true">
             {pathIcon}

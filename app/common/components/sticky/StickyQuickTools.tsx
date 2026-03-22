@@ -1,7 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { COMMON_PROMPT } from '../../common';
 import StickyAIBoard, { type StickyAIBoardHandle } from './StickyAIBoard';
 import StickyPracticeInput, { type StickyPracticeInputHandle } from './StickyPracticeInput';
@@ -83,10 +83,25 @@ const StickyQuickTools = ({
 }: StickyQuickToolsProps) => {
   const practiceRef = useRef<StickyPracticeInputHandle>(null);
   const boardRefs = useRef<Array<StickyAIBoardHandle | null>>([]);
+  const [isOthersHidden, setIsOthersHidden] = useState(false);
 
   const closeAllStickies = () => {
     practiceRef.current?.close();
     boardRefs.current.forEach((boardRef) => boardRef?.close());
+  };
+
+  const onOpenSticky = () => {
+    closeAllStickies();
+  };
+
+  const onToggleOthersVisibility = () => {
+    if (isOthersHidden) {
+      setIsOthersHidden(false);
+      return;
+    }
+
+    closeAllStickies();
+    setIsOthersHidden(true);
   };
 
   return (
@@ -99,6 +114,8 @@ const StickyQuickTools = ({
         isShowSpeak={practiceShowSpeak}
         isSticky={isSticky}
         stickyBottom={practiceStickyBottom}
+        isVisible={!isOthersHidden}
+        onOpen={onOpenSticky}
       />
 
       {boards.map((board, index) => (
@@ -114,6 +131,8 @@ const StickyQuickTools = ({
           title={board.title}
           defaultPrompt={board.defaultPrompt}
           pathIcon={board.pathIcon}
+          isVisible={!isOthersHidden}
+          onOpen={onOpenSticky}
         />
       ))}
 
@@ -127,18 +146,28 @@ const StickyQuickTools = ({
       >
         <button
           type="button"
-          className="sticky-ai-toggle sticky-close-all-toggle"
-          aria-label="Close all sticky panels"
-          onClick={closeAllStickies}
+          className={`sticky-ai-toggle sticky-close-all-toggle ${isOthersHidden ? 'open' : ''}`}
+          aria-label={isOthersHidden ? 'Show all sticky panels' : 'Hide all sticky panels'}
+          onClick={onToggleOthersVisibility}
         >
           <svg className="sticky-close-all-icon" viewBox="0 0 24 24" role="img" aria-hidden="true">
-            <path
-              d="M18 6L6 18M6 6l12 12"
-              stroke="currentColor"
-              strokeWidth="2.25"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
+            {isOthersHidden ? (
+              <path
+                d="M12 5v14M5 12h14"
+                stroke="currentColor"
+                strokeWidth="2.25"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            ) : (
+              <path
+                d="M18 6L6 18M6 6l12 12"
+                stroke="currentColor"
+                strokeWidth="2.25"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            )}
           </svg>
         </button>
       </div>

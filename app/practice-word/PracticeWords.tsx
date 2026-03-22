@@ -20,7 +20,7 @@ interface PractWordsProps {
   enableHis?: 'Y' | 'N';
   heightRes?: number;
   isMini?: boolean;
-  showPract?: 'Y' | 'N' | '';
+  showPract?: 'PA' | 'P' | 'A';
 }
 
 let lastEngVar: string = '';
@@ -39,13 +39,15 @@ const PractWords = (props: PractWordsProps) => {
   });
   const MODE_NONE = 'None';
   const MODE_SPEAKE_CHANGE_QUST = 'Speak';
-  const [showPanel, setShowPanel] = useState<'Y' | 'N' | ''>(props.showPract ?? 'Y');
+  const [showPanel, setShowPanel] = useState<'PA' | 'P' | 'A'>(props.showPract ?? 'PA');
   const [question, setQuestion] = useState<string>('');
   const [answer, setAnswer] = useState<string>('');
   const [showAns, setShowAns] = useState<string>('');
   const [lastEng, setLastEng] = useState<string>('');
   const [lastVie, setLastVie] = useState<string>('');
-  const [classPract, setClassPract] = useState<string>(props.showPract ? 'container-55' : '');
+  const [classPract, setClassPract] = useState<string>(
+    props.showPract && props.showPract !== 'A' ? 'container-55' : '',
+  );
   const [mode, setMode] = useState<string>(MODE_NONE);
   const [isStartRecord, setIsStartRecord] = useState<boolean>(false);
   const [isShowDelete, setIsShowDelete] = useState<boolean>(false);
@@ -239,7 +241,7 @@ const PractWords = (props: PractWordsProps) => {
 
   return (
     <div className={`${classPract} practice-words-page`}>
-      {showPanel == 'Y' && (
+      {(showPanel == 'PA' || showPanel == 'P') && (
         <div className="prac practice-card">
           <div className="practice-message">{message}</div>
           <div className="practice-last-answer">
@@ -369,47 +371,61 @@ const PractWords = (props: PractWordsProps) => {
           <PracticeController config={sheetConfig} onChange={setSheetConfig} />
         </div>
       )}
-      {showPanel == 'N' && (
+      {showPanel == 'A' && (
         <AIBoard
           key={0}
           index={0}
-          prefix={`${props.prefix}pract_eng2`}
+          prefix={`${props.prefix}pract_eng`}
           enableHis={props.enableHis ?? 'N'}
           heightRes={props.heightRes ?? 220}
           collapse={'N'}
-
+          title={'Add Excel'}
+          defaultPrompt={COMMON_PROMPT.ADD_EXCEL_ENG}
+          isSpeak="F"
+          speakSplitter={`\n`}
           // isMini={props.isMini ?? true}
           // statement={question}
           // lastSentence={lastVie}
         />
       )}
-      <div
-      // className="ai-pract practice-ai-panel"
-      >
-        <AIBoard
-          key={0}
-          index={0}
-          prefix={props.prefix ?? 'pract_eng'}
-          enableHis={props.enableHis ?? 'N'}
-          heightRes={props.heightRes ?? 220}
-          isMini={props.isMini ?? true}
-          statement={question}
-          lastSentence={lastEng}
-          title={'Add Excel'}
-          isSpeak="F"
-          speakSplitter={`\n`}
-          defaultPrompt={COMMON_PROMPT.ADD_EXCEL_ENG}
-        />
+      <div>
+        {showPanel === 'PA' && (
+          <AIBoard
+            key={1}
+            index={0}
+            prefix={`${props.prefix}pract_eng2`}
+            enableHis={props.enableHis ?? 'N'}
+            heightRes={props.heightRes ?? 220}
+            isMini={props.isMini ?? true}
+            statement={question}
+            lastSentence={lastEng}
+            title={'Vie-Eng'}
+            defaultPrompt={COMMON_PROMPT.TRANSLATE_VI_EN}
+          />
+        )}
         <div className="panel-radio-group">
           <label className="panel-radio">
             <input
               type="radio"
               name="panel"
-              value="Y"
-              checked={showPanel === 'Y'}
+              value="PA"
+              checked={showPanel === 'PA'}
               onChange={() => {
-                setShowPanel('Y');
+                setShowPanel('PA');
                 setClassPract('container-55');
+              }}
+            />
+            Pract + AI
+          </label>
+          <label className="panel-radio">
+            <input
+              type="radio"
+              name="panel"
+              value="P"
+              checked={showPanel === 'P'}
+              onChange={() => {
+                setShowPanel('P');
+                setClassPract('');
               }}
             />
             Pract
@@ -418,27 +434,14 @@ const PractWords = (props: PractWordsProps) => {
             <input
               type="radio"
               name="panel"
-              value="N"
-              checked={showPanel === 'N'}
+              value="A"
+              checked={showPanel === 'A'}
               onChange={() => {
-                setShowPanel('N');
-                setClassPract('container-55');
-              }}
-            />
-            AI
-          </label>
-          <label className="panel-radio">
-            <input
-              type="radio"
-              name="panel"
-              value=""
-              checked={showPanel === ''}
-              onChange={() => {
-                setShowPanel('');
+                setShowPanel('A');
                 setClassPract('');
               }}
             />
-            Single
+            AI
           </label>
         </div>
       </div>

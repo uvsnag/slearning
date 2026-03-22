@@ -725,7 +725,7 @@ const YoutubeSub: FC = () => {
           AI
         </div>
         <div id="ai-section-yt" className="collapse-content ui-sub-panel yts-ai-panel">
-          <PracticeWords prefix="prc-yts" enableHis="N" isMini={false} showPract={''} />
+          <PracticeWords prefix="prc-yts" enableHis="N" isMini={true} showPract="A" />
         </div>
         <div className="common-toggle " onClick={() => toggleCollapse('mobile-control')}>
           Control

@@ -13,6 +13,8 @@ interface SpeakPracticeInputProps {
   isSticky?: 'Y' | 'N';
   isShowSpeak?: 'Y' | 'N';
   stickyBottom?: number;
+  isVisible?: boolean;
+  onOpen?: () => void;
 }
 
 export interface StickyPracticeInputHandle {
@@ -21,7 +23,16 @@ export interface StickyPracticeInputHandle {
 
 const StickyPracticeInput = forwardRef<StickyPracticeInputHandle, SpeakPracticeInputProps>(
   (
-    { voiceIndex, rows = 3, type = 'TEXTAREA', isSticky = 'N', isShowSpeak = 'Y', stickyBottom },
+    {
+      voiceIndex,
+      rows = 3,
+      type = 'TEXTAREA',
+      isSticky = 'N',
+      isShowSpeak = 'Y',
+      stickyBottom,
+      isVisible = true,
+      onOpen,
+    },
     ref,
   ) => {
     const [textValue, setTextValue] = useState<string>('');
@@ -52,6 +63,8 @@ const StickyPracticeInput = forwardRef<StickyPracticeInputHandle, SpeakPracticeI
     return (
       <div
         className={`right speak-practice-card ${isSticky === 'Y' ? 'float-sticky' : ''} ${
+          isVisible ? '' : 'sticky-item-hidden'
+        } ${
           isOpen ? 'open' : ''
         }`}
         style={
@@ -129,7 +142,13 @@ const StickyPracticeInput = forwardRef<StickyPracticeInputHandle, SpeakPracticeI
           aria-expanded={isOpen}
           aria-label={isOpen ? 'Collapse speech practice' : 'Expand speech practice'}
           aria-controls={`${voiceIndex}-input`}
-          onClick={() => setIsOpen((prev) => !prev)}
+          onClick={() => {
+            const nextIsOpen = !isOpen;
+            if (nextIsOpen) {
+              onOpen?.();
+            }
+            setIsOpen(nextIsOpen);
+          }}
         >
           <MdRecordVoiceOver className="speak-practice-toggle-main-icon" aria-hidden="true" />
           <svg
