@@ -19,8 +19,7 @@ import '@/slearning/multi-ai/style-ai.css';
 import loadingImg from '@/public/loading.webp';
 import SheetDataEditor from './SheetDataEditor';
 import PracticeVoiceConfig from './PracticeVoiceConfig';
-import { FaCog, FaSave, FaVolumeUp } from 'react-icons/fa';
-import SignOutButton from './SignOutButton';
+import TranslatePopup from './TranslatePopup';
 const TP_GEN = 1;
 const TP_GPT = 2;
 const TP_GITHUB = 3;
@@ -204,21 +203,10 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
   const [useClickToSpeech, setUseClickToSpeech] = useState<'Y' | 'N'>(
     props.isSpeak === 'Y' || props.isSpeak === 'F' || props.isSpeak === 'L' ? 'Y' : 'N',
   );
-  const [wordPopup, setWordPopup] = useState<{
-    open: boolean;
-    word: string;
-    meaning: string;
-    loading: boolean;
-    error: string;
-  }>({
+  const [wordPopup, setWordPopup] = useState<{ open: boolean; word: string }>({
     open: false,
     word: '',
-    meaning: '',
-    loading: false,
-    error: '',
   });
-  const meaningCacheRef = useRef<Record<string, string>>({});
-  const clickRequestIdRef = useRef<number>(0);
 
   const [prompt, setPrompt] = useState<string>(props.firstAsk ?? '');
   const [isPromptExpanded, setIsPromptExpanded] = useState<boolean>(false);
@@ -716,25 +704,6 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
     return `<div>${buildResponseHtml(rawResponse)}</div>${buildResponseModelInfoHtml(modelName)}${buildResponseActionButtonsHtml(responseIndex)}`;
   }
 
-  const fetchVietnameseMeaning = useCallback(async (word: string): Promise<string> => {
-    const normalizedWord = word.toLowerCase();
-    if (meaningCacheRef.current[normalizedWord]) {
-      return meaningCacheRef.current[normalizedWord];
-    }
-
-    const response = await fetch(
-      `https://api.mymemory.translated.net/get?q=${encodeURIComponent(
-        normalizedWord,
-      )}&langpair=en|vi`,
-    );
-    const data = await response.json();
-    const translated = data?.responseData?.translatedText;
-    const meaning =
-      typeof translated === 'string' && translated.trim() ? translated.trim() : 'No meaning found.';
-    meaningCacheRef.current[normalizedWord] = meaning;
-    return meaning;
-  }, []);
-
   const onClickSpeechWord = useCallback(
     async (clickedWord: string): Promise<void> => {
       const cleanWord = normalizeWord(clickedWord);
@@ -746,38 +715,12 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
         volume: volumn,
       });
 
-      const requestId = clickRequestIdRef.current + 1;
-      clickRequestIdRef.current = requestId;
       setWordPopup({
         open: true,
         word: cleanWord,
-        meaning: '',
-        loading: true,
-        error: '',
       });
-
-      try {
-        const meaning = await fetchVietnameseMeaning(cleanWord);
-        if (clickRequestIdRef.current !== requestId) return;
-        setWordPopup({
-          open: true,
-          word: cleanWord,
-          meaning: meaning,
-          loading: false,
-          error: '',
-        });
-      } catch (error) {
-        if (clickRequestIdRef.current !== requestId) return;
-        setWordPopup({
-          open: true,
-          word: cleanWord,
-          meaning: '',
-          loading: false,
-          error: String(error),
-        });
-      }
     },
-    [speakText, voiceIndex, rate, volumn, fetchVietnameseMeaning],
+    [speakText, voiceIndex, rate, volumn],
   );
 
   const useSpeakRef = useRef(useSpeak);
@@ -1442,72 +1385,17 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
             />
           </div>
         )}
-        {/* {1 === 1 && ( */}
-        {wordPopup.open && (
-          <div
-            style={{
-              position: 'fixed',
-              inset: '0',
-              zIndex: 1100,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-            onClick={() =>
-              setWordPopup({
-                open: false,
-                word: '',
-                meaning: '',
-                loading: false,
-                error: '',
-              })
-            }
-          >
-            <div
-              style={{
-                // backgroundColor: '#f1f9f8',
-                // color: '#000000',
-                padding: '2px',
-                borderRadius: '8px',
-                maxWidth: '420px',
-                width: '70%',
-              }}
-              onClick={(e) => e.stopPropagation()}
-              className="popup"
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1px' }}>
-                <b>{wordPopup.word}</b>{' '}
-                <button
-                  type="button"
-                  className="common-btn"
-                  onClick={() => speakPopupWord(wordPopup.word)}
-                >
-                  <FaVolumeUp />
-                </button>
-              </div>
-              <div style={{ marginTop: '8px' }}>
-                {wordPopup.loading && 'Loading Vietnamese meaning...'}
-                {!wordPopup.loading && !wordPopup.error && wordPopup.meaning}
-                {!wordPopup.loading && wordPopup.error && `Error: ${wordPopup.error}`}
-              </div>
-              <button
-                onClick={() =>
-                  setWordPopup({
-                    open: false,
-                    word: '',
-                    meaning: '',
-                    loading: false,
-                    error: '',
-                  })
-                }
-                className="common-btn"
-                style={{ marginTop: '12px' }}
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        )}
+        <TranslatePopup
+          open={wordPopup.open}
+          word={wordPopup.word}
+          onSpeakProp={speakPopupWord}
+          onClose={() =>
+            setWordPopup({
+              open: false,
+              word: '',
+            })
+          }
+        />
       </div>
     </div>
   );

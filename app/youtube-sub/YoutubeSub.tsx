@@ -9,7 +9,7 @@ import StackBtn from '@/app/common/components/StackButton';
 import PracticeWords from '../practice-word/PracticeWords';
 import { DataItem, getDataFromExcel } from '@/app/common/hooks/useSheetData';
 import { SHEET_AUTO } from '@/app/common/components/SheetDataEditor';
-import SpeakPracticeInput from '../mobile/youtube-sub/SpeakPracticeInput';
+import SpeakPracticeInput from '../common/components/SpeakPracticeInput';
 
 // Type definitions
 interface YouTubePlayer {

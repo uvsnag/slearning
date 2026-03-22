@@ -5,6 +5,7 @@ import { FaHome } from 'react-icons/fa';
 import type { ChangeEvent } from 'react';
 import { useEffect, useState } from 'react';
 import { KEY_DARK_MODE } from '@/common/common.js';
+import SpeakPracticeInput from './common/components/SpeakPracticeInput';
 
 const THEME_STORAGE_KEY = 'sl_theme_mode';
 const THEME_1 = 'current';
@@ -99,6 +100,7 @@ export default function RootLayout({
               </select>
             </label>
           </div>
+          <SpeakPracticeInput voiceIndex="speed-main" type="TEXTAREA" isSticky="Y" />
         </div>
         {children}
       </body>
