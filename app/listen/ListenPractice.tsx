@@ -7,7 +7,7 @@ import config from '@/common/config.js';
 import { useSpeechSynthesis } from '@/app/common/hooks/useSpeechSynthesis';
 import PracticeController, { ConfigControlProps } from '@/app/common/components/PracticeController';
 import { DataItem, onRemoveStoreItem, STORE_ALIAS } from '@/app/common/hooks/useSheetData';
-import SpeakPracticeInput from '../mobile/youtube-sub/SpeakPracticeInput';
+import SpeakPracticeInput from '../common/components/SpeakPracticeInput';
 /** =======================
  *  Types
  *  ======================= */
@@ -39,8 +39,8 @@ const ListenPractice: React.FC = () => {
   const [lastAnsw, setLastAnsw] = useState<string>('');
   const [showVie, setShowVie] = useState<boolean>(false);
   const [isShowDelete, setIsShowDelete] = useState<boolean>(false);
-
-  const { speak, voices } = useSpeechSynthesis();
+  // const { speakText } = useSpeechSynthesis();
+  const { speakText } = useSpeechSynthesis();
 
   /** =======================
    *  Effects
@@ -161,16 +161,16 @@ const ListenPractice: React.FC = () => {
     setShowAns(_.isEmpty(showAns) ? question : '');
   };
 
-  const speakText = (speakStr: string, isEng: boolean): void => {
-    const utterance = new window.SpeechSynthesisUtterance();
-    utterance.text = speakStr;
-    utterance.rate = sheetConfig.rate;
-    if (isEng) {
-      utterance.voice = voices[sheetConfig.voice];
-    }
-    utterance.volume = sheetConfig.volume;
-    speak(utterance);
-  };
+  // const speakText = (speakStr: string, isEng: boolean): void => {
+  //   const utterance = new window.SpeechSynthesisUtterance();
+  //   utterance.text = speakStr;
+  //   utterance.rate = sheetConfig.rate;
+  //   if (isEng) {
+  //     utterance.voice = voices[sheetConfig.voice];
+  //   }
+  //   utterance.volume = sheetConfig.volume;
+  //   speak(utterance);
+  // };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>): void => {
     if (e.key === 'Enter') {
@@ -215,7 +215,7 @@ const ListenPractice: React.FC = () => {
             </option>
           ))}
         </select>
-        <input type="text" id="answer" onKeyDown={handleKeyDown} />
+        <input className="common-input" type="text" id="answer" onKeyDown={handleKeyDown} />
         <div className="common-input">
           <label>
             <input
@@ -262,9 +262,7 @@ const ListenPractice: React.FC = () => {
           <FaVolumeUp className="iconSound" onClick={() => speakText(item.eng, true)} />
         </div>
       ))}
-      <div className="float-sticky">
-        <SpeakPracticeInput voiceIndex="voice-practice" type="INPUT" />
-      </div>
+
       <div>{showAns}</div>
 
       {!_.isEmpty(lastAnsw) && (
