@@ -1301,6 +1301,10 @@ ul.mst-menu > li {
   height: 18px;
 }
 
+.sticky-item-hidden {
+  display: none !important;
+}
+
 .sticky-ai-toggle-main-icon {
   font-size: 20px;
   line-height: 1;
