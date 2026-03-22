@@ -152,7 +152,7 @@ export const COMMON_PROMPT = {
   TRANSLATE_EN_VI: 'dịch sang tiếng việt',
   TRANSLATE_VI_EN:
     'translate the following text from Vietnamese to English, shortly, give me 3 ways to translate',
-  ADD_EXCEL_ENG: `dịch từ này sang tiếng anh, trả lời ngắn gọn theo format:
+  ADD_EXCEL_ENG: `dịch từ này sang tiếng VIỆT, trả lời ngắn gọn theo format:
 "viết lại từ tiếng anh (sửa chính tả)
 nghĩa tiếng việt ngắn gọn"
 

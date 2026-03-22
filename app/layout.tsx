@@ -4,8 +4,9 @@ import Link from 'next/link';
 import { FaHome } from 'react-icons/fa';
 import type { ChangeEvent } from 'react';
 import { useEffect, useState } from 'react';
-import { KEY_DARK_MODE } from '@/common/common.js';
+import { COMMON_PROMPT, KEY_DARK_MODE } from '@/common/common.js';
 import SpeakPracticeInput from './common/components/SpeakPracticeInput';
+import StickyAIBoard from './common/components/StickyAIBoard';
 
 const THEME_STORAGE_KEY = 'sl_theme_mode';
 const THEME_1 = 'current';
@@ -100,7 +101,63 @@ export default function RootLayout({
               </select>
             </label>
           </div>
-          <SpeakPracticeInput voiceIndex="speed-main" type="TEXTAREA" isSticky="Y" />
+          <SpeakPracticeInput
+            voiceIndex="speed-main"
+            type="TEXTAREA"
+            isSticky="Y"
+            stickyBottom={0}
+          />
+          <StickyAIBoard
+            boardPrefix="layout-sticky-ai"
+            boardIndex={0}
+            isSticky="Y"
+            stickyBottom={150}
+            title="Eng-Vie"
+            defaultPrompt={COMMON_PROMPT.ADD_EXCEL_ENG}
+            pathIcon={
+              <path
+                d="M21 5h-8M17 5v14M21 19h-8M10 15l-4 4M6 19H3v-3M3 19l7-7"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            }
+          />
+          <StickyAIBoard
+            boardPrefix="layout-sticky-ai"
+            boardIndex={1}
+            isSticky="Y"
+            stickyBottom={200}
+            title="Eng-Vie"
+            defaultPrompt={COMMON_PROMPT.TRANSLATE_EN_VI}
+            pathIcon={
+              <path
+                d="M3 5h8M7 5v14M3 19h8M14 9l4-4M18 5h3v3M21 5l-7 7"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            }
+          />
+          <StickyAIBoard
+            boardPrefix="layout-sticky-ai"
+            boardIndex={2}
+            isSticky="Y"
+            stickyBottom={250}
+            title="Grammar"
+            defaultPrompt={COMMON_PROMPT.CHECK_GRAMMAR}
+            pathIcon={
+              <path
+                d="M4 6h12M4 10h12M4 14h8M16 16l2 2 4-4"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            }
+          />
         </div>
         {children}
       </body>

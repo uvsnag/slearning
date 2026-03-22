@@ -12,6 +12,7 @@ interface SpeakPracticeInputProps {
   type?: 'INPUT' | 'TEXTAREA';
   isSticky?: 'Y' | 'N';
   isShowSpeak?: 'Y' | 'N';
+  stickyBottom?: number;
 }
 
 const SpeakPracticeInput = ({
@@ -20,6 +21,7 @@ const SpeakPracticeInput = ({
   type = 'TEXTAREA',
   isSticky = 'N',
   isShowSpeak = 'Y',
+  stickyBottom,
 }: SpeakPracticeInputProps) => {
   const [textValue, setTextValue] = useState<string>('');
   const [isOpen, setIsOpen] = useState(false);
@@ -45,6 +47,11 @@ const SpeakPracticeInput = ({
       className={`right speak-practice-card ${isSticky === 'Y' ? 'float-sticky' : ''} ${
         isOpen ? 'open' : ''
       }`}
+      style={
+        isSticky === 'Y' && typeof stickyBottom === 'number'
+          ? { bottom: `${stickyBottom}px` }
+          : undefined
+      }
     >
       <div
         id={`${voiceIndex}-input`}
