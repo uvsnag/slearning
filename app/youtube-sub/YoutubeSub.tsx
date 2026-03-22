@@ -9,7 +9,7 @@ import StackBtn from '@/app/common/components/StackButton';
 import PracticeWords from '../practice-word/PracticeWords';
 import { DataItem, getDataFromExcel } from '@/app/common/hooks/useSheetData';
 import { SHEET_AUTO } from '@/app/common/components/SheetDataEditor';
-import SpeakPracticeInput from '../common/components/SpeakPracticeInput';
+import StickyPracticeInput from '../common/components/sticky/StickyPracticeInput';
 
 // Type definitions
 interface YouTubePlayer {
@@ -840,7 +840,7 @@ const YoutubeSub: FC = () => {
           Speech
         </div>
         <div id="speech-temp" className="collapse-content ui-sub-panel yts-ai-panel">
-          <SpeakPracticeInput voiceIndex="youtube-speech-practice" type="TEXTAREA" rows={3} />
+          <StickyPracticeInput voiceIndex="youtube-speech-practice" type="TEXTAREA" rows={3} />
         </div> */}
 
         <div className="common-toggle " onClick={() => toggleCollapse('mul-ai')}>

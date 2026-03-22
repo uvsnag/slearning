@@ -18,7 +18,7 @@ import { useSpeechSynthesis } from '@/app/common/hooks/useSpeechSynthesis';
 import '@/slearning/multi-ai/style-ai.css';
 import loadingImg from '@/public/loading.webp';
 import SheetDataEditor from './SheetDataEditor';
-import PracticeVoiceConfig from './PracticeVoiceConfig';
+import PracticeVoiceConfig from './controller/PracticeVoiceConfig';
 import TranslatePopup from './TranslatePopup';
 const TP_GEN = 1;
 const TP_GPT = 2;

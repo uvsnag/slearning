@@ -5,9 +5,11 @@ import _ from 'lodash';
 import { FaRegFrown, FaRegSmile, FaVolumeUp, FaTrash } from 'react-icons/fa';
 import config from '@/common/config.js';
 import { useSpeechSynthesis } from '@/app/common/hooks/useSpeechSynthesis';
-import PracticeController, { ConfigControlProps } from '@/app/common/components/PracticeController';
+import PracticeController, {
+  ConfigControlProps,
+} from '@/app/common/components/controller/PracticeController';
 import { DataItem, onRemoveStoreItem, STORE_ALIAS } from '@/app/common/hooks/useSheetData';
-import SpeakPracticeInput from '../common/components/SpeakPracticeInput';
+import StickyPracticeInput from '../common/components/sticky/StickyPracticeInput';
 /** =======================
  *  Types
  *  ======================= */
@@ -199,7 +201,7 @@ const ListenPractice: React.FC = () => {
    *  Render
    *  ======================= */
   return (
-    <div className="prac">
+    <div className="pracl">
       <div className="">
         <PracticeController config={sheetConfig} onChange={setSheetConfig} />
         <div>

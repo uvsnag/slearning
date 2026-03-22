@@ -6,7 +6,7 @@ import { DataItem, getDataFromExcel } from '@/app/common/hooks/useSheetData';
 import { useSpeechSynthesis } from '@/app/common/hooks/useSpeechSynthesis';
 import PracticeVoiceConfig from './PracticeVoiceConfig';
 import PracticeSheetConfig from './PracticeSheetConfig';
-import { toggleCollapse } from '../common';
+import { toggleCollapse } from '../../common';
 
 export interface ConfigControlProps {
   propSheet: string;

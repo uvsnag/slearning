@@ -6,7 +6,9 @@ import { DataItem } from '@/app/common/hooks/useSheetData';
 import { useSpeechSynthesis } from '@/app/common/hooks/useSpeechSynthesis';
 import { FaVolumeUp, FaEyeSlash } from 'react-icons/fa';
 import { useCookies } from 'react-cookie';
-import PracticeController, { ConfigControlProps } from '../common/components/PracticeController';
+import PracticeController, {
+  ConfigControlProps,
+} from '../common/components/controller/PracticeController';
 
 const Notify = (): ReactElement => {
   const [sheetConfig, setSheetConfig] = useState<ConfigControlProps>({

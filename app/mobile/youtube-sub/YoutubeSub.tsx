@@ -6,7 +6,7 @@ import { Sub } from './Subtitle';
 import { toggleCollapse, KEY_YT_CONTROLS, COMMON_PROMPT } from '@/common/common.js';
 import MulAI, { MulAIContainerProps } from '@/app/multi-ai/MultiAI';
 import StackBtn from '@/app/common/components/StackButton';
-import SpeakPracticeInput from '../../common/components/SpeakPracticeInput';
+import StickyPracticeInput from '../../common/components/sticky/StickyPracticeInput';
 import { DataItem, getDataFromExcel } from '@/app/common/hooks/useSheetData';
 import { SHEET_AUTO } from '@/app/common/components/SheetDataEditor';
 
@@ -626,7 +626,7 @@ const YoutubeSub: FC = () => {
             </div>
           </div>
         </div>
-        {/* <SpeakPracticeInput voiceIndex="youtube-speech-practice" /> */}
+        {/* <StickyPracticeInput voiceIndex="youtube-speech-practice" /> */}
       </div>
       <div></div>
       <div className="common-toggle" onClick={() => toggleCollapse('mul-ai')}>

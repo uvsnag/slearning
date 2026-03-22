@@ -1123,7 +1123,7 @@ ul.mst-menu > li {
   padding-right: 10px;
 }
 
-/* SpeakPracticeInput scoped styles (v2) */
+/* StickyPracticeInput scoped styles (v2) */
 .speak-practice-card {
   display: inline-flex;
   align-items: flex-start;
@@ -1292,6 +1292,15 @@ ul.mst-menu > li {
   background: var(--color-surface-badge);
 }
 
+.sticky-close-all-toggle {
+  color: var(--color-danger);
+}
+
+.sticky-close-all-icon {
+  width: 18px;
+  height: 18px;
+}
+
 .sticky-ai-toggle-main-icon {
   font-size: 20px;
   line-height: 1;
@@ -1351,6 +1360,10 @@ ul.mst-menu > li {
 
 .dark-90 .sticky-ai-toggle.open {
   background: var(--color-dark-surface-alt);
+}
+
+.dark-90 .sticky-close-all-toggle {
+  color: #ff8f8f;
 }
 
 .dark-90 .sticky-ai-pop-wrap.open {

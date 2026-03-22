@@ -8,7 +8,9 @@ import AIBoard from '@/app/common/components/AIBoard';
 import { DataItem, STORE_ALIAS, onRemoveStoreItem } from '@/app/common/hooks/useSheetData';
 
 import { validateArrStrCheck, arrStrCheckToStr } from '@/common/commonElearn';
-import PracticeController, { ConfigControlProps } from '../common/components/PracticeController';
+import PracticeController, {
+  ConfigControlProps,
+} from '../common/components/controller/PracticeController';
 import { useSpeechSynthesis } from '../common/hooks/useSpeechSynthesis';
 import { toggleCollapse, COMMON_PROMPT } from '../common/common';
 import SheetDataEditor from '../common/components/SheetDataEditor';
