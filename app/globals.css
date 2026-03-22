@@ -1105,7 +1105,6 @@ ul.mst-menu > li {
 .speak-practice-textarea {
   flex: 1 1 auto;
   width: 100%;
-  min-height: 88px;
 }
 
 .speak-practice-action {
@@ -1214,7 +1213,6 @@ ul.mst-menu > li {
 
 .speak-practice-textarea {
   width: clamp(250px, 50vw, 680px);
-  min-height: 88px;
 }
 
 .speak-practice-action {
@@ -1250,6 +1248,112 @@ ul.mst-menu > li {
 }
 
 .dark-90 .speak-practice-pop-wrap.open {
+  border-color: var(--color-dark-border);
+  background: var(--color-dark-surface-alt);
+}
+
+/* Sticky AI Board */
+.sticky-ai-card {
+  display: inline-flex;
+  align-items: flex-start;
+  width: fit-content;
+  max-width: min(96vw, 1200px);
+}
+
+.sticky-ai-float {
+  position: fixed;
+  bottom: 228px;
+  right: 5px;
+  z-index: 105;
+  width: auto;
+}
+
+.sticky-ai-toggle {
+  width: 42px;
+  min-width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border-soft);
+  background: var(--color-white);
+  color: var(--color-link);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  cursor: pointer;
+  box-shadow: 0 6px 16px var(--shadow-card-color);
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.sticky-ai-toggle.open {
+  background: var(--color-surface-badge);
+}
+
+.sticky-ai-toggle-main-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.sticky-ai-toggle-caret {
+  width: 14px;
+  height: 14px;
+  transition: transform 0.2s ease;
+}
+
+.sticky-ai-toggle.open .sticky-ai-toggle-caret {
+  transform: rotate(180deg);
+}
+
+.sticky-ai-pop-wrap {
+  width: 0;
+  max-width: 0;
+  opacity: 0;
+  margin-left: 0;
+  padding: 0;
+  border: 1px solid transparent;
+  pointer-events: none;
+  overflow: hidden;
+  transition:
+    max-width 0.25s ease,
+    opacity 0.18s ease,
+    margin-left 0.2s ease,
+    padding 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.sticky-ai-pop-wrap.open {
+  max-width: min(95vw, 980px);
+  width: fit-content;
+  opacity: 1;
+  margin-left: 8px;
+  padding: 8px;
+  border-color: var(--color-border-soft);
+  background: var(--color-surface-soft);
+  pointer-events: auto;
+}
+
+.sticky-ai-content {
+  width: min(92vw, 300px);
+}
+
+.sticky-ai-content .ai-board {
+  margin-top: 0;
+}
+
+.dark-90 .sticky-ai-toggle {
+  border-color: var(--color-dark-border);
+  background: var(--color-dark-surface);
+  color: var(--studio-dark-link);
+}
+
+.dark-90 .sticky-ai-toggle.open {
+  background: var(--color-dark-surface-alt);
+}
+
+.dark-90 .sticky-ai-pop-wrap.open {
   border-color: var(--color-dark-border);
   background: var(--color-dark-surface-alt);
 }
@@ -1300,6 +1404,22 @@ ul.mst-menu > li {
 .speak-practice-action {
   display: flex;
   flex-wrap: wrap;
+}
+
+@media (max-width: 767px) {
+  .sticky-ai-float {
+    bottom: 10px;
+  }
+
+  .sticky-ai-pop-wrap.open {
+    max-width: calc(100vw - 70px);
+    margin-left: 6px;
+    padding: 6px;
+  }
+
+  .sticky-ai-content {
+    width: min(calc(100vw - 82px), 680px);
+  }
 }
 
 @media (max-width: 1000px) {

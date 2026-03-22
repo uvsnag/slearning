@@ -836,12 +836,12 @@ const YoutubeSub: FC = () => {
             ></StackBtn>
           </div>
         </div>
-        <div className="common-toggle " onClick={() => toggleCollapse('speech-temp')}>
+        {/* <div className="common-toggle " onClick={() => toggleCollapse('speech-temp')}>
           Speech
         </div>
         <div id="speech-temp" className="collapse-content ui-sub-panel yts-ai-panel">
           <SpeakPracticeInput voiceIndex="youtube-speech-practice" type="TEXTAREA" rows={3} />
-        </div>
+        </div> */}
 
         <div className="common-toggle " onClick={() => toggleCollapse('mul-ai')}>
           Mul-AI
