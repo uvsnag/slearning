@@ -2,8 +2,8 @@
 import { ChangeEvent, ReactElement, ReactNode } from 'react';
 import { FaCog, FaRedo } from 'react-icons/fa';
 import { STORE_ALIAS, SHEET_LIST } from '@/app/common/hooks/useSheetData';
-import { toggleCollapse } from '../common';
-import { SHEET_AUTO } from './SheetDataEditor';
+import { toggleCollapse } from '../../common';
+import { SHEET_AUTO } from '../SheetDataEditor';
 
 interface PracticeSheetConfigProps {
   sheet: string;
