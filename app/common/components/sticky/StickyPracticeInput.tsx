@@ -3,6 +3,7 @@
 import VoiceToText from '@/app/common/components/VoiceToText';
 import { useSpeechSynthesis } from '@/app/common/hooks/useSpeechSynthesis';
 import { forwardRef, useCallback, useImperativeHandle, useState } from 'react';
+import { FaCopy, FaLanguage, FaPaste, FaTrash, FaVolumeUp } from 'react-icons/fa';
 import { MdRecordVoiceOver } from 'react-icons/md';
 import TranslatePopup from '../TranslatePopup';
 
@@ -54,6 +55,23 @@ const StickyPracticeInput = forwardRef<StickyPracticeInputHandle, SpeakPracticeI
       [speakText],
     );
 
+    const onCopyText = useCallback(async (): Promise<void> => {
+      try {
+        await navigator.clipboard.writeText(textValue);
+      } catch (error) {
+        console.log('Copy text failed:', error);
+      }
+    }, [textValue]);
+
+    const onPasteText = useCallback(async (): Promise<void> => {
+      try {
+        const clipboardText = await navigator.clipboard.readText();
+        setTextValue(clipboardText);
+      } catch (error) {
+        console.log('Paste text failed:', error);
+      }
+    }, []);
+
     useImperativeHandle(ref, () => ({
       close: () => {
         setIsOpen(false);
@@ -64,9 +82,7 @@ const StickyPracticeInput = forwardRef<StickyPracticeInputHandle, SpeakPracticeI
       <div
         className={`right speak-practice-card ${isSticky === 'Y' ? 'float-sticky' : ''} ${
           isVisible ? '' : 'sticky-item-hidden'
-        } ${
-          isOpen ? 'open' : ''
-        }`}
+        } ${isOpen ? 'open' : ''}`}
         style={
           isSticky === 'Y' && typeof stickyBottom === 'number'
             ? { bottom: `${stickyBottom}px` }
@@ -99,30 +115,43 @@ const StickyPracticeInput = forwardRef<StickyPracticeInputHandle, SpeakPracticeI
               <div className="speak-practice-voice">
                 <VoiceToText setText={setTextValue} index={voiceIndex}></VoiceToText>
               </div>
-              <button
-                type="button"
-                className="common-btn speak-practice-btn inline"
-                onClick={() => setTextValue('')}
-              >
-                Clear
-              </button>
               {isShowSpeak === 'Y' && (
                 <button
                   type="button"
                   className="common-btn speak-practice-btn inline"
                   onClick={() => speakText(textValue, true)}
+                  title="Speak"
+                  aria-label="Speak text"
                 >
-                  Speak
+                  <FaVolumeUp aria-hidden="true" />
                 </button>
               )}
               <button
                 type="button"
-                className="common-btn speak-practice-btn"
-                onClick={async () => {
-                  await navigator.clipboard.writeText(textValue);
-                }}
+                className="common-btn speak-practice-btn inline"
+                onClick={() => setTextValue('')}
+                title="Clear"
+                aria-label="Clear text"
               >
-                Copy
+                <FaTrash aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                className="common-btn speak-practice-btn"
+                onClick={() => void onCopyText()}
+                title="Copy"
+                aria-label="Copy text"
+              >
+                <FaCopy aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                className="common-btn speak-practice-btn"
+                onClick={() => void onPasteText()}
+                title="Paste"
+                aria-label="Paste text"
+              >
+                <FaPaste aria-hidden="true" />
               </button>
               <button
                 type="button"
@@ -130,8 +159,10 @@ const StickyPracticeInput = forwardRef<StickyPracticeInputHandle, SpeakPracticeI
                 onClick={() => {
                   onClickSpeechWord(textValue);
                 }}
+                title="Translate"
+                aria-label="Translate text"
               >
-                Trans
+                <FaLanguage aria-hidden="true" />
               </button>
             </div>
           </div>
