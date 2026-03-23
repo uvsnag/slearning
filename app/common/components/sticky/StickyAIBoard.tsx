@@ -10,6 +10,7 @@ interface StickyAIBoardProps {
   title?: string;
   isSticky?: 'Y' | 'N';
   stickyBottom?: number;
+  stickyBottomContent?: number;
   defaultPrompt?: string;
   pathIcon?: ReactNode;
   isVisible?: boolean;
@@ -28,6 +29,7 @@ const StickyAIBoard = forwardRef<StickyAIBoardHandle, StickyAIBoardProps>(
       title = 'AI Assistant',
       isSticky = 'Y',
       stickyBottom,
+      stickyBottomContent = 0,
       defaultPrompt,
       pathIcon,
       isVisible = true,
@@ -47,12 +49,10 @@ const StickyAIBoard = forwardRef<StickyAIBoardHandle, StickyAIBoardProps>(
       <div
         className={`right sticky-ai-card ${isSticky === 'Y' ? 'sticky-ai-float' : ''} ${
           isVisible ? '' : 'sticky-item-hidden'
-        } ${
-          isOpen ? 'open' : ''
-        }`}
+        } ${isOpen ? 'open' : ''}`}
         style={
           isSticky === 'Y' && typeof stickyBottom === 'number'
-            ? { bottom: `${stickyBottom}px` }
+            ? { bottom: `${isOpen ? stickyBottomContent : stickyBottom}px` }
             : undefined
         }
       >
@@ -67,8 +67,8 @@ const StickyAIBoard = forwardRef<StickyAIBoardHandle, StickyAIBoardProps>(
               title={title}
               enableHis="N"
               collapse="N"
-              isSpeak="Y"
-              heightRes={240}
+              // isSpeak="Y"
+              heightRes={350}
               defaultPrompt={defaultPrompt}
             />
           </div>

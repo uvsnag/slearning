@@ -74,7 +74,7 @@ const VoiceToText: React.FC<VoiceToTextProps> = ({ setText, index }) => {
   };
 
   return (
-    <button style={{ width: 40 }} className="common-btn" onClick={processRecord}>
+    <button className="common-btn width-small-btn" onClick={processRecord}>
       {isStartRecord ? <MdHearing /> : <FaMicrophone />}
     </button>
   );

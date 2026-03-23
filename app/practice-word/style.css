@@ -46,12 +46,20 @@
 }
 
 .prac {
-  margin: 15px 15px 15px 15px;
-  padding: 15px 15px 15px 15px;
+  /* margin: 15px 15px 15px 15px;
+  padding: 15px 15px 15px 15px; */
   border-radius: 14px;
   background:
-    radial-gradient(circle at top right, var(--color-light-card-accent), var(--color-transparent) 42%),
-    linear-gradient(180deg, var(--color-surface-panel-start) 0%, var(--color-surface-panel-end) 100%);
+    radial-gradient(
+      circle at top right,
+      var(--color-light-card-accent),
+      var(--color-transparent) 42%
+    ),
+    linear-gradient(
+      180deg,
+      var(--color-surface-panel-start) 0%,
+      var(--color-surface-panel-end) 100%
+    );
   box-shadow: 0 12px 28px var(--shadow-soft-card-color);
 }
 .ans-check-right {
@@ -151,7 +159,11 @@
 
 .dark-90 .prac {
   background:
-    radial-gradient(circle at top right, var(--color-dark-card-accent-alt), var(--color-transparent) 42%),
+    radial-gradient(
+      circle at top right,
+      var(--color-dark-card-accent-alt),
+      var(--color-transparent) 42%
+    ),
     linear-gradient(180deg, var(--color-dark-bg-start) 0%, var(--color-dark-bg-end) 100%);
   box-shadow: 0 14px 30px var(--shadow-dark-color);
 }
@@ -161,4 +173,3 @@
   border-color: var(--color-dark-border);
   color: var(--color-dark-text);
 }
-

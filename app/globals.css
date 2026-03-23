@@ -322,14 +322,14 @@ body {
     linear-gradient(180deg, var(--color-bg-page-start) 0%, var(--color-bg-page-end) 100%);
 }
 
-.ui-page {
+/* .ui-page {
   padding: 10px;
-}
+} */
 
 .ui-page-shell {
   border: 1px solid var(--studio-border);
   border-radius: 14px;
-  padding: 10px;
+  /* padding: 10px; */
   background: var(--studio-panel-bg);
   box-shadow: var(--studio-shadow);
 }
@@ -644,6 +644,7 @@ body {
   margin-left: 10px;
   width: 700px;
 }
+
 .width-120 {
   width: 120px;
 }
@@ -1223,11 +1224,6 @@ ul.mst-menu > li {
   margin-right: 0;
 }
 
-.speak-practice-btn {
-  white-space: nowrap;
-  width: fit-content;
-}
-
 .speak-practice-clear-btn {
   padding-left: 10px;
   padding-right: 10px;
@@ -1255,9 +1251,10 @@ ul.mst-menu > li {
 /* Sticky AI Board */
 .sticky-ai-card {
   display: inline-flex;
-  align-items: flex-start;
+  align-items: flex-end;
   width: fit-content;
   max-width: min(96vw, 1200px);
+  pointer-events: none;
 }
 
 .sticky-ai-float {
@@ -1286,6 +1283,7 @@ ul.mst-menu > li {
     background-color 0.2s ease,
     color 0.2s ease,
     border-color 0.2s ease;
+  pointer-events: auto;
 }
 
 .sticky-ai-toggle.open {
@@ -1415,7 +1413,7 @@ ul.mst-menu > li {
 
 .speak-practice-input,
 .speak-practice-textarea {
-  width: 100%;
+  /* width: 100%; */
 }
 
 .speak-practice-action {
@@ -1428,6 +1426,16 @@ ul.mst-menu > li {
     bottom: 10px;
   }
 
+  .speak-practice-card {
+    max-width: calc(100vw - 4px);
+  }
+
+  .speak-practice-pop-wrap.open {
+    max-width: calc(100vw - 56px);
+    margin-left: 4px;
+    padding: 6px;
+  }
+
   .sticky-ai-pop-wrap.open {
     max-width: calc(100vw - 70px);
     margin-left: 6px;
@@ -1437,8 +1445,24 @@ ul.mst-menu > li {
   .sticky-ai-content {
     width: min(calc(100vw - 82px), 680px);
   }
+  .width-small-btn {
+    width: 48px;
+  }
+
+  .speak-practice-btn {
+    width: 42px;
+  }
 }
 
+@media (min-width: 767px) {
+  .width-small-btn {
+    width: 53px;
+  }
+
+  .speak-practice-btn {
+    width: 60px;
+  }
+}
 @media (max-width: 1000px) {
   .block-3cols {
     width: 30vw !important;
@@ -1470,8 +1494,3 @@ ul.mst-menu > li {
   z-index: 100;
   width: auto;
 }
-/* @media (min-width: 767px) {
-  .speak-practice-input {
-    width: 110vh;
-  }
-} */

@@ -17,6 +17,15 @@ import VoiceToText from '@/app/common/components/VoiceToText';
 import { useSpeechSynthesis } from '@/app/common/hooks/useSpeechSynthesis';
 import '@/slearning/multi-ai/style-ai.css';
 import loadingImg from '@/public/loading.webp';
+import {
+  FaCog,
+  FaDatabase,
+  FaPaperPlane,
+  FaPaste,
+  FaStop,
+  FaTrash,
+  FaVolumeUp,
+} from 'react-icons/fa';
 import SheetDataEditor from './SheetDataEditor';
 import PracticeVoiceConfig from './controller/PracticeVoiceConfig';
 import TranslatePopup from './TranslatePopup';
@@ -769,6 +778,15 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
     }
   }, []);
 
+  const onPastePrompt = useCallback(async (): Promise<void> => {
+    try {
+      const clipboardText = await navigator.clipboard.readText();
+      setPrompt(clipboardText);
+    } catch (error) {
+      console.log('Paste prompt failed:', error);
+    }
+  }, []);
+
   function speakPopupWord(word: string): void {
     const cleanWord = normalizeWord(word);
     if (!cleanWord) return;
@@ -1180,36 +1198,41 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
         />
         <br />
         <VoiceToText setText={setPrompt} index={props.index}></VoiceToText>
-        <button onClick={() => askDec(prompt)} className="common-btn">
-          Send
+        <button
+          onClick={() => void onPastePrompt()}
+          className="common-btn width-small-btn"
+          title="Paste prompt"
+          aria-label="Paste prompt"
+        >
+          <FaPaste aria-hidden="true" />
+        </button>
+        <button
+          onClick={() => askDec(prompt)}
+          className="common-btn width-small-btn"
+          title="Send"
+          aria-label="Send prompt"
+        >
+          <FaPaperPlane aria-hidden="true" />
         </button>
         {/* <button onClick={() => setIsPromptExpanded((prev) => !prev)} className="common-btn">
           {isPromptExpanded ? 'Collapse' : 'Expand'}
         </button> */}
         <button
           onClick={() => toggleCollapse(`save-sheet-${props.prefix}${props.index}`)}
-          className="common-btn"
+          className="common-btn width-small-btn"
+          title="Data"
+          aria-label="Open data panel"
         >
-          Data
+          <FaDatabase aria-hidden="true" />
         </button>
-        <button
-          onClick={() => toggleCollapse(`config-${props.prefix}${props.index}`)}
-          className="common-btn"
-        >
-          Config
-        </button>
-        {/* <div
-          className="common-toggle"
-          onClick={() => toggleCollapse(`save-sheet-${props.prefix}${props.index}`)}
-        >
-           Data
-        </div> */}
         {isSpeakEnabled && (
           <button
             onClick={() => toggleCollapse(`voice-config-${props.prefix}${props.index}`)}
-            className="common-btn"
+            className="common-btn width-small-btn"
+            title="Speak settings"
+            aria-label="Open speak settings"
           >
-            Speak
+            <FaVolumeUp aria-hidden="true" />
           </button>
           /*    <div
             className="common-toggle"
@@ -1218,6 +1241,21 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
             Speak
           </div> */
         )}
+        <button
+          onClick={() => toggleCollapse(`config-${props.prefix}${props.index}`)}
+          className="common-btn width-small-btn"
+          title="Config"
+          aria-label="Open config panel"
+        >
+          <FaCog aria-hidden="true" />
+        </button>
+        {/* <div
+          className="common-toggle"
+          onClick={() => toggleCollapse(`save-sheet-${props.prefix}${props.index}`)}
+        >
+           Data
+        </div> */}
+
         <div
           className="collapse-content ui-sub-panel ai-data-panel"
           id={`save-sheet-${props.prefix}${props.index}`}
@@ -1235,8 +1273,13 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
           className="collapse-content ui-sub-panel ai-config-panel"
           id={`config-${props.prefix}${props.index}`}
         >
-          <button onClick={() => clearLog()} className="common-btn">
-            Clear
+          <button
+            onClick={() => clearLog()}
+            className="common-btn width-small-btn"
+            title="Clear log"
+            aria-label="Clear log"
+          >
+            <FaTrash aria-hidden="true" />
           </button>
 
           <select
@@ -1365,8 +1408,13 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
             className="collapse-content ui-sub-panel ai-voice-panel"
             id={`voice-config-${props.prefix}${props.index}`}
           >
-            <button onClick={() => onSpeakLastResponse()} className="common-btn ">
-              {speaking ? 'Stop' : 'Speak'}
+            <button
+              onClick={() => onSpeakLastResponse()}
+              className="common-btn "
+              title={speaking ? 'Stop speaking' : 'Speak latest response'}
+              aria-label={speaking ? 'Stop speaking' : 'Speak latest response'}
+            >
+              {speaking ? <FaStop aria-hidden="true" /> : <FaVolumeUp aria-hidden="true" />}
             </button>
             <PracticeVoiceConfig
               voices={voices}

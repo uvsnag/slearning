@@ -260,24 +260,30 @@ const PractWords = (props: PractWordsProps) => {
           </div>
           <br />
 
-          {isShowDelete && (
-            <button
-              className="common-btn"
-              onClick={() => {
-                onRemoveStoreItem(currEng || '', nextQuestion, sheetConfig.propSheet);
-                setMessage(`🗑️:${currEng}`);
-                // setTimeout(() => setMessage(''), 2000);
-              }}
-            >
-              🗑️
-            </button>
-          )}
-
-          <span>{'\u00A0\u00A0\u00A0'}</span>
-
-          <button className="common-btn" onClick={() => onNextQuestion()}>
-            Next
+          <input
+            type="number"
+            className="width-30 practice-num-ans common-input"
+            id="num-of-ans"
+            defaultValue={3}
+          />
+          <input
+            className="common-btn"
+            type="submit"
+            value="Check"
+            id="btnSubmit"
+            onClick={() => onCheck()}
+          />
+          <button
+            className="common-btn"
+            onClick={() => setMode(mode === MODE_NONE ? MODE_SPEAKE_CHANGE_QUST : MODE_NONE)}
+          >
+            {mode === MODE_NONE ? <FaVolumeMute /> : <FaVolumeUp />}
           </button>
+          <span className="practice-remain-count"> {remainCount}</span>
+          <label>
+            <input id="revertAsw" type="checkbox" defaultChecked={false} />⇆
+          </label>
+
           <br />
           <br />
           <div className="practice-question">{question}</div>
@@ -296,9 +302,7 @@ const PractWords = (props: PractWordsProps) => {
           />
 
           <VoiceToText setText={setInputAns} index={0}></VoiceToText>
-          <label>
-            <input id="revertAsw" type="checkbox" defaultChecked={false} />⇆
-          </label>
+
           <br />
 
           <select
@@ -324,12 +328,11 @@ const PractWords = (props: PractWordsProps) => {
           id="btnShowAns"
           onClick={() => onShow()}
         /> */}
-          <button
-            className="common-btn"
-            onClick={() => setMode(mode === MODE_NONE ? MODE_SPEAKE_CHANGE_QUST : MODE_NONE)}
-          >
-            {mode === MODE_NONE ? <FaVolumeMute /> : <FaVolumeUp />}
-          </button>
+
+          {/* <br /> */}
+          {/* <button className="common-btn" onClick={() => hideAI()}>
+            Hide AI
+          </button> */}
           <div className="tooltip practice-tooltip">
             ?
             <span className="tooltiptext">
@@ -342,24 +345,27 @@ const PractWords = (props: PractWordsProps) => {
               <p>End: Next Answer</p>
             </span>
           </div>
-          <span className="practice-remain-count"> {remainCount}</span>
+
+          <div className="right">
+            {isShowDelete && (
+              <button
+                className="common-btn width-small-btn"
+                onClick={() => {
+                  onRemoveStoreItem(currEng || '', nextQuestion, sheetConfig.propSheet);
+                  setMessage(`🗑️:${currEng}`);
+                  // setTimeout(() => setMessage(''), 2000);
+                }}
+              >
+                🗑️
+              </button>
+            )}
+
+            <button className="common-btn width-small-btn" onClick={() => onNextQuestion()}>
+              Next
+            </button>
+          </div>
           <br />
-          <button className="common-btn" onClick={() => hideAI()}>
-            Hide AI
-          </button>
-          <input
-            type="number"
-            className="width-30 practice-num-ans common-input"
-            id="num-of-ans"
-            defaultValue={3}
-          />
-          <input
-            className="common-btn"
-            type="submit"
-            value="Check"
-            id="btnSubmit"
-            onClick={() => onCheck()}
-          />
+          <br />
 
           <div className="common-toggle" onClick={() => toggleCollapse(`config-pract-save-sheet`)}>
             <FaSyncAlt />
