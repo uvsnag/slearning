@@ -112,20 +112,6 @@ const StickyPracticeInput = forwardRef<StickyPracticeInputHandle, SpeakPracticeI
               )}
             </div>
             <div className={`speak-practice-action ${type === 'TEXTAREA' ? 'type-text-area' : ''}`}>
-              <div className="speak-practice-voice">
-                <VoiceToText setText={setTextValue} index={voiceIndex}></VoiceToText>
-              </div>
-              {isShowSpeak === 'Y' && (
-                <button
-                  type="button"
-                  className="common-btn speak-practice-btn inline"
-                  onClick={() => speakText(textValue, true)}
-                  title="Speak"
-                  aria-label="Speak text"
-                >
-                  <FaVolumeUp aria-hidden="true" />
-                </button>
-              )}
               <button
                 type="button"
                 className="common-btn speak-practice-btn inline"
@@ -135,15 +121,7 @@ const StickyPracticeInput = forwardRef<StickyPracticeInputHandle, SpeakPracticeI
               >
                 <FaTrash aria-hidden="true" />
               </button>
-              <button
-                type="button"
-                className="common-btn speak-practice-btn"
-                onClick={() => void onCopyText()}
-                title="Copy"
-                aria-label="Copy text"
-              >
-                <FaCopy aria-hidden="true" />
-              </button>
+
               <button
                 type="button"
                 className="common-btn speak-practice-btn"
@@ -164,6 +142,30 @@ const StickyPracticeInput = forwardRef<StickyPracticeInputHandle, SpeakPracticeI
               >
                 <FaLanguage aria-hidden="true" />
               </button>
+              <button
+                type="button"
+                className="common-btn speak-practice-btn"
+                onClick={() => void onCopyText()}
+                title="Copy"
+                aria-label="Copy text"
+              >
+                <FaCopy aria-hidden="true" />
+              </button>
+              {isShowSpeak === 'Y' && (
+                <button
+                  type="button"
+                  className="common-btn speak-practice-btn inline"
+                  onClick={() => speakText(textValue, true)}
+                  title="Speak"
+                  aria-label="Speak text"
+                >
+                  <FaVolumeUp aria-hidden="true" />
+                </button>
+              )}
+
+              <div className="speak-practice-voice">
+                <VoiceToText setText={setTextValue} index={voiceIndex}></VoiceToText>
+              </div>
             </div>
           </div>
         </div>

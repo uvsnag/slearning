@@ -597,7 +597,7 @@ body {
 
 .tooltip .tooltiptext {
   visibility: hidden;
-  width: 400px;
+  /* width: 400px; */
   background-color: var(--color-dark-surface-alt);
   color: var(--color-tooltip-text);
   border-radius: 6px;
@@ -1450,7 +1450,7 @@ ul.mst-menu > li {
   }
 
   .speak-practice-btn {
-    width: 42px;
+    width: 39px;
   }
 }
 
