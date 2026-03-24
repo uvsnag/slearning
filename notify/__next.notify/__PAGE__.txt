@@ -1,10 +1,10 @@
 1:"$Sreact.fragment"
 2:I[17246,["/slearning/_next/static/chunks/41d36fb5b4c4261e.js","/slearning/_next/static/chunks/66ff6123d568c1da.js"],"ClientPageRoot"]
-3:I[15243,["/slearning/_next/static/chunks/14610a9371d27971.js","/slearning/_next/static/chunks/63e8824491f3f96d.js","/slearning/_next/static/chunks/fd3b5c2e86bd1989.js","/slearning/_next/static/chunks/1bd6f321fc6cd9ca.js"],"default"]
+3:I[15243,["/slearning/_next/static/chunks/ce69598af461ad8c.js","/slearning/_next/static/chunks/f0aef9f6151fc3ee.js","/slearning/_next/static/chunks/39bb8f4c2990b7d3.js","/slearning/_next/static/chunks/eb6e1d196556cf1d.js","/slearning/_next/static/chunks/1bd6f321fc6cd9ca.js"],"default"]
 6:I[45336,["/slearning/_next/static/chunks/41d36fb5b4c4261e.js","/slearning/_next/static/chunks/66ff6123d568c1da.js"],"OutletBoundary"]
 7:"$Sreact.suspense"
 :HL["/slearning/_next/static/chunks/ba822fb05dc2e5c2.css","style"]
-0:{"buildId":"UDb0JKuIIIW6r2mjEso79","rsc":["$","$1","c",{"children":[["$","$L2",null,{"Component":"$3","serverProvidedParams":{"searchParams":{},"params":{},"promises":["$@4","$@5"]}}],[["$","link","0",{"rel":"stylesheet","href":"/slearning/_next/static/chunks/ba822fb05dc2e5c2.css","precedence":"next"}],["$","script","script-0",{"src":"/slearning/_next/static/chunks/1bd6f321fc6cd9ca.js","async":true}]],["$","$L6",null,{"children":["$","$7",null,{"name":"Next.MetadataOutlet","children":"$@8"}]}]]}],"loading":null,"isPartial":false}
+0:{"buildId":"ek12ygn25k-a9hOWdWSDX","rsc":["$","$1","c",{"children":[["$","$L2",null,{"Component":"$3","serverProvidedParams":{"searchParams":{},"params":{},"promises":["$@4","$@5"]}}],[["$","link","0",{"rel":"stylesheet","href":"/slearning/_next/static/chunks/ba822fb05dc2e5c2.css","precedence":"next"}],["$","script","script-0",{"src":"/slearning/_next/static/chunks/1bd6f321fc6cd9ca.js","async":true}]],["$","$L6",null,{"children":["$","$7",null,{"name":"Next.MetadataOutlet","children":"$@8"}]}]]}],"loading":null,"isPartial":false}
 4:{}
 5:{}
 8:null

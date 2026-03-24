@@ -1,6 +1,6 @@
 1:"$Sreact.fragment"
-2:I[46018,["/slearning/_next/static/chunks/14610a9371d27971.js","/slearning/_next/static/chunks/63e8824491f3f96d.js","/slearning/_next/static/chunks/fd3b5c2e86bd1989.js","/slearning/_next/static/chunks/4527cec3b9f681d0.js"],"default"]
+2:I[46018,["/slearning/_next/static/chunks/ce69598af461ad8c.js","/slearning/_next/static/chunks/f0aef9f6151fc3ee.js","/slearning/_next/static/chunks/39bb8f4c2990b7d3.js","/slearning/_next/static/chunks/eb6e1d196556cf1d.js","/slearning/_next/static/chunks/6565a5fe182024ea.js"],"default"]
 3:I[45336,["/slearning/_next/static/chunks/41d36fb5b4c4261e.js","/slearning/_next/static/chunks/66ff6123d568c1da.js"],"OutletBoundary"]
 4:"$Sreact.suspense"
-0:{"buildId":"UDb0JKuIIIW6r2mjEso79","rsc":["$","$1","c",{"children":[["$","div",null,{"className":"ui-page","children":["$","div",null,{"className":"ui-page-shell","children":["$","$L2",null,{}]}]}],[["$","script","script-0",{"src":"/slearning/_next/static/chunks/4527cec3b9f681d0.js","async":true}]],["$","$L3",null,{"children":["$","$4",null,{"name":"Next.MetadataOutlet","children":"$@5"}]}]]}],"loading":null,"isPartial":false}
+0:{"buildId":"ek12ygn25k-a9hOWdWSDX","rsc":["$","$1","c",{"children":[["$","div",null,{"className":"ui-page","children":["$","div",null,{"className":"ui-page-shell","children":["$","$L2",null,{}]}]}],[["$","script","script-0",{"src":"/slearning/_next/static/chunks/6565a5fe182024ea.js","async":true}]],["$","$L3",null,{"children":["$","$4",null,{"name":"Next.MetadataOutlet","children":"$@5"}]}]]}],"loading":null,"isPartial":false}
 5:null
