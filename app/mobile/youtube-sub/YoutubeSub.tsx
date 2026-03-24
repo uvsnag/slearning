@@ -193,6 +193,9 @@ const YoutubeSub: FC = () => {
   const changeTimeLoop = (isStart: boolean, isCre: boolean): void => {
     const SECOND_UNIT: number = 0.1;
     if (isStart) {
+      if (!customLoopAs) {
+        return;
+      }
       let value = (Number(customLoopAs) + (isCre ? SECOND_UNIT : -SECOND_UNIT)).toFixed(
         FIXED_VALUE,
       );
@@ -201,6 +204,9 @@ const YoutubeSub: FC = () => {
       customLoopAVal = Number(value);
       createInteval();
     } else {
+      if (!customLoopBs) {
+        return;
+      }
       let value = (Number(customLoopBs) + (isCre ? SECOND_UNIT : -SECOND_UNIT)).toFixed(
         FIXED_VALUE,
       );
@@ -520,11 +526,6 @@ const YoutubeSub: FC = () => {
     >
       <div id="maincontent-yt" className="">
         <div id="vd-control" className="yt-video-col">
-          <div id="player"></div>
-          <br />
-          <div style={{}} className="inline common-btn btn-mobile">
-            {duration}
-          </div>
           <input
             type="range"
             className="range-input"
@@ -535,6 +536,11 @@ const YoutubeSub: FC = () => {
             value={size}
             onChange={handleSizeChange}
           ></input>
+          <div id="player"></div>
+          <br />
+          <div style={{}} className="inline common-btn btn-mobile">
+            {duration}
+          </div>
         </div>
         {/* <div className="common-toggle">Control</div> */}
         <div className="yt-controls-col">
@@ -629,13 +635,13 @@ const YoutubeSub: FC = () => {
         {/* <StickyPracticeInput voiceIndex="youtube-speech-practice" /> */}
       </div>
       <div></div>
-      <div className="common-toggle" onClick={() => toggleCollapse('mul-ai')}>
+      {/* <div className="common-toggle" onClick={() => toggleCollapse('mul-ai')}>
         Mul-AI
-      </div>
+      </div> */}
 
-      <div id="mul-ai" className="collapse-content ui-sub-panel">
+      {/* <div id="mul-ai" className="collapse-content ui-sub-panel">
         <MulAI {...MUL_PROP}></MulAI>
-      </div>
+      </div> */}
       <div id="media-processing">
         <input
           type="text"

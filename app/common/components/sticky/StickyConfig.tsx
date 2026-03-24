@@ -16,8 +16,15 @@ import {
   KEY_SHOW_LOADING,
 } from '../../common';
 import { usePracticeContext } from '../../hooks/usePracticeStore';
-import { SHEET_LIST } from '@/app/common/hooks/useSheetData';
+import { SHEET_LIST, STORE_ALIAS, type DataItem } from '@/app/common/hooks/useSheetData';
 import { SHEET_AUTO } from '../SheetDataEditor';
+
+const THEME_STORAGE_KEY = 'sl_theme_mode';
+const THEME_1 = 'current';
+const THEME_2 = 'studio-model';
+const THEME_2_CLASS = 'theme-2-model';
+
+type ThemeMode = typeof THEME_1 | typeof THEME_2;
 
 interface StickyConfigProps {
   isSticky?: 'Y' | 'N';
@@ -34,6 +41,27 @@ export interface StickyConfigHandle {
 const getStoredValue = (key: string): string | null => {
   if (typeof window === 'undefined') return null;
   return localStorage.getItem(key);
+};
+
+const getInitialThemeMode = (): ThemeMode => {
+  if (typeof window === 'undefined') return THEME_1;
+  return localStorage.getItem(THEME_STORAGE_KEY) === THEME_2 ? THEME_2 : THEME_1;
+};
+
+const getInitialIsDark = (): boolean => {
+  if (typeof window === 'undefined') return true;
+  return localStorage.getItem(KEY_DARK_MODE) !== 'N';
+};
+
+const applyThemeClass = (theme: ThemeMode) => {
+  const bodyElement = document.body;
+  if (!bodyElement) {
+    return;
+  }
+  bodyElement.classList.remove(THEME_2_CLASS);
+  if (theme === THEME_2) {
+    bodyElement.classList.add(THEME_2_CLASS);
+  }
 };
 
 const StickyConfig = forwardRef<StickyConfigHandle, StickyConfigProps>(
@@ -60,10 +88,12 @@ const StickyConfig = forwardRef<StickyConfigHandle, StickyConfigProps>(
       getStoredValue(KEY_GOOGLE_SHEET_NM),
     );
     const [apiKey, setApiKey] = useState<string | null>(() => getStoredValue(KEY_API_SHEET));
-    const [darkMode, setDarkMode] = useState<string>(() => getStoredValue(KEY_DARK_MODE) ?? 'Y');
+    const [themeMode, setThemeMode] = useState<ThemeMode>(() => getInitialThemeMode());
+    const [isDark, setIsDark] = useState<boolean>(() => getInitialIsDark());
     const [showLoading, setShowLoading] = useState<string>(
       () => getStoredValue(KEY_SHOW_LOADING) ?? 'Y',
     );
+    const [storeIndex, setStoreIndex] = useState<string>(`${STORE_ALIAS}1`);
 
     // ── Persist API keys to localStorage ────────────────
     useEffect(() => {
@@ -91,17 +121,49 @@ const StickyConfig = forwardRef<StickyConfigHandle, StickyConfigProps>(
       if (apiKey) localStorage.setItem(KEY_API_SHEET, apiKey);
     }, [apiKey]);
     useEffect(() => {
-      localStorage.setItem(KEY_DARK_MODE, darkMode);
-    }, [darkMode]);
-    useEffect(() => {
       localStorage.setItem(KEY_SHOW_LOADING, showLoading);
     }, [showLoading]);
+    useEffect(() => {
+      applyThemeClass(themeMode);
+      localStorage.setItem(THEME_STORAGE_KEY, themeMode);
+    }, [themeMode]);
+    useEffect(() => {
+      if (isDark) {
+        document.body.classList.add('dark-90');
+        localStorage.setItem(KEY_DARK_MODE, 'Y');
+      } else {
+        document.body.classList.remove('dark-90');
+        localStorage.setItem(KEY_DARK_MODE, 'N');
+      }
+    }, [isDark]);
 
     useImperativeHandle(ref, () => ({
       close: () => {
         setIsOpen(false);
       },
     }));
+
+    const onAddStore = () => {
+      if (!storeIndex) return;
+      const storeDataString = localStorage.getItem(storeIndex);
+      const parsedData = storeDataString ? (JSON.parse(storeDataString) as DataItem[]) : [];
+      const storeData = Array.isArray(parsedData) ? parsedData : [];
+      localStorage.setItem(storeIndex, JSON.stringify([...storeData, ...practiceState.items]));
+    };
+
+    const onClearStore = () => {
+      if (!storeIndex) return;
+      localStorage.setItem(storeIndex, JSON.stringify([]));
+    };
+
+    const handleCheckboxDarkChange = (e: ChangeEvent<HTMLInputElement>) => {
+      setIsDark(e.target.checked);
+    };
+
+    const handleThemeModeChange = (event: ChangeEvent<HTMLSelectElement>) => {
+      const selectedTheme = event.target.value === THEME_2 ? THEME_2 : THEME_1;
+      setThemeMode(selectedTheme);
+    };
 
     return (
       <div
@@ -211,61 +273,56 @@ const StickyConfig = forwardRef<StickyConfigHandle, StickyConfigProps>(
                     />
                   </label>
                 </div>
-                <div className="home-config-grid" style={{ marginTop: '12px' }}>
-                  <label className="home-config-field">
-                    <span>Default Dark Mode</span>
-                    <div style={{ display: 'flex', gap: '12px' }}>
-                      <label>
-                        <input
-                          type="radio"
-                          name="darkMode"
-                          value="Y"
-                          checked={darkMode === 'Y'}
-                          onChange={(e) => setDarkMode(e.target.value)}
-                        />
-                        On
-                      </label>
-                      <label>
-                        <input
-                          type="radio"
-                          name="darkMode"
-                          value="N"
-                          checked={darkMode === 'N'}
-                          onChange={(e) => setDarkMode(e.target.value)}
-                        />
-                        Off
-                      </label>
-                    </div>
-                  </label>
-                  <label className="home-config-field">
-                    <span>Show Loading</span>
-                    <div style={{ display: 'flex', gap: '12px' }}>
-                      <label>
-                        <input
-                          type="radio"
-                          name="showLoading"
-                          value="Y"
-                          checked={showLoading === 'Y'}
-                          onChange={(e) => setShowLoading(e.target.value)}
-                        />
-                        On
-                      </label>
-                      <label>
-                        <input
-                          type="radio"
-                          name="showLoading"
-                          value="N"
-                          checked={showLoading === 'N'}
-                          onChange={(e) => setShowLoading(e.target.value)}
-                        />
-                        Off
-                      </label>
-                    </div>
-                  </label>
-                </div>
               </div>
             </div>
 
+            <div className="common-toggle" onClick={() => toggleCollapse('option-config')}>
+              Option
+            </div>
+            <div className="collapse-content open" id="option-config">
+              <div className="home-config-grid" style={{ marginTop: '12px' }}>
+                <label className="app-dark-switch">
+                  <input type="checkbox" onChange={handleCheckboxDarkChange} checked={isDark} />
+                  Dark mode
+                </label>
+                <label className="app-theme-switch">
+                  Theme
+                  <select
+                    className="app-theme-select"
+                    value={themeMode}
+                    onChange={handleThemeModeChange}
+                  >
+                    <option value={THEME_1}>Theme 1</option>
+                    <option value={THEME_2}>Theme 2</option>
+                  </select>
+                </label>
+                <label className="home-config-field">
+                  <span>Show Loading</span>
+                  <div style={{ display: 'flex', gap: '12px' }}>
+                    <label>
+                      <input
+                        type="radio"
+                        name="showLoading"
+                        value="Y"
+                        checked={showLoading === 'Y'}
+                        onChange={(e) => setShowLoading(e.target.value)}
+                      />
+                      On
+                    </label>
+                    <label>
+                      <input
+                        type="radio"
+                        name="showLoading"
+                        value="N"
+                        checked={showLoading === 'N'}
+                        onChange={(e) => setShowLoading(e.target.value)}
+                      />
+                      Off
+                    </label>
+                  </div>
+                </label>
+              </div>
+            </div>
             {/* ─── Practice Config Section ─── */}
             {
               <div className="sticky-config-section">
@@ -371,6 +428,30 @@ const StickyConfig = forwardRef<StickyConfigHandle, StickyConfigProps>(
                       <option value="random">random</option>
                       <option value="order">order</option>
                     </select>
+                  </div>
+
+                  {/* Store Add/Clear */}
+                  <div className="sticky-config-row">
+                    <label className="sticky-config-label">Store</label>
+                    <select
+                      id="sticky-store-index"
+                      name="sticky-store-index"
+                      className="common-input inline"
+                      value={storeIndex}
+                      onChange={(e: ChangeEvent<HTMLSelectElement>) => {
+                        setStoreIndex(e.target.value);
+                      }}
+                    >
+                      <option value={`${STORE_ALIAS}1`}>Store1</option>
+                      <option value={`${STORE_ALIAS}2`}>Store2</option>
+                      <option value={`${STORE_ALIAS}3`}>Store3</option>
+                    </select>
+                    <button className="common-btn" onClick={onAddStore}>
+                      Add
+                    </button>
+                    <button className="common-btn" onClick={onClearStore}>
+                      Clear
+                    </button>
                   </div>
                 </div>
               </div>

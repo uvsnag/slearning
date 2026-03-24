@@ -5,7 +5,7 @@ import React, { FC } from 'react';
 const DASHBOARD_LINKS = [
   { href: '/dash-board2', label: 'AI Only' },
   { href: '/youtube-sub', label: 'YT' },
-  { href: '/dash-board1', label: 'Sentence & YT' },
+  // { href: '/dash-board1', label: 'Sentence & YT' },
 ];
 const SINGLE_PRACT_LINKS = [
   { href: '/practice-word', label: 'Word (Meaning)' },
@@ -73,4 +73,3 @@ const Home: FC = () => {
 };
 
 export default Home;
-
