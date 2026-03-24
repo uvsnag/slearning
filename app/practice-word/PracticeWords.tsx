@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState, useRef, RefObject } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import _ from 'lodash';
 import './style.css';
 import { FaVolumeUp, FaVolumeMute, FaTrash, FaExchangeAlt, FaSyncAlt } from 'react-icons/fa';
@@ -7,10 +7,8 @@ import VoiceToText from '@/app/common/components/VoiceToText';
 import AIBoard from '@/app/common/components/AIBoard';
 import { DataItem, STORE_ALIAS, onRemoveStoreItem } from '@/app/common/hooks/useSheetData';
 
-import { validateArrStrCheck, arrStrCheckToStr } from '@/common/commonElearn';
-import PracticeController, {
-  ConfigControlProps,
-} from '../common/components/controller/PracticeController';
+import { validateArrStrCheck, arrStrCheckToStr } from '@/common/common';
+import { usePracticeContext, toSpeechConfig } from '../common/hooks/usePracticeStore';
 import { useSpeechSynthesis } from '../common/hooks/useSpeechSynthesis';
 import { toggleCollapse, COMMON_PROMPT } from '../common/common';
 import SheetDataEditor from '../common/components/SheetDataEditor';
@@ -28,15 +26,8 @@ let arrLineTemp: DataItem[] = [];
 let isCheckedRevert: boolean = false;
 
 const PractWords = (props: PractWordsProps) => {
-  const [sheetConfig, setSheetConfig] = useState<ConfigControlProps>({
-    propSheet: 'Notify!A2:C500',
-    oderRandomS: 'random',
-    voice: 0,
-    rate: 1,
-    volume: 0.6,
-    index: 'pract_words',
-    items: [],
-  });
+  const { state: practiceState, dispatch: practiceDispatch, reloadSheet } = usePracticeContext();
+
   const MODE_NONE = 'None';
   const MODE_SPEAKE_CHANGE_QUST = 'Speak';
   const [showPanel, setShowPanel] = useState<'PA' | 'P' | 'A'>(props.showPract ?? 'PA');
@@ -60,14 +51,14 @@ const PractWords = (props: PractWordsProps) => {
 
   useEffect(() => {
     setIsShowDelete(
-      sheetConfig.propSheet?.startsWith(STORE_ALIAS) || sheetConfig.propSheet?.startsWith('AUTO'),
+      practiceState.sheet?.startsWith(STORE_ALIAS) || practiceState.sheet?.startsWith('AUTO'),
     );
-  }, [sheetConfig.propSheet]);
+  }, [practiceState.sheet]);
 
   useEffect(() => {
     arrLineTemp = [];
     onChangeQuestion(true);
-  }, [sheetConfig.items]);
+  }, [practiceState.items]);
 
   function setInputAns(text: string): void {
     if (inputAns.current) {
@@ -80,20 +71,20 @@ const PractWords = (props: PractWordsProps) => {
     const revertCheckbox = document.getElementById('revertAsw') as HTMLInputElement;
     isCheckedRevert = revertCheckbox?.checked ?? false;
 
-    if (!_.isEmpty(sheetConfig.items)) {
-      let isStore = sheetConfig.propSheet?.startsWith(STORE_ALIAS);
+    if (!_.isEmpty(practiceState.items)) {
+      let isStore = practiceState.sheet?.startsWith(STORE_ALIAS);
       let listSents = isStore
-        ? localStorage.getItem(sheetConfig.propSheet)
-          ? JSON.parse(localStorage.getItem(sheetConfig.propSheet)!)
+        ? localStorage.getItem(practiceState.sheet)
+          ? JSON.parse(localStorage.getItem(practiceState.sheet)!)
           : []
-        : sheetConfig.items;
+        : practiceState.items;
       let item: DataItem | null = null;
       let arrTemp: DataItem[] =
         _.isEmpty(arrLineTemp) || isInit ? _.cloneDeep(listSents) : _.cloneDeep(arrLineTemp);
       if (_.isEmpty(arrTemp)) {
         return;
       }
-      if (sheetConfig.oderRandomS === 'random') {
+      if (practiceState.oderRandomS === 'random') {
         const validOptions = arrTemp.filter((item) => item.eng !== lastEngVar);
 
         let index = Math.floor(Math.random() * validOptions.length);
@@ -131,19 +122,19 @@ const PractWords = (props: PractWordsProps) => {
       setShowAns('');
       const numOfAnsElement = document.getElementById('num-of-ans') as HTMLInputElement;
       let numAnsw = Number(numOfAnsElement?.value ?? 3);
-      numAnsw = numAnsw > sheetConfig.items.length ? sheetConfig.items.length : numAnsw;
+      numAnsw = numAnsw > practiceState.items.length ? practiceState.items.length : numAnsw;
       while (randomAns.size < numAnsw) {
-        let randId = Math.floor(Math.random() * sheetConfig.items.length);
+        let randId = Math.floor(Math.random() * practiceState.items.length);
         if (isCheckedRevert) {
           quest = '';
-          if (_.isEmpty(sheetConfig.items[randId].customDefine)) {
-            quest = sheetConfig.items[randId].vi;
+          if (_.isEmpty(practiceState.items[randId].customDefine)) {
+            quest = practiceState.items[randId].vi;
           } else {
-            quest = sheetConfig.items[randId].customDefine || '';
+            quest = practiceState.items[randId].customDefine || '';
           }
           randomAns.add(quest);
         } else {
-          randomAns.add(sheetConfig.items[randId].eng);
+          randomAns.add(practiceState.items[randId].eng);
         }
       }
     } else {
@@ -192,9 +183,9 @@ const PractWords = (props: PractWordsProps) => {
     }
     if (mode === MODE_SPEAKE_CHANGE_QUST) {
       if (isCheckedRevert) {
-        speakText(question, true, sheetConfig);
+        speakText(question, true, toSpeechConfig(practiceState));
       } else {
-        speakText(answer, true, sheetConfig);
+        speakText(answer, true, toSpeechConfig(practiceState));
       }
     }
     onChangeQuestion();
@@ -209,10 +200,10 @@ const PractWords = (props: PractWordsProps) => {
       onShow();
     }
     if (e.nativeEvent.code === 'ShiftRight') {
-      speakText(lastEng, true, sheetConfig);
+      speakText(lastEng, true, toSpeechConfig(practiceState));
     }
     if (e.nativeEvent.code === 'ControlLeft') {
-      speakText(answer, true, sheetConfig);
+      speakText(answer, true, toSpeechConfig(practiceState));
     }
     if (e.nativeEvent.code === 'ControlRight') {
       setMode(mode === MODE_NONE ? MODE_SPEAKE_CHANGE_QUST : MODE_NONE);
@@ -221,7 +212,7 @@ const PractWords = (props: PractWordsProps) => {
       nextQuestion();
     }
     if (e.nativeEvent.code === 'Home') {
-      // Data reload is handled by PracticeController
+      // Data reload is handled by the store
     }
   };
   const onShow = (): void => {
@@ -253,7 +244,7 @@ const PractWords = (props: PractWordsProps) => {
                 {lastEng} : {lastVie}
                 <FaVolumeUp
                   className="iconSound"
-                  onClick={() => speakText(lastEng, true, sheetConfig)}
+                  onClick={() => speakText(lastEng, true, toSpeechConfig(practiceState))}
                 />{' '}
               </span>
             )}
@@ -321,27 +312,13 @@ const PractWords = (props: PractWordsProps) => {
             ))}
           </select>
 
-          {/* <input
-          className="common-btn"
-          type="submit"
-          value="Show Ans"
-          id="btnShowAns"
-          onClick={() => onShow()}
-        /> */}
-
-          {/* <br /> */}
-          {/* <button className="common-btn" onClick={() => hideAI()}>
-            Hide AI
-          </button> */}
-
           <div className="right">
             {isShowDelete && (
               <button
                 className="common-btn width-small-btn"
                 onClick={() => {
-                  onRemoveStoreItem(currEng || '', nextQuestion, sheetConfig.propSheet);
+                  onRemoveStoreItem(currEng || '', nextQuestion, practiceState.sheet);
                   setMessage(`🗑️:${currEng}`);
-                  // setTimeout(() => setMessage(''), 2000);
                 }}
               >
                 🗑️
@@ -356,14 +333,12 @@ const PractWords = (props: PractWordsProps) => {
           <br />
           <br />
 
-          <div className="common-toggle" onClick={() => toggleCollapse(`config-pract-save-sheet`)}>
+          {/* <div className="common-toggle" onClick={() => toggleCollapse(`config-pract-save-sheet`)}>
             <FaSyncAlt />
           </div>
           <div className="collapse-content  ui-sub-panel" id={`config-pract-save-sheet`}>
             <SheetDataEditor value1={lastEng} value2={lastVie} isUse={true} />
-          </div>
-
-          <PracticeController config={sheetConfig} onChange={setSheetConfig} />
+          </div> */}
         </div>
       )}
       {showPanel == 'A' && (
@@ -378,9 +353,6 @@ const PractWords = (props: PractWordsProps) => {
           defaultPrompt={COMMON_PROMPT.ADD_EXCEL_ENG}
           isSpeak="F"
           speakSplitter={`\n`}
-          // isMini={props.isMini ?? true}
-          // statement={question}
-          // lastSentence={lastVie}
         />
       )}
       <div>

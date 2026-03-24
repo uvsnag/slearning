@@ -27,7 +27,7 @@ import {
   FaVolumeUp,
 } from 'react-icons/fa';
 import SheetDataEditor from './SheetDataEditor';
-import PracticeVoiceConfig from './controller/PracticeVoiceConfig';
+import { usePracticeContext, toSpeechConfig } from '@/app/common/hooks/usePracticeStore';
 import TranslatePopup from './TranslatePopup';
 const TP_GEN = 1;
 const TP_GPT = 2;
@@ -232,10 +232,11 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
   const [value1, setValue1] = useState<string>('');
   const [value2, setValue2] = useState<string>('');
   const [lastResponseRaw, setLastResponseRaw] = useState<string>('');
-  const [voiceIndex, setVoiceIndex] = useState<number>(0);
-  const [rate, setRate] = useState<number>(1);
-  const [volumn, setVolumn] = useState<number>(0.6);
   const { speakText, voices, cancel, speaking } = useSpeechSynthesis();
+  const { state: practiceStoreState } = usePracticeContext();
+  const voiceIndex = practiceStoreState.voiceIndex;
+  const rate = practiceStoreState.rate;
+  const volumn = practiceStoreState.volume;
   const isSpeakEnabled = useSpeak !== 'N';
 
   function createOpenAIClient(apiKey: string | null, basePath?: string): OpenAIApi {
@@ -317,13 +318,7 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
   useEffect((): void => {
     onAskMini();
   }, [props.statement]);
-  useEffect((): void => {
-    voices.forEach((option: any, index: number): void => {
-      if (option.lang.includes('en-US')) {
-        setVoiceIndex(index);
-      }
-    });
-  }, [voices]);
+  // Voice index is now managed by usePracticeContext — no local auto-pick needed
 
   useEffect((): void => {
     aiType = model.type;
@@ -1214,9 +1209,6 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
         >
           <FaPaperPlane aria-hidden="true" />
         </button>
-        {/* <button onClick={() => setIsPromptExpanded((prev) => !prev)} className="common-btn">
-          {isPromptExpanded ? 'Collapse' : 'Expand'}
-        </button> */}
         <button
           onClick={() => toggleCollapse(`save-sheet-${props.prefix}${props.index}`)}
           className="common-btn width-small-btn"
@@ -1225,22 +1217,6 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
         >
           <FaDatabase aria-hidden="true" />
         </button>
-        {isSpeakEnabled && (
-          <button
-            onClick={() => toggleCollapse(`voice-config-${props.prefix}${props.index}`)}
-            className="common-btn width-small-btn"
-            title="Speak settings"
-            aria-label="Open speak settings"
-          >
-            <FaVolumeUp aria-hidden="true" />
-          </button>
-          /*    <div
-            className="common-toggle"
-            onClick={() => toggleCollapse(`voice-config-${props.prefix}${props.index}`)}
-          >
-            Speak
-          </div> */
-        )}
         <button
           onClick={() => toggleCollapse(`config-${props.prefix}${props.index}`)}
           className="common-btn width-small-btn"
@@ -1249,12 +1225,6 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
         >
           <FaCog aria-hidden="true" />
         </button>
-        {/* <div
-          className="common-toggle"
-          onClick={() => toggleCollapse(`save-sheet-${props.prefix}${props.index}`)}
-        >
-           Data
-        </div> */}
 
         <div
           className="collapse-content ui-sub-panel ai-data-panel"
@@ -1262,12 +1232,6 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
         >
           <SheetDataEditor value1={value1} value2={value2} />
         </div>
-        {/* <div
-          className="common-toggle"
-          onClick={() => toggleCollapse(`config-${props.prefix}${props.index}`)}
-        >
-       Config
-        </div> */}
 
         <div
           className="collapse-content ui-sub-panel ai-config-panel"
@@ -1344,7 +1308,6 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
             <option value="N">No</option>
           </select>
           <br />
-          {/* <label>Height: {responseHeight}px</label> */}
           <input
             type="range"
             className="width-220 range-input inline"
@@ -1399,40 +1362,8 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
             rows={3}
             value={sysPrompt}
             onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setSysPrompt(e.target.value)}
-            // placeholder="Sys promt"
           />
         </div>
-
-        {isSpeakEnabled && (
-          <div
-            className="collapse-content ui-sub-panel ai-voice-panel"
-            id={`voice-config-${props.prefix}${props.index}`}
-          >
-            <button
-              onClick={() => onSpeakLastResponse()}
-              className="common-btn "
-              title={speaking ? 'Stop speaking' : 'Speak latest response'}
-              aria-label={speaking ? 'Stop speaking' : 'Speak latest response'}
-            >
-              {speaking ? <FaStop aria-hidden="true" /> : <FaVolumeUp aria-hidden="true" />}
-            </button>
-            <PracticeVoiceConfig
-              voices={voices}
-              voiceIndex={voiceIndex}
-              rate={rate}
-              volumn={volumn}
-              onVoiceChange={(value: number): void => {
-                setVoiceIndex(value);
-              }}
-              onRateChange={(value: number): void => {
-                setRate(value);
-              }}
-              onVolumnChange={(value: number): void => {
-                setVolumn(value);
-              }}
-            />
-          </div>
-        )}
         <TranslatePopup
           open={wordPopup.open}
           word={wordPopup.word}

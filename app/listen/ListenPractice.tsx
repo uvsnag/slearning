@@ -3,13 +3,10 @@ import { useEffect, useState } from 'react';
 import type { KeyboardEvent, ChangeEvent } from 'react';
 import _ from 'lodash';
 import { FaRegFrown, FaRegSmile, FaVolumeUp, FaTrash } from 'react-icons/fa';
-import config from '@/common/config.js';
 import { useSpeechSynthesis } from '@/app/common/hooks/useSpeechSynthesis';
-import PracticeController, {
-  ConfigControlProps,
-} from '@/app/common/components/controller/PracticeController';
 import { DataItem, onRemoveStoreItem, STORE_ALIAS } from '@/app/common/hooks/useSheetData';
-import StickyPracticeInput from '../common/components/sticky/StickyPracticeInput';
+import { usePracticeContext, toSpeechConfig } from '@/app/common/hooks/usePracticeStore';
+
 /** =======================
  *  Types
  *  ======================= */
@@ -17,16 +14,11 @@ import StickyPracticeInput from '../common/components/sticky/StickyPracticeInput
 const ListenPractice: React.FC = () => {
   const ALL_WORDS = '-1';
 
-  const [sheetConfig, setSheetConfig] = useState<ConfigControlProps>({
-    propSheet: 'AUTO!Q2:S500',
-    oderRandomS: 'random',
-    voice: 0,
-    rate: 0.9,
-    volume: 1,
-    index: 'listen_prac',
-    items: [],
-    isOpen: true,
-  });
+  const {
+    state: practiceState,
+    dispatch: practiceDispatch,
+    reloadSheet,
+  } = usePracticeContext();
 
   const [question, setQuestion] = useState<string>('');
   const [answer, setAnswer] = useState<string>('');
@@ -41,7 +33,6 @@ const ListenPractice: React.FC = () => {
   const [lastAnsw, setLastAnsw] = useState<string>('');
   const [showVie, setShowVie] = useState<boolean>(false);
   const [isShowDelete, setIsShowDelete] = useState<boolean>(false);
-  // const { speakText } = useSpeechSynthesis();
   const { speakText } = useSpeechSynthesis();
 
   /** =======================
@@ -60,7 +51,7 @@ const ListenPractice: React.FC = () => {
 
     const handler = (e: KeyboardEvent | globalThis.KeyboardEvent): void => {
       if ((e as globalThis.KeyboardEvent).code === 'Space') {
-        speakText(question, true);
+        speakText(question, true, toSpeechConfig(practiceState));
       }
     };
 
@@ -74,12 +65,12 @@ const ListenPractice: React.FC = () => {
   }, [ansList]);
 
   useEffect((): void => {
-    console.log(sheetConfig.items);
-    if (_.isEmpty(sheetConfig.items)) return;
+    console.log(practiceState.items);
+    if (_.isEmpty(practiceState.items)) return;
 
     const arr: DataItem[] = [];
 
-    sheetConfig.items.forEach((item) => {
+    practiceState.items.forEach((item) => {
       if (!_.isEmpty(item) && !_.isEmpty(item.eng)) {
         arr.push(item);
       }
@@ -100,13 +91,13 @@ const ListenPractice: React.FC = () => {
 
     setClassItems(arrClassItem);
     setIndexClass(ALL_WORDS);
-  }, [sheetConfig.items]);
+  }, [practiceState.items]);
 
   useEffect(() => {
     setIsShowDelete(
-      sheetConfig.propSheet?.startsWith(STORE_ALIAS) || sheetConfig.propSheet?.startsWith('AUTO'),
+      practiceState.sheet?.startsWith(STORE_ALIAS) || practiceState.sheet?.startsWith('AUTO'),
     );
-  }, [sheetConfig.propSheet]);
+  }, [practiceState.sheet]);
 
   useEffect((): void => {
     if (!_.isEmpty(answer)) {
@@ -139,7 +130,7 @@ const ListenPractice: React.FC = () => {
     if (!_.isEmpty(ansList)) {
       const ans = ansList[(Math.random() * ansList.length) | 0];
       setQuestion(ans.eng);
-      speakText(ans.eng, true);
+      speakText(ans.eng, true, toSpeechConfig(practiceState));
       setShowAns('');
       setAnswer('');
     }
@@ -163,17 +154,6 @@ const ListenPractice: React.FC = () => {
     setShowAns(_.isEmpty(showAns) ? question : '');
   };
 
-  // const speakText = (speakStr: string, isEng: boolean): void => {
-  //   const utterance = new window.SpeechSynthesisUtterance();
-  //   utterance.text = speakStr;
-  //   utterance.rate = sheetConfig.rate;
-  //   if (isEng) {
-  //     utterance.voice = voices[sheetConfig.voice];
-  //   }
-  //   utterance.volume = sheetConfig.volume;
-  //   speak(utterance);
-  // };
-
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>): void => {
     if (e.key === 'Enter') {
       setAnswer(e.currentTarget.value);
@@ -185,11 +165,8 @@ const ListenPractice: React.FC = () => {
   };
 
   const handleDeleteItem = async (eng: string): Promise<void> => {
-    await onRemoveStoreItem(eng, () => {}, sheetConfig.propSheet);
-    setSheetConfig((prev) => ({
-      ...prev,
-      items: prev.items.filter((item) => item.eng !== eng),
-    }));
+    await onRemoveStoreItem(eng, () => {}, practiceState.sheet);
+    practiceDispatch({ type: 'REMOVE_ITEM', payload: eng });
     if (question === eng) {
       setQuestion('');
       setShowAns('');
@@ -203,10 +180,9 @@ const ListenPractice: React.FC = () => {
   return (
     <div className="pracl">
       <div className="">
-        <PracticeController config={sheetConfig} onChange={setSheetConfig} />
         <div>
           {!_.isEmpty(question) && (
-            <FaVolumeUp className="iconSound" onClick={() => speakText(question, true)} />
+            <FaVolumeUp className="iconSound" onClick={() => speakText(question, true, toSpeechConfig(practiceState))} />
           )}
         </div>
         <select className="common-input" onChange={(e) => setIndexClass(e.target.value)}>
@@ -249,7 +225,6 @@ const ListenPractice: React.FC = () => {
         <input className="common-input" type="submit" value="Check" onClick={onCheck} />
         <input className="common-input" type="submit" value="Show Ans" onClick={onShow} />
       </div>
-      {/* <div className="msg">{errorMs === 'wrong!' ? <FaRegFrown /> : <FaRegSmile />}</div> */}
       {errorMs}
 
       {ansListTemp.map((item) => (
@@ -261,7 +236,7 @@ const ListenPractice: React.FC = () => {
           )}
           {item.eng}
           {showVie ? `: ${item.vi}` : ''}
-          <FaVolumeUp className="iconSound" onClick={() => speakText(item.eng, true)} />
+          <FaVolumeUp className="iconSound" onClick={() => speakText(item.eng, true, toSpeechConfig(practiceState))} />
         </div>
       ))}
 
@@ -270,7 +245,7 @@ const ListenPractice: React.FC = () => {
       {!_.isEmpty(lastAnsw) && (
         <div>
           Last : {lastAnsw}
-          <FaVolumeUp className="iconSound" onClick={() => speakText(lastAnsw, true)} />
+          <FaVolumeUp className="iconSound" onClick={() => speakText(lastAnsw, true, toSpeechConfig(practiceState))} />
         </div>
       )}
     </div>

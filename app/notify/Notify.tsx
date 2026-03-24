@@ -6,20 +6,14 @@ import { DataItem } from '@/app/common/hooks/useSheetData';
 import { useSpeechSynthesis } from '@/app/common/hooks/useSpeechSynthesis';
 import { FaVolumeUp, FaEyeSlash } from 'react-icons/fa';
 import { useCookies } from 'react-cookie';
-import PracticeController, {
-  ConfigControlProps,
-} from '../common/components/controller/PracticeController';
+import { usePracticeContext, toSpeechConfig } from '../common/hooks/usePracticeStore';
 
 const Notify = (): ReactElement => {
-  const [sheetConfig, setSheetConfig] = useState<ConfigControlProps>({
-    propSheet: 'Notify!A2:C500',
-    oderRandomS: 'random',
-    voice: 0,
-    rate: 1,
-    volume: 1,
-    index: 'notify',
-    items: [],
-  });
+  const {
+    state: practiceState,
+    dispatch: practiceDispatch,
+    reloadSheet,
+  } = usePracticeContext();
   const { speakText } = useSpeechSynthesis();
   const [items, setItems] = useState<DataItem[]>([]);
   const [speakStrEng, setSpeakStrEng] = useState<string>('');
@@ -63,15 +57,14 @@ const Notify = (): ReactElement => {
   }, []);
 
   useEffect((): void => {
-    console.log('  Voice Config Changed:', sheetConfig);
-  }, [sheetConfig]);
+    console.log('  Voice Config Changed:', practiceState);
+  }, [practiceState]);
 
   useEffect((): void => {
-    if (sheetConfig.items) {
-      // getDataFromExcel(sheetConfig.sheet, setItems);
-      setItems(sheetConfig.items);
+    if (practiceState.items) {
+      setItems(practiceState.items);
     }
-  }, [sheetConfig.items]);
+  }, [practiceState.items]);
 
   useEffect((): void => {
     onGSheetApi();
@@ -121,8 +114,6 @@ const Notify = (): ReactElement => {
         strResult += '\n';
       }
     }
-    // const txtFieldElement = document.getElementById('txtField') as HTMLTextAreaElement;
-    // if (txtFieldElement) txtFieldElement.value = strResult;
   };
 
   const execute = (): void => {
@@ -158,6 +149,8 @@ const Notify = (): ReactElement => {
     }
   };
 
+  const speechConfig = toSpeechConfig(practiceState);
+
   const onNotiExc = (line: DataItem): void => {
     if (!window.Notification) {
       console.log('Browser does not support notifications.');
@@ -183,7 +176,7 @@ const Notify = (): ReactElement => {
             _.isEqual(isSpeak, IND_SPEAK_NO_NOTI_ENG) ||
             _.isEqual(isSpeak, IND_SPEAK_ALL_ENG)
           ) {
-            speakText(engStr, true, sheetConfig);
+            speakText(engStr, true, speechConfig);
           }
 
           if (
@@ -191,7 +184,7 @@ const Notify = (): ReactElement => {
             _.isEqual(isSpeak, IND_SPEAK_NO_NOTI) ||
             _.isEqual(isSpeak, IND_SPEAK_NO_NOTI_ENG)
           ) {
-            speakText(viStr, false, sheetConfig);
+            speakText(viStr, false, speechConfig);
           }
           if (
             _.isEqual(isSpeak, IND_SPEAK_NO_NOTI_ENG) ||
@@ -269,7 +262,6 @@ const Notify = (): ReactElement => {
   };
   return (
     <div className="">
-      <PracticeController config={sheetConfig} onChange={setSheetConfig} />
       <div id="notify-control">
         <textarea id="strContinue" value={strContinue} onChange={handleChangeCookie}></textarea>
         <br />
@@ -290,13 +282,6 @@ const Notify = (): ReactElement => {
           <option value={IND_SPEAK_NO_NOTI_NO_VIE}>Voice Eng</option>
           <option value={IND_SPEAK_NOTI_ENG}>noti Eng</option>
         </select>
-        {/* <div className="option-noti bolder" id="control">
-          <div className="option-left  notify-left">
-            <textarea title="f" id="txtField"></textarea>
-            <br />
-          </div>
-          <div className="option-right notify-right"></div>
-        </div> */}
         <div className="control-footer">
           <input
             className="common-btn"
@@ -329,7 +314,7 @@ const Notify = (): ReactElement => {
         ) : (
           <FaVolumeUp
             className="iconSound"
-            onClick={(): void => speakText(speakStrEng, true, sheetConfig)}
+            onClick={(): void => speakText(speakStrEng, true, speechConfig)}
           />
         )}
       </div>
@@ -338,3 +323,4 @@ const Notify = (): ReactElement => {
 };
 
 export default Notify;
+
