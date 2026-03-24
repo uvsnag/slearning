@@ -116,12 +116,12 @@ const SpeakAI = () => {
         collapse={'N'}
         title={'Board'}
       />
-      <div className="common-toggle" onClick={() => toggleCollapse('mul-ai')}>
+      {/* <div className="common-toggle" onClick={() => toggleCollapse('mul-ai')}>
         Mul-AI
       </div>
       <div id="mul-ai" className="collapse-content ui-sub-panel speak-ai-mulai">
         <MulAI {...MUL_PROP}></MulAI>
-      </div>
+      </div> */}
     </div>
   );
 };

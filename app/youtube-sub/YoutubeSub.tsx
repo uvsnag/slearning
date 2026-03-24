@@ -843,14 +843,14 @@ const YoutubeSub: FC = () => {
           <StickyPracticeInput voiceIndex="youtube-speech-practice" type="TEXTAREA" rows={3} />
         </div> */}
 
-        <div className="common-toggle " onClick={() => toggleCollapse('mul-ai')}>
+        {/* <div className="common-toggle " onClick={() => toggleCollapse('mul-ai')}>
           Mul-AI
-        </div>
+        </div> */}
       </div>
 
-      <div id="mul-ai" className="collapse-content ui-sub-panel yts-mulai-panel">
+      {/* <div id="mul-ai" className="collapse-content ui-sub-panel yts-mulai-panel">
         <MulAI {...MUL_PROP}></MulAI>
-      </div>
+      </div> */}
       <div className="common-toggle " onClick={() => toggleCollapse('hide2')}>
         Sub
       </div>
