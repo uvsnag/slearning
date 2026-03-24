@@ -6,6 +6,7 @@ import type { ChangeEvent } from 'react';
 import { useEffect, useState } from 'react';
 import { KEY_DARK_MODE } from '@/common/common.js';
 import StickyQuickTools from './common/components/sticky/StickyQuickTools';
+import { PracticeStoreProvider } from './common/hooks/usePracticeStore';
 
 const THEME_STORAGE_KEY = 'sl_theme_mode';
 const THEME_1 = 'current';
@@ -73,36 +74,38 @@ export default function RootLayout({
         <title>SLearning</title>
       </head>
       <body>
-        <div className="app-topbar ui-panel">
-          <Link href="/" className="app-home-link">
-            <FaHome />
-            <label>Home</label>
-          </Link>
-          <div className="app-topbar-controls">
-            <label className="app-dark-switch">
-              <input
-                type="checkbox"
-                onChange={handleCheckboxDarkChange}
-                checked={isDark}
-                onClick={() => setIsDark((prev) => !prev)}
-              />
-              Dark mode
-            </label>
-            <label className="app-theme-switch">
-              Theme
-              <select
-                className="app-theme-select"
-                value={themeMode}
-                onChange={handleThemeModeChange}
-              >
-                <option value={THEME_1}>Theme 1</option>
-                <option value={THEME_2}>Theme 2</option>
-              </select>
-            </label>
+        <PracticeStoreProvider>
+          <div className="app-topbar ui-panel">
+            <Link href="/" className="app-home-link">
+              <FaHome />
+              <label>Home</label>
+            </Link>
+            <div className="app-topbar-controls">
+              <label className="app-dark-switch">
+                <input
+                  type="checkbox"
+                  onChange={handleCheckboxDarkChange}
+                  checked={isDark}
+                  onClick={() => setIsDark((prev) => !prev)}
+                />
+                Dark mode
+              </label>
+              <label className="app-theme-switch">
+                Theme
+                <select
+                  className="app-theme-select"
+                  value={themeMode}
+                  onChange={handleThemeModeChange}
+                >
+                  <option value={THEME_1}>Theme 1</option>
+                  <option value={THEME_2}>Theme 2</option>
+                </select>
+              </label>
+            </div>
+            <StickyQuickTools />
           </div>
-          <StickyQuickTools />
-        </div>
-        {children}
+          {children}
+        </PracticeStoreProvider>
       </body>
     </html>
   );

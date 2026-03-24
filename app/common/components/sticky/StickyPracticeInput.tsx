@@ -14,6 +14,7 @@ interface SpeakPracticeInputProps {
   isSticky?: 'Y' | 'N';
   isShowSpeak?: 'Y' | 'N';
   stickyBottom?: number;
+  stickyBottomContent?: number;
   isVisible?: boolean;
   onOpen?: () => void;
 }
@@ -31,6 +32,7 @@ const StickyPracticeInput = forwardRef<StickyPracticeInputHandle, SpeakPracticeI
       isSticky = 'N',
       isShowSpeak = 'Y',
       stickyBottom,
+      stickyBottomContent = 0,
       isVisible = true,
       onOpen,
     },
@@ -85,7 +87,7 @@ const StickyPracticeInput = forwardRef<StickyPracticeInputHandle, SpeakPracticeI
         } ${isOpen ? 'open' : ''}`}
         style={
           isSticky === 'Y' && typeof stickyBottom === 'number'
-            ? { bottom: `${stickyBottom}px` }
+            ? { bottom: `${isOpen ? stickyBottomContent : stickyBottom}px` }
             : undefined
         }
       >

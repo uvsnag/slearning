@@ -11,19 +11,18 @@ import {
   genHintStrAns,
   TYPE_WRONG,
   TYPE_CORRECT,
-} from '@/common/commonElearn.js';
+} from '@/common/common.js';
 import _ from 'lodash';
+import { usePracticeContext, toSpeechConfig } from '@/app/common/hooks/usePracticeStore';
 
 let arrSentence: string[] = [];
 let indexST: number = -1;
 let sentence: string = '';
 
 const ListenSentencePractice: React.FC = () => {
-  const [voiceIndex, setVoiceIndex] = useState<number>(0);
+  const { state: practiceState } = usePracticeContext();
   const { speak, voices } = useSpeechSynthesis();
-  const [rate, setRate] = useState<number>(1);
   const [answer, setAnswer] = useState<string>('');
-  /* const [errorMs, setErrorMs] = useState(""); */
   const [lastAnsw, setLastAnsw] = useState<string>('');
   const inputAns = useRef<HTMLInputElement>(null);
 
@@ -33,13 +32,7 @@ const ListenSentencePractice: React.FC = () => {
     if (numbWordEl) numbWordEl.value = '2';
     if (numWordBreakEl) numWordBreakEl.value = '7';
   }, []);
-  useEffect((): void => {
-    voices.forEach((option, index) => {
-      if (option.lang.includes('en-US')) {
-        setVoiceIndex(index);
-      }
-    });
-  }, [voices]);
+
   const onHideInput = (idName: string): void => {
     var prac = document.getElementById(`${idName}`);
     if (prac && (prac.style.display === 'block' || prac.style.display === '')) {
@@ -52,7 +45,7 @@ const ListenSentencePractice: React.FC = () => {
   const onStart = (): void => {
     const inputEl = document.getElementById('inputTxt') as HTMLTextAreaElement | null;
     let input = inputEl ? inputEl.value : '';
-    let arrReg = [',', '?', '(', ')', '!', '—', '-', '=', '"', '"', '\n', ';'];
+    let arrReg = [',', '?', '(', ')', '!', '\u2014', '-', '=', '"', '"', '\n', ';'];
     input = replaceArr(input, arrReg, '.');
     arrSentence = input.split('.');
     indexST = -1;
@@ -84,7 +77,7 @@ const ListenSentencePractice: React.FC = () => {
         }
       }
     }
-    let arrReg = ['[', ']', ',', '?', '(', ')', '!', '—', '-', '.', '”', '“', '\n', ';', '  '];
+    let arrReg = ['[', ']', ',', '?', '(', ')', '!', '\u2014', '-', '.', '\u201c', '\u201d', '\n', ';', '  '];
     input = replaceArr(input, arrReg, ' ');
     const numWordBreakEl = document.getElementById('numWordBreak') as HTMLInputElement | null;
     const NUMOFWORD = numWordBreakEl ? numWordBreakEl.value : '7';
@@ -142,7 +135,6 @@ const ListenSentencePractice: React.FC = () => {
       let arr = validateArrStrCheck(ans, sentence, 0);
       setAnswer(arrStrCheckToStr(arr));
       changeSentence();
-      /* setErrorMs('correct!'); */
       if (answerEl) answerEl.value = '';
     } else {
       let arr0 = validateArrStrCheck(ans, sentence, 0);
@@ -156,7 +148,6 @@ const ListenSentencePractice: React.FC = () => {
         arr = arr2;
       }
       setAnswer(arrStrCheckToStr(arr));
-      /* setErrorMs('wrong!'); */
     }
   };
 
@@ -254,13 +245,12 @@ const ListenSentencePractice: React.FC = () => {
   };
 
   const speakText = (speakStr: string): void => {
-    var vVoice = (document.getElementById('voice') as HTMLSelectElement | null)?.value || '0';
-    var vrate = (document.getElementById('rate') as HTMLInputElement | null)?.value || '1';
+    const cfg = toSpeechConfig(practiceState);
     var utterance = new window.SpeechSynthesisUtterance();
     utterance.text = speakStr;
-    utterance.rate = Number(vrate);
-    utterance.voice = voices[Number(vVoice)];
-    utterance.volume = 1;
+    utterance.rate = cfg.rate;
+    utterance.voice = voices[cfg.voice] || null;
+    utterance.volume = cfg.volume;
     speak(utterance);
   };
   return (
@@ -284,22 +274,6 @@ const ListenSentencePractice: React.FC = () => {
         </button>
         <input id="numWordBreak" className="width-30" />
         <span> </span>
-        <select
-          className="common-btn width-120 "
-          id="voice"
-          name="voice"
-          value={voiceIndex || ''}
-          onChange={(event: ChangeEvent<HTMLSelectElement>) => {
-            setVoiceIndex(Number(event.target.value));
-          }}
-        >
-          <option value="">Default</option>
-          {voices.map((option, index) => (
-            <option key={option.voiceURI} value={index}>
-              {`${option.lang} - ${option.name}`}
-            </option>
-          ))}
-        </select>
         <input id="numbWord" className="width-30" />
         <span> </span>
         <div className="mobile">
@@ -316,19 +290,7 @@ const ListenSentencePractice: React.FC = () => {
           </button>
         </div>
         <br />
-        <input
-          className="width-220 range-input"
-          type="range"
-          min="0.2"
-          max="1.5"
-          defaultValue="1"
-          step="0.1"
-          id="rate"
-          onChange={(event: ChangeEvent<HTMLInputElement>) => {
-            setRate(Number(event.target.value));
-          }}
-        />
-        <span className="rate-value">{rate}</span>
+        <span className="rate-value">Voice/Rate: use ⚙️ Config sticky</span>
 
         <div className="tooltip">
           ?

@@ -29,7 +29,7 @@ const StickyAIBoard = forwardRef<StickyAIBoardHandle, StickyAIBoardProps>(
       title = 'AI Assistant',
       isSticky = 'Y',
       stickyBottom,
-      stickyBottomContent = 0,
+      stickyBottomContent = stickyBottom,
       defaultPrompt,
       pathIcon,
       isVisible = true,
