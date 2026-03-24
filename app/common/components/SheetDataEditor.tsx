@@ -13,13 +13,20 @@ export interface SheetDataEditorProps {
 }
 
 export const SHEET_AUTO: SheetItem[] = [
-  { range: 'AUTO!A2:C500', name: 'ABoard1' },
-  { range: 'AUTO!E2:G500', name: 'ABoard2' },
-  { range: 'AUTO!I2:K500', name: 'ABoard3' },
-  { range: 'AUTO!M2:O500', name: 'ABoard4' },
-  { range: 'AUTO!Q2:S500', name: 'ABoard5' },
-  { range: 'AUTO!U2:W500', name: 'ABoard6' },
-  { range: 'AUTO!Y2:AA500', name: 'ABoard7' },
+  { range: 'AUTO!A2:C250', name: 'AUTO:1A' },
+  { range: 'AUTO!A250:C500', name: 'AUTO:1B' },
+  { range: 'AUTO!E2:G250', name: 'AUTO:2A' },
+  { range: 'AUTO!E250:G500', name: 'AUTO:2B' },
+  { range: 'AUTO!I2:K250', name: 'AUTO:3A' },
+  { range: 'AUTO!I250:K500', name: 'AUTO:3B' },
+  { range: 'AUTO!M2:O250', name: 'AUTO:4A' },
+  { range: 'AUTO!M250:O500', name: 'AUTO:4B' },
+  { range: 'AUTO!Q2:S250', name: 'AUTO:5A' },
+  { range: 'AUTO!Q250:S500', name: 'AUTO:5B' },
+  { range: 'AUTO!U2:W250', name: 'AUTO:6A' },
+  { range: 'AUTO!U250:W500', name: 'AUTO:6B' },
+  { range: 'AUTO!Y2:AA250', name: 'AUTO:7A' },
+  { range: 'AUTO!Y250:AA500', name: 'AUTO:7B' },
 ];
 
 const SheetDataEditor: React.FC<SheetDataEditorProps> = (props: SheetDataEditorProps) => {

@@ -333,18 +333,6 @@ const PractWords = (props: PractWordsProps) => {
           {/* <button className="common-btn" onClick={() => hideAI()}>
             Hide AI
           </button> */}
-          <div className="tooltip practice-tooltip">
-            ?
-            <span className="tooltiptext">
-              <p>ArrowUp: Record/Stop</p>
-              <p>ShiftLeft: Show answer</p>
-              <p>ShiftRight: Speak Last Eng</p>
-              <p>ControlLeft: Speak Current</p>
-              <p>ControlRight: Turn On/Off Speak</p>
-              <p>Home: Reload data</p>
-              <p>End: Next Answer</p>
-            </span>
-          </div>
 
           <div className="right">
             {isShowDelete && (
@@ -364,6 +352,7 @@ const PractWords = (props: PractWordsProps) => {
               Next
             </button>
           </div>
+          <br />
           <br />
           <br />
 
@@ -449,6 +438,18 @@ const PractWords = (props: PractWordsProps) => {
             />
             AI
           </label>
+          <div className="tooltip ">
+            ?
+            <span className="tooltiptext">
+              <p>ArrowUp: Record/Stop</p>
+              <p>ShiftLeft: Show answer</p>
+              <p>ShiftRight: Speak Last Eng</p>
+              <p>ControlLeft: Speak Current</p>
+              <p>ControlRight: Turn On/Off Speak</p>
+              <p>Home: Reload data</p>
+              <p>End: Next Answer</p>
+            </span>
+          </div>
         </div>
       </div>
     </div>
