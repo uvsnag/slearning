@@ -19,6 +19,14 @@ const MOBILE_LINKS = [
   { href: '/mobile/youtube-sub', label: 'Listen Board' },
 ];
 
+const LEGANCY_LINKS = [
+  { href: '/legancy-tools/sql-compile-ck', label: 'SQL Compile' },
+  { href: '/legancy-tools/sql-process-ck', label: 'SQL Process' },
+  { href: '/legancy-tools/json-process', label: 'Json Process' },
+  // { href: '/legancy-tools/recognize-text', label: 'Recognize Text' },
+  { href: '/legancy-tools/replace-process', label: 'Replace Process' },
+];
+
 const Home: FC = () => {
   return (
     <div className="ui-page">
@@ -58,6 +66,19 @@ const Home: FC = () => {
             <div className="common-toggle">Mobile</div>
             <ul className="mst-menu">
               {MOBILE_LINKS.map((link) => (
+                <li className="mst-menu-li" key={link.href}>
+                  <Link className="home-nav-link" href={link.href}>
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section className="ui-panel home-menu-panel">
+            <div className="common-toggle">Legancy</div>
+            <ul className="mst-menu">
+              {LEGANCY_LINKS.map((link) => (
                 <li className="mst-menu-li" key={link.href}>
                   <Link className="home-nav-link" href={link.href}>
                     {link.label}
