@@ -868,7 +868,7 @@ ul.mst-menu > li {
 }
 
 .block {
-  width: 33vw;
+  /* width: 33vw; */
   box-sizing: border-box;
   border: 1px solid var(--color-border-strong);
 }
@@ -1095,7 +1095,26 @@ ul.mst-menu > li {
   font-size: 16px;
   font-family: -apple-system, BlinkMacSystemFont, Roboto, sans-serif !important;
 }
+.common-textarea {
+  border-radius: 10px;
+  width: calc(100% - 25px);
+  border: 1px solid var(--color-border-soft);
+  background: var(--color-white);
+  color: var(--color-text);
+  padding: 10px 12px;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+  font-size: 16px;
+  font-family: -apple-system, BlinkMacSystemFont, Roboto, sans-serif !important;
+}
 
+.height-200 {
+  height: 200px;
+}
+.width-100pc {
+  width: 100%;
+}
 .speak-practice-wrap {
   display: flex;
   align-items: flex-start;

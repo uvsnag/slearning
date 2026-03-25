@@ -202,6 +202,9 @@ const YoutubeSub: FC = () => {
   const changeTimeLoop = (isStart: boolean, isCre: boolean): void => {
     const SECOND_UNIT: number = 0.1;
     if (isStart) {
+      if (!customLoopAs) {
+        return;
+      }
       let value = (Number(customLoopAs) + (isCre ? SECOND_UNIT : -SECOND_UNIT)).toFixed(
         FIXED_VALUE,
       );
@@ -210,6 +213,9 @@ const YoutubeSub: FC = () => {
       customLoopAVal = Number(value);
       createInteval();
     } else {
+      if (!customLoopBs) {
+        return;
+      }
       let value = (Number(customLoopBs) + (isCre ? SECOND_UNIT : -SECOND_UNIT)).toFixed(
         FIXED_VALUE,
       );

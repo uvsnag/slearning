@@ -548,22 +548,6 @@ const YoutubeSub: FC = () => {
             <div id="cus-loop-control">
               <div className="mobile-control-group">
                 <input
-                  className="common-input"
-                  type="text"
-                  style={{ width: 45 }}
-                  value={customLoopAs}
-                  onChange={(event) => {
-                    setCustomLoopAs(event.target.value);
-                  }}
-                  onBlur={handleBlurA}
-                />
-                <StackBtn
-                  onUp={() => changeTimeLoop(true, true)}
-                  onDown={() => changeTimeLoop(true, false)}
-                ></StackBtn>
-              </div>
-              <div className="mobile-control-group">
-                <input
                   type="text"
                   style={{ width: 45 }}
                   className="common-input"
@@ -576,6 +560,22 @@ const YoutubeSub: FC = () => {
                 <StackBtn
                   onUp={() => changeTimeLoop(false, true)}
                   onDown={() => changeTimeLoop(false, false)}
+                ></StackBtn>
+              </div>
+              <div className="mobile-control-group">
+                <input
+                  className="common-input"
+                  type="text"
+                  style={{ width: 45 }}
+                  value={customLoopAs}
+                  onChange={(event) => {
+                    setCustomLoopAs(event.target.value);
+                  }}
+                  onBlur={handleBlurA}
+                />
+                <StackBtn
+                  onUp={() => changeTimeLoop(true, true)}
+                  onDown={() => changeTimeLoop(true, false)}
                 ></StackBtn>
               </div>
             </div>
