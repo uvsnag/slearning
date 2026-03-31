@@ -78,6 +78,11 @@ const TranslatePopup = ({ open, word, onClose, onSpeakProp }: TranslatePopupProp
         backgroundColor: 'rgba(0, 0, 0, 0.4)',
       }}
       onClick={onClose}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') {
+          onClose();
+        }
+      }}
     >
       <div
         style={{

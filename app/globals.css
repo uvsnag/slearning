@@ -1370,7 +1370,7 @@ ul.mst-menu > li {
 }
 
 .sticky-ai-content {
-  width: min(92vw, 300px);
+  width: min(92vw, 450px);
 }
 
 .sticky-ai-content .ai-board {

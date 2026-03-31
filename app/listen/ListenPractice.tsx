@@ -14,11 +14,7 @@ import { usePracticeContext, toSpeechConfig } from '@/app/common/hooks/usePracti
 const ListenPractice: React.FC = () => {
   const ALL_WORDS = '-1';
 
-  const {
-    state: practiceState,
-    dispatch: practiceDispatch,
-    reloadSheet,
-  } = usePracticeContext();
+  const { state: practiceState, dispatch: practiceDispatch, reloadSheet } = usePracticeContext();
 
   const [question, setQuestion] = useState<string>('');
   const [answer, setAnswer] = useState<string>('');
@@ -155,6 +151,11 @@ const ListenPractice: React.FC = () => {
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>): void => {
+    console.log(e.key);
+    if (e.key === 'Shift') {
+      speakText(question, true, toSpeechConfig(practiceState));
+      return;
+    }
     if (e.key === 'Enter') {
       setAnswer(e.currentTarget.value);
     }
@@ -182,7 +183,10 @@ const ListenPractice: React.FC = () => {
       <div className="">
         <div>
           {!_.isEmpty(question) && (
-            <FaVolumeUp className="iconSound" onClick={() => speakText(question, true, toSpeechConfig(practiceState))} />
+            <FaVolumeUp
+              className="iconSound"
+              onClick={() => speakText(question, true, toSpeechConfig(practiceState))}
+            />
           )}
         </div>
         <select className="common-input" onChange={(e) => setIndexClass(e.target.value)}>
@@ -236,7 +240,10 @@ const ListenPractice: React.FC = () => {
           )}
           {item.eng}
           {showVie ? `: ${item.vi}` : ''}
-          <FaVolumeUp className="iconSound" onClick={() => speakText(item.eng, true, toSpeechConfig(practiceState))} />
+          <FaVolumeUp
+            className="iconSound"
+            onClick={() => speakText(item.eng, true, toSpeechConfig(practiceState))}
+          />
         </div>
       ))}
 
@@ -245,7 +252,10 @@ const ListenPractice: React.FC = () => {
       {!_.isEmpty(lastAnsw) && (
         <div>
           Last : {lastAnsw}
-          <FaVolumeUp className="iconSound" onClick={() => speakText(lastAnsw, true, toSpeechConfig(practiceState))} />
+          <FaVolumeUp
+            className="iconSound"
+            onClick={() => speakText(lastAnsw, true, toSpeechConfig(practiceState))}
+          />
         </div>
       )}
     </div>

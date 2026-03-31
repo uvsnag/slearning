@@ -37,7 +37,7 @@ const PractWords = (props: PractWordsProps) => {
   const [lastEng, setLastEng] = useState<string>('');
   const [lastVie, setLastVie] = useState<string>('');
   const [classPract, setClassPract] = useState<string>(
-    props.showPract && props.showPract !== 'A' ? 'container-55' : '',
+    !props.showPract || props.showPract == 'PA' ? 'container-55' : '',
   );
   const [mode, setMode] = useState<string>(MODE_NONE);
   const [isStartRecord, setIsStartRecord] = useState<boolean>(false);
@@ -51,7 +51,9 @@ const PractWords = (props: PractWordsProps) => {
 
   useEffect(() => {
     setIsShowDelete(
-      practiceState.sheet?.startsWith(STORE_ALIAS) || practiceState.sheet?.startsWith('AUTO'),
+      practiceState.sheet?.startsWith(STORE_ALIAS) ||
+        practiceState.sheet?.startsWith('AUTO') ||
+        practiceState.sheet?.startsWith('Batch1'),
     );
   }, [practiceState.sheet]);
 
