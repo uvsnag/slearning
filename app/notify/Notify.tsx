@@ -9,11 +9,7 @@ import { useCookies } from 'react-cookie';
 import { usePracticeContext, toSpeechConfig } from '../common/hooks/usePracticeStore';
 
 const Notify = (): ReactElement => {
-  const {
-    state: practiceState,
-    dispatch: practiceDispatch,
-    reloadSheet,
-  } = usePracticeContext();
+  const { state: practiceState, dispatch: practiceDispatch, reloadSheet } = usePracticeContext();
   const { speakText } = useSpeechSynthesis();
   const [items, setItems] = useState<DataItem[]>([]);
   const [speakStrEng, setSpeakStrEng] = useState<string>('');
@@ -25,6 +21,7 @@ const Notify = (): ReactElement => {
   const [isStop, setIsStop] = useState<boolean>(true);
   const [intervalId, setIntervalId] = useState<NodeJS.Timeout | number>(-1);
   const [countNotify, setCountNotify] = useState<number>(0);
+  const [timeValue, setTimeValue] = useState<string>('20');
   const SPLIT_WORD = ':';
   const IND_SPEAK_NOTI_VOICE = 'noti-voice';
   const IND_SPEAK_NO_VOICE = 'no-voice';
@@ -39,9 +36,6 @@ const Notify = (): ReactElement => {
   const IND_VALUE_OFF = 'Off';
 
   useEffect((): void => {
-    const timeValueElement = document.getElementById('timeValue') as HTMLInputElement;
-    if (timeValueElement) timeValueElement.value = '50';
-
     const pracWordElement = document.getElementById('pracWord') as HTMLElement;
     if (pracWordElement) pracWordElement.style.display = 'none';
 
@@ -231,7 +225,17 @@ const Notify = (): ReactElement => {
       setCountNotify(countNotify + 1);
     }
   };
-
+  useEffect((): void => {
+    const valueTime = Number(timeValue) || 0;
+    if (!isStop) {
+      setIntervalId(
+        setTimeout(() => {
+          execute();
+          setCountNotify(countNotify + 1);
+        }, valueTime * 1000),
+      );
+    }
+  }, [countNotify]);
   const onShowAll = (): void => {
     const prac = document.getElementById('control') as HTMLElement;
     if (prac && prac.style.display === 'block') {
@@ -242,11 +246,11 @@ const Notify = (): ReactElement => {
   };
 
   const onChangeIsUseVoice = (value: string): void => {
-    if (_.isEqual(value, IND_SPEAK_NO_VOICE)) {
-      document.getElementById('sound-control')!.style.display = 'none';
-    } else {
-      document.getElementById('sound-control')!.style.display = 'block';
-    }
+    // if (_.isEqual(value, IND_SPEAK_NO_VOICE)) {
+    //   document.getElementById('sound-control')!.style.display = 'none';
+    // } else {
+    //   document.getElementById('sound-control')!.style.display = 'block';
+    // }
   };
 
   const onHideWhenPrac = (): void => {
@@ -263,7 +267,12 @@ const Notify = (): ReactElement => {
   return (
     <div className="">
       <div id="notify-control">
-        <textarea id="strContinue" value={strContinue} onChange={handleChangeCookie}></textarea>
+        <textarea
+          id="strContinue"
+          className="common-textarea height-200 width-100pc"
+          value={strContinue}
+          onChange={handleChangeCookie}
+        ></textarea>
         <br />
         <select
           className="common-input"
@@ -293,7 +302,13 @@ const Notify = (): ReactElement => {
           <button className="common-btn" id="btnStop" onClick={(): void => onStop()}>
             Stop
           </button>
-          <input className="common-input" type="text" id="timeValue" />
+          <input
+            className="common-input"
+            type="text"
+            id="timeValue"
+            value={timeValue}
+            onChange={(e: ChangeEvent<HTMLInputElement>): void => setTimeValue(e.target.value)}
+          />
           <input
             className="common-btn"
             type="submit"
@@ -323,4 +338,3 @@ const Notify = (): ReactElement => {
 };
 
 export default Notify;
-

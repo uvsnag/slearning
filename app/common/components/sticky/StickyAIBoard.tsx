@@ -14,7 +14,7 @@ interface StickyAIBoardProps {
   defaultPrompt?: string;
   pathIcon?: ReactNode;
   isVisible?: boolean;
-  onOpen?: () => void;
+  onOpen?: (isOpen: boolean) => void;
 }
 
 export interface StickyAIBoardHandle {
@@ -81,9 +81,7 @@ const StickyAIBoard = forwardRef<StickyAIBoardHandle, StickyAIBoardProps>(
           aria-controls={`${boardPrefix}-${boardIndex}-panel`}
           onClick={() => {
             const nextIsOpen = !isOpen;
-            if (nextIsOpen) {
-              onOpen?.();
-            }
+            onOpen?.(nextIsOpen);
             setIsOpen(nextIsOpen);
           }}
         >

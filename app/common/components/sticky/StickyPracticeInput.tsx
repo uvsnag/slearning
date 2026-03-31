@@ -16,7 +16,7 @@ interface SpeakPracticeInputProps {
   stickyBottom?: number;
   stickyBottomContent?: number;
   isVisible?: boolean;
-  onOpen?: () => void;
+  onOpen?: (isOpen: boolean) => void;
 }
 
 export interface StickyPracticeInputHandle {
@@ -76,7 +76,12 @@ const StickyPracticeInput = forwardRef<StickyPracticeInputHandle, SpeakPracticeI
 
     useImperativeHandle(ref, () => ({
       close: () => {
-        setIsOpen(false);
+        setIsOpen((prevIsOpen) => {
+          if (prevIsOpen) {
+            onOpen?.(false);
+          }
+          return false;
+        });
       },
     }));
 
@@ -127,15 +132,6 @@ const StickyPracticeInput = forwardRef<StickyPracticeInputHandle, SpeakPracticeI
               <button
                 type="button"
                 className="common-btn speak-practice-btn"
-                onClick={() => void onPasteText()}
-                title="Paste"
-                aria-label="Paste text"
-              >
-                <FaPaste aria-hidden="true" />
-              </button>
-              <button
-                type="button"
-                className="common-btn speak-practice-btn"
                 onClick={() => {
                   onClickSpeechWord(textValue);
                 }}
@@ -152,6 +148,15 @@ const StickyPracticeInput = forwardRef<StickyPracticeInputHandle, SpeakPracticeI
                 aria-label="Copy text"
               >
                 <FaCopy aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                className="common-btn speak-practice-btn"
+                onClick={() => void onPasteText()}
+                title="Paste"
+                aria-label="Paste text"
+              >
+                <FaPaste aria-hidden="true" />
               </button>
               {isShowSpeak === 'Y' && (
                 <button
@@ -179,9 +184,7 @@ const StickyPracticeInput = forwardRef<StickyPracticeInputHandle, SpeakPracticeI
           aria-controls={`${voiceIndex}-input`}
           onClick={() => {
             const nextIsOpen = !isOpen;
-            if (nextIsOpen) {
-              onOpen?.();
-            }
+            onOpen?.(nextIsOpen);
             setIsOpen(nextIsOpen);
           }}
         >

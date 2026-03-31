@@ -3,7 +3,6 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { useRef, useState } from 'react';
-import { FaHome } from 'react-icons/fa';
 import { COMMON_PROMPT } from '../../common';
 import StickyAIBoard, { type StickyAIBoardHandle } from './StickyAIBoard';
 import StickyPracticeInput, { type StickyPracticeInputHandle } from './StickyPracticeInput';
@@ -35,7 +34,7 @@ const DEFAULT_BOARDS: StickyBoardConfig[] = [
   {
     title: 'Eng-Vie',
     defaultPrompt: COMMON_PROMPT.ADD_EXCEL_ENG,
-    stickyBottom: 200,
+    stickyBottom: 250,
     stickyBottomContent: 0,
     pathIcon: (
       <path
@@ -50,7 +49,7 @@ const DEFAULT_BOARDS: StickyBoardConfig[] = [
   {
     title: 'Vie-Eng',
     defaultPrompt: COMMON_PROMPT.TRANSLATE_VI_EN,
-    stickyBottom: 250,
+    stickyBottom: 300,
     stickyBottomContent: 0,
     pathIcon: (
       <path
@@ -65,7 +64,7 @@ const DEFAULT_BOARDS: StickyBoardConfig[] = [
   {
     title: 'Grammar',
     defaultPrompt: COMMON_PROMPT.CHECK_GRAMMAR,
-    stickyBottom: 300,
+    stickyBottom: 350,
     stickyBottomContent: 0,
     pathIcon: (
       <path
@@ -80,7 +79,7 @@ const DEFAULT_BOARDS: StickyBoardConfig[] = [
   {
     title: 'AI',
     defaultPrompt: 'correct my grammar before answering',
-    stickyBottom: 350,
+    stickyBottom: 400,
     stickyBottomContent: 0,
     pathIcon: (
       <path d="M12 2a1 1 0 011 1v1h2a4 4 0 014 4v6a4 4 0 01-4 4h-1v2h2v2H8v-2h2v-2H9a4 4 0 01-4-4V8a4 4 0 014-4h2V3a1 1 0 011-1zm-4 8a1.5 1.5 0 100 3 1.5 1.5 0 000-3zm8 0a1.5 1.5 0 100 3 1.5 1.5 0 000-3z" />
@@ -95,33 +94,34 @@ const StickyQuickTools = ({
   practiceRows = 3,
   practiceShowSpeak = 'Y',
   isSticky = 'Y',
-  practiceStickyBottom = 150,
+  practiceStickyBottom = 200,
   homeStickyBottom = 50,
   closeAllStickyBottom = 100,
-  configStickyBottom = 400,
+  configStickyBottom = 450,
   boards = DEFAULT_BOARDS,
 }: StickyQuickToolsProps) => {
   const practiceRef = useRef<StickyPracticeInputHandle>(null);
   const boardRefs = useRef<Array<StickyAIBoardHandle | null>>([]);
   const configRef = useRef<StickyConfigHandle>(null);
   const [isOthersHidden, setIsOthersHidden] = useState(false);
+  const [isPracticeStickyOpen, setIsPracticeStickyOpen] = useState(false);
 
-  const closeAllStickies = (exceptId?: string) => {
-    if (exceptId !== 'practice') {
+  const closeAllStickies = (exceptId?: string[]) => {
+    if (!Array.isArray(exceptId) || !exceptId.includes('practice')) {
       practiceRef.current?.close();
     }
     boardRefs.current.forEach((boardRef, index) => {
-      if (exceptId !== `board-${index}`) {
+      if (!Array.isArray(exceptId) || !exceptId.includes(`board-${index}`)) {
         boardRef?.close();
       }
     });
-    if (exceptId !== 'config') {
+    if (!Array.isArray(exceptId) || !exceptId.includes('config')) {
       configRef.current?.close();
     }
   };
 
   const onOpenSticky = (stickyId: string) => {
-    closeAllStickies(stickyId);
+    closeAllStickies([stickyId, 'practice']);
   };
 
   const onToggleOthersVisibility = () => {
@@ -146,7 +146,8 @@ const StickyQuickTools = ({
         stickyBottom={practiceStickyBottom}
         isVisible={!isOthersHidden}
         stickyBottomContent={0}
-        onOpen={() => onOpenSticky('practice')}
+        onOpen={(val) => setIsPracticeStickyOpen(val)}
+        // onOpen={() => onOpenSticky('practice')}
       />
 
       <StickyConfig
@@ -154,8 +155,12 @@ const StickyQuickTools = ({
         isSticky={isSticky}
         stickyBottom={configStickyBottom}
         isVisible={!isOthersHidden}
-        stickyBottomContent={0}
-        onOpen={() => onOpenSticky('config')}
+        stickyBottomContent={isPracticeStickyOpen ? 150 : 0}
+        onOpen={(isOpen) => {
+          if (isOpen) {
+            onOpenSticky('config');
+          }
+        }}
       />
 
       {boards.map((board, index) => (
@@ -168,12 +173,16 @@ const StickyQuickTools = ({
           boardIndex={index}
           isSticky={isSticky}
           stickyBottom={board.stickyBottom}
-          stickyBottomContent={board.stickyBottomContent}
+          stickyBottomContent={isPracticeStickyOpen ? 150 : board.stickyBottomContent}
           title={board.title}
           defaultPrompt={board.defaultPrompt}
           pathIcon={board.pathIcon}
           isVisible={!isOthersHidden}
-          onOpen={() => onOpenSticky(`board-${index}`)}
+          onOpen={(isOpen) => {
+            if (isOpen) {
+              onOpenSticky(`board-${index}`);
+            }
+          }}
         />
       ))}
 

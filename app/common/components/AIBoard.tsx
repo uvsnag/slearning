@@ -20,6 +20,7 @@ import loadingImg from '@/public/loading.webp';
 import {
   FaCog,
   FaDatabase,
+  FaLanguage,
   FaPaperPlane,
   FaPaste,
   FaStop,
@@ -213,6 +214,10 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
     props.isSpeak === 'Y' || props.isSpeak === 'F' || props.isSpeak === 'L' ? 'Y' : 'N',
   );
   const [wordPopup, setWordPopup] = useState<{ open: boolean; word: string }>({
+    open: false,
+    word: '',
+  });
+  const [translatePopup, setTranslatePopup] = useState<{ open: boolean; word: string }>({
     open: false,
     word: '',
   });
@@ -963,6 +968,29 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
     localStorage.removeItem(conversationHistoryKey);
   }
   function handleKeyDown(e: KeyboardEvent<HTMLTextAreaElement>, promVal: string): void {
+    if (e.key === 's' && e.ctrlKey) {
+      e.preventDefault();
+      e.stopPropagation();
+      const saveBtn = document.querySelector(
+        `#save-sheet-${props.prefix}${props.index} .common-btn`,
+      ) as HTMLButtonElement | null;
+      if (saveBtn && !saveBtn.disabled) {
+        saveBtn.click();
+      }
+      return;
+    }
+    if (e.key === 'd' && e.ctrlKey) {
+      e.preventDefault();
+      e.stopPropagation();
+      setTranslatePopup({ open: true, word: prompt });
+      return;
+    }
+    if (e.key === 'x' && e.ctrlKey) {
+      e.preventDefault();
+      e.stopPropagation();
+      setTranslatePopup({ open: false, word: '' });
+      return;
+    }
     if (e.key === 'Enter' && e.shiftKey) {
       console.log('Shift + Enter detected');
     } else if (e.key === 'Enter') {
@@ -1192,15 +1220,7 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
           onKeyDown={(e) => handleKeyDown(e, prompt)}
         />
         <br />
-        <VoiceToText setText={setPrompt} index={props.index}></VoiceToText>
-        <button
-          onClick={() => void onPastePrompt()}
-          className="common-btn width-small-btn"
-          title="Paste prompt"
-          aria-label="Paste prompt"
-        >
-          <FaPaste aria-hidden="true" />
-        </button>
+
         <button
           onClick={() => askDec(prompt)}
           className="common-btn width-small-btn"
@@ -1226,6 +1246,33 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
           <FaCog aria-hidden="true" />
         </button>
 
+        <button
+          onClick={() => void onPastePrompt()}
+          className="common-btn width-small-btn"
+          title="Paste prompt"
+          aria-label="Paste prompt"
+        >
+          <FaPaste aria-hidden="true" />
+        </button>
+        <button
+          type="button"
+          className="common-btn speak-practice-btn inline"
+          onClick={() => speakText(prompt, true)}
+          title="Speak"
+          aria-label="Speak text"
+        >
+          <FaVolumeUp aria-hidden="true" />
+        </button>
+        <button
+          type="button"
+          className="common-btn speak-practice-btn inline"
+          onClick={() => setTranslatePopup({ open: true, word: prompt })}
+          title="Translate (Ctrl+I)"
+          aria-label="Translate text"
+        >
+          <FaLanguage aria-hidden="true" />
+        </button>
+        <VoiceToText setText={setPrompt} index={props.index}></VoiceToText>
         <div
           className="collapse-content ui-sub-panel ai-data-panel"
           id={`save-sheet-${props.prefix}${props.index}`}
@@ -1370,6 +1417,17 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
           onSpeakProp={speakPopupWord}
           onClose={() =>
             setWordPopup({
+              open: false,
+              word: '',
+            })
+          }
+        />
+        <TranslatePopup
+          open={translatePopup.open}
+          word={translatePopup.word}
+          onSpeakProp={speakPopupWord}
+          onClose={() =>
+            setTranslatePopup({
               open: false,
               word: '',
             })

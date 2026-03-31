@@ -31,7 +31,7 @@ interface StickyConfigProps {
   stickyBottom?: number;
   stickyBottomContent?: number;
   isVisible?: boolean;
-  onOpen?: () => void;
+  onOpen?: (isOpen: boolean) => void;
 }
 
 export interface StickyConfigHandle {
@@ -466,9 +466,7 @@ const StickyConfig = forwardRef<StickyConfigHandle, StickyConfigProps>(
           aria-controls="sticky-config-panel"
           onClick={() => {
             const nextIsOpen = !isOpen;
-            if (nextIsOpen) {
-              onOpen?.();
-            }
+            onOpen?.(nextIsOpen);
             setIsOpen(nextIsOpen);
           }}
         >
