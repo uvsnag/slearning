@@ -1,0 +1,393 @@
+<body>
+  <div class="container">
+    <!-- <h1>&#127925; MP3 Player</h1> -->
+
+    <div class="upload-area" id="uploadArea">
+      <div>&#128193; Click or drag to upload MP3</div>
+      <input type="file" id="fileInput" accept=".mp3,audio/*" />
+      <div class="file-name" id="fileName"></div>
+    </div>
+
+    <div class="progress-section">
+      <div class="progress-bar" id="progressBar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="time-display">
+        <span id="currentTime">0:00</span>
+        <span id="totalTime">0:00</span>
+      </div>
+    </div>
+
+    <div class="subtitle-section" id="subtitleSection" style="display: none">
+      <h3>&#128172; Subtitles</h3>
+      <div class="subtitle-current" id="subtitleCurrent">—</div>
+      <ul class="subtitle-list" id="subtitleList"></ul>
+    </div>
+
+    <div class="controls">
+      <button class="btn" id="backBtn" title="Back">&#9664;&#9664;</button>
+      <button class="btn pause-btn" id="pauseBtn" title="Play/Pause">&#9654;</button>
+      <button class="btn" id="forwardBtn" title="Forward">&#9654;&#9654;</button>
+    </div>
+
+    <div class="loop-section">
+      <button class="loop-btn" id="addLoopBtn">&#128204; Add Point</button>
+      <button class="loop-btn" id="clearLoopBtn">&#10060; Clear Loop</button>
+    </div>
+    <div class="loop-info" id="loopInfo"></div>
+
+    <div class="config-section">
+      <h3>
+        &#9881; Skip Time
+        <span style="font-size: 0.75rem; color: #aaa; font-weight: normal">(&#8593; to cycle)</span>
+      </h3>
+      <div class="config-row">
+        <label>Jump:</label>
+        <div class="time-options" id="timeOptions">
+          <button class="time-opt selected" data-time="2">2s</button>
+          <button class="time-opt" data-time="3">3s</button>
+          <button class="time-opt" data-time="5">5s</button>
+        </div>
+      </div>
+      <div class="skip-indicator" id="skipIndicator"></div>
+    </div>
+
+    <div class="subtitle-upload" id="subtitleUploadArea">
+      &#128196; Click to import subtitle file (.txt)
+      <input type="file" id="subtitleFileInput" accept=".txt" />
+      <div class="subtitle-file-name" id="subtitleFileName"></div>
+    </div>
+  </div>
+</body>
+<script>
+  const audio = new Audio();
+  const fileInput = document.getElementById('fileInput');
+  const uploadArea = document.getElementById('uploadArea');
+  const fileName = document.getElementById('fileName');
+  const progressBar = document.getElementById('progressBar');
+  const progressFill = document.getElementById('progressFill');
+  const currentTimeEl = document.getElementById('currentTime');
+  const totalTimeEl = document.getElementById('totalTime');
+  const pauseBtn = document.getElementById('pauseBtn');
+  const backBtn = document.getElementById('backBtn');
+  const forwardBtn = document.getElementById('forwardBtn');
+  const addLoopBtn = document.getElementById('addLoopBtn');
+  const clearLoopBtn = document.getElementById('clearLoopBtn');
+  const loopInfo = document.getElementById('loopInfo');
+  const timeOptions = document.getElementById('timeOptions');
+
+  let skipTime = 2;
+  const skipTimeValues = [2, 3, 5];
+  let loopA = null;
+  let loopB = null;
+  let loopActive = false;
+  let loopRAF = null;
+  let subtitles = [];
+
+  // Upload
+  uploadArea.addEventListener('click', () => fileInput.click());
+  uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadArea.style.background = 'rgba(233,69,96,0.15)';
+  });
+  uploadArea.addEventListener('dragleave', () => {
+    uploadArea.style.background = '';
+  });
+  uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadArea.style.background = '';
+    const file = e.dataTransfer.files[0];
+    if (file) loadFile(file);
+  });
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files[0]) loadFile(fileInput.files[0]);
+  });
+
+  function loadFile(file) {
+    const url = URL.createObjectURL(file);
+    audio.src = url;
+    fileName.textContent = file.name;
+    clearLoop();
+    audio.addEventListener(
+      'loadedmetadata',
+      () => {
+        totalTimeEl.textContent = formatTime(audio.duration);
+      },
+      { once: true },
+    );
+  }
+
+  // Format time
+  function formatTime(s) {
+    if (isNaN(s)) return '0:00';
+    const m = Math.floor(s / 60);
+    const sec = Math.floor(s % 60);
+    return m + ':' + (sec < 10 ? '0' : '') + sec;
+  }
+
+  // Progress update
+  audio.addEventListener('timeupdate', () => {
+    if (!audio.duration) return;
+    const pct = (audio.currentTime / audio.duration) * 100;
+    progressFill.style.width = pct + '%';
+    currentTimeEl.textContent = formatTime(audio.currentTime);
+
+    // Loop check
+    if (loopActive && loopB !== null && audio.currentTime >= loopB) {
+      audio.currentTime = loopA;
+    }
+  });
+
+  // Click progress bar
+  progressBar.addEventListener('click', (e) => {
+    if (!audio.duration) return;
+    const rect = progressBar.getBoundingClientRect();
+    const ratio = (e.clientX - rect.left) / rect.width;
+    audio.currentTime = ratio * audio.duration;
+  });
+
+  // Play / Pause
+  pauseBtn.addEventListener('click', togglePlay);
+  function togglePlay() {
+    if (!audio.src) return;
+    if (audio.paused) {
+      audio.play();
+      pauseBtn.innerHTML = '&#10074;&#10074;';
+    } else {
+      audio.pause();
+      pauseBtn.innerHTML = '&#9654;';
+    }
+  }
+
+  audio.addEventListener('ended', () => {
+    pauseBtn.innerHTML = '&#9654;';
+  });
+
+  // Back / Forward
+  backBtn.addEventListener('click', () => skipBack());
+  forwardBtn.addEventListener('click', () => skipForward());
+
+  function skipBack() {
+    if (!audio.src) return;
+    audio.currentTime = Math.max(0, audio.currentTime - skipTime);
+  }
+  function skipForward() {
+    if (!audio.src) return;
+    audio.currentTime = Math.min(audio.duration, audio.currentTime + skipTime);
+  }
+
+  // Loop
+  addLoopBtn.addEventListener('click', addPoint);
+  clearLoopBtn.addEventListener('click', clearLoop);
+
+  function addPoint() {
+    if (!audio.src || !audio.duration) return;
+
+    if (loopA === null) {
+      loopA = audio.currentTime;
+      addLoopBtn.classList.add('active');
+      loopInfo.textContent = 'Point A: ' + formatTime(loopA) + ' — click again to set Point B';
+      renderMarkers();
+    } else if (loopB === null) {
+      loopB = audio.currentTime;
+      if (loopB < loopA) {
+        let tmp = loopA;
+        loopA = loopB;
+        loopB = tmp;
+      }
+      loopActive = true;
+      loopInfo.textContent = 'Looping: ' + formatTime(loopA) + ' → ' + formatTime(loopB);
+      audio.currentTime = loopA;
+      renderMarkers();
+    }
+  }
+
+  function clearLoop() {
+    loopA = null;
+    loopB = null;
+    loopActive = false;
+    addLoopBtn.classList.remove('active');
+    loopInfo.textContent = '';
+    removeMarkers();
+  }
+
+  function renderMarkers() {
+    removeMarkers();
+    if (!audio.duration) return;
+    if (loopA !== null) {
+      const marker = document.createElement('div');
+      marker.className = 'loop-marker';
+      marker.style.left = (loopA / audio.duration) * 100 + '%';
+      progressBar.appendChild(marker);
+    }
+    if (loopB !== null) {
+      const marker = document.createElement('div');
+      marker.className = 'loop-marker';
+      marker.style.left = (loopB / audio.duration) * 100 + '%';
+      progressBar.appendChild(marker);
+
+      const region = document.createElement('div');
+      region.className = 'loop-region';
+      const left = (loopA / audio.duration) * 100;
+      const width = ((loopB - loopA) / audio.duration) * 100;
+      region.style.left = left + '%';
+      region.style.width = width + '%';
+      progressBar.appendChild(region);
+    }
+  }
+  function removeMarkers() {
+    progressBar.querySelectorAll('.loop-marker, .loop-region').forEach((el) => el.remove());
+  }
+
+  // Skip time config
+  timeOptions.addEventListener('click', (e) => {
+    const btn = e.target.closest('.time-opt');
+    if (!btn) return;
+    selectSkipTime(parseInt(btn.dataset.time, 10));
+  });
+
+  function selectSkipTime(val) {
+    skipTime = val;
+    timeOptions.querySelectorAll('.time-opt').forEach((b) => {
+      b.classList.toggle('selected', parseInt(b.dataset.time, 10) === val);
+    });
+    const indicator = document.getElementById('skipIndicator');
+    indicator.textContent = 'Skip: ' + val + 's';
+    clearTimeout(indicator._timeout);
+    indicator._timeout = setTimeout(() => {
+      indicator.textContent = '';
+    }, 1200);
+  }
+
+  function cycleSkipTime() {
+    const idx = skipTimeValues.indexOf(skipTime);
+    const next = skipTimeValues[(idx + 1) % skipTimeValues.length];
+    selectSkipTime(next);
+  }
+
+  // Subtitle upload
+  const subtitleUploadArea = document.getElementById('subtitleUploadArea');
+  const subtitleFileInput = document.getElementById('subtitleFileInput');
+  const subtitleFileName = document.getElementById('subtitleFileName');
+  const subtitleSection = document.getElementById('subtitleSection');
+  const subtitleList = document.getElementById('subtitleList');
+  const subtitleCurrent = document.getElementById('subtitleCurrent');
+
+  subtitleUploadArea.addEventListener('click', () => subtitleFileInput.click());
+  subtitleFileInput.addEventListener('change', () => {
+    if (subtitleFileInput.files[0]) loadSubtitle(subtitleFileInput.files[0]);
+  });
+
+  function loadSubtitle(file) {
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      const text = e.target.result;
+      subtitles = parseSubtitles(text);
+      subtitleFileName.textContent = file.name;
+      renderSubtitles();
+      subtitleSection.style.display = '';
+    };
+    reader.readAsText(file);
+  }
+
+  function parseSubtitles(text) {
+    const lines = text.split('\n');
+    const result = [];
+    const timeRegex = /^\[(\d{1,2}):(\d{2})\]\s*(.*)$/;
+    for (const line of lines) {
+      const match = line.match(timeRegex);
+      if (match) {
+        const minutes = parseInt(match[1], 10);
+        const seconds = parseInt(match[2], 10);
+        const timeInSeconds = minutes * 60 + seconds;
+        const content = match[3].trim();
+        if (content) {
+          result.push({ time: timeInSeconds, text: content });
+        }
+      }
+    }
+    return result;
+  }
+
+  function renderSubtitles() {
+    subtitleList.innerHTML = '';
+    subtitles.forEach((sub, i) => {
+      const li = document.createElement('li');
+      li.className = 'subtitle-item';
+      li.dataset.index = i;
+      li.innerHTML =
+        '<span class="sub-time">' +
+        formatTime(sub.time) +
+        '</span><span class="sub-text">' +
+        escapeHtml(sub.text) +
+        '</span>';
+      li.addEventListener('click', () => {
+        // if (audio.src) {
+        //     audio.currentTime = sub.time;
+        //     if (audio.paused) togglePlay();
+        // }
+      });
+      subtitleList.appendChild(li);
+    });
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function updateSubtitleHighlight() {
+    if (!subtitles.length) return;
+    const t = audio.currentTime;
+    let activeIdx = -1;
+    for (let i = subtitles.length - 1; i >= 0; i--) {
+      if (t >= subtitles[i].time) {
+        activeIdx = i;
+        break;
+      }
+    }
+    const items = subtitleList.querySelectorAll('.subtitle-item');
+    items.forEach((el, i) => {
+      el.classList.toggle('active', i === activeIdx);
+    });
+    if (activeIdx >= 0) {
+      subtitleCurrent.textContent = subtitles[activeIdx].text;
+      const activeEl = items[activeIdx];
+      if (activeEl) {
+        activeEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }
+    } else {
+      subtitleCurrent.textContent = '—';
+    }
+  }
+
+  // Hook subtitle update into timeupdate
+  audio.addEventListener('timeupdate', updateSubtitleHighlight);
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', (e) => {
+    // Ignore if typing in an input
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      skipBack();
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      skipForward();
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      togglePlay();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      cycleSkipTime();
+    } else if (e.key === 'Shift') {
+      e.preventDefault();
+      addPoint();
+    } else if (e.key === 'Control') {
+      e.preventDefault();
+      clearLoop();
+    }
+  });
+</script>

@@ -12,6 +12,7 @@ const SINGLE_PRACT_LINKS = [
   { href: '/listen', label: 'Word (Listen)' },
   { href: '/notify', label: 'Notify' },
   { href: '/next-sentence', label: 'Sentence' },
+  { href: '/listen-mp3', label: 'Listen MP3' },
 ];
 
 const MOBILE_LINKS = [
@@ -85,8 +86,23 @@ const Home: FC = () => {
                   </Link>
                 </li>
               ))}
+              <li className="mst-menu-li">
+                <Link className="home-nav-link" href="/inteview/pv.html">
+                  PV
+                </Link>
+              </li>
             </ul>
           </section>
+          {/* <iframe
+            src="https://translate.google.com.vn"
+            width="800"
+            height="500"
+            title="Example Site"
+            loading="lazy"
+            // sandbox="allow-scripts allow-same-origin"
+            // allow="camera; microphone"
+            // referrerpolicy="no-referrer"
+          ></iframe> */}
         </div>
       </div>
     </div>

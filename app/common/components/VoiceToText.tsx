@@ -10,9 +10,10 @@ import { useSpeechRecognition } from '@/app/common/hooks/useSpeechRecognition';
 interface VoiceToTextProps {
   setText: (text: string) => void;
   index: string | number;
+  language?: string;
 }
 
-const VoiceToText: React.FC<VoiceToTextProps> = ({ setText, index }) => {
+const VoiceToText: React.FC<VoiceToTextProps> = ({ setText, index, language = 'en-US' }) => {
   const {
     transcript,
     resetTranscript,
@@ -50,7 +51,7 @@ const VoiceToText: React.FC<VoiceToTextProps> = ({ setText, index }) => {
     resetTranscript();
     startListening({
       continuous: true,
-      language: 'en-US',
+      language,
     });
 
     setTimeout(() => {
@@ -74,7 +75,7 @@ const VoiceToText: React.FC<VoiceToTextProps> = ({ setText, index }) => {
   };
 
   return (
-    <button className="common-btn width-small-btn" onClick={processRecord}>
+    <button type="button" className="common-btn width-small-btn" onClick={processRecord}>
       {isStartRecord ? <MdHearing /> : <FaMicrophone />}
     </button>
   );
