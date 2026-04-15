@@ -1445,6 +1445,14 @@ ul.mst-menu > li {
 }
 
 @media (max-width: 767px) {
+  .translate-vie-eng-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .translate-vie-eng-textarea {
+    min-height: 120px;
+  }
+
   .sticky-ai-float {
     bottom: 10px;
   }

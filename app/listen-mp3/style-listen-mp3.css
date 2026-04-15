@@ -1,0 +1,314 @@
+/* ── Listen MP3 ────────────────────────────────────── */
+
+.lmp3-page {
+  border-radius: 14px;
+  border: 1px solid var(--color-border-soft);
+  background:
+    radial-gradient(
+      circle at top right,
+      var(--color-light-card-accent),
+      var(--color-transparent) 42%
+    ),
+    linear-gradient(
+      180deg,
+      var(--color-surface-panel-start) 0%,
+      var(--color-surface-panel-end) 100%
+    );
+  box-shadow: 0 14px 30px var(--shadow-card-color);
+  padding: 8px 10px;
+  min-height: 85vh;
+}
+
+.lmp3-shell {
+  padding-bottom: 10px;
+}
+
+/* ── Upload area ── */
+.lmp3-upload-area {
+  border: 2px dashed var(--color-border-dashed);
+  border-radius: 12px;
+  padding: 18px 14px;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+.lmp3-upload-area:hover {
+  border-color: var(--color-primary);
+  background: var(--color-surface-hover);
+}
+.lmp3-upload-area.drag-over {
+  background: rgba(47, 109, 246, 0.08);
+  border-color: var(--color-primary);
+}
+.lmp3-file-name {
+  margin-top: 6px;
+  font-size: 0.85rem;
+  color: var(--color-text-accent);
+  font-weight: 500;
+}
+
+/* ── Progress bar ── */
+.lmp3-progress-section {
+  margin-top: 10px;
+}
+.lmp3-progress-bar {
+  position: relative;
+  width: 100%;
+  height: 8px;
+  background: var(--color-border);
+  border-radius: 999px;
+  cursor: pointer;
+  overflow: visible;
+}
+.lmp3-progress-fill {
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: 999px;
+  transition: width 0.12s linear;
+}
+.lmp3-loop-marker {
+  position: absolute;
+  top: -3px;
+  width: 3px;
+  height: 14px;
+  background: var(--color-danger);
+  border-radius: 2px;
+  z-index: 2;
+}
+.lmp3-loop-region {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  background: rgba(233, 69, 96, 0.18);
+  border-radius: 999px;
+  z-index: 1;
+}
+.lmp3-time-display {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  margin-top: 4px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Playback controls ── */
+.lmp3-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* ── Loop section ── */
+.lmp3-loop-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.lmp3-loop-info {
+  font-size: 0.82rem;
+  color: var(--color-text-accent);
+  margin-top: 4px;
+  min-height: 1.2em;
+}
+
+/* ── Custom loop control (ported from YT Sub) ── */
+.lmp3-loop-control {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+/* ── Skip time config ── */
+.lmp3-config-section {
+  margin-top: 10px;
+}
+.lmp3-config-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.lmp3-time-options {
+  display: flex;
+  gap: 4px;
+}
+.lmp3-time-opt {
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background: var(--color-white);
+  color: var(--color-text);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: background 0.15s, border-color 0.15s;
+}
+.lmp3-time-opt:hover {
+  border-color: var(--color-primary);
+}
+.lmp3-time-opt.selected {
+  background: var(--color-primary);
+  color: var(--color-white);
+  border-color: var(--color-primary);
+}
+.lmp3-skip-indicator {
+  font-size: 0.8rem;
+  color: var(--color-success);
+  font-weight: 600;
+  min-height: 1.2em;
+  margin-top: 4px;
+}
+
+/* ── Subtitle section ── */
+.lmp3-subtitle-section {
+  margin-top: 10px;
+}
+.lmp3-subtitle-current {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--color-text);
+  padding: 8px 10px;
+  border-left: 3px solid var(--color-primary);
+  background: var(--color-surface-hover);
+  border-radius: 0 8px 8px 0;
+  margin-bottom: 8px;
+  min-height: 1.4em;
+}
+.lmp3-subtitle-list {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 10px;
+  background: var(--color-surface-soft-2);
+  padding: 6px 8px;
+  list-style: none;
+  margin: 0;
+}
+.lmp3-subtitle-item {
+  border-radius: 8px;
+  padding: 6px 8px;
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  transition: background-color 0.18s ease;
+  cursor: pointer;
+}
+.lmp3-subtitle-item:hover {
+  background-color: var(--color-surface-hover-strong);
+}
+.lmp3-subtitle-item.active {
+  background-color: var(--color-surface-selected) !important;
+  color: var(--color-text-accent);
+  border-left: 3px solid var(--color-primary);
+  font-weight: 600;
+}
+.lmp3-sub-time {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.lmp3-sub-text {
+  font-size: 0.9rem;
+}
+
+/* ── Subtitle upload area ── */
+.lmp3-subtitle-upload {
+  border: 2px dashed var(--color-border-dashed);
+  border-radius: 12px;
+  padding: 14px;
+  text-align: center;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  font-weight: 600;
+  margin-top: 10px;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+.lmp3-subtitle-upload:hover {
+  border-color: var(--color-primary);
+  background: var(--color-surface-hover);
+}
+.lmp3-subtitle-status {
+  margin-top: 6px;
+  font-size: 0.8rem;
+  color: var(--color-text-accent);
+}
+
+/* ── Google Drive input ── */
+.lmp3-gdrive-section {
+  margin-top: 10px;
+}
+.lmp3-gdrive-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+/* ── Responsive ── */
+@media (max-width: 767px) {
+  .lmp3-page {
+    padding: 8px;
+  }
+  .lmp3-loop-control {
+    gap: 4px;
+  }
+}
+
+/* ── Dark mode ── */
+.dark-90 .lmp3-page {
+  border-color: var(--color-dark-border);
+  background:
+    radial-gradient(circle at top right, var(--color-dark-bg-accent), var(--color-transparent) 42%),
+    linear-gradient(180deg, var(--color-dark-bg-start) 0%, var(--color-dark-bg-end) 100%);
+  box-shadow: 0 14px 30px var(--shadow-dark-strong-color);
+}
+
+.dark-90 .lmp3-upload-area,
+.dark-90 .lmp3-subtitle-upload {
+  border-color: var(--color-dark-border);
+  color: var(--color-dark-text-muted);
+}
+.dark-90 .lmp3-upload-area:hover,
+.dark-90 .lmp3-subtitle-upload:hover {
+  background: var(--color-dark-hover);
+}
+.dark-90 .lmp3-progress-bar {
+  background: var(--color-dark-border);
+}
+.dark-90 .lmp3-subtitle-list {
+  border-color: var(--color-dark-border);
+  background: var(--color-dark-surface-alt);
+}
+.dark-90 .lmp3-subtitle-current {
+  background: var(--color-dark-hover);
+  color: var(--color-dark-text);
+}
+.dark-90 .lmp3-subtitle-item:hover {
+  background-color: var(--color-dark-hover);
+}
+.dark-90 .lmp3-subtitle-item.active {
+  background-color: var(--color-dark-surface-alt) !important;
+  color: var(--color-dark-text);
+}
+.dark-90 .lmp3-time-opt {
+  border-color: var(--color-dark-border);
+  background: var(--color-dark-surface);
+  color: var(--color-dark-text);
+}
+.dark-90 .lmp3-time-opt.selected {
+  background: var(--color-primary);
+  color: var(--color-white);
+}

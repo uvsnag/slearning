@@ -107,7 +107,12 @@ const SheetDataEditor: React.FC<SheetDataEditorProps> = (props: SheetDataEditorP
             width: '230px',
           }}
         />
-        <button onClick={handleSave} disabled={isLoading} className="common-btn">
+        <button
+          onClick={handleSave}
+          disabled={isLoading}
+          className="common-btn"
+          data-sheet-save-button="true"
+        >
           {isLoading ? 'Saving...' : ' Save'}
         </button>
         <br />

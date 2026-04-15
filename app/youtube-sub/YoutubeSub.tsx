@@ -9,7 +9,7 @@ import StackBtn from '@/app/common/components/StackButton';
 import PracticeWords from '../practice-word/PracticeWords';
 import { DataItem, getDataFromExcel } from '@/app/common/hooks/useSheetData';
 import { SHEET_AUTO } from '@/app/common/components/SheetDataEditor';
-import StickyPracticeInput from '../common/components/sticky/StickyPracticeInput';
+import TranslateVieEngInput from '../common/components/TranslateVieEngInput';
 
 // Type definitions
 interface YouTubePlayer {
@@ -138,6 +138,7 @@ const YoutubeSub: FC = () => {
     // toggleCollapse("hide2");
     toggleCollapse('ai-section-yt');
     toggleCollapse('hide-control-frame');
+    toggleCollapse('yts-translate-panel');
     const cusLoopControl = document.getElementById(`cus-loop-control`);
     if (cusLoopControl) {
       cusLoopControl.style.display = 'block';
@@ -726,6 +727,13 @@ const YoutubeSub: FC = () => {
             {/* <input type="range" className="range-input" id="size" name="vol" min="5" max="20" value={height} onChange={handleMaskMedia}></input><br />
                         <input type="range" className="range-input" id="size" name="vol" min="5" max="700" value={top} onChange={handleTop}></input><br /> */}
           </div>
+        </div>
+
+        <div className="common-toggle " onClick={() => toggleCollapse('yts-translate-panel')}>
+          Translate
+        </div>
+        <div id="yts-translate-panel" className="collapse-content ui-sub-panel yts-ai-panel">
+          <TranslateVieEngInput />
         </div>
         <div className="common-toggle " onClick={() => toggleCollapse('ai-section-yt')}>
           AI
