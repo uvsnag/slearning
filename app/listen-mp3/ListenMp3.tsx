@@ -712,7 +712,7 @@ const ListenMp3: FC = () => {
         </div>
 
         {/* Google Drive Section */}
-        <div className="common-toggle" onClick={() => toggleCollapse('lmp3-gdrive')}>
+        {/* <div className="common-toggle" onClick={() => toggleCollapse('lmp3-gdrive')}>
           Google Drive
         </div>
         <div id="lmp3-gdrive" className="collapse-content ui-sub-panel">
@@ -751,7 +751,7 @@ const ListenMp3: FC = () => {
             </div>
             {gdriveStatus && <div className="lmp3-subtitle-status">{gdriveStatus}</div>}
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );
