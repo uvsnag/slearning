@@ -196,7 +196,6 @@ const TranslateVieEngInput = () => {
       saveBtn.click();
     }
   }, []);
-
   return (
     <div className="translate-vie-eng-panel">
       <div className="translate-vie-eng-grid">
@@ -205,6 +204,10 @@ const TranslateVieEngInput = () => {
             English
           </label> */}
           <textarea
+            style={{
+              border: '3px solid white', // Bold border using shorthand (width style color)
+              borderRadius: '8px',
+            }}
             id="translate-eng-input"
             className="textarea-speech translate-vie-eng-textarea"
             rows={1}
@@ -258,6 +261,10 @@ const TranslateVieEngInput = () => {
             Vietnamese
           </label> */}
           <textarea
+            style={{
+              border: '3px solid gray', // Bold border using shorthand (width style color)
+              borderRadius: '8px',
+            }}
             id="translate-vie-input"
             className="textarea-speech translate-vie-eng-textarea"
             rows={1}
