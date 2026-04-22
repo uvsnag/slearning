@@ -214,7 +214,7 @@ const TranslateVieEngInput = () => {
             value={englishText}
             onChange={(event) => setEnglishInput(event.target.value)}
             onKeyDown={onTextareaKeyDown}
-            placeholder="Type or record English here..."
+            placeholder="English"
           />
           <div className="translate-vie-eng-actions">
             <button
@@ -271,7 +271,7 @@ const TranslateVieEngInput = () => {
             value={vietnameseText}
             onChange={(event) => setVietnameseInput(event.target.value)}
             onKeyDown={onTextareaKeyDown}
-            placeholder="Type or record Vietnamese here..."
+            placeholder="Vietnamese"
           />
           <div className="translate-vie-eng-actions">
             <button
