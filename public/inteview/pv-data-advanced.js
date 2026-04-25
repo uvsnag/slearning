@@ -936,7 +936,7 @@ Table: chunks
     {
       id: 'microservices',
       name: 'Microservices',
-      icon: 'MS',
+      icon: '🧩',
       questions: [
         {
           q: 'What is microservice architecture and when should you choose it?',
@@ -1296,7 +1296,7 @@ readinessProbe:
     {
       id: 'security-jwt',
       name: 'Security & JWT',
-      icon: 'SJ',
+      icon: '🔒',
       questions: [
         {
           q: 'What is JWT and what are its three parts?',
@@ -1681,7 +1681,7 @@ String hash = BCrypt.hashpw(password, BCrypt.gensalt(12));
     {
       id: 'design-patterns',
       name: 'Design Patterns',
-      icon: 'DP',
+      icon: '🧩',
       questions: [
         {
           q: 'What is a design pattern and why does it matter?',
