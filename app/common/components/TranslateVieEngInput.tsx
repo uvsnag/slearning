@@ -11,7 +11,7 @@ type TranslateLang = 'vi' | 'en';
 type TranslateDirection = 'vi-to-en' | 'en-to-vi' | null;
 
 const TRANSLATE_API_URL = 'https://api.mymemory.translated.net/get';
-const TRANSLATE_DEBOUNCE_MS = 1000;
+const TRANSLATE_DEBOUNCE_MS = 1500;
 
 const TranslateVieEngInput = () => {
   const [vietnameseText, setVietnameseText] = useState<string>('');
