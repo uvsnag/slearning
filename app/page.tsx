@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import React, { FC } from 'react';
+import Notify from './notify/Notify';
 
 const DASHBOARD_LINKS = [
   { href: '/dash-board2', label: 'AI Only' },
@@ -10,7 +11,7 @@ const DASHBOARD_LINKS = [
 const SINGLE_PRACT_LINKS = [
   { href: '/practice-word', label: 'Word (Meaning)' },
   { href: '/listen', label: 'Word (Listen)' },
-  { href: '/notify', label: 'Notify' },
+  // { href: '/notify', label: 'Notify' },
   { href: '/next-sentence', label: 'Sentence' },
   { href: '/listen-mp3', label: 'Listen MP3' },
 ];
@@ -104,6 +105,10 @@ const Home: FC = () => {
             // referrerpolicy="no-referrer"
           ></iframe> */}
         </div>
+      </div>
+      <div className="container-55">
+        <Notify />
+        <div></div>
       </div>
     </div>
   );

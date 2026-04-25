@@ -21,7 +21,7 @@ const Notify = (): ReactElement => {
   const [isStop, setIsStop] = useState<boolean>(true);
   const [intervalId, setIntervalId] = useState<NodeJS.Timeout | number>(-1);
   const [countNotify, setCountNotify] = useState<number>(0);
-  const [timeValue, setTimeValue] = useState<string>('20');
+  const [timeValue, setTimeValue] = useState<string>('120');
   const SPLIT_WORD = ':';
   const IND_SPEAK_NOTI_VOICE = 'noti-voice';
   const IND_SPEAK_NO_VOICE = 'no-voice';
@@ -267,13 +267,6 @@ const Notify = (): ReactElement => {
   return (
     <div className="">
       <div id="notify-control">
-        <textarea
-          id="strContinue"
-          className="common-textarea height-200 width-100pc"
-          value={strContinue}
-          onChange={handleChangeCookie}
-        ></textarea>
-        <br />
         <select
           className="common-input"
           name="isUseVoice"
@@ -333,6 +326,12 @@ const Notify = (): ReactElement => {
           />
         )}
       </div>
+      <textarea
+        id="strContinue"
+        className="common-textarea height-200 width-100pc"
+        value={strContinue}
+        onChange={handleChangeCookie}
+      ></textarea>
     </div>
   );
 };
