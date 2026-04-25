@@ -2,25 +2,25 @@
 // Auto-generated from pv.html
 (function () {
   (window.__pvTopics = window.__pvTopics || []).push(
-  {
-          id: 'reactjs',
-          name: 'ReactJS',
-          icon: '⚛️',
-          questions: [
-            {
-              q: 'What is the Virtual DOM and how does React reconciliation work?',
-              difficulty: 'medium',
-              a: `<ul>
+    {
+      id: 'reactjs',
+      name: 'ReactJS',
+      icon: '⚛️',
+      questions: [
+        {
+          q: 'What is the Virtual DOM and how does React reconciliation work?',
+          difficulty: 'medium',
+          a: `<ul>
 <li><strong>Virtual DOM</strong>: lightweight JS representation of the real DOM.</li>
 <li><strong>Reconciliation</strong>: React diffs the new VDOM tree with the old one and computes minimal changes (<strong>diffing algorithm</strong>).</li>
 <li>Two heuristics: (1) different element types → rebuild entire subtree; (2) <code>key</code> prop identifies items in lists.</li>
 </ul>
 <div class="key-point">React Fiber (React 16+) broke rendering into units of work, enabling prioritization and interruption of renders.</div>`,
-            },
-            {
-              q: 'Explain the React component lifecycle (class and hooks).',
-              difficulty: 'medium',
-              a: `<p><strong>Class lifecycle</strong>:</p>
+        },
+        {
+          q: 'Explain the React component lifecycle (class and hooks).',
+          difficulty: 'medium',
+          a: `<p><strong>Class lifecycle</strong>:</p>
 <ul>
 <li>Mount: <code>constructor</code> → <code>render</code> → <code>componentDidMount</code></li>
 <li>Update: <code>shouldComponentUpdate</code> → <code>render</code> → <code>componentDidUpdate</code></li>
@@ -34,11 +34,11 @@
   };
 }, [deps]);</pre>
 <div class="key-point"><code>useEffect</code> with <code>[]</code> = mount only. With <code>[dep]</code> = runs when dep changes. No array = every render.</div>`,
-            },
-            {
-              q: 'What is the difference between useState and useReducer?',
-              difficulty: 'medium',
-              a: `<ul>
+        },
+        {
+          q: 'What is the difference between useState and useReducer?',
+          difficulty: 'medium',
+          a: `<ul>
 <li><strong>useState</strong>: simple state (primitives, toggles). Direct set.</li>
 <li><strong>useReducer</strong>: complex state logic, multiple sub-values, or when next state depends on previous.</li>
 </ul>
@@ -52,22 +52,22 @@ function reducer(state, action) {
   }
 }</pre>
 <div class="key-point">Rule of thumb: if your state update logic requires more than 2-3 conditions, use <code>useReducer</code>.</div>`,
-            },
-            {
-              q: 'What is useCallback vs useMemo?',
-              difficulty: 'medium',
-              a: `<ul>
+        },
+        {
+          q: 'What is useCallback vs useMemo?',
+          difficulty: 'medium',
+          a: `<ul>
 <li><strong>useMemo</strong>: memoizes a <strong>computed value</strong>. Avoids expensive recalculation.</li>
 <li><strong>useCallback</strong>: memoizes a <strong>function reference</strong>. Prevents child re-renders when passing callbacks.</li>
 </ul>
 <pre>const expensiveResult = useMemo(() => computeExpensive(data), [data]);
 const handleClick = useCallback(() => doSomething(id), [id]);</pre>
 <div class="key-point"><code>useCallback(fn, deps)</code> is equivalent to <code>useMemo(() => fn, deps)</code>.</div>`,
-            },
-            {
-              q: 'What causes unnecessary re-renders and how to prevent them?',
-              difficulty: 'hard',
-              a: `<p><strong>Causes</strong>:</p>
+        },
+        {
+          q: 'What causes unnecessary re-renders and how to prevent them?',
+          difficulty: 'hard',
+          a: `<p><strong>Causes</strong>:</p>
 <ul>
 <li>Parent re-renders → all children re-render.</li>
 <li>New object/array/function references on every render.</li>
@@ -81,11 +81,11 @@ const handleClick = useCallback(() => doSomething(id), [id]);</pre>
 <li>Move state down closer to where it's used.</li>
 <li>Use <code>children</code> pattern to avoid re-rendering static parts.</li>
 </ul>`,
-            },
-            {
-              q: 'Explain React Context API. What are its limitations?',
-              difficulty: 'medium',
-              a: `<p><code>createContext</code> + <code>Provider</code> + <code>useContext</code> enables sharing state without prop drilling.</p>
+        },
+        {
+          q: 'Explain React Context API. What are its limitations?',
+          difficulty: 'medium',
+          a: `<p><code>createContext</code> + <code>Provider</code> + <code>useContext</code> enables sharing state without prop drilling.</p>
 <p><strong>Limitations</strong>:</p>
 <ul>
 <li><strong>Any</strong> consumer re-renders when context value changes, even if it only uses part of it.</li>
@@ -93,11 +93,11 @@ const handleClick = useCallback(() => doSomething(id), [id]);</pre>
 <li>Deeply nested providers can become hard to manage ("Provider hell").</li>
 </ul>
 <div class="key-point">Optimization: split into separate contexts (e.g., <code>ThemeContext</code> vs <code>AuthContext</code>), or use a library like Zustand/Jotai for fine-grained reactivity.</div>`,
-            },
-            {
-              q: 'What are React custom hooks? Give an example.',
-              difficulty: 'medium',
-              a: `<p>Custom hooks extract <strong>reusable stateful logic</strong>. Must start with <code>use</code> prefix.</p>
+        },
+        {
+          q: 'What are React custom hooks? Give an example.',
+          difficulty: 'medium',
+          a: `<p>Custom hooks extract <strong>reusable stateful logic</strong>. Must start with <code>use</code> prefix.</p>
 <pre>function useLocalStorage(key, initialValue) {
   const [value, setValue] = useState(() => {
     const stored = localStorage.getItem(key);
@@ -113,11 +113,11 @@ const handleClick = useCallback(() => doSomething(id), [id]);</pre>
 
 // Usage
 const [theme, setTheme] = useLocalStorage('theme', 'light');</pre>`,
-            },
-            {
-              q: 'What is the difference between controlled and uncontrolled components?',
-              difficulty: 'easy',
-              a: `<ul>
+        },
+        {
+          q: 'What is the difference between controlled and uncontrolled components?',
+          difficulty: 'easy',
+          a: `<ul>
 <li><strong>Controlled</strong>: form value managed by React state. <code>&lt;input value={val} onChange={...} /&gt;</code></li>
 <li><strong>Uncontrolled</strong>: form value managed by the DOM. Access via <code>useRef</code>.</li>
 </ul>
@@ -130,11 +130,11 @@ const inputRef = useRef();
 &lt;input ref={inputRef} defaultValue="default" /&gt;
 // Read: inputRef.current.value</pre>
 <div class="key-point">Controlled = React is single source of truth. Preferred for validation, conditional disable, etc.</div>`,
-            },
-            {
-              q: 'What is React.lazy and Suspense? Explain code splitting.',
-              difficulty: 'medium',
-              a: `<p><strong>Code splitting</strong>: break bundle into smaller chunks loaded on demand.</p>
+        },
+        {
+          q: 'What is React.lazy and Suspense? Explain code splitting.',
+          difficulty: 'medium',
+          a: `<p><strong>Code splitting</strong>: break bundle into smaller chunks loaded on demand.</p>
 <pre>const LazyComponent = React.lazy(() => import('./HeavyComponent'));
 
 function App() {
@@ -149,11 +149,11 @@ function App() {
 <li><code>Suspense</code> shows fallback while chunk loads.</li>
 <li>Route-based splitting is the most impactful strategy.</li>
 </ul>`,
-            },
-            {
-              q: 'What is the useRef hook? When to use it vs useState?',
-              difficulty: 'medium',
-              a: `<ul>
+        },
+        {
+          q: 'What is the useRef hook? When to use it vs useState?',
+          difficulty: 'medium',
+          a: `<ul>
 <li><code>useRef</code> returns a mutable <code>.current</code> property that persists across renders.</li>
 <li>Changing <code>.current</code> does <strong>NOT</strong> trigger re-render.</li>
 </ul>
@@ -166,11 +166,11 @@ function App() {
 useEffect(() => {
   renderCount.current++; // doesn't cause re-render
 });</pre>`,
-            },
-            {
-              q: 'Explain React Server Components (RSC) and their benefits.',
-              difficulty: 'hard',
-              a: `<ul>
+        },
+        {
+          q: 'Explain React Server Components (RSC) and their benefits.',
+          difficulty: 'hard',
+          a: `<ul>
 <li><strong>Server Components</strong>: render on the server, send serialized output (not HTML). Zero client-side JS bundle.</li>
 <li><strong>Client Components</strong>: marked with <code>'use client'</code>. Include interactivity.</li>
 </ul>
@@ -181,32 +181,32 @@ useEffect(() => {
 <li>Automatic code splitting.</li>
 </ul>
 <div class="key-point">RSC ≠ SSR. SSR renders to HTML for first paint. RSC renders to a streaming format that React can merge into the client tree.</div>`,
-            },
-            {
-              q: 'How does React handle keys in lists? Why are they important?',
-              difficulty: 'tricky',
-              a: `<p><code>key</code> helps React identify which items changed, added, or removed during reconciliation.</p>
+        },
+        {
+          q: 'How does React handle keys in lists? Why are they important?',
+          difficulty: 'tricky',
+          a: `<p><code>key</code> helps React identify which items changed, added, or removed during reconciliation.</p>
 <ul>
 <li><strong>Stable, unique key</strong>: React reuses DOM nodes efficiently.</li>
 <li><strong>Index as key</strong>: causes bugs when list is reordered, filtered, or items are added in the middle.</li>
 <li><strong>No key / duplicate key</strong>: React falls back to index, with warnings.</li>
 </ul>
 <div class="key-point">Trick: using <code>Math.random()</code> as key forces remount on every render → terrible performance. Use stable IDs.</div>`,
-            },
-            {
-              q: 'What are Higher-Order Components (HOC) vs Render Props vs Hooks?',
-              difficulty: 'hard',
-              a: `<ul>
+        },
+        {
+          q: 'What are Higher-Order Components (HOC) vs Render Props vs Hooks?',
+          difficulty: 'hard',
+          a: `<ul>
 <li><strong>HOC</strong>: function that takes a component, returns enhanced component. <code>withAuth(Component)</code>. Can cause wrapper hell.</li>
 <li><strong>Render Props</strong>: component calls a function prop to delegate rendering. <code>&lt;Mouse render={pos => ...} /&gt;</code>. Flexible but verbose.</li>
 <li><strong>Hooks</strong>: extract reusable logic into functions. <code>useAuth()</code>. Modern, composable, no nesting.</li>
 </ul>
 <div class="key-point">Hooks replaced most HOC and Render Props patterns. HOCs are still used for cross-cutting concerns in class components or library wrappers.</div>`,
-            },
-            {
-              q: 'What is useEffect cleanup? When does it run?',
-              difficulty: 'medium',
-              a: `<p>The function returned from <code>useEffect</code> is the <strong>cleanup function</strong>.</p>
+        },
+        {
+          q: 'What is useEffect cleanup? When does it run?',
+          difficulty: 'medium',
+          a: `<p>The function returned from <code>useEffect</code> is the <strong>cleanup function</strong>.</p>
 <pre>useEffect(() => {
   const subscription = subscribe(id);
   return () => subscription.unsubscribe(); // cleanup
@@ -217,11 +217,11 @@ useEffect(() => {
 <li>When the component unmounts.</li>
 </ul>
 <div class="key-point">Common bug: forgetting cleanup for intervals, event listeners, or subscriptions → memory leaks.</div>`,
-            },
-            {
-              q: 'Explain React state batching. What changed in React 18?',
-              difficulty: 'hard',
-              a: `<ul>
+        },
+        {
+          q: 'Explain React state batching. What changed in React 18?',
+          difficulty: 'hard',
+          a: `<ul>
 <li><strong>Before React 18</strong>: only batched state updates in React event handlers. Updates in setTimeout, promises, native events were NOT batched.</li>
 <li><strong>React 18+</strong>: <strong>automatic batching</strong> everywhere (setTimeout, promises, native events included).</li>
 </ul>
@@ -232,11 +232,11 @@ setTimeout(() => {
   // only ONE re-render
 }, 1000);</pre>
 <div class="key-point">Use <code>flushSync()</code> to opt out of batching when you need synchronous DOM updates.</div>`,
-            },
-            {
-              q: 'What is the difference between useLayoutEffect and useEffect?',
-              difficulty: 'tricky',
-              a: `<ul>
+        },
+        {
+          q: 'What is the difference between useLayoutEffect and useEffect?',
+          difficulty: 'tricky',
+          a: `<ul>
 <li><strong>useEffect</strong>: runs <strong>after</strong> paint (asynchronously). Non-blocking.</li>
 <li><strong>useLayoutEffect</strong>: runs <strong>before</strong> paint (synchronously after DOM mutations). Blocks visual updates.</li>
 </ul>
@@ -246,10 +246,253 @@ setTimeout(() => {
 <li>You need to synchronously update DOM to prevent flicker.</li>
 </ul>
 <div class="key-point">99% of the time, <code>useEffect</code> is correct. Only use <code>useLayoutEffect</code> if you see visual flickering.</div>`,
-            },
-          ],
         },
+        {
+          q: 'What is React.memo? How is it different from useMemo?',
+          difficulty: 'tricky',
+          a: `<ul>
+<li><strong>React.memo</strong>: a HOC that memoizes a <strong>component</strong>. Skips re-render if props haven't changed (shallow comparison).</li>
+<li><strong>useMemo</strong>: a hook that memoizes a <strong>computed value</strong> inside a component.</li>
+</ul>
+<pre>// React.memo: wraps a component
+const ExpensiveList = React.memo(({ items }) => {
+  return items.map(item => &lt;li key={item.id}&gt;{item.name}&lt;/li&gt;);
+});
+// Won't re-render if 'items' reference is the same
 
-        // ───────────────────────── 4. CI/CD ─────────────────────────
+// Custom comparison function
+const MemoizedComp = React.memo(MyComponent, (prevProps, nextProps) => {
+  return prevProps.id === nextProps.id; // only re-render if id changes
+});
+
+// useMemo: memoizes a VALUE
+const sortedItems = useMemo(() => {
+  return items.sort((a, b) => a.name.localeCompare(b.name));
+}, [items]);</pre>
+<div class="key-point">Trick: <code>React.memo</code> does SHALLOW comparison. If you pass <code>style={{ color: 'red' }}</code>, it creates a new object every render → memo is useless. Move objects outside or use useMemo.</div>`,
+        },
+        {
+          q: 'What is useTransition and useDeferredValue in React 18?',
+          difficulty: 'hard',
+          a: `<p>React 18 introduced concurrent features for keeping the UI responsive during expensive updates.</p>
+<pre>// useTransition: mark updates as non-urgent
+function SearchPage() {
+  const [query, setQuery] = useState('');
+  const [isPending, startTransition] = useTransition();
+
+  function handleChange(e) {
+    setQuery(e.target.value);            // urgent: update input immediately
+    startTransition(() => {
+      setSearchResults(e.target.value);  // non-urgent: can be interrupted
+    });
+  }
+
+  return (
+    &lt;div&gt;
+      &lt;input value={query} onChange={handleChange} /&gt;
+      {isPending ? &lt;Spinner /&gt; : &lt;Results /&gt;}
+    &lt;/div&gt;
+  );
+}
+
+// useDeferredValue: defer re-rendering with a stale value
+function List({ query }) {
+  const deferredQuery = useDeferredValue(query);
+  // deferredQuery lags behind query during heavy rendering
+  const items = useMemo(() => filterItems(deferredQuery), [deferredQuery]);
+  return items.map(item => &lt;Item key={item.id} item={item} /&gt;);
+}</pre>
+<div class="key-point"><code>useTransition</code> = you control the state update. <code>useDeferredValue</code> = you defer a value you receive as a prop. Both prevent UI jank during expensive renders.</div>`,
+        },
+        {
+          q: 'What is the useId hook? Why was it introduced?',
+          difficulty: 'medium',
+          a: `<p><code>useId</code> generates a unique ID that is stable across server and client rendering — solving hydration mismatches.</p>
+<pre>function FormField({ label }) {
+  const id = useId();  // e.g., ":r1:"
+
+  return (
+    &lt;div&gt;
+      &lt;label htmlFor={id}&gt;{label}&lt;/label&gt;
+      &lt;input id={id} /&gt;
+    &lt;/div&gt;
+  );
+}
+
+// For multiple elements:
+function PasswordField() {
+  const id = useId();
+  return (
+    &lt;&gt;
+      &lt;input id={\`\${id}-password\`} type="password" /&gt;
+      &lt;input id={\`\${id}-confirm\`} type="password" /&gt;
+    &lt;/&gt;
+  );
+}</pre>
+<div class="key-point">Never use <code>useId</code> for list keys. It's designed for accessibility attributes (htmlFor, aria-describedby). For list keys, use data IDs.</div>`,
+        },
+        {
+          q: 'What is prop drilling and how to avoid it?',
+          difficulty: 'medium',
+          a: `<p><strong>Prop drilling</strong>: passing props through multiple intermediate components that don't need them, just to reach a deeply nested component.</p>
+<pre>// Prop drilling problem:
+&lt;App user={user}&gt;
+  &lt;Layout user={user}&gt;     {/* doesn't use user */}
+    &lt;Sidebar user={user}&gt;  {/* doesn't use user */}
+      &lt;Avatar user={user} /&gt;  {/* only this needs user! */}
+    &lt;/Sidebar&gt;
+  &lt;/Layout&gt;
+&lt;/App&gt;</pre>
+<p><strong>Solutions:</strong></p>
+<ul>
+<li><strong>Context API</strong>: <code>createContext</code> + <code>useContext</code></li>
+<li><strong>Component composition</strong>: pass components as children/props</li>
+<li><strong>State management</strong>: Zustand, Jotai, Redux</li>
+</ul>
+<pre>// Composition pattern (often best):
+&lt;App&gt;
+  &lt;Layout sidebar={&lt;Sidebar avatar={&lt;Avatar user={user} /&gt;} /&gt;}&gt;
+    {children}
+  &lt;/Layout&gt;
+&lt;/App&gt;
+// Layout and Sidebar don't need to know about 'user'</pre>
+<div class="key-point">Before reaching for Context or a state library, try component composition first. It's simpler and avoids unnecessary re-renders.</div>`,
+        },
+        {
+          q: 'What is React Strict Mode? What does it do?',
+          difficulty: 'medium',
+          a: `<p><code>&lt;React.StrictMode&gt;</code> activates additional development-only checks to find common bugs.</p>
+<ul>
+<li><strong>Double-invokes</strong> render, effects, and state updaters to detect side effects.</li>
+<li>Warns about <strong>deprecated APIs</strong> (findDOMNode, legacy context, string refs).</li>
+<li>Warns about unsafe lifecycle methods.</li>
+</ul>
+<pre>// Wraps your app (or part of it)
+root.render(
+  &lt;React.StrictMode&gt;
+    &lt;App /&gt;
+  &lt;/React.StrictMode&gt;
+);
+
+// In React 18, effects run → cleanup → re-run in dev
+// This catches bugs like missing cleanup functions
+useEffect(() => {
+  const subscription = subscribe();
+  return () => subscription.unsubscribe(); // cleanup
+  // Without cleanup, StrictMode would show duplicate subscriptions
+}, []);</pre>
+<div class="key-point">Trick question: "Why does my useEffect run twice?" — It's StrictMode in development. It does NOT happen in production. Don't remove StrictMode to "fix" it — fix your effect instead.</div>`,
+        },
+        {
+          q: 'What are React error boundaries? How do they work?',
+          difficulty: 'hard',
+          a: `<p>Error boundaries catch JavaScript errors in the component tree and display a fallback UI instead of crashing the whole app.</p>
+<pre>class ErrorBoundary extends React.Component {
+  state = { hasError: false, error: null };
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    // Log to error reporting service
+    logErrorToService(error, errorInfo.componentStack);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return &lt;h2&gt;Something went wrong.&lt;/h2&gt;;
+    }
+    return this.props.children;
+  }
+}
+
+// Usage:
+&lt;ErrorBoundary&gt;
+  &lt;Dashboard /&gt;  {/* if this crashes, fallback UI shows */}
+&lt;/ErrorBoundary&gt;</pre>
+<p><strong>Limitations:</strong></p>
+<ul>
+<li>Only catches errors in <strong>rendering, lifecycle methods, constructors</strong>.</li>
+<li>Does NOT catch: event handlers, async code, SSR, errors in the boundary itself.</li>
+<li>Must be a class component (no hook equivalent yet).</li>
+</ul>
+<div class="key-point">Use <code>react-error-boundary</code> library for a hook-friendly API with reset functionality. Place boundaries strategically — around routes, widgets, or features.</div>`,
+        },
+        {
+          q: 'What are the rules of React hooks?',
+          difficulty: 'tricky',
+          a: `<p>Two strict rules enforced by the <code>eslint-plugin-react-hooks</code>:</p>
+<ol>
+<li><strong>Only call hooks at the top level</strong> — not inside loops, conditions, or nested functions.</li>
+<li><strong>Only call hooks from React functions</strong> — React components or custom hooks (prefixed with <code>use</code>).</li>
+</ol>
+<pre>// ❌ WRONG: conditional hook
+function Component({ isAdmin }) {
+  if (isAdmin) {
+    const [admin, setAdmin] = useState(false); // breaks hook order!
+  }
+}
+
+// ✅ CORRECT: always call, conditionally use
+function Component({ isAdmin }) {
+  const [admin, setAdmin] = useState(false);
+  // use admin only if isAdmin
+  if (isAdmin) { /* ... */ }
+}
+
+// ❌ WRONG: hook inside regular function
+function helper() {
+  const [state, setState] = useState(0); // not a component or custom hook!
+}
+
+// ✅ CORRECT: custom hook
+function useHelper() {  // starts with 'use'
+  const [state, setState] = useState(0);
+  return state;
+}</pre>
+<div class="key-point">React relies on the ORDER hooks are called to match state to the right hook. If order changes between renders (due to conditions), React gets confused and bugs appear.</div>`,
+        },
+        {
+          q: 'How does React handle forms? Controlled vs uncontrolled vs React Hook Form.',
+          difficulty: 'medium',
+          a: `<pre>// 1. Controlled: React manages every keystroke
+function ControlledForm() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  
+  return &lt;form onSubmit={handleSubmit}&gt;
+    &lt;input value={email} onChange={e => setEmail(e.target.value)} /&gt;
+    &lt;input value={password} onChange={e => setPassword(e.target.value)} /&gt;
+  &lt;/form&gt;;
+  // Re-renders on every keystroke!
+}
+
+// 2. Uncontrolled: DOM manages state, read on submit
+function UncontrolledForm() {
+  const handleSubmit = (e) => {
+    const formData = new FormData(e.target);
+    console.log(Object.fromEntries(formData));
+  };
+  return &lt;form onSubmit={handleSubmit}&gt;
+    &lt;input name="email" defaultValue="" /&gt;
+    &lt;input name="password" defaultValue="" /&gt;
+  &lt;/form&gt;;
+}
+
+// 3. React Hook Form: best performance (uncontrolled + validation)
+function RHFForm() {
+  const { register, handleSubmit, formState: { errors } } = useForm();
+  return &lt;form onSubmit={handleSubmit(onSubmit)}&gt;
+    &lt;input {...register('email', { required: true })} /&gt;
+    {errors.email && &lt;span&gt;Required&lt;/span&gt;}
+  &lt;/form&gt;;
+}</pre>
+<div class="key-point">For complex forms, React Hook Form or Formik avoid the re-render-per-keystroke problem of controlled components.</div>`,
+        },
+      ],
+    },
+
+    // ───────────────────────── 4. CI/CD ─────────────────────────
   );
 })();

@@ -2,36 +2,36 @@
 // Auto-generated from pv.html
 (function () {
   (window.__pvTopics = window.__pvTopics || []).push(
-  {
-          id: 'java',
-          name: 'Java',
-          icon: '☕',
-          questions: [
-            // --- OOP ---
-            {
-              q: 'What are the four pillars of OOP in Java?',
-              difficulty: 'easy',
-              a: `<ul>
+    {
+      id: 'java',
+      name: 'Java',
+      icon: '☕',
+      questions: [
+        // --- OOP ---
+        {
+          q: 'What are the four pillars of OOP in Java?',
+          difficulty: 'easy',
+          a: `<ul>
 <li><strong>Encapsulation</strong> – bundling data + methods; using access modifiers (<code>private</code>, <code>protected</code>, <code>public</code>).</li>
 <li><strong>Abstraction</strong> – hiding complexity via abstract classes / interfaces.</li>
 <li><strong>Inheritance</strong> – reusing code through <code>extends</code> / <code>implements</code>.</li>
 <li><strong>Polymorphism</strong> – method overloading (compile-time) &amp; overriding (runtime).</li>
 </ul>`,
-            },
-            {
-              q: 'Explain the difference between Abstract class and Interface (Java 8+).',
-              difficulty: 'medium',
-              a: `<ul>
+        },
+        {
+          q: 'Explain the difference between Abstract class and Interface (Java 8+).',
+          difficulty: 'medium',
+          a: `<ul>
 <li><strong>Abstract class</strong>: can have constructors, instance fields, any access modifier. A class can extend only one.</li>
 <li><strong>Interface</strong>: all fields are <code>public static final</code>. Since Java 8 can have <code>default</code> and <code>static</code> methods. A class can implement many.</li>
 <li><strong>When to use</strong>: interface for capability contracts ("can do"), abstract class for shared state ("is a").</li>
 </ul>
 <div class="key-point">Trick: From Java 9, interfaces can have <code>private</code> methods to share code between default methods.</div>`,
-            },
-            {
-              q: 'What is the difference between == and .equals() in Java?',
-              difficulty: 'tricky',
-              a: `<ul>
+        },
+        {
+          q: 'What is the difference between == and .equals() in Java?',
+          difficulty: 'tricky',
+          a: `<ul>
 <li><code>==</code> compares <strong>references</strong> (memory addresses) for objects, and <strong>values</strong> for primitives.</li>
 <li><code>.equals()</code> compares <strong>logical equality</strong> (content). Must be overridden in custom classes.</li>
 </ul>
@@ -40,21 +40,21 @@ String b = new String("hello");
 a == b       // false (different objects)
 a.equals(b)  // true  (same content)</pre>
 <div class="key-point">Trick: String literals from the pool <code>"hello" == "hello"</code> returns <strong>true</strong> because they share the same reference in the String pool.</div>`,
-            },
-            {
-              q: 'What is the difference between String, StringBuilder, and StringBuffer?',
-              difficulty: 'medium',
-              a: `<ul>
+        },
+        {
+          q: 'What is the difference between String, StringBuilder, and StringBuffer?',
+          difficulty: 'medium',
+          a: `<ul>
 <li><strong>String</strong>: immutable. Every modification creates a new object.</li>
 <li><strong>StringBuilder</strong>: mutable, <strong>not thread-safe</strong>, faster.</li>
 <li><strong>StringBuffer</strong>: mutable, <strong>thread-safe</strong> (synchronized), slower.</li>
 </ul>
 <div class="key-point">Use <code>StringBuilder</code> for single-thread string manipulation (loops, concatenation). Use <code>StringBuffer</code> only when multiple threads modify the same builder.</div>`,
-            },
-            {
-              q: 'Explain Java Memory Model: Stack vs Heap.',
-              difficulty: 'hard',
-              a: `<ul>
+        },
+        {
+          q: 'Explain Java Memory Model: Stack vs Heap.',
+          difficulty: 'hard',
+          a: `<ul>
 <li><strong>Stack</strong>: stores method frames, local variables, references. Each thread has its own stack. LIFO.</li>
 <li><strong>Heap</strong>: stores objects and class-level variables. Shared across all threads. Managed by GC.</li>
 <li><strong>Metaspace</strong> (Java 8+): replaces PermGen; stores class metadata, loaded by classloaders.</li>
@@ -62,22 +62,22 @@ a.equals(b)  // true  (same content)</pre>
 <pre>int x = 10;            // x on stack
 String s = new String("hi"); // reference s on stack, object on heap</pre>
 <div class="key-point">OutOfMemoryError: heap space → increase <code>-Xmx</code>. StackOverflowError → deep recursion / infinite loop.</div>`,
-            },
-            {
-              q: 'What are the different types of Garbage Collectors in Java?',
-              difficulty: 'hard',
-              a: `<ul>
+        },
+        {
+          q: 'What are the different types of Garbage Collectors in Java?',
+          difficulty: 'hard',
+          a: `<ul>
 <li><strong>Serial GC</strong> – single thread, stop-the-world. Good for small apps.</li>
 <li><strong>Parallel GC</strong> – multiple GC threads. Default in Java 8.</li>
 <li><strong>G1 GC</strong> – divides heap into regions. Default since Java 9. Low-latency for large heaps.</li>
 <li><strong>ZGC / Shenandoah</strong> – ultra-low pause times (&lt;10ms). Java 11+/15+.</li>
 </ul>
 <div class="key-point">Trick: "Which GC does your production use?" — know your <code>-XX:+UseG1GC</code> or <code>-XX:+UseZGC</code> flags.</div>`,
-            },
-            {
-              q: 'Explain HashMap internal working. What happens on collision?',
-              difficulty: 'hard',
-              a: `<ol>
+        },
+        {
+          q: 'Explain HashMap internal working. What happens on collision?',
+          difficulty: 'hard',
+          a: `<ol>
 <li><code>hashCode()</code> → bucket index via <code>(n-1) & hash</code>.</li>
 <li>If bucket empty → new Node.</li>
 <li>If collision → stored as <strong>linked list</strong> (chaining) at that bucket.</li>
@@ -85,21 +85,21 @@ String s = new String("hi"); // reference s on stack, object on heap</pre>
 <li>Load factor 0.75 → resize (double capacity) when exceeded.</li>
 </ol>
 <div class="key-point">Trick: "What if two keys have same hashCode AND equals?" → Second put overwrites the first value.</div>`,
-            },
-            {
-              q: 'What is the difference between HashMap, LinkedHashMap, TreeMap, and ConcurrentHashMap?',
-              difficulty: 'medium',
-              a: `<ul>
+        },
+        {
+          q: 'What is the difference between HashMap, LinkedHashMap, TreeMap, and ConcurrentHashMap?',
+          difficulty: 'medium',
+          a: `<ul>
 <li><strong>HashMap</strong>: O(1), no order, allows one null key.</li>
 <li><strong>LinkedHashMap</strong>: maintains <strong>insertion order</strong>.</li>
 <li><strong>TreeMap</strong>: <strong>sorted by keys</strong> (natural order or Comparator). O(log n).</li>
 <li><strong>ConcurrentHashMap</strong>: thread-safe, no null keys/values, uses segment locking (Java 7) or CAS + synchronized (Java 8+).</li>
 </ul>`,
-            },
-            {
-              q: 'Explain Java Streams. What is the difference between intermediate and terminal operations?',
-              difficulty: 'medium',
-              a: `<ul>
+        },
+        {
+          q: 'Explain Java Streams. What is the difference between intermediate and terminal operations?',
+          difficulty: 'medium',
+          a: `<ul>
 <li><strong>Intermediate</strong>: lazy, return Stream → <code>filter()</code>, <code>map()</code>, <code>sorted()</code>, <code>distinct()</code>, <code>flatMap()</code>.</li>
 <li><strong>Terminal</strong>: trigger execution → <code>collect()</code>, <code>forEach()</code>, <code>reduce()</code>, <code>count()</code>, <code>findFirst()</code>.</li>
 </ul>
@@ -109,22 +109,22 @@ String s = new String("hi"); // reference s on stack, object on heap</pre>
     .sorted()
     .collect(Collectors.toList());</pre>
 <div class="key-point">Trick: Streams are <strong>lazy</strong> – nothing executes until a terminal operation is called.</div>`,
-            },
-            {
-              q: 'What is Optional in Java? Why use it?',
-              difficulty: 'medium',
-              a: `<p><code>Optional&lt;T&gt;</code> is a container that may or may not hold a non-null value. Designed to reduce <code>NullPointerException</code>.</p>
+        },
+        {
+          q: 'What is Optional in Java? Why use it?',
+          difficulty: 'medium',
+          a: `<p><code>Optional&lt;T&gt;</code> is a container that may or may not hold a non-null value. Designed to reduce <code>NullPointerException</code>.</p>
 <pre>Optional&lt;String&gt; name = Optional.ofNullable(getName());
 String result = name
     .filter(n -> n.length() > 3)
     .map(String::toUpperCase)
     .orElse("UNKNOWN");</pre>
 <div class="key-point">Never use <code>Optional</code> for class fields or method parameters – only for return types.</div>`,
-            },
-            {
-              q: 'Explain the volatile keyword in Java.',
-              difficulty: 'hard',
-              a: `<ul>
+        },
+        {
+          q: 'Explain the volatile keyword in Java.',
+          difficulty: 'hard',
+          a: `<ul>
 <li><code>volatile</code> ensures a variable is <strong>read from and written to main memory</strong>, not CPU cache.</li>
 <li>Guarantees <strong>visibility</strong> across threads but NOT atomicity.</li>
 <li>No reordering of reads/writes around volatile access.</li>
@@ -133,11 +133,11 @@ String result = name
 // Thread A: running = false;
 // Thread B: while(running) { ... } // sees update immediately</pre>
 <div class="key-point">Trick: <code>volatile</code> is NOT enough for <code>i++</code> because increment is read-modify-write (3 steps). Use <code>AtomicInteger</code> instead.</div>`,
-            },
-            {
-              q: 'What are the differences between synchronized, ReentrantLock, and ReadWriteLock?',
-              difficulty: 'hard',
-              a: `<ul>
+        },
+        {
+          q: 'What are the differences between synchronized, ReentrantLock, and ReadWriteLock?',
+          difficulty: 'hard',
+          a: `<ul>
 <li><strong>synchronized</strong>: implicit lock, auto-released. Simple but no tryLock/timeout.</li>
 <li><strong>ReentrantLock</strong>: explicit lock/unlock. Supports <code>tryLock()</code>, <code>lockInterruptibly()</code>, fairness.</li>
 <li><strong>ReadWriteLock</strong>: allows multiple concurrent readers, exclusive writers. Great for read-heavy workloads.</li>
@@ -145,11 +145,11 @@ String result = name
 <pre>ReentrantReadWriteLock rwl = new ReentrantReadWriteLock();
 rwl.readLock().lock();   // multiple threads can hold this
 rwl.writeLock().lock();  // exclusive</pre>`,
-            },
-            {
-              q: 'What is the difference between CompletableFuture and Future?',
-              difficulty: 'hard',
-              a: `<ul>
+        },
+        {
+          q: 'What is the difference between CompletableFuture and Future?',
+          difficulty: 'hard',
+          a: `<ul>
 <li><strong>Future</strong>: blocking <code>get()</code>, no chaining, no combining.</li>
 <li><strong>CompletableFuture</strong>: non-blocking, supports chaining (<code>thenApply</code>, <code>thenCompose</code>), combining (<code>allOf</code>, <code>anyOf</code>), exception handling (<code>exceptionally</code>).</li>
 </ul>
@@ -157,11 +157,11 @@ rwl.writeLock().lock();  // exclusive</pre>`,
     .thenApply(user -> user.getEmail())
     .thenAccept(email -> sendEmail(email))
     .exceptionally(ex -> { log.error(ex); return null; });</pre>`,
-            },
-            {
-              q: 'Explain SOLID principles with Java examples.',
-              difficulty: 'hard',
-              a: `<ul>
+        },
+        {
+          q: 'Explain SOLID principles with Java examples.',
+          difficulty: 'hard',
+          a: `<ul>
 <li><strong>S</strong> – Single Responsibility: one class = one reason to change.</li>
 <li><strong>O</strong> – Open/Closed: open for extension, closed for modification (use interfaces/abstract).</li>
 <li><strong>L</strong> – Liskov Substitution: subclass must be substitutable for parent without breaking behavior.</li>
@@ -169,11 +169,11 @@ rwl.writeLock().lock();  // exclusive</pre>`,
 <li><strong>D</strong> – Dependency Inversion: depend on abstractions, not concretions (DI / IoC).</li>
 </ul>
 <div class="key-point">In Spring Boot: <code>@Service</code> depends on <code>Repository</code> interface (D). Each service handles one domain (S). New payment methods extend <code>PaymentStrategy</code> (O).</div>`,
-            },
-            {
-              q: "What happens when you type 'new Object()' in Java? (Object creation lifecycle)",
-              difficulty: 'tricky',
-              a: `<ol>
+        },
+        {
+          q: "What happens when you type 'new Object()' in Java? (Object creation lifecycle)",
+          difficulty: 'tricky',
+          a: `<ol>
 <li>Class is loaded by ClassLoader (if not already loaded).</li>
 <li>Memory is allocated on the <strong>heap</strong> for the object.</li>
 <li>Fields are set to <strong>default values</strong> (0, null, false).</li>
@@ -181,31 +181,31 @@ rwl.writeLock().lock();  // exclusive</pre>`,
 <li><strong>Constructor</strong> body executes (after calling <code>super()</code>).</li>
 <li>Reference is returned to the caller (stored on stack).</li>
 </ol>`,
-            },
-            {
-              q: 'What is the difference between Checked and Unchecked Exceptions?',
-              difficulty: 'easy',
-              a: `<ul>
+        },
+        {
+          q: 'What is the difference between Checked and Unchecked Exceptions?',
+          difficulty: 'easy',
+          a: `<ul>
 <li><strong>Checked</strong> (compile-time): must be caught or declared. <code>IOException</code>, <code>SQLException</code>. Extends <code>Exception</code>.</li>
 <li><strong>Unchecked</strong> (runtime): don't need to be declared. <code>NullPointerException</code>, <code>ArrayIndexOutOfBoundsException</code>. Extends <code>RuntimeException</code>.</li>
 <li><strong>Error</strong>: serious JVM problems. <code>OutOfMemoryError</code>, <code>StackOverflowError</code>. Should not be caught.</li>
 </ul>`,
-            },
-            {
-              q: 'Explain the Java ClassLoader hierarchy and how class loading works.',
-              difficulty: 'hard',
-              a: `<ol>
+        },
+        {
+          q: 'Explain the Java ClassLoader hierarchy and how class loading works.',
+          difficulty: 'hard',
+          a: `<ol>
 <li><strong>Bootstrap ClassLoader</strong>: loads core Java classes (rt.jar). Written in native code.</li>
 <li><strong>Extension/Platform ClassLoader</strong>: loads from <code>jre/lib/ext</code>.</li>
 <li><strong>Application ClassLoader</strong>: loads from classpath.</li>
 </ol>
 <p><strong>Delegation model</strong>: child asks parent first → prevents duplicate loading and ensures core classes can't be overridden.</p>
 <div class="key-point">Trick: "Can you load two different versions of the same class?" → Yes, with <strong>custom ClassLoaders</strong> (used by app servers like Tomcat for war isolation).</div>`,
-            },
-            {
-              q: 'What are functional interfaces and lambda expressions?',
-              difficulty: 'medium',
-              a: `<p>A <strong>functional interface</strong> has exactly <strong>one abstract method</strong>. Annotated with <code>@FunctionalInterface</code>.</p>
+        },
+        {
+          q: 'What are functional interfaces and lambda expressions?',
+          difficulty: 'medium',
+          a: `<p>A <strong>functional interface</strong> has exactly <strong>one abstract method</strong>. Annotated with <code>@FunctionalInterface</code>.</p>
 <ul>
 <li><code>Predicate&lt;T&gt;</code> → <code>boolean test(T t)</code></li>
 <li><code>Function&lt;T,R&gt;</code> → <code>R apply(T t)</code></li>
@@ -214,20 +214,20 @@ rwl.writeLock().lock();  // exclusive</pre>`,
 </ul>
 <pre>Predicate&lt;String&gt; notEmpty = s -> s != null && !s.isEmpty();
 Function&lt;String, Integer&gt; len = String::length;</pre>`,
-            },
-            {
-              q: 'What is the difference between fail-fast and fail-safe iterators?',
-              difficulty: 'tricky',
-              a: `<ul>
+        },
+        {
+          q: 'What is the difference between fail-fast and fail-safe iterators?',
+          difficulty: 'tricky',
+          a: `<ul>
 <li><strong>Fail-fast</strong>: throws <code>ConcurrentModificationException</code> if collection modified during iteration. E.g., <code>ArrayList</code>, <code>HashMap</code> iterators.</li>
 <li><strong>Fail-safe</strong>: works on a <strong>clone/snapshot</strong>, doesn't throw. E.g., <code>CopyOnWriteArrayList</code>, <code>ConcurrentHashMap</code> iterators.</li>
 </ul>
 <div class="key-point">Trick: To remove during iteration, use <code>iterator.remove()</code>, not <code>list.remove()</code>.</div>`,
-            },
-            {
-              q: 'Explain Spring Boot dependency injection and IoC container.',
-              difficulty: 'medium',
-              a: `<ul>
+        },
+        {
+          q: 'Explain Spring Boot dependency injection and IoC container.',
+          difficulty: 'medium',
+          a: `<ul>
 <li><strong>IoC</strong> (Inversion of Control): framework creates and manages objects (beans), not us.</li>
 <li><strong>DI types</strong>: Constructor injection (preferred), Setter injection, Field injection (<code>@Autowired</code>).</li>
 <li><strong>Bean scopes</strong>: <code>singleton</code> (default), <code>prototype</code>, <code>request</code>, <code>session</code>.</li>
@@ -240,21 +240,21 @@ public class OrderService {
     }
 }</pre>
 <div class="key-point">Constructor injection is preferred: immutable, testable, fails fast if dependency missing.</div>`,
-            },
-            {
-              q: 'What is the difference between @Component, @Service, @Repository, and @Controller?',
-              difficulty: 'easy',
-              a: `<ul>
+        },
+        {
+          q: 'What is the difference between @Component, @Service, @Repository, and @Controller?',
+          difficulty: 'easy',
+          a: `<ul>
 <li><strong>@Component</strong>: generic Spring-managed bean.</li>
 <li><strong>@Service</strong>: business logic layer (semantic only, no extra behavior).</li>
 <li><strong>@Repository</strong>: data access layer. Adds <strong>exception translation</strong> (DB exceptions → Spring DataAccessException).</li>
 <li><strong>@Controller</strong>: web layer, returns views. <code>@RestController</code> = <code>@Controller</code> + <code>@ResponseBody</code>.</li>
 </ul>`,
-            },
-            {
-              q: 'What is the difference between @Transactional propagation levels?',
-              difficulty: 'hard',
-              a: `<ul>
+        },
+        {
+          q: 'What is the difference between @Transactional propagation levels?',
+          difficulty: 'hard',
+          a: `<ul>
 <li><strong>REQUIRED</strong> (default): join existing TX or create new.</li>
 <li><strong>REQUIRES_NEW</strong>: always create new TX, suspend current.</li>
 <li><strong>NESTED</strong>: create savepoint within existing TX.</li>
@@ -264,11 +264,11 @@ public class OrderService {
 <li><strong>NEVER</strong>: throw exception if TX exists.</li>
 </ul>
 <div class="key-point">Trick: Self-invocation within the same class bypasses proxy → <code>@Transactional</code> won't work. Solution: inject self or move to another bean.</div>`,
-            },
-            {
-              q: 'What are design patterns commonly asked in Java interviews?',
-              difficulty: 'hard',
-              a: `<ul>
+        },
+        {
+          q: 'What are design patterns commonly asked in Java interviews?',
+          difficulty: 'hard',
+          a: `<ul>
 <li><strong>Singleton</strong>: one instance (use enum or double-checked locking).</li>
 <li><strong>Factory Method</strong>: subclass decides which class to instantiate.</li>
 <li><strong>Builder</strong>: step-by-step construction (<code>Lombok @Builder</code>).</li>
@@ -282,11 +282,11 @@ public enum Singleton {
     INSTANCE;
     public void doSomething() { }
 }</pre>`,
-            },
-            {
-              q: 'What is the difference between final, finally, and finalize in Java?',
-              difficulty: 'easy',
-              a: `<p>Three completely different things that just sound similar:</p>
+        },
+        {
+          q: 'What is the difference between final, finally, and finalize in Java?',
+          difficulty: 'easy',
+          a: `<p>Three completely different things that just sound similar:</p>
 <ul>
 <li><strong>final</strong> – a keyword to make things <em>unchangeable</em>:
   <ul>
@@ -317,11 +317,11 @@ protected void finalize() throws Throwable {
     // cleanup before GC — unreliable, don't use!
 }</pre>
 <div class="key-point">Interview trick: "Does finally always run?" — Almost always. The only exception: <code>System.exit()</code> or JVM crash. Also, if <code>try</code> has a <code>return</code>, <code>finally</code> still runs before the return.</div>`,
-            },
-            {
-              q: 'What is the difference between method overloading and method overriding?',
-              difficulty: 'easy',
-              a: `<ul>
+        },
+        {
+          q: 'What is the difference between method overloading and method overriding?',
+          difficulty: 'easy',
+          a: `<ul>
 <li><strong>Overloading</strong> (compile-time polymorphism): Same method name, <strong>different parameters</strong> in the same class.</li>
 <li><strong>Overriding</strong> (runtime polymorphism): Same method name and parameters in a <strong>subclass</strong>, replacing the parent's behavior.</li>
 </ul>
@@ -350,11 +350,11 @@ a.speak();  // "Woof!" — runtime decides which version to call</pre>
 <tr><td>Binding</td><td>Compile-time</td><td>Runtime</td></tr>
 <tr><td>Annotation</td><td>None needed</td><td>@Override recommended</td></tr></table>
 <div class="key-point">Trick: Can you override a <code>static</code> method? <strong>No!</strong> Static methods belong to the class, not the instance. You can <em>hide</em> them but not override.</div>`,
-            },
-            {
-              q: "What is the difference between 'this' and 'super' in Java?",
-              difficulty: 'easy',
-              a: `<ul>
+        },
+        {
+          q: "What is the difference between 'this' and 'super' in Java?",
+          difficulty: 'easy',
+          a: `<ul>
 <li><strong>this</strong> – refers to the <strong>current object</strong>. Used to access current class members or call current class constructors.</li>
 <li><strong>super</strong> – refers to the <strong>parent class</strong>. Used to access parent class members or call parent constructors.</li>
 </ul>
@@ -382,11 +382,11 @@ new Dog("Rex", "Labrador").eat();
 // Output: "Rex eats"
 //         "Rex chews on a bone"</pre>
 <div class="key-point"><code>super()</code> must be the <strong>first statement</strong> in a constructor. If you don't write it, Java inserts <code>super()</code> (no-arg) automatically. If parent has no no-arg constructor, you get a compile error.</div>`,
-            },
-            {
-              q: 'What is the difference between ArrayList and LinkedList?',
-              difficulty: 'medium',
-              a: `<p>Both implement <code>List</code> interface but have very different internals:</p>
+        },
+        {
+          q: 'What is the difference between ArrayList and LinkedList?',
+          difficulty: 'medium',
+          a: `<p>Both implement <code>List</code> interface but have very different internals:</p>
 <ul>
 <li><strong>ArrayList</strong>: Backed by a dynamic <strong>array</strong>. Fast random access, slow insertion in the middle.</li>
 <li><strong>LinkedList</strong>: Backed by a <strong>doubly-linked list</strong>. Fast insertion/deletion anywhere, slow random access.</li>
@@ -408,11 +408,11 @@ LinkedList internally:
 <tr><td>Memory</td><td>Compact</td><td>Extra (prev/next pointers)</td></tr></table>
 <p><em>*O(1) only if you already have a reference to the node; finding the node is O(n).</em></p>
 <div class="key-point">Use <strong>ArrayList 99% of the time</strong>. It's faster in practice due to CPU cache locality. Only use LinkedList if you heavily add/remove from the front (use <code>ArrayDeque</code> instead) or need a Queue.</div>`,
-            },
-            {
-              q: 'What is the Java Collections Framework hierarchy?',
-              difficulty: 'medium',
-              a: `<p>The Java Collections Framework is a unified architecture for representing and manipulating collections.</p>
+        },
+        {
+          q: 'What is the Java Collections Framework hierarchy?',
+          difficulty: 'medium',
+          a: `<p>The Java Collections Framework is a unified architecture for representing and manipulating collections.</p>
 <pre>                     Iterable
                         |
                     Collection
@@ -444,11 +444,11 @@ Set&lt;String&gt; set = new HashSet&lt;&gt;(list);       // remove duplicates
 Map&lt;String, Integer&gt; map = new HashMap&lt;&gt;();
 Queue&lt;String&gt; queue = new ArrayDeque&lt;&gt;();</pre>
 <div class="key-point">Key rules: <code>List</code> = ordered + duplicates. <code>Set</code> = unique + unordered (mostly). <code>Map</code> = key-value. <code>Queue</code> = FIFO. Use <code>ArrayDeque</code> over <code>Stack</code> and <code>LinkedList</code> for stack/queue operations.</div>`,
-            },
-            {
-              q: 'What are Generics in Java and why are they useful?',
-              difficulty: 'medium',
-              a: `<p><strong>Generics</strong> allow you to write classes/methods that work with <strong>any type</strong> while providing <strong>compile-time type safety</strong> — no casting, no ClassCastException.</p>
+        },
+        {
+          q: 'What are Generics in Java and why are they useful?',
+          difficulty: 'medium',
+          a: `<p><strong>Generics</strong> allow you to write classes/methods that work with <strong>any type</strong> while providing <strong>compile-time type safety</strong> — no casting, no ClassCastException.</p>
 <pre>// WITHOUT generics (old way — dangerous!)
 List list = new ArrayList();
 list.add("hello");
@@ -485,11 +485,11 @@ String val = box.get();  // no cast needed
 &lt;? super Dog&gt;      // Dog or superclasses (write-only — "consumer")
 // Remember: PECS = Producer Extends, Consumer Super</pre>
 <div class="key-point">Generics are erased at runtime (type erasure) — <code>List&lt;String&gt;</code> and <code>List&lt;Integer&gt;</code> are both just <code>List</code> at runtime. This is why you can't do <code>new T()</code> or <code>instanceof T</code>.</div>`,
-            },
-            {
-              q: 'What is the difference between Process and Thread in Java?',
-              difficulty: 'medium',
-              a: `<ul>
+        },
+        {
+          q: 'What is the difference between Process and Thread in Java?',
+          difficulty: 'medium',
+          a: `<ul>
 <li><strong>Process</strong>: An independent program with its <strong>own memory space</strong>. Processes don't share memory.</li>
 <li><strong>Thread</strong>: A lightweight unit of execution <strong>within a process</strong>. Threads share the same memory (heap) but have their own stack.</li>
 </ul>
@@ -518,11 +518,11 @@ new Thread(task).start();
 ExecutorService pool = Executors.newFixedThreadPool(4);
 pool.submit(() -> System.out.println("Running in thread pool!"));</pre>
 <div class="key-point">Always use <strong>ExecutorService / Thread Pool</strong> over raw threads in production. Creating a new thread for each task is expensive. Thread pool reuses threads like a connection pool reuses DB connections.</div>`,
-            },
-            {
-              q: 'What is a deadlock in Java and how do you prevent it?',
-              difficulty: 'hard',
-              a: `<p>A <strong>deadlock</strong> occurs when two or more threads are <strong>waiting for each other</strong> to release locks, and none can proceed. They're stuck forever.</p>
+        },
+        {
+          q: 'What is a deadlock in Java and how do you prevent it?',
+          difficulty: 'hard',
+          a: `<p>A <strong>deadlock</strong> occurs when two or more threads are <strong>waiting for each other</strong> to release locks, and none can proceed. They're stuck forever.</p>
 <p><strong>Analogy:</strong> Two people in a narrow hallway. Person A says "you move first", Person B says "no, you move first". Neither moves — deadlock!</p>
 <pre>// Deadlock example:
 Thread 1:
@@ -560,11 +560,11 @@ if (lock.tryLock(1, TimeUnit.SECONDS)) {
 // 3. Use higher-level concurrency utilities
 // ConcurrentHashMap, AtomicInteger, etc. — no explicit locking needed</pre>
 <div class="key-point">Detect deadlocks with <code>jstack</code> (thread dump) or JConsole. In production, prefer <strong>lock-free data structures</strong> (Atomic classes, ConcurrentHashMap) over synchronized blocks.</div>`,
-            },
-            {
-              q: 'What is the Java ExecutorService and its thread pool types?',
-              difficulty: 'medium',
-              a: `<p><strong>ExecutorService</strong> manages a pool of threads and executes tasks asynchronously without manually creating threads.</p>
+        },
+        {
+          q: 'What is the Java ExecutorService and its thread pool types?',
+          difficulty: 'medium',
+          a: `<p><strong>ExecutorService</strong> manages a pool of threads and executes tasks asynchronously without manually creating threads.</p>
 <p><strong>Analogy:</strong> A call center with agents (threads). Calls (tasks) come in and are assigned to available agents. If all agents are busy, calls wait in a queue. You don't hire a new agent for every call.</p>
 <pre>// Thread pool types:
 ExecutorService pool;
@@ -596,11 +596,11 @@ pool.shutdown();                    // graceful — finish current tasks
 pool.shutdownNow();                 // immediate — interrupt all
 pool.awaitTermination(5, TimeUnit.SECONDS);</pre>
 <div class="key-point">In Spring Boot, use <code>@Async</code> with a configured <code>ThreadPoolTaskExecutor</code> instead of raw ExecutorService. Set pool size = CPU cores for CPU-bound, or higher for IO-bound tasks.</div>`,
-            },
-            {
-              q: 'What are Java records (Java 14+)?',
-              difficulty: 'easy',
-              a: `<p><strong>Records</strong> are immutable data carriers that auto-generate constructors, getters, <code>equals()</code>, <code>hashCode()</code>, and <code>toString()</code>.</p>
+        },
+        {
+          q: 'What are Java records (Java 14+)?',
+          difficulty: 'easy',
+          a: `<p><strong>Records</strong> are immutable data carriers that auto-generate constructors, getters, <code>equals()</code>, <code>hashCode()</code>, and <code>toString()</code>.</p>
 <p><strong>Problem:</strong> Simple data classes in Java require tons of boilerplate.</p>
 <pre>// OLD way — 30+ lines for a simple data class!
 public class Person {
@@ -639,11 +639,11 @@ public record Person(String name, int age) {
 <li>Can implement interfaces but can't extend classes</li>
 </ul>
 <div class="key-point">Use records for DTOs, value objects, and any class that's just "a bag of data". Similar to Kotlin data classes and Lombok @Value.</div>`,
-            },
-            {
-              q: 'What are sealed classes in Java (Java 17)?',
-              difficulty: 'medium',
-              a: `<p><strong>Sealed classes</strong> restrict which classes can extend them. You explicitly list the allowed subclasses.</p>
+        },
+        {
+          q: 'What are sealed classes in Java (Java 17)?',
+          difficulty: 'medium',
+          a: `<p><strong>Sealed classes</strong> restrict which classes can extend them. You explicitly list the allowed subclasses.</p>
 <p><strong>Analogy:</strong> A VIP club with a guest list. Only people on the list can enter. No random person can walk in.</p>
 <pre>// Only Circle, Rectangle, and Triangle can extend Shape
 public sealed class Shape permits Circle, Rectangle, Triangle { }
@@ -675,11 +675,11 @@ public non-sealed class Triangle extends Shape { // 'non-sealed' — anyone can 
     };
 }</pre>
 <div class="key-point">Sealed classes give you <strong>exhaustive pattern matching</strong> — the compiler verifies you've handled all cases. Great for domain modeling where you know all possible types upfront.</div>`,
-            },
-            {
-              q: 'What is the difference between var, explicit types, and when to use each?',
-              difficulty: 'easy',
-              a: `<p>Since Java 10, <code>var</code> infers the type from the right side. The type is still <strong>static</strong> — it's just compiler convenience.</p>
+        },
+        {
+          q: 'What is the difference between var, explicit types, and when to use each?',
+          difficulty: 'easy',
+          a: `<p>Since Java 10, <code>var</code> infers the type from the right side. The type is still <strong>static</strong> — it's just compiler convenience.</p>
 <pre>// Explicit type (old way):
 String name = "John";
 Map&lt;String, List&lt;Integer&gt;&gt; map = new HashMap&lt;String, List&lt;Integer&gt;&gt;();
@@ -705,11 +705,11 @@ x = 123;  // COMPILE ERROR — x is String, not Object</pre>
 <li>❌ When readability suffers</li>
 </ul>
 <div class="key-point"><code>var</code> is only for <strong>local variables</strong>. It can't be used for method parameters, return types, or class fields. The type is determined at <strong>compile time</strong> — it's not like JavaScript's <code>var</code>.</div>`,
-            },
-            {
-              q: "What is the 'try-with-resources' statement?",
-              difficulty: 'easy',
-              a: `<p><strong>Try-with-resources</strong> (Java 7+) automatically closes resources (streams, connections, etc.) when the block exits — no need for manual <code>finally</code> cleanup.</p>
+        },
+        {
+          q: "What is the 'try-with-resources' statement?",
+          difficulty: 'easy',
+          a: `<p><strong>Try-with-resources</strong> (Java 7+) automatically closes resources (streams, connections, etc.) when the block exits — no need for manual <code>finally</code> cleanup.</p>
 <pre>// OLD way — verbose and error-prone!
 BufferedReader reader = null;
 try {
@@ -747,11 +747,11 @@ class MyResource implements AutoCloseable {
     public void close() { System.out.println("Cleaned up!"); }
 }</pre>
 <div class="key-point">Always use try-with-resources for I/O, database connections, and any <code>AutoCloseable</code>. It prevents resource leaks and is more concise than try-finally.</div>`,
-            },
-            {
-              q: 'What is the difference between throw and throws in Java?',
-              difficulty: 'easy',
-              a: `<ul>
+        },
+        {
+          q: 'What is the difference between throw and throws in Java?',
+          difficulty: 'easy',
+          a: `<ul>
 <li><strong>throw</strong> – actually <em>throws</em> an exception object. Used inside a method body.</li>
 <li><strong>throws</strong> – <em>declares</em> that a method might throw an exception. Used in the method signature.</li>
 </ul>
@@ -781,11 +781,11 @@ try {
 <tr><td>Followed by</td><td>Exception instance</td><td>Exception class name(s)</td></tr>
 <tr><td>Multiple</td><td>One at a time</td><td>Multiple: <code>throws A, B, C</code></td></tr></table>
 <div class="key-point">Only <strong>checked exceptions</strong> must be declared with <code>throws</code>. Unchecked exceptions (RuntimeException and subclasses) don't need it, but you can add it for documentation.</div>`,
-            },
-            {
-              q: 'What is the difference between HashMap and ConcurrentHashMap?',
-              difficulty: 'hard',
-              a: `<ul>
+        },
+        {
+          q: 'What is the difference between HashMap and ConcurrentHashMap?',
+          difficulty: 'hard',
+          a: `<ul>
 <li><strong>HashMap</strong>: Not thread-safe. Fast for single-threaded use. Allows one <code>null</code> key.</li>
 <li><strong>ConcurrentHashMap</strong>: Thread-safe without locking the entire map. No <code>null</code> keys or values.</li>
 </ul>
@@ -814,11 +814,11 @@ ConcurrentHashMap (Java 8):
 cmap.compute("key", (k, v) -> v + 1); // atomic update
 cmap.merge("key", 1, Integer::sum);   // atomic merge</pre>
 <div class="key-point">Never use <code>Hashtable</code> — it's legacy. Use <code>ConcurrentHashMap</code> for multi-threaded scenarios. Use <code>HashMap</code> for single-threaded code (faster). Also: <code>Collections.synchronizedMap()</code> wraps a map with full locks — slower than ConcurrentHashMap.</div>`,
-            },
-            {
-              q: 'Explain the Java 8 Stream API: map, filter, reduce, collect.',
-              difficulty: 'medium',
-              a: `<p><strong>Streams</strong> let you process collections in a functional, declarative style — like a pipeline of operations.</p>
+        },
+        {
+          q: 'Explain the Java 8 Stream API: map, filter, reduce, collect.',
+          difficulty: 'medium',
+          a: `<p><strong>Streams</strong> let you process collections in a functional, declarative style — like a pipeline of operations.</p>
 <p><strong>Analogy:</strong> An assembly line in a factory. Raw materials (data) flow through stations (operations): filter bad items, transform them, and pack the result.</p>
 <pre>List&lt;String&gt; names = List.of("Alice", "Bob", "Charlie", "Anna", "BigBob");
 
@@ -855,11 +855,11 @@ String joined = names.stream().collect(Collectors.joining(", "));
 Map&lt;String, Integer&gt; nameLengths = names.stream()
     .collect(Collectors.toMap(n -> n, String::length));</pre>
 <div class="key-point">Streams are <strong>lazy</strong> — intermediate operations (filter, map) don't execute until a terminal operation (collect, reduce, forEach) is called. Use <code>parallelStream()</code> for CPU-heavy operations on large data.</div>`,
-            },
-            {
-              q: 'What is the difference between Comparable and Comparator? (with detailed examples)',
-              difficulty: 'medium',
-              a: `<ul>
+        },
+        {
+          q: 'What is the difference between Comparable and Comparator? (with detailed examples)',
+          difficulty: 'medium',
+          a: `<ul>
 <li><strong>Comparable</strong>: Defines the <strong>natural ordering</strong> of a class. Implemented <em>inside</em> the class. One way to sort.</li>
 <li><strong>Comparator</strong>: Defines <strong>custom ordering</strong>. Implemented <em>outside</em> the class. Multiple ways to sort.</li>
 </ul>
@@ -891,11 +891,11 @@ employees.sort(byNameThenSalary); // sort by name, then salary</pre>
 <tr><td>Implemented in</td><td>The class itself</td><td>Separate class / lambda</td></tr>
 <tr><td>Sort orders</td><td>One (natural)</td><td>Many (custom)</td></tr></table>
 <div class="key-point">Use <strong>Comparable</strong> for a default sort order (e.g., Employee by ID). Use <strong>Comparator</strong> when you need multiple sort options. Java 8 <code>Comparator.comparing()</code> makes it concise.</div>`,
-            },
-            {
-              q: 'What is reflection in Java and when should you use it?',
-              difficulty: 'hard',
-              a: `<p><strong>Reflection</strong> allows you to inspect and modify classes, methods, fields, and constructors at <strong>runtime</strong> — even private ones.</p>
+        },
+        {
+          q: 'What is reflection in Java and when should you use it?',
+          difficulty: 'hard',
+          a: `<p><strong>Reflection</strong> allows you to inspect and modify classes, methods, fields, and constructors at <strong>runtime</strong> — even private ones.</p>
 <p><strong>Analogy:</strong> Normally you use a TV remote as designed (public API). Reflection is like opening the TV case and directly manipulating the circuit board — powerful but dangerous.</p>
 <pre>// Get class information at runtime
 Class&lt;?&gt; clazz = Class.forName("com.example.User");
@@ -928,11 +928,11 @@ Object result = method.invoke(user, "arg1");</pre>
 <li>❌ Breaks encapsulation — access to private members</li>
 </ul>
 <div class="key-point">Don't use reflection in business logic. It's for frameworks and libraries. When you see Spring "magically" inject dependencies, that's reflection under the hood.</div>`,
-            },
-            {
-              q: 'What is the difference between JDK, JRE, and JVM?',
-              difficulty: 'easy',
-              a: `<ul>
+        },
+        {
+          q: 'What is the difference between JDK, JRE, and JVM?',
+          difficulty: 'easy',
+          a: `<ul>
 <li><strong>JVM</strong> (Java Virtual Machine) – The engine that <em>runs</em> bytecode. Platform-specific (different JVM for Windows, Mac, Linux).</li>
 <li><strong>JRE</strong> (Java Runtime Environment) – JVM + standard libraries needed to <em>run</em> Java programs.</li>
 <li><strong>JDK</strong> (Java Development Kit) – JRE + development tools (compiler, debugger, etc.) needed to <em>develop</em> Java programs.</li>
@@ -957,11 +957,11 @@ Flow:
                                           ↓
                                     Machine code (OS-specific)</pre>
 <div class="key-point">"Write once, run anywhere" — you compile Java code once to bytecode, and any JVM on any OS can run it. Since Java 11, there's no separate JRE download; the JDK includes everything.</div>`,
-            },
-            {
-              q: 'What is the difference between shallow copy and deep copy in Java?',
-              difficulty: 'medium',
-              a: `<ul>
+        },
+        {
+          q: 'What is the difference between shallow copy and deep copy in Java?',
+          difficulty: 'medium',
+          a: `<ul>
 <li><strong>Shallow copy</strong>: Copies the object but <strong>shares references</strong> to inner objects. Changes to inner objects affect both.</li>
 <li><strong>Deep copy</strong>: Copies everything — the object AND all inner objects. Fully independent.</li>
 </ul>
@@ -998,10 +998,303 @@ Person p3 = p1.deepCopy();
 p3.address.city = "Chicago";
 System.out.println(p1.address.city); // "LA" ✅ — deep copy is independent</pre>
 <div class="key-point">For deep copy, consider: (1) manual copy constructor, (2) serialization/deserialization, or (3) libraries like Apache Commons <code>SerializationUtils.clone()</code>. Avoid <code>clone()</code> — it's broken by design (Effective Java, Item 13).</div>`,
-            },
-          ],
         },
+        {
+          q: 'What are Virtual Threads in Java 21 and how do they differ from platform threads?',
+          difficulty: 'hard',
+          a: `<p><strong>Virtual threads</strong> (Project Loom) are lightweight threads managed by the JVM, not the OS. You can create millions of them without running out of memory.</p>
+<pre>// Platform thread (traditional): 1 thread = ~1MB stack, managed by OS
+Thread platformThread = new Thread(() -> {
+    // Each thread is expensive — limited to ~thousands
+});
 
-        // ───────────────────────── 2. JAVASCRIPT ─────────────────────────
+// Virtual thread (Java 21): lightweight, managed by JVM
+Thread virtualThread = Thread.startVirtualThread(() -> {
+    // Millions of these are fine — they share OS threads
+});
+
+// With ExecutorService:
+try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+    // Submit 100,000 tasks — each gets its own virtual thread
+    for (int i = 0; i < 100_000; i++) {
+        executor.submit(() -> {
+            Thread.sleep(Duration.ofSeconds(1)); // blocks virtual thread, NOT OS thread
+            return fetchFromDatabase();
+        });
+    }
+} // auto-closes, waits for all tasks</pre>
+<table><tr><th>Aspect</th><th>Platform Thread</th><th>Virtual Thread</th></tr>
+<tr><td>Cost</td><td>~1MB stack each</td><td>~few KB each</td></tr>
+<tr><td>Scalability</td><td>Thousands</td><td>Millions</td></tr>
+<tr><td>Blocking</td><td>Blocks OS thread</td><td>Unmounts from carrier thread</td></tr>
+<tr><td>Use case</td><td>CPU-intensive work</td><td>I/O-heavy work (web servers, DB calls)</td></tr></table>
+<div class="key-point">Virtual threads make blocking code scale like async code — you write simple blocking code but get the throughput of reactive programming. <strong>Don't pool virtual threads</strong> — create a new one per task. Don't use <code>synchronized</code> in hot paths (pins the carrier thread) — use <code>ReentrantLock</code> instead.</div>`,
+        },
+        {
+          q: 'What are switch expressions, pattern matching, and text blocks in modern Java?',
+          difficulty: 'medium',
+          a: `<p><strong>Switch expressions (Java 14+):</strong></p>
+<pre>// Old switch statement:
+String result;
+switch (day) {
+    case "MON": case "TUE": result = "Weekday"; break;
+    case "SAT": case "SUN": result = "Weekend"; break;
+    default: result = "Unknown"; break;
+}
+
+// New switch expression (returns a value):
+String result = switch (day) {
+    case "MON", "TUE", "WED", "THU", "FRI" -> "Weekday";
+    case "SAT", "SUN" -> "Weekend";
+    default -> "Unknown";
+};
+
+// With yield for complex blocks:
+int numLetters = switch (day) {
+    case "MON", "FRI", "SUN" -> 3;
+    case "TUE" -> { System.out.println("Tuesday!"); yield 3; }
+    default -> throw new IllegalArgumentException();
+};</pre>
+<p><strong>Pattern matching (Java 16+ for instanceof, Java 21 for switch):</strong></p>
+<pre>// Old:
+if (obj instanceof String) {
+    String s = (String) obj;  // manual cast
+    System.out.println(s.length());
+}
+
+// New (Java 16+):
+if (obj instanceof String s) {
+    System.out.println(s.length());  // s is already cast!
+}
+
+// Pattern matching in switch (Java 21):
+String describe(Object obj) {
+    return switch (obj) {
+        case Integer i when i > 0 -> "positive int: " + i;
+        case String s -> "string of length " + s.length();
+        case null -> "null value";
+        default -> "something else";
+    };
+}</pre>
+<p><strong>Text blocks (Java 15+):</strong></p>
+<pre>// Old:
+String json = "{\\n  \\"name\\": \\"John\\",\\n  \\"age\\": 30\\n}";
+
+// New:
+String json = """
+        {
+          "name": "John",
+          "age": 30
+        }
+        """;
+// Indentation is automatically stripped based on closing \\"\\"\\"</pre>
+<div class="key-point">These modern features make Java code significantly more readable. Switch expressions eliminate fall-through bugs, pattern matching eliminates manual casts, and text blocks clean up multi-line strings.</div>`,
+        },
+        {
+          q: 'How do you create an immutable class in Java?',
+          difficulty: 'medium',
+          a: `<p>An <strong>immutable class</strong> is a class whose instances cannot be modified after creation. They are inherently thread-safe.</p>
+<pre>// Rules for immutability:
+public final class Money {                    // 1. final class — can't be extended
+    private final BigDecimal amount;          // 2. final fields
+    private final String currency;
+    private final List&lt;String&gt; tags;
+
+    public Money(BigDecimal amount, String currency, List&lt;String&gt; tags) {
+        this.amount = amount;
+        this.currency = currency;
+        this.tags = List.copyOf(tags);        // 3. Defensive copy of mutable objects
+    }
+
+    public BigDecimal getAmount() { return amount; }   // 4. No setters
+    public String getCurrency() { return currency; }
+
+    public List&lt;String&gt; getTags() {
+        return tags;                          // List.copyOf returns unmodifiable list
+    }
+
+    // 5. Methods that "modify" return new objects
+    public Money add(Money other) {
+        return new Money(this.amount.add(other.amount), this.currency, this.tags);
+    }
+}
+
+// Java Records — immutable by design (Java 16+):
+public record Point(int x, int y) {}
+// Automatically: final class, final fields, constructor, getters, equals, hashCode, toString</pre>
+<div class="key-point">Immutable objects are thread-safe without synchronization. String, Integer, LocalDate are all immutable in Java. Use Records for simple immutable data carriers.</div>`,
+        },
+        {
+          q: 'What is ThreadLocal in Java and what are its pitfalls?',
+          difficulty: 'hard',
+          a: `<p><strong>ThreadLocal</strong> gives each thread its own copy of a variable — no synchronization needed.</p>
+<pre>// Each thread gets its own SimpleDateFormat (not thread-safe!)
+private static final ThreadLocal&lt;SimpleDateFormat&gt; dateFormat =
+    ThreadLocal.withInitial(() -> new SimpleDateFormat("yyyy-MM-dd"));
+
+// Usage:
+String date = dateFormat.get().format(new Date());
+// Each thread uses its own instance — no race condition
+
+// Common use: request context in web frameworks
+public class RequestContext {
+    private static final ThreadLocal&lt;User&gt; currentUser = new ThreadLocal&lt;&gt;();
+
+    public static void setUser(User user) { currentUser.set(user); }
+    public static User getUser() { return currentUser.get(); }
+    public static void clear() { currentUser.remove(); }  // CRITICAL!
+}
+
+// Spring uses this pattern: RequestContextHolder, SecurityContextHolder</pre>
+<p><strong>Pitfalls:</strong></p>
+<ul>
+<li><strong>Memory leaks with thread pools</strong>: Thread pool reuses threads → old ThreadLocal values persist! Always call <code>.remove()</code> in a finally block.</li>
+<li><strong>Hidden coupling</strong>: Methods depend on invisible state — hard to test and reason about.</li>
+<li><strong>Doesn't work with virtual threads</strong>: Virtual threads are too numerous for ThreadLocal → use <code>ScopedValue</code> (Java 21 preview) instead.</li>
+</ul>
+<pre>// MEMORY LEAK example:
+ExecutorService pool = Executors.newFixedThreadPool(10);
+pool.submit(() -> {
+    RequestContext.setUser(user);
+    doWork();
+    // ❌ Forgot to call RequestContext.clear()!
+    // Thread returns to pool with stale user → next request sees wrong user!
+});
+
+// Fix:
+pool.submit(() -> {
+    try {
+        RequestContext.setUser(user);
+        doWork();
+    } finally {
+        RequestContext.clear();  // ✅ Always clean up!
+    }
+});</pre>
+<div class="key-point">The #1 ThreadLocal mistake: forgetting to call <code>.remove()</code> in thread pool environments. This causes memory leaks and data leaks between requests. Spring's request-scoped beans handle this automatically.</div>`,
+        },
+        {
+          q: 'What is the diamond problem with Java default methods?',
+          difficulty: 'tricky',
+          a: `<p>When a class implements two interfaces with the same default method, Java has a <strong>diamond problem</strong> — which implementation wins?</p>
+<pre>interface Flyable {
+    default String move() { return "Flying"; }
+}
+
+interface Swimmable {
+    default String move() { return "Swimming"; }
+}
+
+// ❌ Compile error! Ambiguous — which move() to use?
+class Duck implements Flyable, Swimmable {
+    // Must override to resolve conflict
+}
+
+// ✅ Fix: explicitly override
+class Duck implements Flyable, Swimmable {
+    @Override
+    public String move() {
+        return Flyable.super.move();  // Choose one
+        // or return "Walking";       // Or provide your own
+    }
+}
+
+// No conflict if one is a class (class wins):
+class Animal {
+    String move() { return "Walking"; }
+}
+class Duck extends Animal implements Flyable {
+    // No conflict: Animal.move() wins over Flyable.move()
+    // Class always takes priority over interface default
+}</pre>
+<p><strong>Resolution rules:</strong></p>
+<ol>
+<li><strong>Class wins over interface</strong>: concrete class method beats default method</li>
+<li><strong>Sub-interface wins</strong>: more specific interface beats less specific</li>
+<li><strong>Must override</strong>: if neither rule applies, compile error — you must resolve manually</li>
+</ol>
+<div class="key-point">This is a popular trick question. The key rule: classes always win over interfaces, and if two interfaces conflict, you must explicitly override. Java avoids the true diamond problem (multiple class inheritance) by only allowing single class inheritance.</div>`,
+        },
+        {
+          q: 'What is the String pool and when does String.intern() matter?',
+          difficulty: 'tricky',
+          a: `<p>Java maintains a <strong>String pool</strong> (in the heap since Java 7) to reuse common String objects and save memory.</p>
+<pre>// String literals go to the pool automatically:
+String s1 = "hello";      // goes to pool
+String s2 = "hello";      // reuses same pool object
+System.out.println(s1 == s2);  // true ✅ (same object in pool)
+
+// new String() always creates a NEW object on the heap:
+String s3 = new String("hello");  // new object, NOT in pool
+System.out.println(s1 == s3);     // false ❌ (different objects)
+System.out.println(s1.equals(s3)); // true ✅ (same content)
+
+// intern() puts the string into the pool (or returns existing):
+String s4 = s3.intern();
+System.out.println(s1 == s4);  // true ✅ (s4 now points to pool)
+
+// Trick question: how many String objects are created?
+String s = new String("abc");
+// Answer: UP TO 2 objects:
+//   1. "abc" literal → goes to pool (if not already there)
+//   2. new String() → creates new object on heap
+
+// Concatenation:
+String a = "hel" + "lo";   // compile-time constant → "hello" from pool
+String b = "hel";
+String c = b + "lo";       // runtime concatenation → new object (NOT in pool)
+System.out.println(a == "hello");  // true (compile-time folding)
+System.out.println(c == "hello");  // false (runtime concat = new object)</pre>
+<div class="key-point">Always use <code>.equals()</code> for String comparison, never <code>==</code>. The pool is an optimization detail. <code>intern()</code> is rarely needed in modern Java — the JVM already optimizes string deduplication in GC (JEP 192).</div>`,
+        },
+        {
+          q: 'What are the pitfalls of parallel streams in Java?',
+          difficulty: 'hard',
+          a: `<p>Parallel streams use the <strong>common ForkJoinPool</strong> (shared across the entire application) and can cause serious problems if misused.</p>
+<pre>// Basic parallel stream:
+List&lt;Integer&gt; nums = IntStream.rangeClosed(1, 1000).boxed().toList();
+int sum = nums.parallelStream()
+    .filter(n -> n % 2 == 0)
+    .mapToInt(Integer::intValue)
+    .sum();
+
+// ❌ Pitfall 1: Shared ForkJoinPool blocks everything
+list.parallelStream()
+    .map(id -> fetchFromDatabase(id))  // Slow I/O blocks common pool!
+    .toList();
+// All other parallel streams in the app are now waiting!
+
+// ✅ Fix: Use custom ForkJoinPool for I/O-heavy work
+ForkJoinPool customPool = new ForkJoinPool(10);
+List&lt;Result&gt; results = customPool.submit(() ->
+    list.parallelStream()
+        .map(id -> fetchFromDatabase(id))
+        .toList()
+).get();
+
+// ❌ Pitfall 2: Shared mutable state (race condition!)
+List&lt;String&gt; results = new ArrayList&lt;&gt;();  // not thread-safe!
+stream.parallel().forEach(item -> results.add(process(item)));  // RACE CONDITION
+// ✅ Fix: Use .collect() instead
+List&lt;String&gt; results = stream.parallel().map(this::process).collect(Collectors.toList());
+
+// ❌ Pitfall 3: Order-dependent operations
+list.parallelStream().forEachOrdered(System.out::println);
+// forEachOrdered forces sequential behavior → no benefit from parallel
+
+// ❌ Pitfall 4: Small data sets
+List.of(1, 2, 3).parallelStream()...  // Overhead > benefit for small lists</pre>
+<p><strong>When to use parallel streams:</strong></p>
+<ul>
+<li>Large data sets (10,000+ elements)</li>
+<li>CPU-intensive operations (not I/O)</li>
+<li>No shared mutable state</li>
+<li>Independent elements (no ordering requirement)</li>
+</ul>
+<div class="key-point">The common ForkJoinPool has <code>Runtime.availableProcessors() - 1</code> threads. One slow parallel stream can starve the entire app. Default to sequential streams — parallelize only after profiling shows a bottleneck.</div>`,
+        },
+      ],
+    },
+
+    // ───────────────────────── 2. JAVASCRIPT ─────────────────────────
   );
 })();

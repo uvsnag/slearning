@@ -2,25 +2,25 @@
 // Auto-generated from pv.html
 (function () {
   (window.__pvTopics = window.__pvTopics || []).push(
-  {
-          id: 'cicd',
-          name: 'CI/CD',
-          icon: '🔄',
-          questions: [
-            {
-              q: 'What is CI/CD? Explain the difference between Continuous Integration, Delivery, and Deployment.',
-              difficulty: 'easy',
-              a: `<ul>
+    {
+      id: 'cicd',
+      name: 'CI/CD',
+      icon: '🔄',
+      questions: [
+        {
+          q: 'What is CI/CD? Explain the difference between Continuous Integration, Delivery, and Deployment.',
+          difficulty: 'easy',
+          a: `<ul>
 <li><strong>Continuous Integration (CI)</strong>: developers merge code frequently → automated build + test on every commit. Catch issues early.</li>
 <li><strong>Continuous Delivery</strong>: code is always in a deployable state. Deployment to production is <strong>manual</strong> (one-click).</li>
 <li><strong>Continuous Deployment</strong>: every change that passes all stages is <strong>automatically</strong> deployed to production. No manual gate.</li>
 </ul>
 <div class="key-point">Delivery = can deploy anytime. Deployment = auto-deploy always.</div>`,
-            },
-            {
-              q: 'Describe a typical CI/CD pipeline with stages.',
-              difficulty: 'medium',
-              a: `<ol>
+        },
+        {
+          q: 'Describe a typical CI/CD pipeline with stages.',
+          difficulty: 'medium',
+          a: `<ol>
 <li><strong>Source</strong>: code push / PR triggers pipeline.</li>
 <li><strong>Build</strong>: compile, resolve dependencies, create artifact.</li>
 <li><strong>Test</strong>: unit tests → integration tests → E2E tests.</li>
@@ -30,30 +30,30 @@
 <li><strong>Production Deploy</strong>: blue-green, canary, or rolling deployment.</li>
 <li><strong>Post-deploy</strong>: health checks, monitoring, rollback plan.</li>
 </ol>`,
-            },
-            {
-              q: 'What are Blue-Green, Canary, and Rolling deployment strategies?',
-              difficulty: 'hard',
-              a: `<ul>
+        },
+        {
+          q: 'What are Blue-Green, Canary, and Rolling deployment strategies?',
+          difficulty: 'hard',
+          a: `<ul>
 <li><strong>Blue-Green</strong>: two identical environments. Switch traffic from blue (old) to green (new). Instant rollback by switching back.</li>
 <li><strong>Canary</strong>: route a small % of traffic to new version. Gradually increase if healthy. Best for large-scale services.</li>
 <li><strong>Rolling</strong>: update instances one by one. No extra infrastructure needed. Risk: mixed versions during deploy.</li>
 </ul>
 <div class="key-point">Blue-green doubles infrastructure cost. Canary needs good observability (metrics, logs, alerts) to detect issues.</div>`,
-            },
-            {
-              q: 'Explain GitFlow vs Trunk-Based Development.',
-              difficulty: 'medium',
-              a: `<ul>
+        },
+        {
+          q: 'Explain GitFlow vs Trunk-Based Development.',
+          difficulty: 'medium',
+          a: `<ul>
 <li><strong>GitFlow</strong>: long-lived branches (develop, feature, release, hotfix). Good for scheduled releases. Complex.</li>
 <li><strong>Trunk-Based</strong>: everyone commits to main/trunk. Short-lived feature branches (&lt;1 day). Feature flags for incomplete code.</li>
 </ul>
 <div class="key-point">Trunk-based development is preferred for CI/CD. Frequent small merges → fewer conflicts → faster feedback.</div>`,
-            },
-            {
-              q: 'What are GitHub Actions? Explain workflow, job, step.',
-              difficulty: 'medium',
-              a: `<ul>
+        },
+        {
+          q: 'What are GitHub Actions? Explain workflow, job, step.',
+          difficulty: 'medium',
+          a: `<ul>
 <li><strong>Workflow</strong>: YAML file in <code>.github/workflows/</code>. Triggered by events (push, PR, schedule).</li>
 <li><strong>Job</strong>: runs on a runner (VM). Jobs run in parallel by default; use <code>needs</code> for dependencies.</li>
 <li><strong>Step</strong>: individual task within a job. Can be an action or a shell command.</li>
@@ -68,11 +68,11 @@ jobs:
       - uses: actions/setup-node@v4
       - run: npm ci
       - run: npm test</pre>`,
-            },
-            {
-              q: 'How do you handle secrets and environment variables in CI/CD?',
-              difficulty: 'medium',
-              a: `<ul>
+        },
+        {
+          q: 'How do you handle secrets and environment variables in CI/CD?',
+          difficulty: 'medium',
+          a: `<ul>
 <li><strong>Never</strong> commit secrets to code. Use pipeline secret management.</li>
 <li><strong>GitHub</strong>: Settings → Secrets → accessed via <code>\${{ secrets.API_KEY }}</code>.</li>
 <li><strong>Jenkins</strong>: Credentials plugin + <code>withCredentials</code> block.</li>
@@ -80,11 +80,11 @@ jobs:
 <li>Environment-specific configs via <code>.env</code> files (not committed) or pipeline environment variables.</li>
 </ul>
 <div class="key-point">Rotate secrets regularly. Use OIDC for cloud deployments instead of long-lived tokens.</div>`,
-            },
-            {
-              q: 'What is Infrastructure as Code (IaC)? How does it relate to CI/CD?',
-              difficulty: 'medium',
-              a: `<p><strong>IaC</strong>: manage infrastructure through code/config files, versioned in Git.</p>
+        },
+        {
+          q: 'What is Infrastructure as Code (IaC)? How does it relate to CI/CD?',
+          difficulty: 'medium',
+          a: `<p><strong>IaC</strong>: manage infrastructure through code/config files, versioned in Git.</p>
 <ul>
 <li><strong>Terraform</strong>: cloud-agnostic, declarative (HCL). Plan → Apply.</li>
 <li><strong>AWS CloudFormation</strong>: AWS-specific, YAML/JSON templates.</li>
@@ -92,11 +92,11 @@ jobs:
 <li><strong>Pulumi</strong>: IaC using real programming languages.</li>
 </ul>
 <div class="key-point">CI/CD pipeline: run <code>terraform plan</code> on PR (review changes), <code>terraform apply</code> on merge to main.</div>`,
-            },
-            {
-              q: 'How do you implement rollback strategies in CI/CD?',
-              difficulty: 'hard',
-              a: `<ul>
+        },
+        {
+          q: 'How do you implement rollback strategies in CI/CD?',
+          difficulty: 'hard',
+          a: `<ul>
 <li><strong>Artifact-based rollback</strong>: redeploy previous known-good artifact. Fast.</li>
 <li><strong>Blue-green switch</strong>: route traffic back to old environment.</li>
 <li><strong>Feature flags</strong>: disable the feature without deploying.</li>
@@ -104,21 +104,21 @@ jobs:
 <li><strong>GitOps</strong>: revert the commit in the config repo → ArgoCD/Flux auto-applies.</li>
 </ul>
 <div class="key-point">Always make database migrations backward-compatible (expand-contract pattern) so rollback is safe.</div>`,
-            },
-            {
-              q: 'What is the difference between Jenkins, GitLab CI, and GitHub Actions?',
-              difficulty: 'medium',
-              a: `<ul>
+        },
+        {
+          q: 'What is the difference between Jenkins, GitLab CI, and GitHub Actions?',
+          difficulty: 'medium',
+          a: `<ul>
 <li><strong>Jenkins</strong>: self-hosted, plugin-based, Jenkinsfile (Groovy). Maximum flexibility, high maintenance.</li>
 <li><strong>GitLab CI</strong>: built into GitLab. <code>.gitlab-ci.yml</code>. Great for all-in-one (SCM + CI + registry + deploy).</li>
 <li><strong>GitHub Actions</strong>: built into GitHub. YAML workflows. Huge marketplace. Best for open-source.</li>
 </ul>
 <div class="key-point">All three can do the same things. Choice depends on: existing SCM, team expertise, hosting requirements.</div>`,
-            },
-            {
-              q: 'What are pipeline artifacts and caching? How to speed up CI?',
-              difficulty: 'medium',
-              a: `<ul>
+        },
+        {
+          q: 'What are pipeline artifacts and caching? How to speed up CI?',
+          difficulty: 'medium',
+          a: `<ul>
 <li><strong>Artifacts</strong>: build outputs passed between jobs/stages (JARs, binaries, reports).</li>
 <li><strong>Caching</strong>: persist dependencies between runs (<code>node_modules</code>, <code>.m2</code>, <code>.gradle</code>).</li>
 </ul>
@@ -130,22 +130,22 @@ jobs:
 <li>Run only affected tests on PRs (monorepo tools: Nx, Turborepo).</li>
 <li>Use smaller/focused Docker images for CI runners.</li>
 </ul>`,
-            },
-            {
-              q: 'What is GitOps? How does it work?',
-              difficulty: 'hard',
-              a: `<p><strong>GitOps</strong>: Git is the single source of truth for infrastructure AND application deployment.</p>
+        },
+        {
+          q: 'What is GitOps? How does it work?',
+          difficulty: 'hard',
+          a: `<p><strong>GitOps</strong>: Git is the single source of truth for infrastructure AND application deployment.</p>
 <ul>
 <li>Desired state is declared in Git (Kubernetes manifests, Helm charts).</li>
 <li>A controller (ArgoCD, Flux) watches the repo and reconciles cluster state.</li>
 <li>Changes go through PRs → automated deployment. No direct <code>kubectl apply</code>.</li>
 </ul>
 <div class="key-point">Benefits: audit trail (Git history), easy rollback (revert commit), consistent environments, self-healing.</div>`,
-            },
-            {
-              q: 'How do you test in a CI/CD pipeline? Explain the testing pyramid.',
-              difficulty: 'medium',
-              a: `<p><strong>Testing pyramid</strong> (bottom to top):</p>
+        },
+        {
+          q: 'How do you test in a CI/CD pipeline? Explain the testing pyramid.',
+          difficulty: 'medium',
+          a: `<p><strong>Testing pyramid</strong> (bottom to top):</p>
 <ol>
 <li><strong>Unit tests</strong> (most): fast, isolated, mock dependencies. Run on every commit.</li>
 <li><strong>Integration tests</strong>: test interactions between components, real DB/API calls.</li>
@@ -157,20 +157,66 @@ jobs:
 <li>Integration tests: PR merge or staging deploy.</li>
 <li>E2E tests: pre-production only (avoid blocking fast feedback).</li>
 </ul>`,
-            },
-          ],
         },
+        {
+          q: 'What are feature flags and how do they relate to CI/CD?',
+          difficulty: 'medium',
+          a: `<p><strong>Feature flags</strong> (feature toggles) let you deploy code to production with new features <strong>turned off</strong>, then enable them without redeploying.</p>
+<pre>// Simple feature flag:
+if (featureFlags.isEnabled("new-checkout")) {
+    return newCheckoutFlow(cart);
+} else {
+    return oldCheckoutFlow(cart);
+}
 
-        // ───────────────────────── 5. DOCKER ─────────────────────────,
-  {
-          id: 'docker',
-          name: 'Docker',
-          icon: '🐳',
-          questions: [
-            {
-              q: 'What is Docker? How is it different from a Virtual Machine?',
-              difficulty: 'easy',
-              a: `<ul>
+// Types of flags:
+// Release flag: toggle incomplete features (remove after launch)
+// Experiment flag: A/B testing (10% see new UI)
+// Ops flag: kill switch (disable features under load)
+// Permission flag: premium features for paid users</pre>
+<p><strong>Benefits for CI/CD:</strong></p>
+<ul>
+<li>Deploy incomplete features safely (trunk-based development)</li>
+<li>Gradual rollout: enable for 5% → 25% → 100% of users</li>
+<li>Instant rollback: just flip the flag off (no redeploy)</li>
+<li>A/B testing: measure impact before full rollout</li>
+</ul>
+<div class="key-point">Feature flags enable trunk-based development + continuous deployment. But don't accumulate stale flags — they become technical debt. Set expiry dates and clean up after launch. Tools: LaunchDarkly, Unleash, Flagsmith.</div>`,
+        },
+        {
+          q: 'What is a monorepo vs polyrepo? How does it affect CI/CD?',
+          difficulty: 'tricky',
+          a: `<table><tr><th>Aspect</th><th>Monorepo</th><th>Polyrepo</th></tr>
+<tr><td>Structure</td><td>All projects in one repository</td><td>Each project has its own repo</td></tr>
+<tr><td>CI/CD</td><td>Must detect which projects changed → build only those</td><td>Each repo has simple, independent pipeline</td></tr>
+<tr><td>Code sharing</td><td>Easy (same repo)</td><td>Need package manager or Git submodules</td></tr>
+<tr><td>Atomic changes</td><td>Cross-project changes in one PR</td><td>Must coordinate PRs across repos</td></tr>
+<tr><td>Scale challenge</td><td>Slow clones, complex CI triggers</td><td>Dependency version management</td></tr></table>
+<pre># Monorepo CI: only build what changed (GitHub Actions example)
+on:
+  push:
+    paths:
+      - 'services/user-service/**'  # Only trigger when this path changes
+
+# Tools for monorepo CI:
+# - Nx (JS/TS): affected:build → builds only changed + dependents
+# - Bazel (multi-language): incremental builds with caching
+# - Turborepo: task-based build system with caching</pre>
+<div class="key-point">Google, Meta, Microsoft use monorepos. Most startups use polyrepos. Choose based on team size and coupling between projects. Monorepo works well when projects share code heavily.</div>`,
+        },
+      ],
+    },
+
+    // ───────────────────────── 5. DOCKER ─────────────────────────,
+    {
+      id: 'docker',
+      name: 'Docker',
+      icon: '🐳',
+      questions: [
+        {
+          q: 'What is Docker? How is it different from a Virtual Machine?',
+          difficulty: 'easy',
+          a: `<ul>
 <li><strong>Docker</strong>: OS-level virtualization. Containers share the host kernel. Lightweight, fast startup.</li>
 <li><strong>VM</strong>: hardware-level virtualization. Each VM has its own OS. Heavy, slow startup.</li>
 </ul>
@@ -181,11 +227,11 @@ jobs:
 <tr><td style="padding:6px;">Isolation</td><td style="padding:6px;">Process-level</td><td style="padding:6px;">Full OS</td></tr>
 <tr><td style="padding:6px;">Performance</td><td style="padding:6px;">Near native</td><td style="padding:6px;">Overhead</td></tr>
 </table>`,
-            },
-            {
-              q: 'Explain Docker architecture: Engine, Daemon, CLI, Images, Containers, Registry.',
-              difficulty: 'medium',
-              a: `<ul>
+        },
+        {
+          q: 'Explain Docker architecture: Engine, Daemon, CLI, Images, Containers, Registry.',
+          difficulty: 'medium',
+          a: `<ul>
 <li><strong>Docker Engine</strong>: client-server app (CLI + daemon + containerd).</li>
 <li><strong>Docker Daemon</strong> (<code>dockerd</code>): background process managing containers, images, networks, volumes.</li>
 <li><strong>Docker CLI</strong>: command-line client talks to daemon via REST API.</li>
@@ -193,11 +239,11 @@ jobs:
 <li><strong>Container</strong>: running instance of an image. Writable layer on top.</li>
 <li><strong>Registry</strong>: stores images (Docker Hub, ECR, GCR).</li>
 </ul>`,
-            },
-            {
-              q: 'What is a Dockerfile? Explain key instructions.',
-              difficulty: 'medium',
-              a: `<pre>FROM node:20-alpine          # base image
+        },
+        {
+          q: 'What is a Dockerfile? Explain key instructions.',
+          difficulty: 'medium',
+          a: `<pre>FROM node:20-alpine          # base image
 WORKDIR /app                  # set working directory
 COPY package*.json ./         # copy dependency files
 RUN npm ci --production       # install dependencies
@@ -211,11 +257,11 @@ CMD ["node", "server.js"]     # default command</pre>
 <li><code>COPY</code> vs <code>ADD</code>: COPY is simpler; ADD can extract tars and fetch URLs.</li>
 <li><code>CMD</code> vs <code>ENTRYPOINT</code>: CMD is overridable; ENTRYPOINT is fixed (use both for default args pattern).</li>
 </ul>`,
-            },
-            {
-              q: 'How do Docker layers work? How to optimize image size?',
-              difficulty: 'hard',
-              a: `<p>Each instruction creates a <strong>read-only layer</strong>. Layers are cached and shared between images.</p>
+        },
+        {
+          q: 'How do Docker layers work? How to optimize image size?',
+          difficulty: 'hard',
+          a: `<p>Each instruction creates a <strong>read-only layer</strong>. Layers are cached and shared between images.</p>
 <p><strong>Optimization strategies</strong>:</p>
 <ul>
 <li>Use <strong>multi-stage builds</strong>: build in one stage, copy only artifacts to final slim image.</li>
@@ -235,11 +281,11 @@ WORKDIR /app
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 CMD ["node", "dist/server.js"]</pre>`,
-            },
-            {
-              q: 'What is the difference between CMD and ENTRYPOINT?',
-              difficulty: 'tricky',
-              a: `<ul>
+        },
+        {
+          q: 'What is the difference between CMD and ENTRYPOINT?',
+          difficulty: 'tricky',
+          a: `<ul>
 <li><strong>CMD</strong>: default command. Can be <strong>overridden</strong> by <code>docker run &lt;image&gt; &lt;command&gt;</code>.</li>
 <li><strong>ENTRYPOINT</strong>: fixed executable. Args from <code>docker run</code> are appended.</li>
 </ul>
@@ -250,11 +296,11 @@ docker run myapp                  # python app.py --port 8080
 docker run myapp --port 9090      # python app.py --port 9090
 docker run myapp bash             # python app.py bash (!) </pre>
 <div class="key-point">Best practice: use ENTRYPOINT for the main executable, CMD for default arguments.</div>`,
-            },
-            {
-              q: 'Explain Docker networking: bridge, host, none, overlay.',
-              difficulty: 'hard',
-              a: `<ul>
+        },
+        {
+          q: 'Explain Docker networking: bridge, host, none, overlay.',
+          difficulty: 'hard',
+          a: `<ul>
 <li><strong>bridge</strong> (default): isolated network. Containers communicate via container name/IP. Port mapping needed for host access.</li>
 <li><strong>host</strong>: container shares host's network stack. No isolation. Best performance.</li>
 <li><strong>none</strong>: no networking. Complete isolation.</li>
@@ -264,11 +310,11 @@ docker run myapp bash             # python app.py bash (!) </pre>
 docker run --network mynet --name api myapi
 docker run --network mynet --name db postgres
 # api can reach db via hostname "db"</pre>`,
-            },
-            {
-              q: 'What are Docker volumes? Named volume vs bind mount vs tmpfs.',
-              difficulty: 'medium',
-              a: `<ul>
+        },
+        {
+          q: 'What are Docker volumes? Named volume vs bind mount vs tmpfs.',
+          difficulty: 'medium',
+          a: `<ul>
 <li><strong>Named volume</strong>: managed by Docker. Stored in <code>/var/lib/docker/volumes/</code>. Best for data persistence.</li>
 <li><strong>Bind mount</strong>: maps host directory to container. Best for development (code syncing).</li>
 <li><strong>tmpfs</strong>: in-memory, non-persistent. Best for sensitive data (secrets, temp files).</li>
@@ -281,11 +327,11 @@ docker run -v $(pwd)/src:/app/src node
 
 # tmpfs
 docker run --tmpfs /tmp myapp</pre>`,
-            },
-            {
-              q: 'What is Docker Compose? Explain key sections.',
-              difficulty: 'medium',
-              a: `<p>Docker Compose defines and runs <strong>multi-container</strong> applications in a single YAML file.</p>
+        },
+        {
+          q: 'What is Docker Compose? Explain key sections.',
+          difficulty: 'medium',
+          a: `<p>Docker Compose defines and runs <strong>multi-container</strong> applications in a single YAML file.</p>
 <pre>version: '3.8'
 services:
   api:
@@ -305,11 +351,11 @@ services:
 volumes:
   pgdata:</pre>
 <div class="key-point"><code>depends_on</code> with <code>condition: service_healthy</code> ensures DB is ready before API starts.</div>`,
-            },
-            {
-              q: 'What are Docker security best practices?',
-              difficulty: 'hard',
-              a: `<ul>
+        },
+        {
+          q: 'What are Docker security best practices?',
+          difficulty: 'hard',
+          a: `<ul>
 <li>Run as <strong>non-root</strong> user (<code>USER node</code>).</li>
 <li>Use <strong>minimal base images</strong> (Alpine, distroless).</li>
 <li>Scan images for vulnerabilities (<code>docker scout</code>, Trivy, Snyk).</li>
@@ -319,11 +365,11 @@ volumes:
 <li>Pin image versions (avoid <code>:latest</code>).</li>
 <li>Use <code>.dockerignore</code> to exclude <code>.env</code>, <code>.git</code>, <code>node_modules</code>.</li>
 </ul>`,
-            },
-            {
-              q: 'What is the difference between Docker Swarm and Kubernetes?',
-              difficulty: 'hard',
-              a: `<ul>
+        },
+        {
+          q: 'What is the difference between Docker Swarm and Kubernetes?',
+          difficulty: 'hard',
+          a: `<ul>
 <li><strong>Docker Swarm</strong>: simple orchestration built into Docker. Easy setup. Limited features.</li>
 <li><strong>Kubernetes (K8s)</strong>: industry standard. Rich ecosystem, auto-scaling, self-healing, rolling updates, service mesh. Steeper learning curve.</li>
 </ul>
@@ -334,11 +380,11 @@ volumes:
 <tr><td style="padding:6px;">Networking</td><td style="padding:6px;">Overlay</td><td style="padding:6px;">CNI plugins</td></tr>
 <tr><td style="padding:6px;">Community</td><td style="padding:6px;">Declining</td><td style="padding:6px;">Massive</td></tr>
 </table>`,
-            },
-            {
-              q: 'How does Docker image caching work in CI/CD?',
-              difficulty: 'hard',
-              a: `<p>Docker caches each layer. If a layer's instruction + context haven't changed, the cache is used.</p>
+        },
+        {
+          q: 'How does Docker image caching work in CI/CD?',
+          difficulty: 'hard',
+          a: `<p>Docker caches each layer. If a layer's instruction + context haven't changed, the cache is used.</p>
 <p><strong>In CI (no local cache)</strong>:</p>
 <ul>
 <li><strong>BuildKit cache mount</strong>: <code>--mount=type=cache,target=/root/.npm</code></li>
@@ -346,11 +392,11 @@ volumes:
 <li><strong>GitHub Actions cache</strong>: <code>actions/cache</code> with Docker layer cache.</li>
 </ul>
 <div class="key-point">Order Dockerfile: OS packages → language runtime → dependencies → source code. Only last layers rebuild on code change.</div>`,
-            },
-            {
-              q: 'What is a Docker health check and how to implement it?',
-              difficulty: 'medium',
-              a: `<p>Health checks let Docker know if a container is functioning properly.</p>
+        },
+        {
+          q: 'What is a Docker health check and how to implement it?',
+          difficulty: 'medium',
+          a: `<p>Health checks let Docker know if a container is functioning properly.</p>
 <pre># In Dockerfile
 HEALTHCHECK --interval=30s --timeout=3s --retries=3 \\
   CMD curl -f http://localhost:3000/health || exit 1
@@ -363,10 +409,83 @@ healthcheck:
   retries: 3
   start_period: 10s</pre>
 <p>States: <code>starting</code> → <code>healthy</code> / <code>unhealthy</code>. Orchestrators use this for restart policies and load balancing.</p>`,
-            },
-          ],
         },
+        {
+          q: 'What are multi-stage Docker builds and why are they important?',
+          difficulty: 'hard',
+          a: `<p><strong>Multi-stage builds</strong> let you use multiple FROM instructions in one Dockerfile. Each stage can use a different base image. Only the final stage becomes the output image.</p>
+<pre># Stage 1: Build (has all build tools — large image)
+FROM maven:3.9-eclipse-temurin-21 AS builder
+WORKDIR /app
+COPY pom.xml .
+RUN mvn dependency:resolve          # cache dependencies layer
+COPY src ./src
+RUN mvn package -DskipTests
 
-        // ───────────────────────── 6. SQL ─────────────────────────
+# Stage 2: Run (minimal image — NO build tools)
+FROM eclipse-temurin:21-jre-alpine
+WORKDIR /app
+COPY --from=builder /app/target/app.jar app.jar
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "app.jar"]
+
+# Result:
+# Builder stage: ~800MB (Maven, JDK, source code)
+# Final image:   ~200MB (JRE + JAR only)
+
+# Node.js example:
+FROM node:20 AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+FROM nginx:alpine
+COPY --from=builder /app/dist /usr/share/nginx/html
+# Final: ~25MB instead of ~1GB</pre>
+<div class="key-point">Multi-stage builds are essential for production images: smaller size (faster pulls), smaller attack surface (no build tools), better layer caching (dependencies cached separately from source code).</div>`,
+        },
+        {
+          q: 'What are common Docker security best practices?',
+          difficulty: 'hard',
+          a: `<ol>
+<li><strong>Don't run as root</strong>: Use <code>USER</code> instruction to run as non-root user</li>
+<li><strong>Use minimal base images</strong>: Alpine, distroless, or scratch</li>
+<li><strong>Scan images</strong>: Trivy, Snyk, or Docker Scout for vulnerabilities</li>
+<li><strong>Pin image versions</strong>: <code>node:20.11.0-alpine</code> not <code>node:latest</code></li>
+<li><strong>Don't store secrets in images</strong>: Use env vars, Docker secrets, or vault</li>
+<li><strong>Use .dockerignore</strong>: Exclude .git, node_modules, .env files</li>
+<li><strong>Read-only filesystem</strong>: <code>--read-only</code> flag prevents writes</li>
+<li><strong>Limit resources</strong>: <code>--memory=512m --cpus=1.0</code></li>
+</ol>
+<pre># Secure Dockerfile example:
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+COPY . .
+RUN npm run build
+
+FROM node:20-alpine
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup  # non-root user
+WORKDIR /app
+COPY --from=builder --chown=appuser:appgroup /app .
+USER appuser                  # run as non-root
+EXPOSE 3000
+CMD ["node", "server.js"]
+
+# .dockerignore:
+.git
+node_modules
+.env
+Dockerfile
+*.md</pre>
+<div class="key-point">Never embed secrets (API keys, passwords) in Docker images — they persist in image layers even if you delete them later. Use Docker BuildKit <code>--mount=type=secret</code> for build-time secrets.</div>`,
+        },
+      ],
+    },
+
+    // ───────────────────────── 6. SQL ─────────────────────────
   );
 })();

