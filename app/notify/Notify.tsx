@@ -225,6 +225,15 @@ const Notify = (): ReactElement => {
       setCountNotify(countNotify + 1);
     }
   };
+
+  const onToggleNotify = (): void => {
+    if (isStop) {
+      onStart();
+      return;
+    }
+    onStop();
+  };
+
   useEffect((): void => {
     const valueTime = Number(timeValue) || 0;
     if (!isStop) {
@@ -264,6 +273,18 @@ const Notify = (): ReactElement => {
   const handleChangeCookie = (e: ChangeEvent<HTMLTextAreaElement>): void => {
     setStrContinue(e.target.value);
   };
+  const handleClearContinue = (): void => {
+    setStrContinue('');
+  };
+
+  const textareaActionsStyle: CSSProperties = {
+    display: 'flex',
+    gap: '8px',
+    alignItems: 'stretch',
+  };
+
+  const notifyButtonLabel: string = isStop ? `Start` : `Stop`;
+
   return (
     <div className="">
       <div id="notify-control">
@@ -275,25 +296,23 @@ const Notify = (): ReactElement => {
             onChangeIsUseVoice(e.target.value);
           }}
         >
+          <option value={IND_SPEAK_NOTI_NO_VIE}>notify - Voice Eng</option>
           <option value={IND_SPEAK_ALL_ENG}>Notify Eng - Voice Eng</option>
           <option value={IND_SPEAK_NO_NOTI_ENG}>Notify Eng - Voice</option>
           <option value={IND_SPEAK_NOTI_VOICE}>Notify - Voice</option>
           <option value={IND_SPEAK_NO_VOICE}>Notify</option>
           <option value={IND_SPEAK_NO_NOTI}>Voice</option>
-          <option value={IND_SPEAK_NOTI_NO_VIE}>notify - Voice Eng</option>
           <option value={IND_SPEAK_NO_NOTI_NO_VIE}>Voice Eng</option>
           <option value={IND_SPEAK_NOTI_ENG}>noti Eng</option>
         </select>
         <div className="control-footer">
-          <input
+          <button
             className="common-btn"
-            type="submit"
-            value="Start"
-            id="btnStart"
-            onClick={(): void => onStart()}
-          />
-          <button className="common-btn" id="btnStop" onClick={(): void => onStop()}>
-            Stop
+            type="button"
+            id="btnToggleNotify"
+            onClick={onToggleNotify}
+          >
+            {notifyButtonLabel}
           </button>
           <input
             className="common-input"
@@ -301,12 +320,6 @@ const Notify = (): ReactElement => {
             id="timeValue"
             value={timeValue}
             onChange={(e: ChangeEvent<HTMLInputElement>): void => setTimeValue(e.target.value)}
-          />
-          <input
-            className="common-btn"
-            type="submit"
-            id="isNotify"
-            value={!isStop ? IND_VALUE_ON : IND_VALUE_OFF}
           />
         </div>
       </div>
@@ -326,12 +339,17 @@ const Notify = (): ReactElement => {
           />
         )}
       </div>
-      <textarea
-        id="strContinue"
-        className="common-textarea height-200 width-100pc"
-        value={strContinue}
-        onChange={handleChangeCookie}
-      ></textarea>
+      <div style={textareaActionsStyle}>
+        <textarea
+          id="strContinue"
+          className="common-textarea height-200 width-100pc"
+          value={strContinue}
+          onChange={handleChangeCookie}
+        ></textarea>
+        <button className="common-btn" type="button" onClick={handleClearContinue}>
+          Clear
+        </button>
+      </div>
     </div>
   );
 };
