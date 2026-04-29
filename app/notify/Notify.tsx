@@ -342,7 +342,7 @@ const Notify = (): ReactElement => {
       <div style={textareaActionsStyle}>
         <textarea
           id="strContinue"
-          className="common-textarea height-200 width-100pc"
+          className="common-textarea height-100 width-100pc"
           value={strContinue}
           onChange={handleChangeCookie}
         ></textarea>
