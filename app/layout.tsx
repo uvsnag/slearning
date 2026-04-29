@@ -2,6 +2,7 @@
 import './globals.css';
 import StickyQuickTools from './common/components/sticky/StickyQuickTools';
 import { PracticeStoreProvider } from './common/hooks/usePracticeStore';
+import Notify from './notify/Notify';
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -15,6 +16,7 @@ export default function RootLayout({
       <body>
         <PracticeStoreProvider>
           <StickyQuickTools />
+
           {children}
         </PracticeStoreProvider>
       </body>

@@ -18,6 +18,7 @@ import {
 import { usePracticeContext } from '../../hooks/usePracticeStore';
 import { SHEET_LIST, STORE_ALIAS, type DataItem } from '@/app/common/hooks/useSheetData';
 import { SHEET_AUTO } from '../SheetDataEditor';
+import Notify from '@/app/notify/Notify';
 
 const THEME_STORAGE_KEY = 'sl_theme_mode';
 const THEME_1 = 'current';
@@ -453,6 +454,19 @@ const StickyConfig = forwardRef<StickyConfigHandle, StickyConfigProps>(
                       Clear
                     </button>
                   </div>
+                </div>
+              </div>
+            }
+            {
+              <div className="sticky-config-section">
+                <div
+                  className="common-toggle"
+                  onClick={() => toggleCollapse('sticky-pract-notify')}
+                >
+                  Notify
+                </div>
+                <div className="collapse-content open" id="sticky-pract-notify">
+                  <Notify />
                 </div>
               </div>
             }

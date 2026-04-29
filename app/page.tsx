@@ -106,10 +106,6 @@ const Home: FC = () => {
           ></iframe> */}
         </div>
       </div>
-      <div className="container-55">
-        <Notify />
-        <div></div>
-      </div>
     </div>
   );
 };
