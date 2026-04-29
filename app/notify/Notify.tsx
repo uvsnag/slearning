@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState, CSSProperties, ChangeEvent, ReactElement } from 'react';
+import { useEffect, useRef, useState, CSSProperties, ChangeEvent, ReactElement } from 'react';
 import './style-noti.css';
 import _ from 'lodash';
 import { DataItem } from '@/app/common/hooks/useSheetData';
@@ -19,7 +19,7 @@ const Notify = (): ReactElement => {
   const [cookies, setCookie] = useCookies(['cookieContinue']);
 
   const [isStop, setIsStop] = useState<boolean>(true);
-  const [intervalId, setIntervalId] = useState<NodeJS.Timeout | number>(-1);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [countNotify, setCountNotify] = useState<number>(0);
   const [timeValue, setTimeValue] = useState<string>('120');
   const SPLIT_WORD = ':';
@@ -214,8 +214,9 @@ const Notify = (): ReactElement => {
 
   const onStop = (): void => {
     setIsStop(true);
-    if (typeof intervalId === 'object') {
-      clearTimeout(intervalId);
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
     }
   };
   const onStart = (): void => {
@@ -234,17 +235,22 @@ const Notify = (): ReactElement => {
     onStop();
   };
 
-  useEffect((): void => {
+  useEffect((): (() => void) | void => {
     const valueTime = Number(timeValue) || 0;
     if (!isStop) {
-      setIntervalId(
-        setTimeout(() => {
-          execute();
-          setCountNotify(countNotify + 1);
-        }, valueTime * 1000),
-      );
+      timeoutRef.current = setTimeout(() => {
+        execute();
+        setCountNotify(countNotify + 1);
+      }, valueTime * 1000);
     }
-  }, [countNotify]);
+
+    return (): void => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    };
+  }, [countNotify, isStop, timeValue]);
   const onShowAll = (): void => {
     const prac = document.getElementById('control') as HTMLElement;
     if (prac && prac.style.display === 'block') {
