@@ -274,7 +274,7 @@ const PractWords = (props: PractWordsProps) => {
           </button>
           <span className="practice-remain-count"> {remainCount}</span>
           <label>
-            <input id="revertAsw" type="checkbox" defaultChecked={false} />⇆
+            <input id="revertAsw" type="checkbox" defaultChecked={true} />⇆
           </label>
 
           <br />
@@ -313,7 +313,8 @@ const PractWords = (props: PractWordsProps) => {
               </option>
             ))}
           </select>
-
+          <br />
+          <br />
           <div className="right">
             {isShowDelete && (
               <button
@@ -334,13 +335,6 @@ const PractWords = (props: PractWordsProps) => {
           <br />
           <br />
           <br />
-
-          {/* <div className="common-toggle" onClick={() => toggleCollapse(`config-pract-save-sheet`)}>
-            <FaSyncAlt />
-          </div>
-          <div className="collapse-content  ui-sub-panel" id={`config-pract-save-sheet`}>
-            <SheetDataEditor value1={lastEng} value2={lastVie} isUse={true} />
-          </div> */}
         </div>
       )}
       {showPanel == 'A' && (

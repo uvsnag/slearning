@@ -1,16 +1,27 @@
 'use client';
-import { useEffect, useRef, useState, CSSProperties, ChangeEvent, ReactElement } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  CSSProperties,
+  ChangeEvent,
+  ReactElement,
+  useCallback,
+} from 'react';
 import './style-noti.css';
-import _ from 'lodash';
-import { DataItem } from '@/app/common/hooks/useSheetData';
+import _, { set } from 'lodash';
+import { DataItem, getDataFromExcel, SHEET_LIST } from '@/app/common/hooks/useSheetData';
+import { SHEET_AUTO } from '@/app/common/components/SheetDataEditor';
 import { useSpeechSynthesis } from '@/app/common/hooks/useSpeechSynthesis';
 import { FaVolumeUp, FaEyeSlash } from 'react-icons/fa';
 import { useCookies } from 'react-cookie';
 import { usePracticeContext, toSpeechConfig } from '../common/hooks/usePracticeStore';
+import config from '@/common/config.js';
 
 const Notify = (): ReactElement => {
   const { state: practiceState, dispatch: practiceDispatch, reloadSheet } = usePracticeContext();
   const { speakText } = useSpeechSynthesis();
+  const [sheet, setSheet] = useState<string>(config.notify.sheetDefault);
   const [items, setItems] = useState<DataItem[]>([]);
   const [speakStrEng, setSpeakStrEng] = useState<string>('');
   const [speakStrVie, setSpeakStrVie] = useState<string>('');
@@ -55,10 +66,12 @@ const Notify = (): ReactElement => {
   }, [practiceState]);
 
   useEffect((): void => {
-    if (practiceState.items) {
-      setItems(practiceState.items);
+    if (!_.isEmpty(sheet)) {
+      getDataFromExcel(sheet, (data: DataItem[]) => {
+        setItems(data);
+      });
     }
-  }, [practiceState.items]);
+  }, [sheet]);
 
   useEffect((): void => {
     onGSheetApi();
@@ -290,10 +303,31 @@ const Notify = (): ReactElement => {
   };
 
   const notifyButtonLabel: string = isStop ? `Start` : `Stop`;
-
+  const reloadSheetNotify = useCallback(() => {
+    if (!_.isEmpty(sheet)) {
+      getDataFromExcel(sheet, (data: DataItem[]) => {
+        setItems(data);
+      });
+    }
+  }, [sheet]);
   return (
     <div className="">
       <div id="notify-control">
+        <select
+          className="common-input inline"
+          value={sheet}
+          onChange={(e: ChangeEvent<HTMLSelectElement>) => setSheet(e.target.value)}
+        >
+          {[...SHEET_AUTO, ...SHEET_LIST].map((option) => (
+            <option key={option.range} value={option.range}>
+              {option.name}
+            </option>
+          ))}
+        </select>
+        <span className="sticky-config-count">{items.length}</span>
+        <button className="common-btn" onClick={reloadSheetNotify} title="Reload">
+          ↻
+        </button>
         <select
           className="common-input"
           name="isUseVoice"
@@ -321,7 +355,7 @@ const Notify = (): ReactElement => {
             {notifyButtonLabel}
           </button>
           <input
-            className="common-input"
+            className="common-input  width-60"
             type="text"
             id="timeValue"
             value={timeValue}
@@ -330,9 +364,9 @@ const Notify = (): ReactElement => {
         </div>
       </div>
 
-      <span id="btnHideWhenPrac" onClick={(): void => onHideWhenPrac()}>
+      {/* <span id="btnHideWhenPrac" onClick={(): void => onHideWhenPrac()}>
         <FaEyeSlash />
-      </span>
+      </span> */}
       <div>
         {' '}
         {speakStrEng}: {speakStrVie}

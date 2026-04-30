@@ -112,7 +112,8 @@
 }
 
 .practice-answer-select {
-  width: min(100%, 620px) !important;
+  width: 90% !important;
+  /* width: min(100%, 620px) !important; */
 }
 
 .practice-tooltip {
