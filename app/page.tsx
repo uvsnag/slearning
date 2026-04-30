@@ -2,32 +2,7 @@
 import Link from 'next/link';
 import React, { FC } from 'react';
 import Notify from './notify/Notify';
-
-const DASHBOARD_LINKS = [
-  { href: '/dash-board2', label: 'AI Only' },
-  { href: '/youtube-sub', label: 'YT' },
-  // { href: '/dash-board1', label: 'Sentence & YT' },
-];
-const SINGLE_PRACT_LINKS = [
-  { href: '/practice-word', label: 'Word (Meaning)' },
-  { href: '/listen', label: 'Word (Listen)' },
-  // { href: '/notify', label: 'Notify' },
-  { href: '/next-sentence', label: 'Sentence' },
-  { href: '/listen-mp3', label: 'Listen MP3' },
-];
-
-const MOBILE_LINKS = [
-  { href: '/mobile/speak-ai', label: 'Speak AI' },
-  { href: '/mobile/youtube-sub', label: 'Listen Board' },
-];
-
-const LEGANCY_LINKS = [
-  { href: '/legancy-tools/sql-compile-ck', label: 'SQL Compile' },
-  { href: '/legancy-tools/sql-process-ck', label: 'SQL Process' },
-  { href: '/legancy-tools/json-process', label: 'Json Process' },
-  // { href: '/legancy-tools/recognize-text', label: 'Recognize Text' },
-  { href: '/legancy-tools/replace-process', label: 'Replace Process' },
-];
+import { NAV_SECTIONS } from './common/navLinks';
 
 const Home: FC = () => {
   return (
@@ -39,61 +14,20 @@ const Home: FC = () => {
         </p>
 
         <div className="home-menu-grid">
-          <section className="ui-panel home-menu-panel">
-            <div className="common-toggle">Dash Board</div>
-            <ul className="mst-menu">
-              {DASHBOARD_LINKS.map((link) => (
-                <li className="mst-menu-li" key={link.href}>
-                  <Link className="home-nav-link" href={link.href}>
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </section>
-          <section className="ui-panel home-menu-panel">
-            <div className="common-toggle">Single Practice</div>
-            <ul className="mst-menu">
-              {SINGLE_PRACT_LINKS.map((link) => (
-                <li className="mst-menu-li" key={link.href}>
-                  <Link className="home-nav-link" href={link.href}>
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </section>
-
-          <section className="ui-panel home-menu-panel">
-            <div className="common-toggle">Mobile</div>
-            <ul className="mst-menu">
-              {MOBILE_LINKS.map((link) => (
-                <li className="mst-menu-li" key={link.href}>
-                  <Link className="home-nav-link" href={link.href}>
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </section>
-
-          <section className="ui-panel home-menu-panel">
-            <div className="common-toggle">Legancy</div>
-            <ul className="mst-menu">
-              {LEGANCY_LINKS.map((link) => (
-                <li className="mst-menu-li" key={link.href}>
-                  <Link className="home-nav-link" href={link.href}>
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-              <li className="mst-menu-li">
-                <Link className="home-nav-link" href="/inteview/pv.html">
-                  PV
-                </Link>
-              </li>
-            </ul>
-          </section>
+          {NAV_SECTIONS.map((section) => (
+            <section className="ui-panel home-menu-panel" key={section.title}>
+              <div className="common-toggle">{section.title}</div>
+              <ul className="mst-menu">
+                {section.links.map((link) => (
+                  <li className="mst-menu-li" key={link.href}>
+                    <Link className="home-nav-link" href={link.href}>
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
           {/* <iframe
             src="https://translate.google.com.vn"
             width="800"

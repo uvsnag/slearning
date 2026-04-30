@@ -1,10 +1,10 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import Link from 'next/link';
 import { useRef, useState } from 'react';
 import { COMMON_PROMPT } from '../../common';
 import StickyAIBoard, { type StickyAIBoardHandle } from './StickyAIBoard';
+import StickyNavMenu, { type StickyNavMenuHandle } from './StickyNavMenu';
 import StickyPracticeInput, { type StickyPracticeInputHandle } from './StickyPracticeInput';
 import StickyConfig, { type StickyConfigHandle } from './StickyConfig';
 
@@ -103,6 +103,7 @@ const StickyQuickTools = ({
   const practiceRef = useRef<StickyPracticeInputHandle>(null);
   const boardRefs = useRef<Array<StickyAIBoardHandle | null>>([]);
   const configRef = useRef<StickyConfigHandle>(null);
+  const navMenuRef = useRef<StickyNavMenuHandle>(null);
   const [isOthersHidden, setIsOthersHidden] = useState(false);
   const [isPracticeStickyOpen, setIsPracticeStickyOpen] = useState(false);
 
@@ -117,6 +118,9 @@ const StickyQuickTools = ({
     });
     if (!Array.isArray(exceptId) || !exceptId.includes('config')) {
       configRef.current?.close();
+    }
+    if (!Array.isArray(exceptId) || !exceptId.includes('nav')) {
+      navMenuRef.current?.close();
     }
   };
 
@@ -186,23 +190,17 @@ const StickyQuickTools = ({
         />
       ))}
 
-      <div
-        className={`right sticky-home-card ${isSticky === 'Y' ? 'sticky-ai-float' : ''}`}
-        style={
-          isSticky === 'Y' && typeof homeStickyBottom === 'number'
-            ? { bottom: `${homeStickyBottom}px` }
-            : undefined
-        }
-      >
-        <Link
-          href="/"
-          className="sticky-ai-toggle sticky-home-toggle"
-          aria-label="Go to home page"
-          title="Home"
-        >
-          🏠
-        </Link>
-      </div>
+      <StickyNavMenu
+        ref={navMenuRef}
+        isSticky={isSticky}
+        stickyBottom={homeStickyBottom}
+        isVisible={!isOthersHidden}
+        onOpen={(isOpen) => {
+          if (isOpen) {
+            onOpenSticky('nav');
+          }
+        }}
+      />
 
       <div
         className={`right sticky-close-all-card ${isSticky === 'Y' ? 'sticky-ai-float' : ''}`}

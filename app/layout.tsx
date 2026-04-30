@@ -12,6 +12,7 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <title>SLearning</title>
+        <link rel="icon" href="/slearning/logo.png" />
       </head>
       <body>
         <PracticeStoreProvider>
