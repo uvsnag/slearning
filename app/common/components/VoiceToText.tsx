@@ -49,6 +49,7 @@ const VoiceToText: React.FC<VoiceToTextProps> = ({ setText, index, language = 'e
     setIsStartRecord(true);
     console.log('Start recoding...');
     resetTranscript();
+    console.log('Listening with language:', language);
     startListening({
       continuous: true,
       language,

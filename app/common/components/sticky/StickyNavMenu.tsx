@@ -43,7 +43,9 @@ const StickyNavMenu = forwardRef<StickyNavMenuHandle, StickyNavMenuProps>(
             : undefined
         }
       >
-        <div className={`collapse-content sticky-ai-pop-wrap sticky-nav-pop-wrap ${isOpen ? 'open' : ''}`}>
+        <div
+          className={`collapse-content sticky-ai-pop-wrap sticky-nav-pop-wrap ${isOpen ? 'open' : ''}`}
+        >
           <div className="sticky-nav-content">
             {NAV_SECTIONS.map((section) => (
               <div key={section.title} className="sticky-nav-section">

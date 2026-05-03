@@ -27,7 +27,7 @@ interface SpeechRecognitionErrorEventLike {
 interface SpeechRecognitionLike {
   continuous: boolean;
   interimResults: boolean;
-  language: string;
+  lang: string;
   onstart: (() => void) | null;
   onresult: ((event: SpeechRecognitionEventLike) => void) | null;
   onerror: ((event: SpeechRecognitionErrorEventLike) => void) | null;
@@ -165,7 +165,7 @@ export function useSpeechRecognition(): UseSpeechRecognitionResult {
 
       recognition.continuous = continuous;
       recognition.interimResults = true;
-      recognition.language = language;
+      recognition.lang = language;
 
       try {
         recognition.start();
