@@ -1436,7 +1436,9 @@ ul.mst-menu > li {
   border: 1px solid var(--color-border-soft);
   color: var(--color-link);
   text-decoration: none;
-  transition: background 0.15s, border-color 0.15s;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
 }
 
 .sticky-nav-link:hover {
