@@ -36,7 +36,6 @@ const TP_GITHUB = 3;
 const TP_OPENROUTER = 4;
 const TP_GEN_2 = 5;
 const TP_GITHUB_2 = 6;
-let aiType = TP_GEN;
 
 interface ModelAI {
   value: string;
@@ -87,13 +86,8 @@ export interface AIBoardProps {
 const MODEL_AI: ModelAI[] = [
   { value: 'gemini-2.5-flash', name: 'gemini-2.5-flash', type: TP_GEN },
   { value: 'gemini-2.5-flash', name: 'gemini-2.5-flash (Key 2)', type: TP_GEN_2 },
-  // { value: 'openai/gpt-4o-mini', name: 'github/gpt-4o-mini', type: TP_GITHUB },
   { value: 'openai/gpt-4.1', name: 'github/gpt-4.1', type: TP_GITHUB },
   { value: 'openai/gpt-4.1', name: 'github/gpt-4.1 (Key 2)', type: TP_GITHUB_2 },
-  // { value: 'openai/gpt-5-mini', name: 'github/gpt-5-mini', type: TP_GITHUB },
-  // { value: 'gemini-2.5-flash-lite', name: 'gemini-2.5-flash-lite', type: TP_GEN },
-  // { value: 'gemini-3.1-pro-preview', name: 'gemini-3.1-pro-preview', type: TP_GEN },
-  // { value: 'gpt-4o', name: 'gpt-4o', type: TP_GPT },
   { value: 'openai/gpt-5-nano', name: 'openrouter/gpt-5-nano', type: TP_OPENROUTER },
 ];
 const CLICK_TO_SPEECH_IGNORE_WORDS: string[] = [
@@ -326,7 +320,6 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
   // Voice index is now managed by usePracticeContext — no local auto-pick needed
 
   useEffect((): void => {
-    aiType = model.type;
     if (useHis === 'Y' && model.type === TP_GEN && aiGem.current) {
       aiGemHis.current = aiGem.current.chats.create({
         model: model.value,
@@ -342,7 +335,6 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
     }
   }, [useHis]);
   useEffect((): void => {
-    aiType = model.type;
     if (useHis === 'Y' && model.type === TP_GEN && aiGem.current) {
       aiGemHis.current = aiGem.current.chats.create({
         model: model.value,
@@ -593,19 +585,19 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
     const usedModelName = model.name;
 
     try {
-      if (aiType === TP_GPT) {
+      if (model.type === TP_GPT) {
         responseTxt = await askChatGPT(promVal);
         setAIName('GPT');
-      } else if (aiType === TP_GITHUB) {
+      } else if (model.type === TP_GITHUB) {
         responseTxt = await askGitHub(promVal);
         setAIName('GitHub');
-      } else if (aiType === TP_GITHUB_2) {
+      } else if (model.type === TP_GITHUB_2) {
         responseTxt = await askGitHub2(promVal);
         setAIName('GitHub (Key 2)');
-      } else if (aiType === TP_OPENROUTER) {
+      } else if (model.type === TP_OPENROUTER) {
         responseTxt = await askOpenRouter(promVal);
         setAIName('OpenRouter');
-      } else if (aiType === TP_GEN_2) {
+      } else if (model.type === TP_GEN_2) {
         setAIName('Gemini (Key 2)');
         responseTxt = useHis === 'Y' ? await askGeminiHis(promVal) : await askGemini2(promVal);
       } else {
