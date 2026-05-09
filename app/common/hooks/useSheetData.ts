@@ -66,14 +66,19 @@ export const SHEET_LIST: SheetItem[] = [
   { range: 'Batch1!AB2:AC250', name: 'Batch1:10A' },
   { range: 'Batch1!AB250:AC500', name: 'Batch1:10B' },
   //Batch2
-  { range: 'Batch2!A2:250', name: 'Batch2:1A' },
-  { range: 'Batch2!A250:B500', name: 'Batch2:1B' },
-  { range: 'Batch2!G2:H250', name: 'Batch2:3A' },
-  { range: 'Batch2!G250:H500', name: 'Batch2:3B' },
-  { range: 'Batch2!J2:K250', name: 'Batch2:4A' },
-  { range: 'Batch2!J250:K500', name: 'Batch2:4B' },
-  { range: 'Batch2!M2:N250', name: 'Batch2:5A' },
-  { range: 'Batch2!M250:N500', name: 'Batch2:5B' },
+  { range: 'Batch2!A2:B250', name: 'Batch2:MistakeA' },
+  { range: 'Batch2!A250:B500', name: 'Batch2:MistakeB' },
+  { range: 'Batch2!E2:F250', name: 'Batch2:EnhanceA' },
+  { range: 'Batch2!E250:F500', name: 'Batch2:EnhanceB' },
+  { range: 'Batch2!I2:J250', name: 'Batch2:GrammarA' },
+  { range: 'Batch2!I250:J500', name: 'Batch2:GrammarB' },
+
+  { range: 'Batch2!N2:O250', name: 'Batch2:Sentence1A' },
+  { range: 'Batch2!N250:O500', name: 'Batch2:Sentence1B' },
+  { range: 'Batch2!Q2:R250', name: 'Batch2:Sentence2A' },
+  { range: 'Batch2!Q250:R500', name: 'Batch2:Sentence2B' },
+  { range: 'Batch2!T2:U250', name: 'Batch2:Sentence3A' },
+  { range: 'Batch2!T250:U500', name: 'Batch2:Sentence3B' },
 ];
 
 /**
