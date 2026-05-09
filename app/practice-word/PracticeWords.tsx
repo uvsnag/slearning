@@ -252,7 +252,6 @@ const PractWords = (props: PractWordsProps) => {
             )}
           </div>
           <br />
-
           <input
             type="number"
             className="width-30 practice-num-ans common-input"
@@ -276,10 +275,15 @@ const PractWords = (props: PractWordsProps) => {
           <label>
             <input id="revertAsw" type="checkbox" defaultChecked={true} />⇆
           </label>
-
           <br />
           <br />
-          <div className="practice-question">{question}</div>
+          <div className="practice-question">
+            {question}{' '}
+            <FaVolumeUp
+              className="iconSound"
+              onClick={() => speakText(currEng || '', true, toSpeechConfig(practiceState))}
+            />
+          </div>
           <br />
           <div
             className="practice-answer-preview"
@@ -293,11 +297,8 @@ const PractWords = (props: PractWordsProps) => {
             onKeyDown={(e) => handleKeyDown(e)}
             className="common-input"
           />
-
           <VoiceToText setText={setInputAns} index={0}></VoiceToText>
-
           <br />
-
           <select
             className="common-input practice-answer-select"
             id="combo-answer"
@@ -334,6 +335,17 @@ const PractWords = (props: PractWordsProps) => {
           </div>
           <br />
           <br />
+          {practiceState.sheet?.startsWith(STORE_ALIAS) && (
+            <button
+              className="common-btn"
+              onClick={() => {
+                localStorage.setItem(practiceState.sheet, JSON.stringify(arrLineTemp));
+                setMessage(`💾 Saved ${arrLineTemp.length} items to ${practiceState.sheet}`);
+              }}
+            >
+              💾 Save to Store
+            </button>
+          )}
           <br />
         </div>
       )}
