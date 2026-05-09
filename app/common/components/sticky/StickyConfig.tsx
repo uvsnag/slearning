@@ -4,12 +4,8 @@ import { ChangeEvent, forwardRef, useEffect, useImperativeHandle, useState } fro
 import { FaCog } from 'react-icons/fa';
 import {
   toggleCollapse,
-  KEY_GPT_NM,
   KEY_GEMINI_NM,
-  KEY_GEMINI_NM_2,
   KEY_GITHUB_NM,
-  KEY_GITHUB_NM_2,
-  KEY_OPENROUTER_NM,
   KEY_GOOGLE_SHEET_NM,
   KEY_API_SHEET,
   KEY_DARK_MODE,
@@ -74,17 +70,9 @@ const StickyConfig = forwardRef<StickyConfigHandle, StickyConfigProps>(
     } = usePracticeContext();
     const [isOpen, setIsOpen] = useState(false);
 
-    // ── API Key states ──────────────────────────────────
+    // ── API Key states (multiple keys separated by ';') ──
     const [gemKey, setGemKey] = useState<string | null>(() => getStoredValue(KEY_GEMINI_NM));
-    const [gemKey2, setGemKey2] = useState<string | null>(() => getStoredValue(KEY_GEMINI_NM_2));
-    const [gptKey, setGptKey] = useState<string | null>(() => getStoredValue(KEY_GPT_NM));
     const [githubKey, setGithubKey] = useState<string | null>(() => getStoredValue(KEY_GITHUB_NM));
-    const [githubKey2, setGithubKey2] = useState<string | null>(() =>
-      getStoredValue(KEY_GITHUB_NM_2),
-    );
-    const [openRouterKey, setOpenRouterKey] = useState<string | null>(() =>
-      getStoredValue(KEY_OPENROUTER_NM),
-    );
     const [googleSheetKey, setGoogleSheetKey] = useState<string | null>(() =>
       getStoredValue(KEY_GOOGLE_SHEET_NM),
     );
@@ -101,20 +89,8 @@ const StickyConfig = forwardRef<StickyConfigHandle, StickyConfigProps>(
       if (gemKey) localStorage.setItem(KEY_GEMINI_NM, gemKey);
     }, [gemKey]);
     useEffect(() => {
-      if (gemKey2) localStorage.setItem(KEY_GEMINI_NM_2, gemKey2);
-    }, [gemKey2]);
-    useEffect(() => {
-      if (gptKey) localStorage.setItem(KEY_GPT_NM, gptKey);
-    }, [gptKey]);
-    useEffect(() => {
       if (githubKey) localStorage.setItem(KEY_GITHUB_NM, githubKey);
     }, [githubKey]);
-    useEffect(() => {
-      if (githubKey2) localStorage.setItem(KEY_GITHUB_NM_2, githubKey2);
-    }, [githubKey2]);
-    useEffect(() => {
-      if (openRouterKey) localStorage.setItem(KEY_OPENROUTER_NM, openRouterKey);
-    }, [openRouterKey]);
     useEffect(() => {
       if (googleSheetKey) localStorage.setItem(KEY_GOOGLE_SHEET_NM, googleSheetKey);
     }, [googleSheetKey]);
@@ -190,65 +166,23 @@ const StickyConfig = forwardRef<StickyConfigHandle, StickyConfigProps>(
               <div className="collapse-content" id="sticky-api-config">
                 <div className="home-config-grid">
                   <label className="home-config-field">
-                    <span>Gemini Key</span>
+                    <span>Gemini Keys (key1;key2)</span>
                     <input
                       className="common-input"
                       type="text"
                       value={gemKey ?? ''}
                       onChange={(e: ChangeEvent<HTMLInputElement>) => setGemKey(e.target.value)}
-                      placeholder="gem"
+                      placeholder="key1;key2"
                     />
                   </label>
                   <label className="home-config-field">
-                    <span>Gemini Key 2</span>
-                    <input
-                      className="common-input"
-                      type="text"
-                      value={gemKey2 ?? ''}
-                      onChange={(e: ChangeEvent<HTMLInputElement>) => setGemKey2(e.target.value)}
-                      placeholder="gem 2"
-                    />
-                  </label>
-                  <label className="home-config-field">
-                    <span>GitHub Models Key</span>
+                    <span>GitHub Models Keys (key1;key2)</span>
                     <input
                       className="common-input"
                       type="text"
                       value={githubKey ?? ''}
                       onChange={(e: ChangeEvent<HTMLInputElement>) => setGithubKey(e.target.value)}
-                      placeholder="github token"
-                    />
-                  </label>
-                  <label className="home-config-field">
-                    <span>GitHub Models Key 2</span>
-                    <input
-                      className="common-input"
-                      type="text"
-                      value={githubKey2 ?? ''}
-                      onChange={(e: ChangeEvent<HTMLInputElement>) => setGithubKey2(e.target.value)}
-                      placeholder="github token 2"
-                    />
-                  </label>
-                  <label className="home-config-field">
-                    <span>GPT Key</span>
-                    <input
-                      className="common-input"
-                      type="text"
-                      value={gptKey ?? ''}
-                      onChange={(e: ChangeEvent<HTMLInputElement>) => setGptKey(e.target.value)}
-                      placeholder="gpt"
-                    />
-                  </label>
-                  <label className="home-config-field">
-                    <span>OpenRouter Key</span>
-                    <input
-                      className="common-input"
-                      type="text"
-                      value={openRouterKey ?? ''}
-                      onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                        setOpenRouterKey(e.target.value)
-                      }
-                      placeholder="openrouter key"
+                      placeholder="token1;token2"
                     />
                   </label>
                   <label className="home-config-field">
