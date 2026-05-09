@@ -281,14 +281,21 @@ const PractWords = (props: PractWordsProps) => {
             {question}{' '}
             <FaVolumeUp
               className="iconSound"
-              onClick={() => speakText(currEng || '', true, toSpeechConfig(practiceState))}
+              onClick={() => speakText(question || '', true, toSpeechConfig(practiceState))}
             />
           </div>
           <br />
           <div
-            className="practice-answer-preview"
+            className="practice-answer-preview inline"
             dangerouslySetInnerHTML={{ __html: showAns }}
           ></div>
+          {showAns && (
+            <FaVolumeUp
+              className="iconSound"
+              onClick={() => speakText(showAns || '', true, toSpeechConfig(practiceState))}
+            />
+          )}
+          <br />
           <input
             type="text"
             id="answer"
