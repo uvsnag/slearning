@@ -88,7 +88,7 @@ const MODEL_AI: ModelAI[] = [
   { value: 'gemini-2.5-flash', name: 'gemini-2.5-flash (Key 2)', type: TP_GEN_2 },
   { value: 'openai/gpt-4.1', name: 'github/gpt-4.1', type: TP_GITHUB },
   { value: 'openai/gpt-4.1', name: 'github/gpt-4.1 (Key 2)', type: TP_GITHUB_2 },
-  { value: 'openai/gpt-5-nano', name: 'openrouter/gpt-5-nano', type: TP_OPENROUTER },
+  // { value: 'openai/gpt-5-nano', name: 'openrouter/gpt-5-nano', type: TP_OPENROUTER },
 ];
 const CLICK_TO_SPEECH_IGNORE_WORDS: string[] = [
   'a',
@@ -569,7 +569,7 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
     return askOpenAICompatible(openRouterAI.current, promVal, openRouterHisRef);
   }
 
-  async function askDec(promVal: string): Promise<void> {
+  async function askDec(promVal: string, innerModelObj = model, isNotRetry = false): Promise<void> {
     setValue1('');
     setValue2('');
     if (!promVal || promVal.trim().length === 0) {
@@ -582,22 +582,22 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
     toggleClass(`loading${props.prefix}${props.index}`, false);
     // let responseTmp = response;
     addLog(buildQuestionLogHtml(promVal), true);
-    const usedModelName = model.name;
+    const usedModelName = innerModelObj.name;
 
     try {
-      if (model.type === TP_GPT) {
+      if (innerModelObj.type === TP_GPT) {
         responseTxt = await askChatGPT(promVal);
         setAIName('GPT');
-      } else if (model.type === TP_GITHUB) {
+      } else if (innerModelObj.type === TP_GITHUB) {
         responseTxt = await askGitHub(promVal);
         setAIName('GitHub');
-      } else if (model.type === TP_GITHUB_2) {
+      } else if (innerModelObj.type === TP_GITHUB_2) {
         responseTxt = await askGitHub2(promVal);
         setAIName('GitHub (Key 2)');
-      } else if (model.type === TP_OPENROUTER) {
+      } else if (innerModelObj.type === TP_OPENROUTER) {
         responseTxt = await askOpenRouter(promVal);
         setAIName('OpenRouter');
-      } else if (model.type === TP_GEN_2) {
+      } else if (innerModelObj.type === TP_GEN_2) {
         setAIName('Gemini (Key 2)');
         responseTxt = useHis === 'Y' ? await askGeminiHis(promVal) : await askGemini2(promVal);
       } else {
@@ -622,8 +622,22 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
       setValue2(resStr?.split('<br/>')?.[1]);
     } catch (error) {
       addLog(String(error), false);
+      if (!isNotRetry) {
+        const nextModel = rolateAIModel();
+        addLog(`Switching to next model: ${nextModel.name}`, false);
+        await askDec(promVal, nextModel, true);
+      }
     }
     toggleClass(`loading${props.prefix}${props.index}`, true);
+  }
+  function rolateAIModel() {
+    const currentIndex = MODEL_AI.findIndex(
+      (m) => m.value === model.value && m.type === model.type,
+    );
+    const nextIndex = (currentIndex + 1) % MODEL_AI.length;
+    const nextModel = MODEL_AI[nextIndex];
+    setModel(nextModel);
+    return nextModel;
   }
 
   function sanitizeForSpeech(text: string): string {
@@ -1388,6 +1402,7 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
           />
           <input
             className="common-input"
+            style={{ display: 'none' }}
             type="text"
             value={openRouterKey || ''}
             onChange={(event: ChangeEvent<HTMLInputElement>) => {
