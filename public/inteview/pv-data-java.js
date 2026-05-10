@@ -12,11 +12,18 @@
           q: 'What are the four pillars of OOP in Java?',
           difficulty: 'easy',
           a: `<ul>
-<li><strong>Encapsulation</strong> – bundling data + methods; using access modifiers (<code>private</code>, <code>protected</code>, <code>public</code>).</li>
-<li><strong>Abstraction</strong> – hiding complexity via abstract classes / interfaces.</li>
-<li><strong>Inheritance</strong> – reusing code through <code>extends</code> / <code>implements</code>.</li>
-<li><strong>Polymorphism</strong> – method overloading (compile-time) &amp; overriding (runtime).</li>
-</ul>`,
+<li><strong>Encapsulation</strong> – bundling data + methods; using access modifiers (<code>private</code>, <code>protected</code>, <code>public</code>, package-private). Achieve via getters/setters, immutable objects.</li>
+<li><strong>Abstraction</strong> – hiding complexity via abstract classes / interfaces. Only expose "what" not "how".</li>
+<li><strong>Inheritance</strong> – reusing code through <code>extends</code> / <code>implements</code>. Java supports single class inheritance, multiple interface inheritance.</li>
+<li><strong>Polymorphism</strong> – method overloading (compile-time / static) &amp; overriding (runtime / dynamic dispatch via vtable).</li>
+</ul>
+<p><strong>Senior-level depth:</strong></p>
+<ul>
+<li><strong>Composition over inheritance</strong> – prefer HAS-A over IS-A. Inheritance breaks encapsulation (Effective Java Item 18).</li>
+<li><strong>Liskov Substitution</strong> – subtype must be substitutable without breaking program correctness.</li>
+<li><strong>Access modifiers scope</strong>: <code>private</code> → class only; package-private (default) → same package; <code>protected</code> → same package + subclasses; <code>public</code> → everywhere.</li>
+</ul>
+<div class="key-point">Trick: "Is Java 100% OOP?" — No. Primitives (int, boolean) are not objects. But with autoboxing and wrapper classes, Java approaches it. Also, static methods/fields belong to the class, not instances.</div>`,
         },
         {
           q: 'Explain the difference between Abstract class and Interface (Java 8+).',
@@ -39,7 +46,27 @@
 String b = new String("hello");
 a == b       // false (different objects)
 a.equals(b)  // true  (same content)</pre>
-<div class="key-point">Trick: String literals from the pool <code>"hello" == "hello"</code> returns <strong>true</strong> because they share the same reference in the String pool.</div>`,
+<p><strong>The equals() contract (must satisfy all):</strong></p>
+<ul>
+<li><strong>Reflexive</strong>: x.equals(x) == true</li>
+<li><strong>Symmetric</strong>: x.equals(y) == y.equals(x)</li>
+<li><strong>Transitive</strong>: if x.equals(y) && y.equals(z) → x.equals(z)</li>
+<li><strong>Consistent</strong>: same result on multiple calls (if objects unchanged)</li>
+<li><strong>Null</strong>: x.equals(null) == false</li>
+</ul>
+<pre>// hashCode contract: if a.equals(b) then a.hashCode() == b.hashCode()
+// MUST override hashCode() when overriding equals()!
+// Violating this breaks HashMap, HashSet, etc.
+
+// Integer caching trick:
+Integer x = 127;
+Integer y = 127;
+x == y  // TRUE — Integer cache [-128, 127]
+
+Integer x = 128;
+Integer y = 128;
+x == y  // FALSE — outside cache, different objects!</pre>
+<div class="key-point">Trick: String literals from the pool <code>"hello" == "hello"</code> returns <strong>true</strong> because they share the same reference in the String pool. Also: <code>Integer.valueOf(127) == Integer.valueOf(127)</code> is true (cache), but <code>Integer.valueOf(128) == Integer.valueOf(128)</code> is false. Always use .equals() for wrapper types!</div>`,
         },
         {
           q: 'What is the difference between String, StringBuilder, and StringBuffer?',
@@ -52,39 +79,100 @@ a.equals(b)  // true  (same content)</pre>
 <div class="key-point">Use <code>StringBuilder</code> for single-thread string manipulation (loops, concatenation). Use <code>StringBuffer</code> only when multiple threads modify the same builder.</div>`,
         },
         {
-          q: 'Explain Java Memory Model: Stack vs Heap.',
+          q: 'Explain Java Memory Model: Stack vs Heap and JMM happens-before.',
           difficulty: 'hard',
           a: `<ul>
-<li><strong>Stack</strong>: stores method frames, local variables, references. Each thread has its own stack. LIFO.</li>
+<li><strong>Stack</strong>: stores method frames, local variables, references. Each thread has its own stack. LIFO. Default size ~512KB-1MB (<code>-Xss</code>).</li>
 <li><strong>Heap</strong>: stores objects and class-level variables. Shared across all threads. Managed by GC.</li>
-<li><strong>Metaspace</strong> (Java 8+): replaces PermGen; stores class metadata, loaded by classloaders.</li>
+<li><strong>Metaspace</strong> (Java 8+): replaces PermGen; stores class metadata, loaded by classloaders. Grows dynamically (limit with <code>-XX:MaxMetaspaceSize</code>).</li>
+<li>For object type inside the method: the reference variable is stored in the stack, the actual object/data is stored in the heap.</li>
 </ul>
 <pre>int x = 10;            // x on stack
 String s = new String("hi"); // reference s on stack, object on heap</pre>
-<div class="key-point">OutOfMemoryError: heap space → increase <code>-Xmx</code>. StackOverflowError → deep recursion / infinite loop.</div>`,
+<p><strong>Heap structure (Generational GC):</strong></p>
+<pre>Heap:
+├── Young Generation (short-lived objects)
+│   ├── Eden Space (new objects created here)
+│   ├── Survivor 0 (S0)
+│   └── Survivor 1 (S1)
+└── Old Generation / Tenured (long-lived objects)
+    └── Objects promoted after surviving N minor GCs
+
+Minor GC: cleans Young Gen (fast, stop-the-world but brief)
+Major/Full GC: cleans Old Gen (slow, longer pause)</pre>
+<p><strong>JMM Happens-Before Rules (critical for concurrency):</strong></p>
+<ul>
+<li><strong>Program order</strong>: each action happens-before the next action in the same thread.</li>
+<li><strong>Monitor lock</strong>: unlock happens-before subsequent lock of same monitor.</li>
+<li><strong>Volatile</strong>: write to volatile happens-before subsequent read of same variable.</li>
+<li><strong>Thread start</strong>: <code>thread.start()</code> happens-before any action in the started thread.</li>
+<li><strong>Thread join</strong>: all actions in a thread happen-before <code>join()</code> returns.</li>
+<li><strong>Transitivity</strong>: if A happens-before B, and B happens-before C, then A happens-before C.</li>
+</ul>
+<pre>// Without happens-before guarantee:
+Thread A: x = 1; ready = true;
+Thread B: if (ready) print(x);  // might print 0! (reordering)
+
+// Fix with volatile:
+private volatile boolean ready;
+// Now: write to ready happens-before read of ready → x=1 is visible</pre>
+<div class="key-point">OutOfMemoryError: heap space → increase <code>-Xmx</code>. StackOverflowError → deep recursion. OutOfMemoryError: Metaspace → too many classes loaded (common in hot-deploy scenarios). Trick: "What are GC roots?" — local variables, active threads, static fields, JNI references. Objects reachable from GC roots are alive.</div>`,
         },
         {
           q: 'What are the different types of Garbage Collectors in Java?',
           difficulty: 'hard',
           a: `<ul>
-<li><strong>Serial GC</strong> – single thread, stop-the-world. Good for small apps.</li>
-<li><strong>Parallel GC</strong> – multiple GC threads. Default in Java 8.</li>
-<li><strong>G1 GC</strong> – divides heap into regions. Default since Java 9. Low-latency for large heaps.</li>
-<li><strong>ZGC / Shenandoah</strong> – ultra-low pause times (&lt;10ms). Java 11+/15+.</li>
+<li><strong>Serial GC</strong> (<code>-XX:+UseSerialGC</code>) – single thread, stop-the-world. Good for small apps / containers with 1 CPU.</li>
+<li><strong>Parallel GC</strong> (<code>-XX:+UseParallelGC</code>) – multiple GC threads. Default in Java 8. Optimizes throughput.</li>
+<li><strong>G1 GC</strong> (<code>-XX:+UseG1GC</code>) – divides heap into regions (~2048). Default since Java 9. Low-latency for large heaps (4GB+). Targets pause time goals (<code>-XX:MaxGCPauseMillis=200</code>).</li>
+<li><strong>ZGC</strong> (<code>-XX:+UseZGC</code>) – ultra-low pause times (&lt;1ms). Concurrent. Java 15+ production-ready. Handles multi-TB heaps.</li>
+<li><strong>Shenandoah</strong> (<code>-XX:+UseShenandoahGC</code>) – similar to ZGC, by Red Hat. Java 12+.</li>
 </ul>
-<div class="key-point">Trick: "Which GC does your production use?" — know your <code>-XX:+UseG1GC</code> or <code>-XX:+UseZGC</code> flags.</div>`,
+<p><strong>GC process (Mark-Sweep-Compact):</strong></p>
+<pre>1. MARK: Starting from GC roots, traverse object graph, mark reachable objects.
+   GC Roots: local vars, active threads, static fields, JNI references.
+2. SWEEP: Reclaim memory of unmarked (unreachable) objects.
+3. COMPACT: Move surviving objects together to avoid fragmentation.
+
+Generational Hypothesis: Most objects die young.
+→ Young Gen (Eden + 2 Survivor) collected frequently (Minor GC)
+→ Old Gen collected rarely (Major GC / Full GC)
+→ Objects promoted to Old Gen after surviving ~15 minor GCs (-XX:MaxTenuringThreshold)</pre>
+<p><strong>G1 GC details (most commonly asked):</strong></p>
+<ul>
+<li>Divides heap into equal-sized regions (Eden, Survivor, Old, Humongous).</li>
+<li><strong>Humongous objects</strong>: objects &gt; 50% of region size go directly to special regions.</li>
+<li>Collects regions with most garbage first ("Garbage First").</li>
+<li>Mixed GC: collects Young + some Old regions together.</li>
+</ul>
+<div class="key-point">Trick: "Which GC does your production use?" — know your <code>-XX:+UseG1GC</code> or <code>-XX:+UseZGC</code> flags. "How do you tune GC?" — Set heap size (-Xms/-Xmx same to avoid resizing), set pause time goal, enable GC logging (<code>-Xlog:gc*</code>), analyze with GCViewer/GCEasy. "When does Full GC happen?" — Old Gen full, Metaspace full, explicit System.gc(), humongous allocation failure.</div>`,
         },
         {
           q: 'Explain HashMap internal working. What happens on collision?',
           difficulty: 'hard',
           a: `<ol>
-<li><code>hashCode()</code> → bucket index via <code>(n-1) & hash</code>.</li>
-<li>If bucket empty → new Node.</li>
+<li><code>hashCode()</code> is further hashed: <code>hash = h ^ (h >>> 16)</code> (spread high bits) → bucket index via <code>(n-1) & hash</code>.</li>
+<li>If bucket empty → new Node(hash, key, value, null).</li>
 <li>If collision → stored as <strong>linked list</strong> (chaining) at that bucket.</li>
-<li>Java 8+: when list length &gt; 8 AND table capacity ≥ 64 → converts to <strong>red-black tree</strong> (O(log n) lookup).</li>
-<li>Load factor 0.75 → resize (double capacity) when exceeded.</li>
+<li>Java 8+: when list length &gt; <strong>TREEIFY_THRESHOLD (8)</strong> AND table capacity ≥ <strong>MIN_TREEIFY_CAPACITY (64)</strong> → converts to <strong>red-black tree</strong> (O(log n) lookup).</li>
+<li>Tree converts BACK to linked list when size drops below <strong>UNTREEIFY_THRESHOLD (6)</strong> (on resize).</li>
+<li>Load factor 0.75 → resize (double capacity) when <code>size > capacity * loadFactor</code>.</li>
 </ol>
-<div class="key-point">Trick: "What if two keys have same hashCode AND equals?" → Second put overwrites the first value.</div>`,
+<pre>// Initial capacity should be: expectedSize / 0.75 + 1
+// To avoid resizing: new HashMap<>(expectedSize * 4 / 3 + 1)
+// Or: HashMap.newHashMap(expectedSize) in Java 19+
+
+// Key contract for HashMap:
+// 1. If a.equals(b), then a.hashCode() == b.hashCode() (MUST)
+// 2. If hashCodes are equal, objects may or may NOT be equal
+// 3. Keys should be IMMUTABLE (or at least hashCode fields shouldn't change)
+//    Mutable key → lost entry! Can't find it anymore after mutation.</pre>
+<p><strong>Why capacity is always power of 2?</strong></p>
+<pre>// (n-1) & hash is equivalent to hash % n — but faster (bitwise)
+// Only works when n is power of 2!
+// e.g., n=16: (15) & hash = hash % 16
+// Binary: 15 = 0000 1111 → masks lower 4 bits</pre>
+<div class="key-point">Trick questions: (1) "What if two keys have same hashCode AND equals?" → Second put() overwrites the first value. (2) "What if key is mutable and you change it after put()?" → The entry becomes unreachable (ghost entry / memory leak). (3) "Is HashMap.get() always O(1)?" → No, worst case O(log n) with tree, or O(n) in Java 7 (no tree). (4) "What happens if hashCode() always returns same value?" → All entries in one bucket → degrades to linked list/tree.</div>`,
         },
         {
           q: 'What is the difference between HashMap, LinkedHashMap, TreeMap, and ConcurrentHashMap?',
@@ -127,12 +215,39 @@ String result = name
           a: `<ul>
 <li><code>volatile</code> ensures a variable is <strong>read from and written to main memory</strong>, not CPU cache.</li>
 <li>Guarantees <strong>visibility</strong> across threads but NOT atomicity.</li>
-<li>No reordering of reads/writes around volatile access.</li>
+<li>Prevents <strong>instruction reordering</strong> (acts as a memory barrier/fence).</li>
+<li>Establishes <strong>happens-before</strong>: write to volatile happens-before subsequent read of same variable.</li>
 </ul>
 <pre>private volatile boolean running = true;
 // Thread A: running = false;
-// Thread B: while(running) { ... } // sees update immediately</pre>
-<div class="key-point">Trick: <code>volatile</code> is NOT enough for <code>i++</code> because increment is read-modify-write (3 steps). Use <code>AtomicInteger</code> instead.</div>`,
+// Thread B: while(running) { ... } // sees update immediately
+
+// Double-checked locking (Singleton) — volatile is REQUIRED:
+private static volatile Singleton instance;
+public static Singleton getInstance() {
+    if (instance == null) {                // 1st check (no lock)
+        synchronized (Singleton.class) {
+            if (instance == null) {         // 2nd check (with lock)
+                instance = new Singleton(); // Without volatile, partially
+            }                              // constructed object may be visible!
+        }
+    }
+    return instance;
+}</pre>
+<p><strong>Why volatile is needed for double-checked locking:</strong></p>
+<pre>// instance = new Singleton() is actually 3 steps:
+// 1. Allocate memory
+// 2. Initialize object (call constructor)
+// 3. Assign reference to instance
+// Without volatile, JVM may reorder to: 1 → 3 → 2
+// Another thread sees non-null instance but object is NOT fully constructed!</pre>
+<p><strong>Volatile vs synchronized vs Atomic:</strong></p>
+<ul>
+<li><code>volatile</code>: visibility only. No atomicity. No mutual exclusion.</li>
+<li><code>synchronized</code>: visibility + atomicity + mutual exclusion. Heavier.</li>
+<li><code>AtomicXxx</code>: visibility + atomicity via CAS. No mutual exclusion. Lock-free.</li>
+</ul>
+<div class="key-point">Trick: <code>volatile</code> is NOT enough for <code>i++</code> because increment is read-modify-write (3 steps). Use <code>AtomicInteger</code> instead. "When to use volatile?" — Single writer, multiple readers. Status flags. Double-checked locking. "Does volatile prevent reordering of ALL instructions?" — No, only prevents reordering of reads/writes ACROSS the volatile access (LoadLoad, StoreStore barriers).</div>`,
         },
         {
           q: 'What are the differences between synchronized, ReentrantLock, and ReadWriteLock?',
@@ -150,13 +265,38 @@ rwl.writeLock().lock();  // exclusive</pre>`,
           q: 'What is the difference between CompletableFuture and Future?',
           difficulty: 'hard',
           a: `<ul>
-<li><strong>Future</strong>: blocking <code>get()</code>, no chaining, no combining.</li>
-<li><strong>CompletableFuture</strong>: non-blocking, supports chaining (<code>thenApply</code>, <code>thenCompose</code>), combining (<code>allOf</code>, <code>anyOf</code>), exception handling (<code>exceptionally</code>).</li>
+<li><strong>Future</strong>: blocking <code>get()</code>, no chaining, no combining, no exception handling callbacks.</li>
+<li><strong>CompletableFuture</strong>: non-blocking, supports chaining (<code>thenApply</code>, <code>thenCompose</code>), combining (<code>allOf</code>, <code>anyOf</code>), exception handling (<code>exceptionally</code>, <code>handle</code>).</li>
 </ul>
-<pre>CompletableFuture.supplyAsync(() -> fetchUser(id))
-    .thenApply(user -> user.getEmail())
+<pre>CompletableFuture.supplyAsync(() -> fetchUser(id))   // runs in ForkJoinPool.commonPool()
+    .thenApply(user -> user.getEmail())              // same thread or caller thread
     .thenAccept(email -> sendEmail(email))
-    .exceptionally(ex -> { log.error(ex); return null; });</pre>`,
+    .exceptionally(ex -> { log.error(ex); return null; });</pre>
+<p><strong>Key methods and their differences:</strong></p>
+<pre>// thenApply vs thenCompose (like map vs flatMap)
+cf.thenApply(s -> s.length())         // Function&lt;T, R&gt; → CompletableFuture&lt;R&gt;
+cf.thenCompose(s -> fetchAsync(s))    // Function&lt;T, CompletableFuture&lt;R&gt;&gt; → avoids nesting
+
+// thenApply vs thenApplyAsync
+cf.thenApply(fn)      // runs in same thread that completed cf (or caller)
+cf.thenApplyAsync(fn) // runs in ForkJoinPool.commonPool()
+cf.thenApplyAsync(fn, myExecutor) // runs in custom executor
+
+// Combining multiple futures:
+CompletableFuture&lt;Void&gt; all = CompletableFuture.allOf(cf1, cf2, cf3);
+CompletableFuture&lt;Object&gt; any = CompletableFuture.anyOf(cf1, cf2, cf3);
+
+// Exception handling:
+cf.exceptionally(ex -> defaultValue)              // recover from exception
+cf.handle((result, ex) -> ex != null ? fallback : result) // handle both cases
+cf.whenComplete((result, ex) -> log(result, ex))  // side-effect, doesn't transform</pre>
+<p><strong>Thread pool considerations:</strong></p>
+<ul>
+<li><code>supplyAsync()</code> / <code>runAsync()</code> without executor uses <strong>ForkJoinPool.commonPool()</strong> (shared globally!).</li>
+<li>For I/O-heavy work: always pass a custom executor to avoid starving the common pool.</li>
+<li><code>thenApply</code> (non-async) may execute in the completing thread OR the calling thread — non-deterministic!</li>
+</ul>
+<div class="key-point">Trick: "What happens if you never call get() or join()?" — The computation still runs (fire-and-forget). But exceptions are silently swallowed! Always attach an exception handler. Also: <code>join()</code> throws unchecked <code>CompletionException</code> vs <code>get()</code> throws checked <code>ExecutionException</code>.</div>`,
         },
         {
           q: 'Explain SOLID principles with Java examples.',
@@ -1291,6 +1431,1199 @@ List.of(1, 2, 3).parallelStream()...  // Overhead > benefit for small lists</pre
 <li>Independent elements (no ordering requirement)</li>
 </ul>
 <div class="key-point">The common ForkJoinPool has <code>Runtime.availableProcessors() - 1</code> threads. One slow parallel stream can starve the entire app. Default to sequential streams — parallelize only after profiling shows a bottleneck.</div>`,
+        },
+        // --- Additional Senior-Level Topics ---
+        {
+          q: 'What are Weak, Soft, and Phantom References in Java?',
+          difficulty: 'hard',
+          a: `<p>Java provides 4 types of references with different GC behaviors, used for caching and resource management.</p>
+<pre>// 1. Strong Reference (default) — object NEVER collected while reachable
+String s = new String("hello");  // strong ref — GC won't touch it
+
+// 2. Soft Reference — collected only when JVM is LOW ON MEMORY
+SoftReference&lt;byte[]&gt; cache = new SoftReference&lt;&gt;(new byte[1024*1024]);
+byte[] data = cache.get();  // may return null if GC reclaimed it
+// USE CASE: memory-sensitive caches
+
+// 3. Weak Reference — collected at NEXT GC cycle (regardless of memory)
+WeakReference&lt;User&gt; weakUser = new WeakReference&lt;&gt;(new User("John"));
+User u = weakUser.get();  // null after next GC
+// USE CASE: WeakHashMap (keys are weak refs), preventing memory leaks
+
+// 4. Phantom Reference — CANNOT access the object (get() always returns null)
+PhantomReference&lt;Object&gt; phantom = new PhantomReference&lt;&gt;(obj, refQueue);
+phantom.get();  // ALWAYS null
+// USE CASE: cleanup actions before final GC (better than finalize)</pre>
+<p><strong>Reference strength order:</strong></p>
+<pre>Strong > Soft > Weak > Phantom
+(hardest to collect)        (easiest to collect)</pre>
+<p><strong>WeakHashMap — common interview topic:</strong></p>
+<pre>// Keys are held as WeakReferences — entry removed when key is GC'd
+WeakHashMap&lt;Object, String&gt; map = new WeakHashMap&lt;&gt;();
+Object key = new Object();
+map.put(key, "value");
+key = null;  // no more strong refs to key
+System.gc(); // key gets collected → entry removed from map!
+map.size();  // 0</pre>
+<p><strong>ReferenceQueue — notification of collection:</strong></p>
+<pre>ReferenceQueue&lt;Object&gt; queue = new ReferenceQueue&lt;&gt;();
+WeakReference&lt;Object&gt; ref = new WeakReference&lt;&gt;(obj, queue);
+// When obj is collected, ref is enqueued in queue
+// Poll the queue to detect when objects are collected</pre>
+<div class="key-point">Trick: "Where are weak references used in practice?" — ThreadLocalMap uses WeakReferences for keys (ThreadLocal instances). If ThreadLocal is GC'd, the entry key becomes null — but the VALUE still leaks if not removed! This is why ThreadLocal.remove() is critical. Also: Guava Cache and Caffeine support weak/soft value caches.</div>`,
+        },
+        {
+          q: 'What are common causes of memory leaks in Java and how do you detect them?',
+          difficulty: 'hard',
+          a: `<p>Even with GC, Java can have memory leaks — objects that are technically reachable but no longer needed.</p>
+<p><strong>Common causes:</strong></p>
+<pre>// 1. Static collections that grow forever
+private static final List&lt;Event&gt; eventLog = new ArrayList&lt;&gt;();
+public void logEvent(Event e) { eventLog.add(e); }  // never cleaned!
+
+// 2. ThreadLocal not removed in thread pools
+threadLocal.set(largeObject);
+// Thread returns to pool → largeObject stays!
+// Fix: always call threadLocal.remove() in finally
+
+// 3. Listeners/callbacks not deregistered
+button.addActionListener(myListener);
+// If you never remove the listener, myListener (and everything it references) leaks
+
+// 4. Inner class holding reference to outer class
+class Outer {
+    byte[] data = new byte[10_000_000]; // 10MB
+    class Inner { }  // holds implicit reference to Outer!
+    // Fix: use STATIC inner class when you don't need outer ref
+}
+
+// 5. Unclosed resources (connections, streams)
+Connection conn = dataSource.getConnection();
+// If exception occurs before conn.close() → leaked connection
+// Fix: try-with-resources
+
+// 6. String.substring() in Java 6 (shared backing char[])
+// Fixed in Java 7+ — substring creates new array
+
+// 7. HashMap with mutable keys
+Map&lt;MutableKey, Value&gt; map = new HashMap&lt;&gt;();
+MutableKey key = new MutableKey(1);
+map.put(key, value);
+key.setId(2);  // hashCode changes! Entry unreachable but not GC'd
+
+// 8. ClassLoader leaks (common in app servers)
+// Old classloader kept alive by one static reference → all loaded classes leak</pre>
+<p><strong>Detection tools:</strong></p>
+<ul>
+<li><strong>Heap dump</strong>: <code>jmap -dump:live,format=b,file=heap.hprof &lt;pid&gt;</code></li>
+<li><strong>Eclipse MAT</strong>: analyze heap dumps, find dominator tree, leak suspects.</li>
+<li><strong>VisualVM / JConsole</strong>: monitor heap usage in real-time.</li>
+<li><strong>Java Flight Recorder (JFR)</strong>: low-overhead production profiling.</li>
+<li><strong>-XX:+HeapDumpOnOutOfMemoryError</strong>: auto-dump on OOM.</li>
+</ul>
+<p><strong>Detection pattern:</strong></p>
+<pre>// Signs of memory leak:
+// 1. Heap usage grows steadily over time (sawtooth with rising baseline)
+// 2. Full GC frequency increases
+// 3. Eventually: OutOfMemoryError
+
+// Diagnosis:
+// 1. Take heap dump
+// 2. Find objects with highest retained size
+// 3. Trace GC root path → find who's holding the reference
+// 4. Fix: break the reference chain</pre>
+<div class="key-point">Trick: "How is a memory leak different in Java vs C++?" — In C++, you forget to free memory. In Java, you unintentionally keep references alive. The fix is to nullify references, use WeakReferences for caches, close resources, and remove listeners. Always configure <code>-XX:+HeapDumpOnOutOfMemoryError</code> in production.</div>`,
+        },
+        {
+          q: 'What is the difference between JDK Dynamic Proxy and CGLIB Proxy?',
+          difficulty: 'hard',
+          a: `<p>Both create proxy objects at runtime — essential for understanding Spring AOP, @Transactional, lazy loading.</p>
+<pre>// JDK Dynamic Proxy — INTERFACE-based
+// Target MUST implement an interface
+public interface UserService {
+    User findById(Long id);
+}
+
+InvocationHandler handler = (proxy, method, args) -> {
+    System.out.println("Before: " + method.getName());
+    Object result = method.invoke(target, args);
+    System.out.println("After: " + method.getName());
+    return result;
+};
+
+UserService proxy = (UserService) Proxy.newProxyInstance(
+    UserService.class.getClassLoader(),
+    new Class[]{UserService.class},
+    handler
+);
+
+// CGLIB Proxy — CLASS-based (subclassing)
+// Works even without interface
+// Creates a SUBCLASS of the target class
+Enhancer enhancer = new Enhancer();
+enhancer.setSuperclass(UserServiceImpl.class);
+enhancer.setCallback((MethodInterceptor) (obj, method, args, proxy) -> {
+    System.out.println("Before: " + method.getName());
+    Object result = proxy.invokeSuper(obj, args);
+    System.out.println("After: " + method.getName());
+    return result;
+});
+UserServiceImpl proxy = (UserServiceImpl) enhancer.create();</pre>
+<table><tr><th>Feature</th><th>JDK Proxy</th><th>CGLIB</th></tr>
+<tr><td>Requires</td><td>Interface</td><td>No interface needed</td></tr>
+<tr><td>Mechanism</td><td>Implements interface</td><td>Extends target class (subclass)</td></tr>
+<tr><td>final methods</td><td>N/A</td><td>Cannot proxy (can't override final)</td></tr>
+<tr><td>final class</td><td>N/A</td><td>Cannot proxy (can't extend final)</td></tr>
+<tr><td>Performance</td><td>Slightly slower method dispatch</td><td>Faster after initial creation</td></tr>
+<tr><td>Spring default</td><td>If interface exists (Spring &lt;4)</td><td>Default since Spring Boot 2.0</td></tr></table>
+<p><strong>How Spring uses proxies:</strong></p>
+<pre>// @Transactional creates a proxy:
+@Service
+public class OrderService {
+    @Transactional
+    public void placeOrder() { }  // Proxy wraps this with TX begin/commit
+}
+
+// Self-invocation problem:
+@Service
+public class OrderService {
+    @Transactional
+    public void placeOrder() {
+        this.validateOrder();  // 'this' bypasses proxy! No TX!
+    }
+    @Transactional(propagation = REQUIRES_NEW)
+    public void validateOrder() { }
+}
+// Fix: inject self, use AopContext.currentProxy(), or move to another bean</pre>
+<div class="key-point">Trick: "Why doesn't @Transactional work on private methods?" — CGLIB creates a subclass. Private methods can't be overridden, so the proxy can't intercept them. Same for final methods/classes. "Why doesn't self-invocation trigger AOP?" — <code>this</code> refers to the raw object, not the proxy. The proxy intercept only happens when called through the proxy reference (from outside the class).</div>`,
+        },
+        {
+          q: 'What are the common Java serialization pitfalls and alternatives?',
+          difficulty: 'hard',
+          a: `<p>Java serialization (<code>Serializable</code>) converts objects to byte streams. It has many pitfalls.</p>
+<pre>// Basic serialization:
+public class User implements Serializable {
+    private static final long serialVersionUID = 1L; // Version control
+    private String name;
+    private transient String password;  // NOT serialized
+    private static int count;           // NOT serialized (static = class-level)
+}
+
+// Serialize:
+ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("user.ser"));
+oos.writeObject(user);
+
+// Deserialize:
+ObjectInputStream ois = new ObjectInputStream(new FileInputStream("user.ser"));
+User user = (User) ois.readObject();  // constructor NOT called!</pre>
+<p><strong>Critical pitfalls:</strong></p>
+<ol>
+<li><strong>serialVersionUID</strong>: If not declared, JVM generates one from class structure. ANY change to class → different UID → <code>InvalidClassException</code> during deserialization.</li>
+<li><strong>Constructor not called</strong>: Deserialization bypasses constructors → validation logic skipped!</li>
+<li><strong>Security vulnerability</strong>: Deserializing untrusted data can lead to Remote Code Execution (RCE). Attackers craft malicious byte streams using "gadget chains".</li>
+<li><strong>Inheritance issues</strong>: If parent is NOT Serializable, parent's no-arg constructor IS called during deserialization. Parent fields reset to defaults.</li>
+<li><strong>Singleton broken</strong>: Deserializing a singleton creates a NEW instance!</li>
+</ol>
+<pre>// Fix: Singleton protection
+private Object readResolve() {
+    return INSTANCE;  // Replace deserialized object with singleton
+}
+
+// Custom serialization logic:
+private void writeObject(ObjectOutputStream out) throws IOException {
+    out.defaultWriteObject();
+    out.writeObject(encrypt(sensitiveData));
+}
+private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+    in.defaultReadObject();
+    this.sensitiveData = decrypt((String) in.readObject());
+}
+
+// Serialization Proxy Pattern (Effective Java Item 90):
+private Object writeReplace() {
+    return new SerializationProxy(this);
+}
+private void readObject(ObjectInputStream in) throws InvalidObjectException {
+    throw new InvalidObjectException("Use SerializationProxy");
+}</pre>
+<p><strong>Modern alternatives to Java serialization:</strong></p>
+<ul>
+<li><strong>JSON</strong> (Jackson, Gson): human-readable, cross-language.</li>
+<li><strong>Protocol Buffers</strong> (protobuf): compact, fast, schema-based.</li>
+<li><strong>Avro</strong>: schema evolution, used in Kafka.</li>
+<li><strong>Kryo</strong>: fastest Java serialization, used in Spark.</li>
+</ul>
+<div class="key-point">Trick: "Is Serializable safe?" — No! It's a major security risk. JEP 290 (Java 9+) adds deserialization filters. Effective Java: "There is no reason to use Java serialization in any new system you write." Use JSON/protobuf instead. Enum singleton is naturally serialization-safe (only Enum.INSTANCE is ever returned).</div>`,
+        },
+        {
+          q: 'Explain Java NIO vs IO. What is the Reactor pattern?',
+          difficulty: 'hard',
+          a: `<p>Java IO is <strong>blocking and stream-based</strong>. Java NIO is <strong>non-blocking and buffer/channel-based</strong>.</p>
+<pre>// Traditional IO (java.io) — blocking, one-thread-per-connection:
+ServerSocket server = new ServerSocket(8080);
+while (true) {
+    Socket client = server.accept();  // BLOCKS until connection
+    new Thread(() -> {
+        InputStream in = client.getInputStream();  // BLOCKS on read
+        // handle request...
+    }).start();
+}
+// Problem: 10,000 connections = 10,000 threads = massive memory + context switching
+
+// NIO (java.nio) — non-blocking, single thread handles many connections:
+Selector selector = Selector.open();
+ServerSocketChannel server = ServerSocketChannel.open();
+server.configureBlocking(false);
+server.register(selector, SelectionKey.OP_ACCEPT);
+
+while (true) {
+    selector.select();  // blocks until at least one channel is ready
+    Set&lt;SelectionKey&gt; keys = selector.selectedKeys();
+    for (SelectionKey key : keys) {
+        if (key.isAcceptable()) { /* accept new connection */ }
+        if (key.isReadable())   { /* read data from channel */ }
+        if (key.isWritable())   { /* write data to channel */ }
+    }
+}</pre>
+<table><tr><th>Feature</th><th>IO (java.io)</th><th>NIO (java.nio)</th></tr>
+<tr><td>Model</td><td>Stream-based</td><td>Buffer/Channel-based</td></tr>
+<tr><td>Blocking</td><td>Always blocking</td><td>Non-blocking possible</td></tr>
+<tr><td>Threading</td><td>1 thread per connection</td><td>1 thread, many connections</td></tr>
+<tr><td>Scalability</td><td>~thousands</td><td>~millions (with epoll/kqueue)</td></tr>
+<tr><td>Use case</td><td>Simple apps, file I/O</td><td>High-concurrency servers</td></tr></table>
+<p><strong>Key NIO concepts:</strong></p>
+<ul>
+<li><strong>Buffer</strong>: Container for data (ByteBuffer). Has position, limit, capacity. flip()/clear()/compact().</li>
+<li><strong>Channel</strong>: Bidirectional data conduit (SocketChannel, FileChannel). Like a stream but supports scatter/gather.</li>
+<li><strong>Selector</strong>: Multiplexer that monitors multiple channels. One thread polls for events.</li>
+</ul>
+<p><strong>Reactor Pattern (used by Netty, Tomcat NIO, Node.js):</strong></p>
+<pre>// Single-threaded Reactor:
+[Selector/Event Loop] → detects events → dispatches to handlers
+  - Accept handler → registers new channel
+  - Read handler → reads data, processes, writes response
+
+// Multi-reactor (Netty model):
+Boss Group (1-2 threads): accepts connections
+Worker Group (N threads): handles I/O reads/writes
+Each thread has its own Selector (event loop)</pre>
+<div class="key-point">Trick: "Why not use NIO for everything?" — NIO is more complex. For file I/O, standard IO or NIO.2 (Files.readAllLines) is simpler. NIO shines for network I/O with many concurrent connections. "What does Netty add over raw NIO?" — Thread model, pipeline of handlers, zero-copy, memory pooling, protocol codecs. With Java 21 Virtual Threads, blocking IO becomes competitive again — simple code with NIO-level scalability.</div>`,
+        },
+        {
+          q: 'How do you create custom annotations and how does annotation processing work?',
+          difficulty: 'hard',
+          a: `<p>Annotations are metadata attached to code. You can create custom annotations and process them at compile-time or runtime.</p>
+<pre>// Define custom annotation:
+@Target({ElementType.METHOD, ElementType.TYPE})  // where it can be used
+@Retention(RetentionPolicy.RUNTIME)              // when it's available
+@Documented                                       // included in Javadoc
+public @interface RateLimit {
+    int maxRequests() default 100;
+    int windowSeconds() default 60;
+    String key() default "";
+}
+
+// Use it:
+@RateLimit(maxRequests = 10, windowSeconds = 30)
+public ResponseEntity&lt;List&lt;User&gt;&gt; getUsers() { ... }
+
+// Process at RUNTIME via reflection:
+Method method = clazz.getMethod("getUsers");
+if (method.isAnnotationPresent(RateLimit.class)) {
+    RateLimit rl = method.getAnnotation(RateLimit.class);
+    int max = rl.maxRequests();  // 10
+    int window = rl.windowSeconds();  // 30
+}</pre>
+<p><strong>Retention policies:</strong></p>
+<ul>
+<li><code>SOURCE</code>: discarded at compile time. For IDE/linter only (e.g., @SuppressWarnings).</li>
+<li><code>CLASS</code>: kept in .class file but NOT available at runtime. Default.</li>
+<li><code>RUNTIME</code>: available via reflection at runtime (e.g., @Transactional, @Autowired).</li>
+</ul>
+<p><strong>Compile-time annotation processing (APT):</strong></p>
+<pre>// Used by: Lombok, MapStruct, Dagger, AutoValue
+// Generates code at compile time — NO runtime overhead!
+
+@SupportedAnnotationTypes("com.example.Builder")
+public class BuilderProcessor extends AbstractProcessor {
+    @Override
+    public boolean process(Set&lt;? extends TypeElement&gt; annotations,
+                          RoundEnvironment roundEnv) {
+        for (Element element : roundEnv.getElementsAnnotatedWith(Builder.class)) {
+            // Generate builder class source code
+            JavaFileObject file = processingEnv.getFiler()
+                .createSourceFile(element + "Builder");
+            // Write generated code...
+        }
+        return true;
+    }
+}</pre>
+<p><strong>How Spring processes annotations:</strong></p>
+<pre>// Spring scans for @Component, @Service etc. at startup:
+// 1. ClassPathBeanDefinitionScanner scans packages
+// 2. Finds classes with stereotype annotations
+// 3. Creates BeanDefinition for each
+// 4. BeanPostProcessor processes @Autowired, @Value, etc.
+// 5. AOP creates proxies for @Transactional, @Cacheable, etc.</pre>
+<div class="key-point">Trick: "What's the difference between @Inherited and non-inherited annotations?" — @Inherited means subclass inherits the annotation from parent class (but NOT from interfaces!). Most annotations are NOT inherited. "Can you put annotations on local variables?" — Only with @Target(ElementType.LOCAL_VARIABLE), and only SOURCE retention is useful (runtime reflection can't access local vars).</div>`,
+        },
+        {
+          q: 'What are advanced Enum patterns in Java?',
+          difficulty: 'medium',
+          a: `<p>Java enums are far more powerful than simple constants — they're full classes that can have fields, methods, and implement interfaces.</p>
+<pre>// Strategy pattern with enum:
+public enum Operation {
+    ADD("+")      { public double apply(double a, double b) { return a + b; } },
+    SUBTRACT("-") { public double apply(double a, double b) { return a - b; } },
+    MULTIPLY("*") { public double apply(double a, double b) { return a * b; } },
+    DIVIDE("/")   { public double apply(double a, double b) { return a / b; } };
+
+    private final String symbol;
+    Operation(String symbol) { this.symbol = symbol; }
+    public abstract double apply(double a, double b);
+
+    // Usage: Operation.ADD.apply(2, 3) → 5.0
+}
+
+// State machine with enum:
+public enum OrderStatus {
+    PENDING {
+        @Override public OrderStatus next() { return CONFIRMED; }
+        @Override public boolean canCancel() { return true; }
+    },
+    CONFIRMED {
+        @Override public OrderStatus next() { return SHIPPED; }
+        @Override public boolean canCancel() { return true; }
+    },
+    SHIPPED {
+        @Override public OrderStatus next() { return DELIVERED; }
+        @Override public boolean canCancel() { return false; }
+    },
+    DELIVERED {
+        @Override public OrderStatus next() { throw new IllegalStateException(); }
+        @Override public boolean canCancel() { return false; }
+    };
+
+    public abstract OrderStatus next();
+    public abstract boolean canCancel();
+}
+
+// Enum implementing interface (for DI/strategy):
+public interface Discount {
+    double apply(double price);
+}
+public enum MemberTier implements Discount {
+    BRONZE { public double apply(double p) { return p * 0.95; } },
+    SILVER { public double apply(double p) { return p * 0.90; } },
+    GOLD   { public double apply(double p) { return p * 0.80; } };
+}
+
+// EnumSet and EnumMap — highly optimized:
+EnumSet&lt;Day&gt; weekend = EnumSet.of(Day.SATURDAY, Day.SUNDAY);  // backed by bit vector!
+EnumMap&lt;Day, String&gt; schedule = new EnumMap&lt;&gt;(Day.class);      // array-backed, fast</pre>
+<p><strong>Enum internals:</strong></p>
+<ul>
+<li>Each constant is a <code>public static final</code> instance, created once.</li>
+<li>Constructor is always private (even without explicit modifier).</li>
+<li>Thread-safe singleton by design (class loading guarantees).</li>
+<li><code>values()</code> creates a new array every call — cache it if called in hot path.</li>
+<li><code>ordinal()</code> — position index. Fragile — don't use for persistence!</li>
+</ul>
+<div class="key-point">Trick: "Can enum extend a class?" — No! Enums implicitly extend java.lang.Enum. But they CAN implement interfaces. "Is enum Singleton thread-safe?" — Yes! Class loading in JVM is thread-safe. Enum is the recommended singleton implementation (Effective Java Item 3). "What happens if you serialize/deserialize an enum?" — Only the name is serialized. Deserialization calls Enum.valueOf() → same instance. No duplication!</div>`,
+        },
+        {
+          q: 'Explain Spring AOP: how it works internally and common use cases.',
+          difficulty: 'hard',
+          a: `<p><strong>AOP (Aspect-Oriented Programming)</strong> separates cross-cutting concerns (logging, security, transactions) from business logic.</p>
+<pre>// Key AOP terminology:
+// Aspect    — the cross-cutting concern module (e.g., LoggingAspect)
+// Advice    — the action (before, after, around)
+// Pointcut  — WHERE to apply (expression matching methods)
+// JoinPoint — the actual method being intercepted
+// Weaving   — process of applying aspects (Spring uses RUNTIME weaving via proxies)
+
+@Aspect
+@Component
+public class PerformanceAspect {
+
+    // Pointcut: all methods in service package
+    @Pointcut("execution(* com.example.service.*.*(..))")
+    public void serviceMethods() {}
+
+    // Around advice — most powerful, controls method execution
+    @Around("serviceMethods()")
+    public Object measureTime(ProceedingJoinPoint pjp) throws Throwable {
+        long start = System.nanoTime();
+        try {
+            Object result = pjp.proceed();  // call actual method
+            return result;
+        } finally {
+            long elapsed = System.nanoTime() - start;
+            log.info("{}.{} took {} ms",
+                pjp.getTarget().getClass().getSimpleName(),
+                pjp.getSignature().getName(),
+                elapsed / 1_000_000);
+        }
+    }
+
+    // Before advice
+    @Before("@annotation(rateLimit)")  // matches methods with @RateLimit
+    public void checkRateLimit(RateLimit rateLimit) {
+        // check rate limit...
+    }
+
+    // AfterReturning — access return value
+    @AfterReturning(pointcut = "serviceMethods()", returning = "result")
+    public void logResult(Object result) {
+        log.info("Returned: {}", result);
+    }
+
+    // AfterThrowing — handle exceptions
+    @AfterThrowing(pointcut = "serviceMethods()", throwing = "ex")
+    public void logException(Exception ex) {
+        log.error("Exception: {}", ex.getMessage());
+    }
+}</pre>
+<p><strong>How Spring AOP works internally:</strong></p>
+<pre>// 1. At startup, Spring detects @Aspect beans
+// 2. For each bean matching a pointcut, creates a PROXY:
+//    - If bean implements interface → JDK Dynamic Proxy
+//    - If no interface → CGLIB Proxy (extends class)
+// 3. When method is called through proxy:
+//    Client → Proxy → Advice Chain → Target Method
+
+// Order of advice execution:
+@Around (before proceed) → @Before → METHOD → @AfterReturning → @After → @Around (after proceed)
+// On exception:
+@Around (before proceed) → @Before → METHOD THROWS → @AfterThrowing → @After → @Around (catch)</pre>
+<p><strong>Common pointcut expressions:</strong></p>
+<pre>execution(* com.example.service.*.*(..))  // all methods in service package
+execution(public * *(..))                  // all public methods
+@annotation(com.example.Loggable)         // methods with @Loggable
+within(com.example.service.*)              // all methods in classes in package
+bean(orderService)                         // all methods on specific bean</pre>
+<div class="key-point">Trick: "Why doesn't @Transactional work on private methods or self-invocation?" — Spring AOP is proxy-based. (1) Private methods: CGLIB can't override private methods in subclass. (2) Self-invocation: <code>this.method()</code> bypasses the proxy → no AOP advice applied. Fix: inject self via <code>@Lazy</code>, use <code>AopContext.currentProxy()</code>, or move method to another bean. AspectJ (compile-time weaving) doesn't have this limitation but is more complex to set up.</div>`,
+        },
+        {
+          q: 'How does Spring Boot auto-configuration work under the hood?',
+          difficulty: 'hard',
+          a: `<p>Spring Boot auto-configuration automatically configures beans based on classpath dependencies, properties, and existing beans.</p>
+<pre>// @SpringBootApplication combines:
+@SpringBootConfiguration  // = @Configuration
+@EnableAutoConfiguration  // triggers auto-configuration
+@ComponentScan            // scans current package + sub-packages
+
+// How it works internally:
+// 1. @EnableAutoConfiguration imports AutoConfigurationImportSelector
+// 2. It reads META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports
+//    (previously: META-INF/spring.factories)
+// 3. Each listed class is a @Configuration class with conditions
+// 4. Conditions determine if the config should be applied</pre>
+<p><strong>Key conditional annotations:</strong></p>
+<pre>@Configuration
+@ConditionalOnClass(DataSource.class)           // only if DataSource is on classpath
+@ConditionalOnMissingBean(DataSource.class)     // only if user hasn't defined one
+@ConditionalOnProperty(name = "spring.datasource.url")  // only if property set
+public class DataSourceAutoConfiguration {
+    @Bean
+    @ConditionalOnMissingBean
+    public DataSource dataSource(DataSourceProperties props) {
+        return props.initializeDataSourceBuilder().build();
+    }
+}
+
+// Available conditions:
+@ConditionalOnClass / @ConditionalOnMissingClass
+@ConditionalOnBean / @ConditionalOnMissingBean
+@ConditionalOnProperty
+@ConditionalOnWebApplication / @ConditionalOnNotWebApplication
+@ConditionalOnExpression("#{...}")  // SpEL expression</pre>
+<p><strong>Auto-configuration order and overriding:</strong></p>
+<pre>// User-defined beans ALWAYS take priority over auto-configured ones
+// (due to @ConditionalOnMissingBean)
+
+// Control auto-config order:
+@AutoConfigureAfter(DataSourceAutoConfiguration.class)
+@AutoConfigureBefore(JpaAutoConfiguration.class)
+
+// Exclude auto-configurations:
+@SpringBootApplication(exclude = {DataSourceAutoConfiguration.class})
+// or in application.properties:
+spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+
+// Debug auto-configuration decisions:
+// application.properties: debug=true
+// Shows: CONDITIONS EVALUATION REPORT (Positive/Negative matches)</pre>
+<p><strong>Creating your own starter:</strong></p>
+<pre>// 1. Create auto-configuration module:
+//    my-starter-autoconfigure/
+//      src/main/java/MyAutoConfiguration.java
+//      src/main/resources/META-INF/spring/...AutoConfiguration.imports
+
+// 2. Create starter module (just dependencies):
+//    my-starter/
+//      pom.xml → depends on my-starter-autoconfigure
+
+// 3. Users just add my-starter dependency → auto-configured!</pre>
+<div class="key-point">Trick: "How do you debug why a bean wasn't auto-configured?" — Set <code>debug=true</code> in application.properties → conditions evaluation report shows why each auto-config was or wasn't applied. "What's the loading order?" — User @Configuration > Auto-configuration. Auto-configs are last to load, so user beans always win via @ConditionalOnMissingBean.</div>`,
+        },
+        {
+          q: 'What is the N+1 problem in JPA/Hibernate and how do you solve it?',
+          difficulty: 'hard',
+          a: `<p>The <strong>N+1 problem</strong>: fetching N entities results in 1 query for the parent + N queries for each child relationship. Devastating for performance.</p>
+<pre>// Entity setup:
+@Entity
+public class Author {
+    @Id private Long id;
+    private String name;
+    @OneToMany(mappedBy = "author", fetch = FetchType.LAZY)
+    private List&lt;Book&gt; books;
+}
+
+// N+1 problem in action:
+List&lt;Author&gt; authors = authorRepo.findAll();  // 1 query: SELECT * FROM author
+for (Author a : authors) {
+    a.getBooks().size();  // N queries: SELECT * FROM book WHERE author_id = ?
+}
+// 100 authors → 101 queries! 💀</pre>
+<p><strong>Solutions:</strong></p>
+<pre>// 1. JOIN FETCH (JPQL) — most common fix
+@Query("SELECT a FROM Author a JOIN FETCH a.books")
+List&lt;Author&gt; findAllWithBooks();
+// 1 query with JOIN — all data loaded at once
+// ⚠️ Cartesian product: duplicates if multiple collections
+
+// 2. @EntityGraph — declarative fetching
+@EntityGraph(attributePaths = {"books"})
+List&lt;Author&gt; findAll();
+// Generates LEFT JOIN FETCH
+
+// 3. @BatchSize — batch lazy loading
+@OneToMany(mappedBy = "author")
+@BatchSize(size = 25)  // loads 25 authors' books in one query
+private List&lt;Book&gt; books;
+// Instead of N queries → N/25 queries
+
+// 4. Hibernate.initialize() — force loading
+Hibernate.initialize(author.getBooks());
+
+// 5. Subselect fetching
+@Fetch(FetchMode.SUBSELECT)
+private List&lt;Book&gt; books;
+// SELECT * FROM book WHERE author_id IN (SELECT id FROM author WHERE ...)
+
+// 6. DTO projection — best performance
+@Query("SELECT new com.example.AuthorDTO(a.name, b.title) " +
+       "FROM Author a JOIN a.books b")
+List&lt;AuthorDTO&gt; findAuthorBookDTOs();
+// Only fetches needed columns, no entity management overhead</pre>
+<p><strong>Fetch types and pitfalls:</strong></p>
+<ul>
+<li><code>FetchType.LAZY</code>: loads on access. Default for @OneToMany, @ManyToMany. Can cause LazyInitializationException if session is closed.</li>
+<li><code>FetchType.EAGER</code>: loads immediately with parent. Seems easy but causes N+1 on EVERY query (even when you don't need the relationship)!</li>
+</ul>
+<pre>// LazyInitializationException fix options:
+// 1. Use JOIN FETCH in the query
+// 2. @Transactional on the service method (keeps session open)
+// 3. spring.jpa.open-in-view=true (default but controversial — keeps session for entire request)
+// 4. DTO projection (no lazy loading needed)</pre>
+<div class="key-point">Trick: "Should I use EAGER fetching to avoid N+1?" — NO! EAGER is almost always wrong for collections. It loads data even when not needed, causes Cartesian product with multiple eager collections, and makes the N+1 problem WORSE (hidden). Use LAZY + explicit fetch strategy per query. Always enable <code>spring.jpa.show-sql=true</code> during development to detect N+1 problems early.</div>`,
+        },
+        {
+          q: 'What is the Java Module System (JPMS) introduced in Java 9?',
+          difficulty: 'medium',
+          a: `<p>The <strong>Java Platform Module System</strong> (Project Jigsaw) adds strong encapsulation and explicit dependencies between modules.</p>
+<pre>// module-info.java (placed at root of source tree):
+module com.example.myapp {
+    requires java.sql;                    // dependency on java.sql module
+    requires transitive com.example.lib;  // transitive: my consumers also get this
+    requires static lombok;               // optional compile-time only dependency
+
+    exports com.example.myapp.api;        // public API — accessible to other modules
+    exports com.example.myapp.spi to com.example.plugin;  // restricted export
+
+    opens com.example.myapp.model to com.fasterxml.jackson.databind;  // reflection access
+    // 'opens' allows deep reflection (needed for frameworks like Jackson, JPA)
+
+    provides com.example.spi.Plugin with com.example.myapp.MyPlugin;  // service provider
+    uses com.example.spi.Plugin;          // service consumer
+}</pre>
+<p><strong>Key concepts:</strong></p>
+<ul>
+<li><strong>exports</strong>: makes package accessible to other modules (compile-time + runtime).</li>
+<li><strong>opens</strong>: allows reflection access (runtime only). Required for frameworks that use reflection.</li>
+<li><strong>requires</strong>: declares dependency. Module won't compile/run without it.</li>
+<li><strong>requires transitive</strong>: dependency is also available to consumers of your module.</li>
+<li><strong>provides/uses</strong>: ServiceLoader API integration.</li>
+</ul>
+<p><strong>Practical impact:</strong></p>
+<pre>// Before JPMS: everything on classpath was accessible (even internal APIs)
+sun.misc.Unsafe.getUnsafe();  // worked in Java 8
+
+// After JPMS: internal APIs are encapsulated
+// java.base doesn't export sun.misc → IllegalAccessError
+
+// Quick fix flags (not recommended for production):
+--add-opens java.base/sun.misc=ALL-UNNAMED
+--add-exports java.base/sun.misc=ALL-UNNAMED
+
+// Automatic modules: JARs without module-info on module path
+// get automatic module name from JAR filename or Automatic-Module-Name manifest entry</pre>
+<p><strong>Why it matters in practice:</strong></p>
+<ul>
+<li>JDK itself is modularized (~70 modules). Can create minimal JRE with <code>jlink</code>.</li>
+<li>Libraries must explicitly open packages for reflection (affects Spring, Hibernate).</li>
+<li>Classpath still works (unnamed module) — backward compatible.</li>
+</ul>
+<div class="key-point">Trick: "Do you use modules in your project?" — Most enterprise apps still use classpath (unnamed module) because library ecosystem support is incomplete. But understanding JPMS is critical for: (1) fixing "module X does not export Y" errors, (2) understanding <code>--add-opens</code> flags, (3) building minimal Docker images with jlink. Spring Framework 6+ and Spring Boot 3+ are fully JPMS-compatible.</div>`,
+        },
+        {
+          q: 'What are common concurrency utilities in java.util.concurrent?',
+          difficulty: 'hard',
+          a: `<p>The <code>java.util.concurrent</code> package provides high-level concurrency tools beyond basic synchronized/wait/notify.</p>
+<pre>// 1. CountDownLatch — wait for N events to complete
+CountDownLatch latch = new CountDownLatch(3);  // count = 3
+// Worker threads:
+executor.submit(() -> { doWork(); latch.countDown(); });  // count: 3→2
+executor.submit(() -> { doWork(); latch.countDown(); });  // count: 2→1
+executor.submit(() -> { doWork(); latch.countDown(); });  // count: 1→0
+latch.await();  // main thread blocks until count reaches 0
+// Cannot be reused! One-shot only.
+
+// 2. CyclicBarrier — threads wait for each other (reusable)
+CyclicBarrier barrier = new CyclicBarrier(3, () -> System.out.println("All arrived!"));
+// Each thread: barrier.await(); → blocks until all 3 threads call await()
+// Then all proceed simultaneously. CAN be reused (cyclic).
+
+// 3. Semaphore — limit concurrent access (rate limiting, connection pool)
+Semaphore semaphore = new Semaphore(5);  // max 5 concurrent permits
+semaphore.acquire();  // blocks if no permit available
+try {
+    accessLimitedResource();
+} finally {
+    semaphore.release();
+}
+
+// 4. Phaser — flexible barrier (dynamic parties, phases)
+Phaser phaser = new Phaser(3);          // 3 parties
+phaser.arriveAndAwaitAdvance();         // wait for all parties at current phase
+phaser.register();                      // dynamically add party
+phaser.arriveAndDeregister();           // leave
+
+// 5. Exchanger — two threads exchange objects
+Exchanger&lt;String&gt; exchanger = new Exchanger&lt;&gt;();
+// Thread A: String fromB = exchanger.exchange("dataFromA");
+// Thread B: String fromA = exchanger.exchange("dataFromB");
+
+// 6. StampedLock (Java 8) — optimistic read locking
+StampedLock lock = new StampedLock();
+long stamp = lock.tryOptimisticRead();       // no locking! just get stamp
+int x = this.x; int y = this.y;             // read fields
+if (!lock.validate(stamp)) {                 // check if write occurred
+    stamp = lock.readLock();                 // fallback to pessimistic read
+    try { x = this.x; y = this.y; }
+    finally { lock.unlockRead(stamp); }
+}
+// Much faster than ReadWriteLock for read-heavy workloads
+
+// 7. Atomic classes — lock-free thread safety
+AtomicInteger count = new AtomicInteger(0);
+count.incrementAndGet();                     // atomic i++
+count.compareAndSet(expected, newValue);     // CAS operation
+AtomicReference&lt;Node&gt; head = new AtomicReference&lt;&gt;();
+// LongAdder — better than AtomicLong for high-contention counters
+LongAdder adder = new LongAdder();
+adder.increment(); adder.sum();</pre>
+<table><tr><th>Tool</th><th>Use Case</th><th>Reusable?</th></tr>
+<tr><td>CountDownLatch</td><td>Wait for N tasks to finish</td><td>No</td></tr>
+<tr><td>CyclicBarrier</td><td>Threads synchronize at a point</td><td>Yes</td></tr>
+<tr><td>Semaphore</td><td>Limit concurrent access</td><td>Yes</td></tr>
+<tr><td>Phaser</td><td>Multi-phase synchronization</td><td>Yes</td></tr>
+<tr><td>StampedLock</td><td>Optimistic reads</td><td>Yes</td></tr></table>
+<div class="key-point">Trick: "CountDownLatch vs CyclicBarrier?" — Latch: one-shot, N threads count down and one/many threads await. Barrier: reusable, N threads wait for each other then proceed together. "When to use LongAdder over AtomicLong?" — When many threads frequently update the counter (high contention). LongAdder uses striping (multiple cells) to reduce CAS failures. Sum is only guaranteed accurate when no concurrent updates.</div>`,
+        },
+        {
+          q: 'Explain Spring Boot exception handling: @ControllerAdvice and error responses.',
+          difficulty: 'medium',
+          a: `<p>Spring Boot provides layered exception handling for clean error responses without try-catch in every controller.</p>
+<pre>// Global exception handler:
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    // Handle specific exception
+    @ExceptionHandler(ResourceNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ErrorResponse handleNotFound(ResourceNotFoundException ex, WebRequest request) {
+        return new ErrorResponse(
+            LocalDateTime.now(),
+            HttpStatus.NOT_FOUND.value(),
+            "Not Found",
+            ex.getMessage(),
+            request.getDescription(false)
+        );
+    }
+
+    // Handle validation errors (from @Valid)
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleValidation(MethodArgumentNotValidException ex) {
+        Map&lt;String, String&gt; errors = ex.getBindingResult().getFieldErrors().stream()
+            .collect(Collectors.toMap(
+                FieldError::getField,
+                FieldError::getDefaultMessage,
+                (a, b) -> a  // merge function for duplicate keys
+            ));
+        return new ErrorResponse(400, "Validation Failed", errors);
+    }
+
+    // Handle all other exceptions (fallback)
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ErrorResponse handleAll(Exception ex) {
+        log.error("Unhandled exception", ex);
+        return new ErrorResponse(500, "Internal Server Error", "An unexpected error occurred");
+        // Never expose stack traces to client in production!
+    }
+}
+
+// Custom exception with HTTP status:
+@ResponseStatus(HttpStatus.NOT_FOUND)  // auto-maps to 404
+public class ResourceNotFoundException extends RuntimeException {
+    public ResourceNotFoundException(String resource, Long id) {
+        super(resource + " not found with id: " + id);
+    }
+}
+
+// Error response DTO:
+public record ErrorResponse(
+    LocalDateTime timestamp,
+    int status,
+    String error,
+    Object message,
+    String path
+) {}</pre>
+<p><strong>Exception handling priority order:</strong></p>
+<ol>
+<li><code>@ExceptionHandler</code> in the same controller</li>
+<li><code>@ExceptionHandler</code> in <code>@ControllerAdvice</code></li>
+<li>Spring's default error handling (BasicErrorController)</li>
+</ol>
+<p><strong>Spring Boot 3+ Problem Details (RFC 7807):</strong></p>
+<pre>// Enable in application.properties:
+spring.mvc.problemdetails.enabled=true
+
+// Produces standard format:
+{
+  "type": "https://example.com/errors/not-found",
+  "title": "Not Found",
+  "status": 404,
+  "detail": "User not found with id: 42",
+  "instance": "/api/users/42"
+}</pre>
+<div class="key-point">Trick: "What's the difference between @ControllerAdvice and @RestControllerAdvice?" — @RestControllerAdvice = @ControllerAdvice + @ResponseBody (returns JSON by default). "Should you use checked or unchecked exceptions in Spring?" — Unchecked (RuntimeException) is preferred: Spring @Transactional only rolls back on unchecked exceptions by default. For checked exceptions, use rollbackFor attribute.</div>`,
+        },
+        {
+          q: 'What is the difference between Spring MVC request processing lifecycle?',
+          difficulty: 'medium',
+          a: `<p>Understanding the full request lifecycle helps debug issues and implement custom interceptors/filters.</p>
+<pre>// Full request processing pipeline:
+
+Client Request
+    ↓
+[Servlet Container (Tomcat)]
+    ↓
+[Filter Chain] → SecurityFilter → CorsFilter → ... → DispatcherServlet
+    ↓
+[DispatcherServlet] (Front Controller pattern)
+    ↓
+[HandlerMapping] → finds which controller/method handles the URL
+    ↓
+[HandlerInterceptor.preHandle()] → logging, auth checks, etc.
+    ↓
+[HandlerAdapter] → invokes the controller method
+    ↓
+[ArgumentResolvers] → @RequestBody, @PathVariable, @RequestParam → method params
+    ↓
+[Controller Method] → business logic → returns ResponseEntity / object
+    ↓
+[ReturnValueHandlers] → converts return value
+    ↓
+[HttpMessageConverter] → object → JSON (Jackson) / XML
+    ↓
+[HandlerInterceptor.postHandle()]
+    ↓
+[HandlerInterceptor.afterCompletion()]
+    ↓
+Response to Client</pre>
+<p><strong>Filter vs Interceptor vs AOP:</strong></p>
+<table><tr><th>Aspect</th><th>Filter</th><th>Interceptor</th><th>AOP</th></tr>
+<tr><td>Level</td><td>Servlet (before Spring)</td><td>Spring MVC</td><td>Method-level</td></tr>
+<tr><td>Access to</td><td>Request/Response only</td><td>Handler + ModelAndView</td><td>Method args + return</td></tr>
+<tr><td>Use case</td><td>Security, CORS, compression</td><td>Logging, locale, auth</td><td>Transactions, caching</td></tr>
+<tr><td>Interface</td><td>javax.servlet.Filter</td><td>HandlerInterceptor</td><td>@Aspect</td></tr></table>
+<pre>// Custom Interceptor:
+@Component
+public class RequestTimingInterceptor implements HandlerInterceptor {
+    @Override
+    public boolean preHandle(HttpServletRequest req, HttpServletResponse res,
+                            Object handler) {
+        req.setAttribute("startTime", System.nanoTime());
+        return true;  // true = continue, false = abort
+    }
+    @Override
+    public void afterCompletion(HttpServletRequest req, HttpServletResponse res,
+                               Object handler, Exception ex) {
+        long start = (Long) req.getAttribute("startTime");
+        log.info("{} {} took {}ms", req.getMethod(), req.getRequestURI(),
+                (System.nanoTime() - start) / 1_000_000);
+    }
+}
+
+// Register interceptor:
+@Configuration
+public class WebConfig implements WebMvcConfigurer {
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(new RequestTimingInterceptor())
+                .addPathPatterns("/api/**")
+                .excludePathPatterns("/api/health");
+    }
+}</pre>
+<div class="key-point">Trick: "Filter vs Interceptor — when to use which?" — Filters work at servlet level (before Spring MVC, can modify raw request/response). Interceptors work at Spring MVC level (have access to handler method info). Use Filter for: security (Spring Security), CORS, request wrapping. Use Interceptor for: logging, authorization checks that need handler info, locale/theme resolution.</div>`,
+        },
+        {
+          q: 'What are the key differences between Spring Framework 5/6 and common migration issues?',
+          difficulty: 'hard',
+          a: `<p>Understanding Spring evolution is crucial for senior developers working on migrations and architecture decisions.</p>
+<p><strong>Spring 5 → Spring 6 / Spring Boot 2 → Boot 3 major changes:</strong></p>
+<ul>
+<li><strong>Jakarta EE</strong>: <code>javax.*</code> → <code>jakarta.*</code> (biggest migration pain point!)</li>
+<li><strong>Java baseline</strong>: Spring 6 requires Java 17+.</li>
+<li><strong>Native compilation</strong>: GraalVM native image support (AOT compilation).</li>
+<li><strong>Observability</strong>: Micrometer Observation API replaces custom metrics.</li>
+<li><strong>HTTP Client</strong>: RestTemplate → WebClient (reactive) → RestClient (Spring 6.1, blocking).</li>
+<li><strong>Security</strong>: <code>WebSecurityConfigurerAdapter</code> removed → use SecurityFilterChain bean.</li>
+</ul>
+<pre>// Spring Security migration:
+// OLD (Boot 2):
+@Configuration
+public class SecurityConfig extends WebSecurityConfigurerAdapter {
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http.authorizeRequests()
+            .antMatchers("/api/**").authenticated();
+    }
+}
+
+// NEW (Boot 3):
+@Configuration
+public class SecurityConfig {
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http.authorizeHttpRequests(auth -> auth
+            .requestMatchers("/api/**").authenticated()
+        );
+        return http.build();
+    }
+}
+
+// Jakarta namespace change:
+// javax.servlet.* → jakarta.servlet.*
+// javax.persistence.* → jakarta.persistence.*
+// javax.validation.* → jakarta.validation.*
+// javax.annotation.* → jakarta.annotation.*</pre>
+<p><strong>Spring WebFlux (Reactive) vs Spring MVC:</strong></p>
+<pre>// Spring MVC: thread-per-request, blocking (simple, familiar)
+@GetMapping("/users/{id}")
+public User getUser(@PathVariable Long id) {
+    return userService.findById(id);  // blocks thread until DB responds
+}
+
+// Spring WebFlux: event-loop, non-blocking (scalable, complex)
+@GetMapping("/users/{id}")
+public Mono&lt;User&gt; getUser(@PathVariable Long id) {
+    return userService.findById(id);  // returns immediately, data flows later
+}
+// Mono = 0 or 1 element, Flux = 0 to N elements
+
+// When to use WebFlux:
+// - High concurrency with I/O-bound operations (10K+ concurrent connections)
+// - Streaming data (SSE, WebSocket)
+// - Microservice gateway (Spring Cloud Gateway uses WebFlux)
+// When NOT to use: blocking dependencies (JDBC), simple CRUD, team unfamiliar with reactive</pre>
+<div class="key-point">Trick: "Should you migrate to WebFlux?" — Probably not for most apps. Spring MVC + Virtual Threads (Java 21) gives you similar scalability with simpler code. WebFlux is best for: streaming, high-concurrency gateways, and when your entire stack is non-blocking (R2DBC, reactive Redis, etc.). "What's the biggest Boot 3 migration issue?" — javax→jakarta namespace change. Use OpenRewrite automated refactoring tool.</div>`,
+        },
+        {
+          q: 'What are microservice design patterns: Circuit Breaker, Saga, and CQRS?',
+          difficulty: 'hard',
+          a: `<p>Essential patterns for distributed systems — frequently asked in senior/architect interviews.</p>
+<p><strong>1. Circuit Breaker (Resilience4j / Netflix Hystrix):</strong></p>
+<pre>// Problem: Service B is down. Service A keeps calling → cascading failure.
+// Solution: Circuit Breaker monitors failures and "trips" to prevent calls.
+
+// States: CLOSED → OPEN → HALF_OPEN
+// CLOSED:    requests pass through, failures counted
+// OPEN:      requests fail FAST (no actual call), after timeout → HALF_OPEN
+// HALF_OPEN: limited test requests; if success → CLOSED, if fail → OPEN
+
+@CircuitBreaker(name = "userService", fallbackMethod = "getUserFallback")
+public User getUser(Long id) {
+    return userServiceClient.getUser(id);  // may fail
+}
+public User getUserFallback(Long id, Exception ex) {
+    return new User(id, "Unknown", "Service unavailable");  // graceful degradation
+}
+
+// Resilience4j config:
+resilience4j.circuitbreaker:
+  instances:
+    userService:
+      failureRateThreshold: 50        # trip when 50% of calls fail
+      waitDurationInOpenState: 60s    # wait before trying again
+      slidingWindowSize: 10           # evaluate last 10 calls</pre>
+<p><strong>2. Saga Pattern (distributed transactions):</strong></p>
+<pre>// Problem: Order spans multiple services (Order, Payment, Inventory).
+// Can't use single @Transactional across services!
+
+// Choreography Saga (event-driven):
+OrderService → publishes "OrderCreated" event
+PaymentService → listens, charges card, publishes "PaymentCompleted"
+InventoryService → listens, reserves stock, publishes "StockReserved"
+// If any step fails → publish compensating events to rollback
+
+// Orchestration Saga (central coordinator):
+SagaOrchestrator:
+  Step 1: createOrder() → success → Step 2
+  Step 2: chargePayment() → success → Step 3
+  Step 3: reserveStock() → FAIL → compensate:
+    → refundPayment()
+    → cancelOrder()
+
+// Each service has:
+// - Action: the forward operation
+// - Compensation: the rollback operation (must be idempotent!)</pre>
+<p><strong>3. CQRS (Command Query Responsibility Segregation):</strong></p>
+<pre>// Problem: Read and write models have different needs.
+// Reads need: fast queries, denormalized data, complex joins.
+// Writes need: validation, consistency, normalized data.
+
+// Solution: Separate read and write models.
+Command Side (Write):              Query Side (Read):
+┌─────────────────┐               ┌──────────────────┐
+│ Command Handler │               │  Query Handler   │
+│ (validation,    │               │  (simple reads,  │
+│  business rules)│               │   optimized)     │
+│       ↓         │               │       ↓          │
+│ Write Database  │──events──→    │ Read Database    │
+│ (normalized)    │               │ (denormalized,   │
+└─────────────────┘               │  materialized    │
+                                  │  views)          │
+                                  └──────────────────┘
+
+// Often combined with Event Sourcing:
+// Instead of storing current state, store all events:
+// OrderCreated → ItemAdded → ItemRemoved → OrderConfirmed
+// Rebuild state by replaying events.</pre>
+<p><strong>Other essential patterns:</strong></p>
+<ul>
+<li><strong>API Gateway</strong>: single entry point, routing, auth, rate limiting (Spring Cloud Gateway).</li>
+<li><strong>Service Discovery</strong>: services register/find each other (Eureka, Consul, K8s DNS).</li>
+<li><strong>Bulkhead</strong>: isolate failures to prevent cascading (separate thread pools per dependency).</li>
+<li><strong>Event-Driven</strong>: async communication via message broker (Kafka, RabbitMQ).</li>
+<li><strong>Outbox Pattern</strong>: reliable event publishing (write event to DB table → CDC → message broker).</li>
+</ul>
+<div class="key-point">Trick: "When NOT to use microservices?" — Small teams, simple domains, early-stage products. Start monolith, extract services at boundaries when scaling demands it. "What's the difference between Saga choreography vs orchestration?" — Choreography: decoupled, no single point of failure, but hard to track/debug. Orchestration: easier to understand and debug, but orchestrator is a single point of failure. Choose based on complexity.</div>`,
+        },
+        {
+          q: 'What is the difference between optimistic and pessimistic locking in JPA/databases?',
+          difficulty: 'hard',
+          a: `<p>Concurrency control strategies for preventing lost updates when multiple transactions modify the same data.</p>
+<pre>// OPTIMISTIC LOCKING — "hope for the best, detect conflicts"
+// Uses a version column. No DB locks held during read.
+@Entity
+public class Product {
+    @Id private Long id;
+    private String name;
+    private int quantity;
+    @Version private int version;  // incremented on each update
+}
+
+// How it works:
+// TX1: reads Product (version=1)
+// TX2: reads Product (version=1)
+// TX1: updates quantity, version=2 → SUCCESS
+// TX2: updates quantity, version=2 → FAIL! OptimisticLockException
+//      (because version is now 2, not 1 as TX2 expected)
+
+// SQL generated:
+// UPDATE product SET quantity=?, version=2 WHERE id=? AND version=1
+// If 0 rows updated → version mismatch → throw exception
+
+// Handle the exception:
+try {
+    productRepo.save(product);
+} catch (OptimisticLockingFailureException ex) {
+    // Retry: re-read, re-apply changes, save again
+    Product fresh = productRepo.findById(product.getId()).get();
+    fresh.setQuantity(fresh.getQuantity() - orderQty);
+    productRepo.save(fresh);
+}
+
+// PESSIMISTIC LOCKING — "lock first, then work"
+// Acquires DB lock immediately. Other transactions must wait.
+@Query("SELECT p FROM Product p WHERE p.id = :id")
+@Lock(LockModeType.PESSIMISTIC_WRITE)  // SELECT ... FOR UPDATE
+Optional&lt;Product&gt; findByIdForUpdate(@Param("id") Long id);
+
+// Lock modes:
+// PESSIMISTIC_READ:  shared lock (others can read, not write)
+// PESSIMISTIC_WRITE: exclusive lock (others can't read or write)
+// PESSIMISTIC_FORCE_INCREMENT: exclusive lock + increment version</pre>
+<table><tr><th>Aspect</th><th>Optimistic</th><th>Pessimistic</th></tr>
+<tr><td>Lock held</td><td>None during read</td><td>DB lock from read until commit</td></tr>
+<tr><td>Conflict detection</td><td>At commit time</td><td>At read time (waits/blocks)</td></tr>
+<tr><td>Best for</td><td>Low contention, read-heavy</td><td>High contention, short TXs</td></tr>
+<tr><td>Scalability</td><td>High (no locks)</td><td>Lower (locks block others)</td></tr>
+<tr><td>Failure mode</td><td>Exception → retry</td><td>Timeout → deadlock possible</td></tr>
+<tr><td>Use case</td><td>Web forms, REST APIs</td><td>Inventory, financial transfers</td></tr></table>
+<div class="key-point">Trick: "Which locking do you use by default?" — Optimistic. It scales better and most web apps have low write contention. Use pessimistic only for critical operations like financial transfers or inventory where you MUST guarantee consistency and can't afford retry logic. "Does @Version work with native queries?" — No! Native queries bypass JPA versioning. You must manually add <code>WHERE version = ?</code> and check affected rows.</div>`,
+        },
+        {
+          q: 'What are Java best practices for writing production-quality code?',
+          difficulty: 'medium',
+          a: `<p>Senior developers are expected to write code that is maintainable, performant, and production-ready.</p>
+<p><strong>Effective Java key items (Joshua Bloch):</strong></p>
+<pre>// 1. Use static factory methods instead of constructors
+public static Optional&lt;User&gt; of(String name) { }  // descriptive name, can return subtypes
+
+// 2. Use builders for many parameters
+User user = User.builder().name("John").age(30).email("j@x.com").build();
+
+// 3. Enforce immutability
+public record Point(int x, int y) {}  // or: final class, final fields, no setters
+
+// 4. Prefer composition over inheritance
+class Stack&lt;E&gt; {
+    private final List&lt;E&gt; list = new ArrayList&lt;&gt;();  // composition, not extends ArrayList
+}
+
+// 5. Use interfaces for types, not classes
+List&lt;String&gt; list = new ArrayList&lt;&gt;();  // program to interface
+// NOT: ArrayList&lt;String&gt; list = new ArrayList&lt;&gt;();
+
+// 6. Return empty collections, not null
+public List&lt;User&gt; findUsers() {
+    return users != null ? users : Collections.emptyList();
+}
+
+// 7. Use try-with-resources for ALL AutoCloseable resources
+// 8. Prefer Optionals over null returns for methods that might not have a value
+// 9. Minimize mutability — make fields final unless there's a reason not to</pre>
+<p><strong>Performance best practices:</strong></p>
+<pre>// String concatenation in loops — use StringBuilder
+StringBuilder sb = new StringBuilder(estimatedSize);
+for (String s : list) { sb.append(s); }
+
+// Collection sizing — preallocate
+new ArrayList&lt;&gt;(expectedSize);
+new HashMap&lt;&gt;(expectedSize * 4 / 3 + 1);  // avoid resizing
+
+// Avoid boxing/unboxing in hot loops
+IntStream.range(0, n)...  // not Stream&lt;Integer&gt;
+
+// Use appropriate collection
+EnumMap/EnumSet for enum keys (array-backed, fastest)
+ArrayDeque for stack/queue (not Stack/LinkedList)
+
+// Database: batch operations, pagination, connection pooling
+// Lazy initialization only when construction is expensive AND often not needed</pre>
+<p><strong>Error handling practices:</strong></p>
+<pre>// 1. Catch specific exceptions, not Exception/Throwable
+// 2. Don't swallow exceptions silently
+catch (IOException e) {
+    log.error("Failed to read file: {}", path, e);  // log WITH stack trace
+    throw new ServiceException("File read failed", e);  // wrap and rethrow
+}
+
+// 3. Use custom exceptions for business logic
+public class InsufficientFundsException extends RuntimeException { }
+
+// 4. Validate at system boundaries (API endpoints, deserialization)
+// 5. Use @Valid + Bean Validation for input validation
+// 6. Never expose internal errors to clients (stack traces, SQL, etc.)</pre>
+<div class="key-point">Trick interview questions: "What's wrong with returning null?" — Forces every caller to null-check, NPE if they forget. Use Optional, empty collections, or Null Object pattern. "Is creating exceptions expensive?" — Yes! <code>fillInStackTrace()</code> is costly. For control flow exceptions (expected cases), consider pre-created exceptions with no stack trace: <code>throw PREBUILT_EXCEPTION;</code> or override <code>fillInStackTrace()</code> to return <code>this</code>.</div>`,
+        },
+        {
+          q: 'What are the key Java 17 to 21 features that matter for production?',
+          difficulty: 'medium',
+          a: `<p>Modern Java features that are actively used in production (beyond the basics covered earlier).</p>
+<p><strong>Java 17 (LTS) features:</strong></p>
+<pre>// Sealed classes (covered separately)
+// Pattern matching for instanceof (covered separately)
+
+// Enhanced pseudo-random number generators:
+RandomGenerator rng = RandomGeneratorFactory.of("L64X128MixRandom").create();
+
+// Deprecations: Security Manager, Applet API, RMI Activation</pre>
+<p><strong>Java 21 (LTS) features:</strong></p>
+<pre>// 1. Virtual Threads (covered separately) — game changer for I/O apps
+
+// 2. Sequenced Collections — finally! first/last access for all ordered collections
+SequencedCollection&lt;String&gt; list = new ArrayList&lt;&gt;(List.of("a", "b", "c"));
+list.getFirst();           // "a"
+list.getLast();            // "c"
+list.reversed();           // reversed view: ["c", "b", "a"]
+// Also: SequencedSet, SequencedMap (pollFirstEntry, pollLastEntry)
+
+// 3. Record Patterns (destructuring):
+record Point(int x, int y) {}
+if (obj instanceof Point(int x, int y)) {
+    System.out.println(x + ", " + y);  // destructured!
+}
+// In switch:
+switch (shape) {
+    case Circle(Point(var x, var y), var r) -> drawCircle(x, y, r);
+}
+
+// 4. Pattern matching for switch (finalized):
+String format(Object obj) {
+    return switch (obj) {
+        case Integer i when i > 0 -> "positive: " + i;
+        case Integer i            -> "non-positive: " + i;
+        case String s             -> "string: " + s;
+        case null                 -> "null";
+        default                   -> "other: " + obj;
+    };
+}
+
+// 5. String templates (Preview in 21, refined in later versions):
+String name = "World";
+// String msg = STR."Hello \\{name}!";  // "Hello World!"
+
+// 6. Scoped Values (Preview) — replacement for ThreadLocal with Virtual Threads:
+ScopedValue&lt;User&gt; CURRENT_USER = ScopedValue.newInstance();
+ScopedValue.where(CURRENT_USER, user).run(() -> {
+    // CURRENT_USER.get() available here
+    // automatically cleaned up, no leaks!
+});
+
+// 7. Structured Concurrency (Preview):
+try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
+    Subtask&lt;User&gt; user = scope.fork(() -> findUser(id));
+    Subtask&lt;Order&gt; order = scope.fork(() -> findOrder(id));
+    scope.join();           // wait for both
+    scope.throwIfFailed();  // propagate exceptions
+    return new Response(user.get(), order.get());
+}
+// If one fails, the other is automatically cancelled!</pre>
+<p><strong>Migration path recommendation:</strong></p>
+<pre>// Java 8 → 11 → 17 → 21 (LTS to LTS)
+// Key breaking changes per version:
+// 8→9:   Module system, internal API encapsulation
+// 9→11:  var, HTTP client, String methods, removed Java EE modules
+// 11→17: Sealed classes, records, pattern matching (instanceof)
+// 17→21: Virtual threads, sequenced collections, pattern matching (switch)</pre>
+<div class="key-point">Trick: "Which Java version should a new project use?" — Java 21 (latest LTS). It has virtual threads, modern syntax, and 3+ years of support. "What's the biggest benefit of upgrading?" — Virtual threads (Java 21) can replace reactive frameworks for I/O-heavy apps with much simpler code. Performance also improves ~5-10% per major version due to JIT improvements.</div>`,
         },
       ],
     },
