@@ -30,7 +30,18 @@ function buildNav() {
     topicNav.appendChild(a);
   });
 }
-
+function copyContent(id) {
+  const el = document.getElementById(id);
+  if (el) {
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+    document.execCommand('copy');
+    sel.removeAllRanges();
+  }
+}
 // ---- Build content cards ----
 function buildContent() {
   contentDiv.innerHTML = '';
@@ -55,8 +66,8 @@ function buildContent() {
       card.innerHTML = `
         <div class="card-header" role="button" tabindex="0">
           <span class="num">${globalNum}</span>
-          <span class="question">${item.q}</span>
-          <span class="diff diff-${item.difficulty}">${item.difficulty}</span>
+          <span class="question" id="question-${globalNum}">${item.q}</span>
+          <span class="diff diff-${item.difficulty}"><button onclick="copyContent('question-${globalNum}')">📋</button> ${item.difficulty}</span>
           <span class="arrow">▼</span>
         </div>
         <div class="answer">${item.a}</div>`;
