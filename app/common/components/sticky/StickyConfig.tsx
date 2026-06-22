@@ -12,7 +12,16 @@ import {
   KEY_SHOW_LOADING,
 } from '../../common';
 import { usePracticeContext } from '../../hooks/usePracticeStore';
-import { SHEET_LIST, STORE_ALIAS, type DataItem } from '@/app/common/hooks/useSheetData';
+import {
+  SHEET_LIST,
+  STORE_ALIAS,
+  getStoreList,
+  addStore,
+  removeStore,
+  renameStore,
+  type DataItem,
+  type SheetItem,
+} from '@/app/common/hooks/useSheetData';
 import { SHEET_AUTO } from '../SheetDataEditor';
 import Notify from '@/app/notify/Notify';
 
@@ -82,7 +91,11 @@ const StickyConfig = forwardRef<StickyConfigHandle, StickyConfigProps>(
     const [showLoading, setShowLoading] = useState<string>(
       () => getStoredValue(KEY_SHOW_LOADING) ?? 'Y',
     );
-    const [storeIndex, setStoreIndex] = useState<string>(`${STORE_ALIAS}1`);
+    const [storeList, setStoreList] = useState<SheetItem[]>(() => getStoreList());
+    const [storeIndex, setStoreIndex] = useState<string>(
+      () => getStoreList()[0]?.range ?? `${STORE_ALIAS}1`,
+    );
+    const [newStoreName, setNewStoreName] = useState<string>('');
 
     // ── Persist API keys to localStorage ────────────────
     useEffect(() => {
@@ -131,6 +144,34 @@ const StickyConfig = forwardRef<StickyConfigHandle, StickyConfigProps>(
     const onClearStore = () => {
       if (!storeIndex) return;
       localStorage.setItem(storeIndex, JSON.stringify([]));
+    };
+
+    // ── Custom Store management ──────────────────────────
+    const handleAddCustomStore = () => {
+      const next = addStore(newStoreName);
+      setStoreList(next);
+      setNewStoreName('');
+      // Select the newly added store
+      const added = next[next.length - 1];
+      if (added) setStoreIndex(added.range);
+    };
+
+    const handleRemoveCustomStore = (range: string) => {
+      const next = removeStore(range);
+      setStoreList(next);
+      if (storeIndex === range) {
+        setStoreIndex(next[0]?.range ?? '');
+      }
+    };
+
+    const handleRenameCustomStore = (range: string, name: string) => {
+      // Update local state immediately so the input stays responsive,
+      // then persist the change to localStorage.
+      const next = storeList.map((store) =>
+        store.range === range ? { ...store, name } : store,
+      );
+      setStoreList(next);
+      renameStore(range, name);
     };
 
     const handleCheckboxDarkChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -280,7 +321,7 @@ const StickyConfig = forwardRef<StickyConfigHandle, StickyConfigProps>(
                         }
                       }}
                     >
-                      {[...SHEET_AUTO, ...SHEET_LIST].map((option) => (
+                      {[...SHEET_AUTO, ...storeList, ...SHEET_LIST].map((option) => (
                         <option key={option.range} value={option.range}>
                           {option.name}
                         </option>
@@ -377,15 +418,83 @@ const StickyConfig = forwardRef<StickyConfigHandle, StickyConfigProps>(
                         setStoreIndex(e.target.value);
                       }}
                     >
-                      <option value={`${STORE_ALIAS}1`}>Store1</option>
-                      <option value={`${STORE_ALIAS}2`}>Store2</option>
-                      <option value={`${STORE_ALIAS}3`}>Store3</option>
+                      {storeList.map((store) => (
+                        <option key={store.range} value={store.range}>
+                          {store.name}
+                        </option>
+                      ))}
                     </select>
                     <button className="common-btn" onClick={onAddStore}>
                       Add
                     </button>
                     <button className="common-btn" onClick={onClearStore}>
                       Clear
+                    </button>
+                  </div>
+                </div>
+              </div>
+            }
+            {/* ─── Custom Store Section ─── */}
+            {
+              <div className="sticky-config-section">
+                <div
+                  className="common-toggle"
+                  onClick={() => toggleCollapse('sticky-custom-store')}
+                >
+                  Custom Store
+                </div>
+                <div className="collapse-content" id="sticky-custom-store">
+                  {storeList.length === 0 && (
+                    <div className="sticky-config-row">
+                      <span className="sticky-config-label">No stores yet.</span>
+                    </div>
+                  )}
+                  {storeList.map((store) => (
+                    <div className="sticky-config-row" key={store.range}>
+                      <input
+                        className="common-input inline"
+                        type="text"
+                        value={store.name}
+                        placeholder="Display name"
+                        onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                          handleRenameCustomStore(store.range, e.target.value)
+                        }
+                      />
+                      <span className="sticky-config-count">
+                        {(() => {
+                          const raw =
+                            typeof window !== 'undefined'
+                              ? localStorage.getItem(store.range)
+                              : null;
+                          try {
+                            const parsed = raw ? JSON.parse(raw) : [];
+                            return Array.isArray(parsed) ? parsed.length : 0;
+                          } catch {
+                            return 0;
+                          }
+                        })()}
+                      </span>
+                      <button
+                        className="common-btn"
+                        title="Delete store"
+                        onClick={() => handleRemoveCustomStore(store.range)}
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  ))}
+                  <div className="sticky-config-row">
+                    <input
+                      className="common-input inline"
+                      type="text"
+                      value={newStoreName}
+                      placeholder="New store name"
+                      onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                        setNewStoreName(e.target.value)
+                      }
+                    />
+                    <button className="common-btn" onClick={handleAddCustomStore}>
+                      Add Store
                     </button>
                   </div>
                 </div>

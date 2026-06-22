@@ -5,7 +5,7 @@ import './style.css';
 import { FaVolumeUp, FaVolumeMute, FaTrash, FaExchangeAlt, FaSyncAlt } from 'react-icons/fa';
 import VoiceToText from '@/app/common/components/VoiceToText';
 import AIBoard from '@/app/common/components/AIBoard';
-import { DataItem, STORE_ALIAS, onRemoveStoreItem } from '@/app/common/hooks/useSheetData';
+import { DataItem, STORE_ALIAS, getStoreList, onRemoveStoreItem } from '@/app/common/hooks/useSheetData';
 
 import { validateArrStrCheck, arrStrCheckToStr } from '@/common/common';
 import { usePracticeContext, toSpeechConfig } from '../common/hooks/usePracticeStore';
@@ -46,6 +46,7 @@ const PractWords = (props: PractWordsProps) => {
   const [remainCount, setRemainCount] = useState<number>(0);
   const [currEng, setCurrEng] = useState<string | null>(null);
   const [message, setMessage] = useState<string>('');
+  const [targetStore, setTargetStore] = useState<string>(() => getStoreList()[0]?.range ?? '');
   const inputAns = useRef<HTMLInputElement>(null);
   const { speakText } = useSpeechSynthesis();
 
@@ -350,9 +351,47 @@ const PractWords = (props: PractWordsProps) => {
                 setMessage(`💾 Saved ${arrLineTemp.length} items to ${practiceState.sheet}`);
               }}
             >
-              💾 Save to Store
+              💾 Overwrite current sheet
             </button>
           )}
+          <br />
+
+          <button
+            className="common-btn"
+            onClick={() => {
+              if (!currEng) return;
+              if (!targetStore) {
+                setMessage('⚠️ No store selected');
+                return;
+              }
+              const currItem = practiceState.items.find((it) => it.eng === currEng);
+              if (!currItem) return;
+              const storeName =
+                getStoreList().find((s) => s.range === targetStore)?.name ?? targetStore;
+              const storeDataString = localStorage.getItem(targetStore);
+              const storeData: DataItem[] = storeDataString ? JSON.parse(storeDataString) : [];
+              if (storeData.some((it) => it.eng === currItem.eng)) {
+                setMessage(`⚠️ ${currEng} already in ${storeName}`);
+                return;
+              }
+              storeData.push(currItem);
+              localStorage.setItem(targetStore, JSON.stringify(storeData));
+              setMessage(`➕ Added ${currEng} to ${storeName}`);
+            }}
+          >
+            ➕ Add to Store
+          </button>
+          <select
+            className="common-input inline"
+            value={targetStore}
+            onChange={(e) => setTargetStore(e.target.value)}
+          >
+            {getStoreList().map((store) => (
+              <option key={store.range} value={store.range}>
+                {store.name}
+              </option>
+            ))}
+          </select>
           <br />
         </div>
       )}

@@ -10,7 +10,7 @@ import {
 } from 'react';
 import './style-noti.css';
 import _, { set } from 'lodash';
-import { DataItem, getDataFromExcel, SHEET_LIST } from '@/app/common/hooks/useSheetData';
+import { DataItem, getDataFromExcel, getStoreList, SHEET_LIST } from '@/app/common/hooks/useSheetData';
 import { SHEET_AUTO } from '@/app/common/components/SheetDataEditor';
 import { useSpeechSynthesis } from '@/app/common/hooks/useSpeechSynthesis';
 import { FaVolumeUp, FaEyeSlash } from 'react-icons/fa';
@@ -318,7 +318,7 @@ const Notify = (): ReactElement => {
           value={sheet}
           onChange={(e: ChangeEvent<HTMLSelectElement>) => setSheet(e.target.value)}
         >
-          {[...SHEET_AUTO, ...SHEET_LIST].map((option) => (
+          {[...SHEET_AUTO, ...getStoreList(), ...SHEET_LIST].map((option) => (
             <option key={option.range} value={option.range}>
               {option.name}
             </option>

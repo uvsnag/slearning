@@ -24,11 +24,83 @@ export interface SheetItem {
 }
 
 export const STORE_ALIAS = 'STORE_E';
-export const SHEET_LIST: SheetItem[] = [
-  //Store
+
+/** localStorage key holding the user-customizable list of stores */
+export const KEY_CUSTOM_STORES = 'custom-stores';
+
+/** Default stores used when the user has never customized the store list */
+export const DEFAULT_STORES: SheetItem[] = [
   { range: `${STORE_ALIAS}1`, name: 'Store1' },
   { range: `${STORE_ALIAS}2`, name: 'Store2' },
   { range: `${STORE_ALIAS}3`, name: 'Store3' },
+];
+
+/**
+ * Read the current list of stores (range + custom display name) from localStorage.
+ * Falls back to {@link DEFAULT_STORES} when nothing has been saved yet.
+ */
+export const getStoreList = (): SheetItem[] => {
+  if (typeof window === 'undefined') return [...DEFAULT_STORES];
+  const raw = localStorage.getItem(KEY_CUSTOM_STORES);
+  if (raw === null) return [...DEFAULT_STORES];
+  try {
+    const parsed = JSON.parse(raw) as SheetItem[];
+    if (Array.isArray(parsed)) {
+      return parsed.filter((item) => item && typeof item.range === 'string');
+    }
+  } catch {
+    // ignore malformed data and fall back to defaults
+  }
+  return [...DEFAULT_STORES];
+};
+
+/** Persist the full list of stores to localStorage. */
+export const saveStoreList = (list: SheetItem[]): void => {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(KEY_CUSTOM_STORES, JSON.stringify(list));
+};
+
+/**
+ * Add a new store with the given display name. A unique range
+ * (e.g. `STORE_E4`) is generated automatically. Returns the updated list.
+ */
+export const addStore = (name?: string): SheetItem[] => {
+  const list = getStoreList();
+  const maxNum = list.reduce((max, store) => {
+    const match = store.range.match(new RegExp(`^${STORE_ALIAS}(\\d+)$`));
+    const num = match ? parseInt(match[1], 10) : 0;
+    return num > max ? num : max;
+  }, 0);
+  const nextNum = maxNum + 1;
+  const displayName = name && name.trim() ? name.trim() : `Store${nextNum}`;
+  const next = [...list, { range: `${STORE_ALIAS}${nextNum}`, name: displayName }];
+  saveStoreList(next);
+  return next;
+};
+
+/**
+ * Remove the store with the given range and delete its stored data.
+ * Returns the updated list.
+ */
+export const removeStore = (range: string): SheetItem[] => {
+  const next = getStoreList().filter((store) => store.range !== range);
+  saveStoreList(next);
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem(range);
+  }
+  return next;
+};
+
+/** Rename the display name of the store with the given range. Returns the updated list. */
+export const renameStore = (range: string, name: string): SheetItem[] => {
+  const next = getStoreList().map((store) =>
+    store.range === range ? { ...store, name } : store,
+  );
+  saveStoreList(next);
+  return next;
+};
+
+export const SHEET_LIST: SheetItem[] = [
   //Notify
   { range: 'Notify!A2:C250', name: 'Notify:1A' },
   { range: 'Notify!A250:C500', name: 'Notify:1B' },
