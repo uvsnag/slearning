@@ -260,8 +260,12 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
     const githubKeys = parseKeys(locGithub);
     gemKeyIndexRef.current = 0;
     githubKeyIndexRef.current = 0;
-    aiGem.current = new GoogleGenAI({ apiKey: gemKeys[0] || undefined });
-    githubAI.current = createOpenAIClient(githubKeys[0] || null, GITHUB_INFERENCE_BASE_PATH);
+    if(gemKeys.length > 0) {
+      aiGem.current = new GoogleGenAI({ apiKey: gemKeys[0] || undefined });
+    }
+    if(githubKeys.length > 0) {
+      githubAI.current = createOpenAIClient(githubKeys[0] || null, GITHUB_INFERENCE_BASE_PATH);
+    }
     historyTurnsRef.current = loadConversationHistory();
     renderConversationHistory(historyTurnsRef.current);
   }, []);
@@ -283,9 +287,11 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
   }, [useHis]);
   useEffect((): void => {
     if (useHis === 'Y' && model.type === TP_GEN && aiGem.current) {
-      aiGemHis.current = aiGem.current.chats.create({
-        model: model.value,
-      });
+      if (aiGemHis.current) {
+        aiGemHis.current = aiGem.current.chats.create({
+          model: model.value,
+        });
+      }
     }
     resetOpenAIHistoryRefs();
   }, [model]);
@@ -293,7 +299,9 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
     let raw = gemKey ? gemKey : localStorage.getItem(KEY_GEMINI_NM);
     const keys = parseKeys(raw);
     gemKeyIndexRef.current = 0;
-    aiGem.current = new GoogleGenAI({ apiKey: keys[0] || undefined });
+    if(keys.length > 0) {
+      aiGem.current = new GoogleGenAI({ apiKey: keys[0] || undefined });
+    }
     // localStorage.setItem(keyGeminiNm, gemKey || '');
     if (useHis === 'Y' && aiGem.current && model.type === TP_GEN) {
       aiGemHis.current = aiGem.current.chats.create({
