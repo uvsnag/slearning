@@ -100,6 +100,28 @@ export const renameStore = (range: string, name: string): SheetItem[] => {
   return next;
 };
 
+/**
+ * Read the list of {@link DataItem}s held by a custom store.
+ * Returns an empty array when the store has no data or holds malformed data.
+ */
+export const getStoreItems = (range: string): DataItem[] => {
+  if (typeof window === 'undefined' || !range) return [];
+  const raw = localStorage.getItem(range);
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? (parsed as DataItem[]) : [];
+  } catch {
+    return [];
+  }
+};
+
+/** Persist the full list of {@link DataItem}s for a custom store. */
+export const saveStoreItems = (range: string, items: DataItem[]): void => {
+  if (typeof window === 'undefined' || !range) return;
+  localStorage.setItem(range, JSON.stringify(items));
+};
+
 export const SHEET_LIST: SheetItem[] = [
   //Notify
   { range: 'Notify!A2:C250', name: 'Notify:1A' },
