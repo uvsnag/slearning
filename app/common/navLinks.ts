@@ -18,6 +18,7 @@ const SINGLE_PRACT_LINKS: NavLink[] = [
   { href: '/listen', label: 'Word (Listen)' },
   { href: '/next-sentence', label: 'Sentence' },
   { href: '/listen-mp3', label: 'Listen MP3' },
+  { href: '/store-editor', label: 'Store Editor' },
 ];
 
 const MOBILE_LINKS: NavLink[] = [

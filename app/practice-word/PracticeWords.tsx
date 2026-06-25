@@ -47,8 +47,19 @@ const PractWords = (props: PractWordsProps) => {
   const [currEng, setCurrEng] = useState<string | null>(null);
   const [message, setMessage] = useState<string>('');
   const [targetStore, setTargetStore] = useState<string>(() => getStoreList()[0]?.range ?? '');
+  // Editable eng/vi values shown next to the "Add to Store" button.
+  const [storeEng, setStoreEng] = useState<string>('');
+  const [storeVi, setStoreVi] = useState<string>('');
   const inputAns = useRef<HTMLInputElement>(null);
   const { speakText } = useSpeechSynthesis();
+
+  // Prefill the editable store inputs from the current question's item.
+  useEffect(() => {
+    const it = practiceState.items.find((i) => i.eng === currEng);
+    setStoreEng(it?.eng ?? currEng ?? '');
+    setStoreVi(it?.vi ?? '');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currEng]);
 
   useEffect(() => {
     setIsShowDelete(
@@ -359,28 +370,44 @@ const PractWords = (props: PractWordsProps) => {
           <button
             className="common-btn"
             onClick={() => {
-              if (!currEng) return;
+              const engVal = storeEng.trim();
+              if (!engVal) {
+                setMessage('⚠️ English is empty');
+                return;
+              }
               if (!targetStore) {
                 setMessage('⚠️ No store selected');
                 return;
               }
-              const currItem = practiceState.items.find((it) => it.eng === currEng);
-              if (!currItem) return;
               const storeName =
                 getStoreList().find((s) => s.range === targetStore)?.name ?? targetStore;
               const storeDataString = localStorage.getItem(targetStore);
               const storeData: DataItem[] = storeDataString ? JSON.parse(storeDataString) : [];
-              if (storeData.some((it) => it.eng === currItem.eng)) {
-                setMessage(`⚠️ ${currEng} already in ${storeName}`);
+              if (storeData.some((it) => it.eng === engVal)) {
+                setMessage(`⚠️ ${engVal} already in ${storeName}`);
                 return;
               }
-              storeData.push(currItem);
+              storeData.push({ eng: engVal, vi: storeVi.trim() });
               localStorage.setItem(targetStore, JSON.stringify(storeData));
-              setMessage(`➕ Added ${currEng} to ${storeName}`);
+              setMessage(`➕ Added ${engVal} to ${storeName}`);
             }}
           >
             ➕ Add to Store
           </button>
+          <input
+            className="common-input inline"
+            type="text"
+            value={storeEng}
+            placeholder="English"
+            onChange={(e) => setStoreEng(e.target.value)}
+          />
+          <input
+            className="common-input inline"
+            type="text"
+            value={storeVi}
+            placeholder="Vietnamese"
+            onChange={(e) => setStoreVi(e.target.value)}
+          />
           <select
             className="common-input inline"
             value={targetStore}
