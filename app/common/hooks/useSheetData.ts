@@ -419,6 +419,140 @@ export async function onRemoveStoreItem(
   callback();
 }
 
+/** Column stepper: A -> B, Z -> AA, AA -> AB, etc. */
+const nextColumn = (colStr: string): string => {
+  let result = '';
+  let carry = 1;
+  for (let i = colStr.length - 1; i >= 0; i--) {
+    let charCode = colStr.charCodeAt(i) + carry;
+    if (charCode > 90) {
+      // 'Z'
+      charCode = 65; // 'A'
+      carry = 1;
+    } else {
+      carry = 0;
+    }
+    result = String.fromCharCode(charCode) + result;
+  }
+  if (carry) {
+    result = 'A' + result;
+  }
+  return result;
+};
+
+interface GGSheetSaveRowsParams {
+  callback?: any;
+  range: string;
+  rows: Array<[string, string]>;
+}
+
+/**
+ * Batch-save many rows of two values into a Google Sheet in a SINGLE API call.
+ *
+ * Finds the first empty row within `range` and writes all `rows` starting there,
+ * so 1000 items become one `values.update` request instead of 1000. This does not
+ * replace {@link ggSheetUpdateTwoValues} — that one-row-at-a-time function is kept
+ * for callers that still rely on it.
+ *
+ * @param range - Full range string from SHEET_AUTO (e.g., 'AUTO!A2:C500')
+ * @param rows  - Array of [value1, value2] pairs to append
+ */
+export const ggSheetSaveRows = async ({
+  callback,
+  range,
+  rows,
+}: GGSheetSaveRowsParams): Promise<void> => {
+  console.log('Batch save GG Sheet:', { range, count: rows.length });
+  if (!rows.length) {
+    callback?.({ success: true, updates: null, count: 0 });
+    return;
+  }
+
+  const { gapi } = await import('gapi-script');
+  gapi.load('client:auth2', async () => {
+    const apiKey = localStorage.getItem(KEY_API_SHEET);
+    await gapi.client.init({
+      apiKey: apiKey,
+      clientId: config.clientId,
+      discoveryDocs: config.discoveryDocs,
+      scope: config.scope,
+    });
+    const auth = await gapi.auth2.getAuthInstance();
+    if (!auth.isSignedIn.get()) {
+      await auth.signIn();
+    }
+
+    gapi.client.load('sheets', 'v4', async () => {
+      const spreadsheetId = localStorage.getItem(KEY_GOOGLE_SHEET_NM)
+        ? localStorage.getItem(KEY_GOOGLE_SHEET_NM)
+        : config.spreadsheetId;
+
+      // Parse range: 'AUTO!A2:C500' -> sheet='AUTO', startCell='A2'
+      const rangeParts = range.split('!');
+      const sheet = rangeParts[0];
+      const startCell = rangeParts[1]?.split(':')[0] || 'A2';
+
+      const cellMatch = startCell.match(/([A-Z]+)(\d+)/);
+      if (!cellMatch) {
+        callback?.({ success: false, error: 'Invalid cell format' });
+        return;
+      }
+
+      const col = cellMatch[1];
+      const startRow = parseInt(cellMatch[2], 10);
+      const nextCol = nextColumn(col);
+
+      try {
+        // Read current data to find the first empty row within the range.
+        const readResponse = await gapi.client.sheets.spreadsheets.values.get({
+          spreadsheetId,
+          range: range,
+        });
+
+        const existingData = readResponse.result?.values || [];
+        let targetRow = startRow + existingData.length;
+        for (let i = 0; i < existingData.length; i++) {
+          const row = existingData[i];
+          if (!row || row.length === 0 || _.isEmpty(row[0])) {
+            targetRow = startRow + i;
+            break;
+          }
+        }
+        if (existingData.length === 0) {
+          targetRow = startRow;
+        }
+
+        // Write every row in one shot: 'AUTO!A5:B1004'
+        const endRow = targetRow + rows.length - 1;
+        const writeRange = `${sheet}!${col}${targetRow}:${nextCol}${endRow}`;
+        const resourceValues = rows.map(([v1, v2]) => [v1, v2]);
+
+        gapi.client.sheets.spreadsheets.values
+          .update({
+            spreadsheetId,
+            range: writeRange,
+            valueInputOption: 'USER_ENTERED',
+            resource: {
+              values: resourceValues,
+            },
+          })
+          .then((response: any) => {
+            callback?.({
+              success: true,
+              updates: response.result.updates,
+              count: rows.length,
+            });
+          })
+          .catch((error: any) => {
+            callback?.({ success: false, error: error.message });
+          });
+      } catch (error: any) {
+        callback?.({ success: false, error: error.message || 'Failed to read sheet data' });
+      }
+    });
+  });
+};
+
 interface GGSheetUpdateTwoValuesParams {
   callback: any;
   range: string;

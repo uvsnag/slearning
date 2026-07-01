@@ -10,7 +10,7 @@ import {
   renameStore,
   getStoreItems,
   saveStoreItems,
-  ggSheetUpdateTwoValues,
+  ggSheetSaveRows,
   type DataItem,
   type SheetItem,
 } from '@/app/common/hooks/useSheetData';
@@ -20,17 +20,15 @@ import './style.css';
 /** A store item plus a transient (not persisted) selection flag for the Check column. */
 type EditRow = DataItem & { checked?: boolean };
 
-/** Write one row (eng, vi) into the next free line of a sheet range, resolving when done. */
-const saveRowToSheet = (range: string, eng: string, vi: string): Promise<any> =>
+/** Write many [eng, vi] rows into the next free lines of a sheet range in one API call. */
+const saveRowsToSheet = (range: string, rows: Array<[string, string]>): Promise<any> =>
   new Promise((resolve) => {
-    ggSheetUpdateTwoValues({ callback: resolve, range, value1: eng, value2: vi });
+    ggSheetSaveRows({ callback: resolve, range, rows });
   });
 
 const StoreEditor: React.FC = () => {
   const [storeList, setStoreList] = useState<SheetItem[]>(() => getStoreList());
-  const [activeRange, setActiveRange] = useState<string>(
-    () => getStoreList()[0]?.range ?? '',
-  );
+  const [activeRange, setActiveRange] = useState<string>(() => getStoreList()[0]?.range ?? '');
   const [items, setItems] = useState<EditRow[]>(() =>
     getStoreItems(getStoreList()[0]?.range ?? ''),
   );
@@ -73,9 +71,7 @@ const StoreEditor: React.FC = () => {
   };
 
   const handleRenameStore = (range: string, name: string) => {
-    setStoreList((prev) =>
-      prev.map((s) => (s.range === range ? { ...s, name } : s)),
-    );
+    setStoreList((prev) => prev.map((s) => (s.range === range ? { ...s, name } : s)));
     renameStore(range, name);
   };
 
@@ -128,14 +124,15 @@ const StoreEditor: React.FC = () => {
     }
     setIsSaving(true);
     setSheetMsg(`Saving ${rows.length} row(s)…`);
-    let ok = 0;
     try {
-      // Save sequentially so each row lands on the next free line.
-      for (const row of rows) {
-        const resp = await saveRowToSheet(saveRange, row.eng ?? '', row.vi ?? '');
-        if (resp?.success) ok += 1;
+      // All checked rows go to the sheet in a single batch API call.
+      const payload: Array<[string, string]> = rows.map((r) => [r.eng ?? '', r.vi ?? '']);
+      const resp = await saveRowsToSheet(saveRange, payload);
+      if (resp?.success) {
+        setSheetMsg(`💾 Saved ${resp.count ?? rows.length} row(s) to sheet`);
+      } else {
+        setSheetMsg(`❌ Error: ${resp?.error ?? 'Failed to save'}`);
       }
-      setSheetMsg(`💾 Saved ${ok}/${rows.length} row(s) to sheet`);
     } catch (err: any) {
       setSheetMsg(`❌ Error: ${err?.message ?? 'Failed to save'}`);
     } finally {
@@ -180,7 +177,7 @@ const StoreEditor: React.FC = () => {
                 </button>
                 <button
                   type="button"
-                  className="store-editor-btn danger"
+                  className="common-btn"
                   title="Delete store"
                   onClick={() => handleRemoveStore(store.range)}
                 >
@@ -201,7 +198,7 @@ const StoreEditor: React.FC = () => {
               if (e.key === 'Enter') handleAddStore();
             }}
           />
-          <button type="button" className="store-editor-btn primary" onClick={handleAddStore}>
+          <button type="button" className="common-btn" onClick={handleAddStore}>
             <FaPlus /> Add Store
           </button>
         </div>
@@ -214,7 +211,7 @@ const StoreEditor: React.FC = () => {
           {activeRange && (
             <button
               type="button"
-              className="store-editor-btn ghost"
+              className="common-btn"
               title="Reload items"
               onClick={() => selectStore(activeRange)}
             >
@@ -314,7 +311,7 @@ const StoreEditor: React.FC = () => {
 
         {activeRange && (
           <div className="store-editor-actions">
-            <button type="button" className="store-editor-btn primary" onClick={handleAddItem}>
+            <button type="button" className="common-btn" onClick={handleAddItem}>
               <FaPlus /> Add Item
             </button>
           </div>
@@ -338,7 +335,7 @@ const StoreEditor: React.FC = () => {
             </select>
             <button
               type="button"
-              className="store-editor-btn primary"
+              className="common-btn"
               onClick={handleSaveCheckedToSheet}
               disabled={isSaving || checkedCount === 0}
             >
