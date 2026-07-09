@@ -48,6 +48,7 @@ export const microserviceLearningProject: StudioProject = {
     'README.md',
     'PROJECT_GUIDE.md',
     'user-service/src/main/java/com/example/userservice/outbox/OutboxRelay.java',
+    'api-gateway/src/main/java/com/example/apigateway/health/DownstreamHealthIndicator.java',
     'learning-service/src/main/java/com/example/learningservice/microservicepattern/SagaOrchestrationDemo.java',
   ],
 };
