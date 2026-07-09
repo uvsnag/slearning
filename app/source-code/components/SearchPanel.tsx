@@ -17,13 +17,49 @@ interface SearchHit {
 
 const MAX_HITS_PER_FILE = 5;
 const MAX_FILES = 50;
+const MAX_CLASS_HITS = 300;
 
-/** Simple full-text search across the virtual workspace. */
+/**
+ * Matches a type declaration and captures its name. Covers the languages that
+ * show up across the studio projects: Java/Kotlin/Scala (class, interface,
+ * enum, record, @interface, trait, object) and TS/JS (class). Optional
+ * modifiers (public, abstract, export, …) are skipped before the keyword.
+ */
+const CLASS_DECL =
+  /\b(?:class|interface|enum|record|@interface|trait|object)\s+([A-Za-z_$][\w$]*)/;
+
+/** Simple full-text search across the virtual workspace, with a classes-only mode. */
 export default function SearchPanel({ files, onOpenFile }: SearchPanelProps) {
   const [query, setQuery] = useState('');
+  const [classesOnly, setClassesOnly] = useState(false);
 
   const results = useMemo<SearchHit[]>(() => {
     const q = query.trim().toLowerCase();
+
+    // ── Classes-only: a symbol search that returns only type declarations. ──
+    // With an empty query it lists every class in the project (a symbol
+    // browser); with a query it filters by declared type name.
+    if (classesOnly) {
+      const hits: SearchHit[] = [];
+      let total = 0;
+      for (const { path, file } of files) {
+        const lines: SearchHit['lines'] = [];
+        const contentLines = file.content.split('\n');
+        for (let i = 0; i < contentLines.length && total < MAX_CLASS_HITS; i++) {
+          const match = CLASS_DECL.exec(contentLines[i]);
+          if (!match) continue;
+          const name = match[1];
+          if (q && !name.toLowerCase().includes(q)) continue;
+          const start = contentLines[i].indexOf(name, match.index);
+          lines.push({ lineNo: i + 1, text: contentLines[i], start, length: name.length });
+          total++;
+        }
+        if (lines.length > 0) hits.push({ path, language: file.language, lines });
+      }
+      return hits;
+    }
+
+    // ── Default: full-text search. ──
     if (q.length < 2) return [];
     const hits: SearchHit[] = [];
     for (const { path, file } of files) {
@@ -40,23 +76,35 @@ export default function SearchPanel({ files, onOpenFile }: SearchPanelProps) {
       }
     }
     return hits;
-  }, [files, query]);
+  }, [files, query, classesOnly]);
 
   const totalMatches = results.reduce((n, r) => n + Math.max(r.lines.length, 1), 0);
+  const showCount = classesOnly || query.trim().length >= 2;
+  const noun = classesOnly
+    ? `class${totalMatches === 1 ? '' : 'es'}`
+    : `result${totalMatches === 1 ? '' : 's'}`;
 
   return (
     <div className="cs-search">
       <input
         type="text"
         className="cs-search-input"
-        placeholder="Search (e.g. outbox, @KafkaListener)"
+        placeholder={classesOnly ? 'Filter classes by name (e.g. Health)' : 'Search (e.g. outbox, @KafkaListener)'}
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         spellCheck={false}
       />
-      {query.trim().length >= 2 && (
+      <label className="cs-search-toggle" title="Search only class / interface / enum declarations">
+        <input
+          type="checkbox"
+          checked={classesOnly}
+          onChange={(e) => setClassesOnly(e.target.checked)}
+        />
+        <span>Classes only</span>
+      </label>
+      {showCount && (
         <div className="cs-search-count">
-          {totalMatches} result{totalMatches === 1 ? '' : 's'} in {results.length} file
+          {totalMatches} {noun} in {results.length} file
           {results.length === 1 ? '' : 's'}
         </div>
       )}
