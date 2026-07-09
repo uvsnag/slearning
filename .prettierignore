@@ -3,3 +3,7 @@ node_modules
 dist
 build
 coverage
+out
+
+# Auto-generated Code Studio project data (import-studio-project.mjs output)
+*.generated.ts
