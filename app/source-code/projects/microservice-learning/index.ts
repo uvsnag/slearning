@@ -12,11 +12,12 @@ export const microserviceLearningProject: StudioProject = {
   name: 'Microservice Learning Platform — Algorithms, Patterns & LeetCode',
   description:
     'A complete polyglot platform: React frontend behind an API gateway with JWT auth and ' +
-    'rate limiting, plus six Spring Boot services — users (PostgreSQL/MyBatis), auth (JWT + ' +
-    'Kafka events), cache (Redis fed by Kafka & RabbitMQ), files (AWS S3), notifications ' +
-    '(RabbitMQ) and a learning service packed with algorithms, data structures, design ' +
-    'patterns, multithreading demos and LeetCode solutions. Includes docs: PROJECT_GUIDE and ' +
-    'INTERVIEW_QUESTIONS.',
+    'rate limiting, plus six Spring Boot services — users (PostgreSQL/MyBatis + transactional ' +
+    'outbox), auth (JWT + Kafka events), cache (Redis, idempotent consumers, Debezium CDC ' +
+    'sync), files (AWS S3 + nightly FTP export), notifications (RabbitMQ) and a learning ' +
+    'service packed with algorithms, data structures, design patterns, multithreading, ' +
+    'LeetCode solutions and runnable saga/idempotency/outbox-vs-CDC demos. Health checks ' +
+    'everywhere. Docs: PROJECT_GUIDE (concepts 1-19) and INTERVIEW_QUESTIONS.',
   tags: [
     'Spring Boot',
     'React',
@@ -29,6 +30,12 @@ export const microserviceLearningProject: StudioProject = {
     'PostgreSQL',
     'MyBatis',
     'AWS S3',
+    'Outbox',
+    'Saga',
+    'Idempotency',
+    'CDC / Debezium',
+    'FTP',
+    'Health Check',
     'Algorithms',
     'Design Patterns',
     'LeetCode',
@@ -40,6 +47,7 @@ export const microserviceLearningProject: StudioProject = {
   defaultOpenPaths: [
     'README.md',
     'PROJECT_GUIDE.md',
-    'learning-service/src/main/java/com/example/learningservice/leetcode/slidingwindow/SlidingWindowProblems.java',
+    'user-service/src/main/java/com/example/userservice/outbox/OutboxRelay.java',
+    'learning-service/src/main/java/com/example/learningservice/microservicepattern/SagaOrchestrationDemo.java',
   ],
 };
