@@ -45,10 +45,10 @@ export const microserviceLearningProject: StudioProject = {
   root: PROJECT_ROOT,
   databases: MS_LEARNING_DATABASES,
   defaultOpenPaths: [
-    'README.md',
+    // 'README.md',
     'PROJECT_GUIDE.md',
-    'user-service/src/main/java/com/example/userservice/outbox/OutboxRelay.java',
-    'api-gateway/src/main/java/com/example/apigateway/health/DownstreamHealthIndicator.java',
-    'learning-service/src/main/java/com/example/learningservice/microservicepattern/SagaOrchestrationDemo.java',
+    // 'user-service/src/main/java/com/example/userservice/outbox/OutboxRelay.java',
+    // 'api-gateway/src/main/java/com/example/apigateway/health/DownstreamHealthIndicator.java',
+    // 'learning-service/src/main/java/com/example/learningservice/microservicepattern/SagaOrchestrationDemo.java',
   ],
 };

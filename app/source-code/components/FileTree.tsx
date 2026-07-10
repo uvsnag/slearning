@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import { CodeFolder, FsNode } from '../types';
-import { ChevronIcon, FileBadge } from './icons';
+import { CodeFolder, FsNode, collectFolderPaths } from '../types';
+import { ChevronIcon, ExpandAllIcon, FileBadge } from './icons';
 
 interface FileTreeProps {
   nodes: FsNode[];
@@ -10,6 +10,8 @@ interface FileTreeProps {
   activePath?: string;
   onToggleFolder: (path: string) => void;
   onOpenFile: (path: string) => void;
+  /** Expand a folder and every folder nested inside it. */
+  onExpandFolders: (paths: string[]) => void;
 }
 
 /**
@@ -22,6 +24,7 @@ export default function FileTree({
   activePath,
   onToggleFolder,
   onOpenFile,
+  onExpandFolders,
 }: FileTreeProps) {
   return (
     <div className="cs-tree" role="tree">
@@ -33,6 +36,7 @@ export default function FileTree({
         activePath={activePath}
         onToggleFolder={onToggleFolder}
         onOpenFile={onOpenFile}
+        onExpandFolders={onExpandFolders}
       />
     </div>
   );
@@ -51,6 +55,7 @@ function TreeLevel({
   activePath,
   onToggleFolder,
   onOpenFile,
+  onExpandFolders,
 }: TreeLevelProps) {
   return (
     <>
@@ -85,21 +90,45 @@ function TreeLevel({
           label = `${label} / ${target.name}`;
         }
         const isOpen = expanded.has(targetPath);
+        const hasSubfolders = target.children.some((c) => c.type === 'folder');
         return (
           <React.Fragment key={path}>
-            <button
-              type="button"
+            <div
               role="treeitem"
               aria-selected={false}
               aria-expanded={isOpen}
+              tabIndex={0}
               className="cs-tree-row cs-tree-folder"
               style={{ paddingLeft: 10 + depth * 12 }}
               title={targetPath}
               onClick={() => onToggleFolder(targetPath)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onToggleFolder(targetPath);
+                }
+              }}
             >
               <ChevronIcon open={isOpen} />
               <span className="cs-tree-label">{label}</span>
-            </button>
+              {hasSubfolders && (
+                <button
+                  type="button"
+                  className="cs-tree-action"
+                  title="Expand all folders inside"
+                  aria-label={`Expand all folders inside ${label}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onExpandFolders([
+                      targetPath,
+                      ...collectFolderPaths(target.children, targetPath),
+                    ]);
+                  }}
+                >
+                  <ExpandAllIcon size={13} />
+                </button>
+              )}
+            </div>
             {isOpen && (
               <TreeLevel
                 nodes={target.children}
@@ -109,6 +138,7 @@ function TreeLevel({
                 activePath={activePath}
                 onToggleFolder={onToggleFolder}
                 onOpenFile={onOpenFile}
+                onExpandFolders={onExpandFolders}
               />
             )}
           </React.Fragment>
