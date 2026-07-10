@@ -11,9 +11,12 @@ import {
   findFile,
   flattenFiles,
 } from '../types';
-import CodeViewer from './CodeViewer';
+import { formatCode } from '../formatter';
+import { RunLog, runCode } from '../runner';
+import CodeEditor from './CodeEditor';
 import DatabaseExplorer, { tableKey } from './DatabaseExplorer';
 import FileTree from './FileTree';
+import RunConsole from './RunConsole';
 import SearchPanel from './SearchPanel';
 import TableViewer from './TableViewer';
 import {
@@ -70,8 +73,16 @@ export default function CodeStudio({ project }: { project: StudioProject }) {
     return paths.map(fileTab);
   }, [project]);
 
+  const runnable = project.runnable === true;
+
   const [activeView, setActiveView] = useState<SideView>('explorer');
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  /** Playground mode: unsaved buffer per file path (undefined = pristine). */
+  const [edits, setEdits] = useState<Record<string, string>>({});
+  const [consoleLines, setConsoleLines] = useState<RunLog[]>([]);
+  const [consoleOpen, setConsoleOpen] = useState(false);
+  const [running, setRunning] = useState(false);
+  const [formatting, setFormatting] = useState(false);
   const [tabs, setTabs] = useState<StudioTab[]>(initialTabs);
   const [activeTabId, setActiveTabId] = useState<string | null>(initialTabs[0]?.id ?? null);
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
@@ -128,9 +139,11 @@ export default function CodeStudio({ project }: { project: StudioProject }) {
 
   /* ----- resolve active tab content ----- */
   let activeFile: CodeFile | undefined;
+  let activePath: string | undefined;
   let activeDb: { connection: DbConnection; table: DbTable; schema: string } | undefined;
   if (activeTab?.kind === 'file') {
     activeFile = findFile(project.root, activeTab.path);
+    activePath = activeTab.path;
   } else if (activeTab?.kind === 'table') {
     const connection = project.databases.find((c) => c.name === activeTab.connection);
     const schema = connection?.schemas.find((s) => s.name === activeTab.schema);
@@ -144,6 +157,67 @@ export default function CodeStudio({ project }: { project: StudioProject }) {
       : activeTab?.kind === 'table'
         ? [activeTab.connection, activeTab.schema, activeTab.table]
         : [];
+
+  /* ----- playground: edit + run ----- */
+  const activeContent =
+    activeFile && activePath ? (edits[activePath] ?? activeFile.content) : undefined;
+  const activeDirty =
+    activePath !== undefined &&
+    edits[activePath] !== undefined &&
+    edits[activePath] !== activeFile?.content;
+  const canFormat =
+    activeFile !== undefined &&
+    (activeFile.language === 'java' || activeFile.language === 'javascript');
+  const canRun = runnable && canFormat;
+
+  const runActiveFile = async () => {
+    if (!canRun || running || !activeFile || !activePath || activeContent === undefined) return;
+    const language = activeFile.language as 'java' | 'javascript';
+    const fileName = activePath.split('/').pop()!;
+    setConsoleOpen(true);
+    setRunning(true);
+    setConsoleLines([{ level: 'system', text: `▶ ${fileName} (${language})` }]);
+    const append = (log: RunLog) => setConsoleLines((prev) => [...prev, log]);
+    const { ok, seconds } = await runCode(language, fileName, activeContent, append);
+    append({
+      level: 'system',
+      text: `${ok ? '✓ finished' : '✗ failed'} in ${seconds.toFixed(2)}s`,
+    });
+    setRunning(false);
+  };
+
+  const formatActiveFile = async () => {
+    if (!canFormat || formatting || !activeFile || !activePath || activeContent === undefined)
+      return;
+    const language = activeFile.language as 'java' | 'javascript';
+    const path = activePath;
+    setFormatting(true);
+    try {
+      const formatted = await formatCode(language, activeContent);
+      if (formatted !== activeContent) setEdits((prev) => ({ ...prev, [path]: formatted }));
+    } catch (err) {
+      // Prettier refuses to format syntactically broken JS — show why in the console.
+      setConsoleOpen(true);
+      setConsoleLines((prev) => [
+        ...prev,
+        { level: 'system', text: `⚠ Cannot format ${path.split('/').pop()}:` },
+        ...String(err instanceof Error ? err.message : err)
+          .split('\n')
+          .map((text) => ({ level: 'err' as const, text })),
+      ]);
+    } finally {
+      setFormatting(false);
+    }
+  };
+
+  const resetActiveFile = () => {
+    if (!activePath) return;
+    setEdits((prev) => {
+      const next = { ...prev };
+      delete next[activePath];
+      return next;
+    });
+  };
 
   return (
     <div className="cs-root" data-view={activeView}>
@@ -310,11 +384,59 @@ export default function CodeStudio({ project }: { project: StudioProject }) {
                   <span>{part}</span>
                 </React.Fragment>
               ))}
+              {activeFile && (
+                <span className="cs-crumb-actions">
+                  {activeDirty && (
+                    <button
+                      type="button"
+                      className="cs-reset-btn"
+                      title="Restore the original file content"
+                      onClick={resetActiveFile}
+                    >
+                      ↺ Reset
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className="cs-format-btn"
+                    disabled={!canFormat || formatting}
+                    title={
+                      canFormat
+                        ? 'Format code (Shift+Alt+F)'
+                        : 'Only .java and .js files can be formatted'
+                    }
+                    onClick={formatActiveFile}
+                  >
+                    {formatting ? '⏳ Formatting…' : '{ } Format'}
+                  </button>
+                  {runnable && (
+                    <button
+                      type="button"
+                      className="cs-run-btn"
+                      disabled={!canRun || running}
+                      title={
+                        canRun
+                          ? 'Run this file (Ctrl+Enter)'
+                          : 'Only .java and .js files can be run'
+                      }
+                      onClick={runActiveFile}
+                    >
+                      {running ? '⏳ Running…' : '▶ Run'}
+                    </button>
+                  )}
+                </span>
+              )}
             </div>
           )}
 
-          {activeFile ? (
-            <CodeViewer file={activeFile} />
+          {activeFile && activePath && activeContent !== undefined ? (
+            <CodeEditor
+              file={activeFile}
+              value={activeContent}
+              onChange={(value) => setEdits((prev) => ({ ...prev, [activePath as string]: value }))}
+              onRun={runActiveFile}
+              onFormat={formatActiveFile}
+            />
           ) : activeDb ? (
             <TableViewer
               connection={activeDb.connection}
@@ -336,9 +458,20 @@ export default function CodeStudio({ project }: { project: StudioProject }) {
                 ))}
               </div>
               <p className="cs-welcome-hint">
-                Browse files in the Explorer, or open the Database view to inspect tables.
+                {runnable
+                  ? 'Open a .java or .js file, edit it right here, and press ▶ Run to execute it.'
+                  : 'Browse and edit files freely — nothing is saved. Open the Database view to inspect tables.'}
               </p>
             </div>
+          )}
+
+          {consoleOpen && (
+            <RunConsole
+              lines={consoleLines}
+              running={running}
+              onClear={() => setConsoleLines([])}
+              onClose={() => setConsoleOpen(false)}
+            />
           )}
         </div>
       </div>
@@ -348,12 +481,23 @@ export default function CodeStudio({ project }: { project: StudioProject }) {
         <span className="cs-status-item cs-status-branch">
           <BranchIcon /> main
         </span>
-        <span className="cs-status-item">✓ read-only simulation</span>
+        <span className="cs-status-item">
+          {runnable ? '✎ playground — edit & run' : '✎ editable — edits are not saved'}
+        </span>
+        {runnable && (
+          <button
+            type="button"
+            className="cs-status-item cs-status-btn"
+            onClick={() => setConsoleOpen((open) => !open)}
+          >
+            ▣ Output
+          </button>
+        )}
         <span className="cs-status-spacer" />
         {activeFile && (
           <>
             <span className="cs-status-item">
-              {activeFile.content.replace(/\n$/, '').split('\n').length} lines
+              {(activeContent ?? activeFile.content).replace(/\n$/, '').split('\n').length} lines
             </span>
             <span className="cs-status-item">UTF-8</span>
             <span className="cs-status-item cs-status-lang">{activeFile.language}</span>

@@ -89,6 +89,11 @@ export interface StudioProject {
   databases: DbConnection[];
   /** Files opened as tabs when the studio loads (first one is active) */
   defaultOpenPaths?: string[];
+  /**
+   * Playground mode: files are editable in the studio and java / javascript
+   * files can be executed with the ▶ Run button (see runner.ts).
+   */
+  runnable?: boolean;
 }
 
 /* ------------------------------------------------------------------ */

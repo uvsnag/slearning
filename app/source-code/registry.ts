@@ -1,3 +1,4 @@
+import { codePlaygroundProject } from './projects/code-playground';
 import { javaMicroserviceProject } from './projects/java-microservice';
 import { microserviceLearningProject } from './projects/microservice-learning';
 import { StudioProject } from './types';
@@ -13,6 +14,7 @@ import { StudioProject } from './types';
  * The hub page and the /source-code/<id> route pick it up automatically.
  */
 export const STUDIO_PROJECTS: StudioProject[] = [
+  codePlaygroundProject,
   javaMicroserviceProject,
   microserviceLearningProject,
 ];
