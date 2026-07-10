@@ -1,6 +1,8 @@
 // Interview data: CV-based questions (Nguyen Van Sang — Senior Fullstack Developer)
-(function () {
-  (window.__pvTopics = window.__pvTopics || []).push({
+import type { PvTopic } from '../types';
+
+export const topics: PvTopic[] = [
+  {
     id: 'cv-questions',
     name: 'CV-Based Questions',
     icon: '📋',
@@ -774,5 +776,5 @@ AVOID:
 <div class="key-point">Prepare 3-5 questions before the interview. The quality of your questions tells the interviewer a lot about your seniority and genuine interest.</div>`,
       },
     ],
-  });
-})();
+  },
+];

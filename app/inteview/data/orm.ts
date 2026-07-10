@@ -1,16 +1,17 @@
 // Interview data: mybatis, jpa-hibernate
 // Auto-generated from pv.html
-(function () {
-  (window.__pvTopics = window.__pvTopics || []).push(
-    {
-      id: 'mybatis',
-      name: 'MyBatis',
-      icon: '🗺️',
-      questions: [
-        {
-          q: 'What is MyBatis? How is it different from JPA/Hibernate?',
-          difficulty: 'easy',
-          a: `<ul>
+import type { PvTopic } from '../types';
+
+export const topics: PvTopic[] = [
+  {
+    id: 'mybatis',
+    name: 'MyBatis',
+    icon: '🗺️',
+    questions: [
+      {
+        q: 'What is MyBatis? How is it different from JPA/Hibernate?',
+        difficulty: 'easy',
+        a: `<ul>
 <li><strong>MyBatis</strong>: SQL mapper framework. You write SQL, MyBatis maps results to objects. Full SQL control.</li>
 <li><strong>JPA/Hibernate</strong>: ORM framework. Generates SQL from entity mappings. Less control, more abstraction.</li>
 </ul>
@@ -22,11 +23,11 @@
 <tr><td style="padding:6px;">Schema control</td><td style="padding:6px;">Full</td><td style="padding:6px;">Can auto-generate tables</td></tr>
 </table>
 <div class="key-point">Choose MyBatis when: complex reporting queries, legacy DB schemas, DBA-managed SQL. Choose JPA when: CRUD-heavy, domain-driven design, rapid development.</div>`,
-        },
-        {
-          q: 'What is the difference between #{} and ${} in MyBatis?',
-          difficulty: 'tricky',
-          a: `<ul>
+      },
+      {
+        q: 'What is the difference between #{} and ${} in MyBatis?',
+        difficulty: 'tricky',
+        a: `<ul>
 <li><strong>#{param}</strong>: creates a <strong>PreparedStatement parameter</strong> (?). <strong>Safe from SQL injection</strong>. Value is type-safe and quoted.</li>
 <li><strong>\${param}</strong>: direct <strong>string substitution</strong>. <strong>VULNERABLE to SQL injection!</strong> Used only for dynamic table/column names.</li>
 </ul>
@@ -42,11 +43,11 @@
   &lt;!-- Generates: SELECT * FROM users ORDER BY name --&gt;
 &lt;/select&gt;</pre>
 <div class="key-point">NEVER use <code>\${}</code> with user input. Always validate/whitelist dynamic table/column names before using <code>\${}</code>.</div>`,
-        },
-        {
-          q: 'Explain MyBatis XML Mapper structure. Show a complete example.',
-          difficulty: 'medium',
-          a: `<pre>&lt;?xml version="1.0" encoding="UTF-8" ?&gt;
+      },
+      {
+        q: 'Explain MyBatis XML Mapper structure. Show a complete example.',
+        difficulty: 'medium',
+        a: `<pre>&lt;?xml version="1.0" encoding="UTF-8" ?&gt;
 &lt;!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd"&gt;
 
@@ -78,11 +79,11 @@
   &lt;/delete&gt;
 
 &lt;/mapper&gt;</pre>`,
-        },
-        {
-          q: 'How to write dynamic SQL in MyBatis? Explain &lt;if&gt;, &lt;choose&gt;, &lt;where&gt;, &lt;foreach&gt;.',
-          difficulty: 'hard',
-          a: `<pre>&lt;select id="search" resultMap="userMap"&gt;
+      },
+      {
+        q: 'How to write dynamic SQL in MyBatis? Explain &lt;if&gt;, &lt;choose&gt;, &lt;where&gt;, &lt;foreach&gt;.',
+        difficulty: 'hard',
+        a: `<pre>&lt;select id="search" resultMap="userMap"&gt;
   SELECT * FROM users
   &lt;where&gt;
     &lt;if test="name != null and name != ''"&gt;
@@ -117,11 +118,11 @@
   WHERE user_id = #{userId}
 &lt;/update&gt;</pre>
 <div class="key-point"><code>&lt;where&gt;</code> automatically handles leading AND/OR. <code>&lt;set&gt;</code> removes trailing commas.</div>`,
-        },
-        {
-          q: 'How to handle one-to-many and many-to-one relationships in MyBatis?',
-          difficulty: 'hard',
-          a: `<pre>&lt;!-- One-to-Many: Order has many Items --&gt;
+      },
+      {
+        q: 'How to handle one-to-many and many-to-one relationships in MyBatis?',
+        difficulty: 'hard',
+        a: `<pre>&lt;!-- One-to-Many: Order has many Items --&gt;
 &lt;resultMap id="orderWithItems" type="Order"&gt;
   &lt;id column="order_id" property="orderId"/&gt;
   &lt;result column="total" property="total"/&gt;
@@ -148,11 +149,11 @@
   &lt;/association&gt;
 &lt;/resultMap&gt;</pre>
 <div class="key-point"><code>&lt;collection&gt;</code> = one-to-many (list). <code>&lt;association&gt;</code> = many-to-one / one-to-one (single object).</div>`,
-        },
-        {
-          q: 'What is MyBatis annotation-based mapping vs XML?',
-          difficulty: 'medium',
-          a: `<pre>// Annotation-based (simple queries)
+      },
+      {
+        q: 'What is MyBatis annotation-based mapping vs XML?',
+        difficulty: 'medium',
+        a: `<pre>// Annotation-based (simple queries)
 @Mapper
 public interface UserMapper {
 
@@ -178,11 +179,11 @@ public interface UserMapper {
     List&lt;User&gt; findAll();
 }</pre>
 <div class="key-point">Use annotations for simple CRUD. Use XML for complex dynamic SQL, associations, and collections — it's more readable.</div>`,
-        },
-        {
-          q: 'How does MyBatis caching work? Explain first-level and second-level cache.',
-          difficulty: 'hard',
-          a: `<ul>
+      },
+      {
+        q: 'How does MyBatis caching work? Explain first-level and second-level cache.',
+        difficulty: 'hard',
+        a: `<ul>
 <li><strong>First-level cache</strong> (session/local): enabled by default. Scoped to <code>SqlSession</code>. Same query in same session returns cached result. Cleared on <code>commit()</code>, <code>rollback()</code>, or <code>close()</code>.</li>
 <li><strong>Second-level cache</strong> (mapper): disabled by default. Scoped to mapper namespace. Shared across sessions.</li>
 </ul>
@@ -199,11 +200,11 @@ public interface UserMapper {
   &lt;select id="findRealtime" useCache="false"&gt;...&lt;/select&gt;
 &lt;/mapper&gt;</pre>
 <div class="key-point">Second-level cache pitfall: if multiple mappers query the same tables, one mapper's insert won't invalidate another mapper's cache → stale data. Use <code>&lt;cache-ref&gt;</code> to share cache.</div>`,
-        },
-        {
-          q: 'What is MyBatis-Plus? How does it extend MyBatis?',
-          difficulty: 'medium',
-          a: `<p><strong>MyBatis-Plus</strong> is an enhancement on MyBatis that eliminates boilerplate CRUD code.</p>
+      },
+      {
+        q: 'What is MyBatis-Plus? How does it extend MyBatis?',
+        difficulty: 'medium',
+        a: `<p><strong>MyBatis-Plus</strong> is an enhancement on MyBatis that eliminates boilerplate CRUD code.</p>
 <pre>// Just extend BaseMapper — no XML needed for basic CRUD
 @Mapper
 public interface UserMapper extends BaseMapper&lt;User&gt; { }
@@ -223,11 +224,11 @@ Page&lt;User&gt; page = userMapper.selectPage(
     new Page&lt;&gt;(1, 10),
     new QueryWrapper&lt;User&gt;().eq("status", "active"));</pre>
 <div class="key-point">MyBatis-Plus provides: auto CRUD, pagination plugin, optimistic locking, soft delete, code generator, QueryWrapper for type-safe conditions.</div>`,
-        },
-        {
-          q: 'How to handle batch operations in MyBatis?',
-          difficulty: 'hard',
-          a: `<pre>&lt;!-- Method 1: foreach in XML --&gt;
+      },
+      {
+        q: 'How to handle batch operations in MyBatis?',
+        difficulty: 'hard',
+        a: `<pre>&lt;!-- Method 1: foreach in XML --&gt;
 &lt;insert id="batchInsert"&gt;
   INSERT INTO users (user_name, email) VALUES
   &lt;foreach collection="list" item="user" separator=","&gt;
@@ -248,11 +249,11 @@ try (SqlSession session = sqlSessionFactory.openSession(ExecutorType.BATCH)) {
     session.commit();
 }</pre>
 <div class="key-point">XML foreach is simpler but has SQL length limits. ExecutorType.BATCH is better for large volumes — it batches JDBC addBatch/executeBatch calls.</div>`,
-        },
-        {
-          q: 'How to configure MyBatis with Spring Boot?',
-          difficulty: 'medium',
-          a: `<pre># application.yml
+      },
+      {
+        q: 'How to configure MyBatis with Spring Boot?',
+        difficulty: 'medium',
+        a: `<pre># application.yml
 mybatis:
   mapper-locations: classpath:mapper/*.xml         # XML mapper location
   type-aliases-package: com.example.entity          # short class names in XML
@@ -271,20 +272,20 @@ public class Application { }
 @Mapper
 public interface UserMapper { }</pre>
 <div class="key-point"><code>map-underscore-to-camel-case: true</code> eliminates the need for most resultMap definitions — database columns auto-map to Java fields.</div>`,
-        },
-      ],
-    },
+      },
+    ],
+  },
 
-    // ───────────────────────── 12. JPA / HIBERNATE ─────────────────────────,
-    {
-      id: 'jpa-hibernate',
-      name: 'JPA / Hibernate',
-      icon: '🔗',
-      questions: [
-        {
-          q: 'What is JPA? What is the relationship between JPA and Hibernate?',
-          difficulty: 'easy',
-          a: `<ul>
+  // ───────────────────────── 12. JPA / HIBERNATE ─────────────────────────,
+  {
+    id: 'jpa-hibernate',
+    name: 'JPA / Hibernate',
+    icon: '🔗',
+    questions: [
+      {
+        q: 'What is JPA? What is the relationship between JPA and Hibernate?',
+        difficulty: 'easy',
+        a: `<ul>
 <li><strong>JPA (Java Persistence API)</strong>: a <strong>specification</strong> (interface) that defines how Java objects map to relational database tables.</li>
 <li><strong>Hibernate</strong>: the most popular <strong>implementation</strong> of JPA. Provides the actual ORM engine.</li>
 <li>Others implementations: EclipseLink, OpenJPA.</li>
@@ -304,11 +305,11 @@ public class User {
     private String email;
 }</pre>
 <div class="key-point">Code to JPA interfaces (<code>javax.persistence</code> / <code>jakarta.persistence</code>) — your code stays portable across ORM implementations.</div>`,
-        },
-        {
-          q: 'Explain the JPA entity lifecycle and entity states.',
-          difficulty: 'hard',
-          a: `<p>An entity can be in 4 states:</p>
+      },
+      {
+        q: 'Explain the JPA entity lifecycle and entity states.',
+        difficulty: 'hard',
+        a: `<p>An entity can be in 4 states:</p>
 <ul>
 <li><strong>New/Transient</strong>: just created with <code>new</code>. Not managed. No DB row.</li>
 <li><strong>Managed/Persistent</strong>: attached to persistence context. Changes auto-synced to DB (dirty checking).</li>
@@ -323,11 +324,11 @@ em.detach(user);                   // → Detached
 user.setName("Bob");               // NO effect on DB
 em.merge(user);                    // → Managed again (SELECT + UPDATE)
 em.remove(user);                   // → Removed (DELETE on flush)</pre>`,
-        },
-        {
-          q: 'What is the difference between FetchType.LAZY and FetchType.EAGER?',
-          difficulty: 'medium',
-          a: `<ul>
+      },
+      {
+        q: 'What is the difference between FetchType.LAZY and FetchType.EAGER?',
+        difficulty: 'medium',
+        a: `<ul>
 <li><strong>EAGER</strong>: related entities loaded immediately (with the parent query). Can cause N+1 problem.</li>
 <li><strong>LAZY</strong>: related entities loaded only when accessed. Returns a <strong>proxy</strong>.</li>
 </ul>
@@ -341,11 +342,11 @@ public class Order {
 }</pre>
 <p><strong>Defaults</strong>: <code>@OneToMany</code>, <code>@ManyToMany</code> → LAZY. <code>@ManyToOne</code>, <code>@OneToOne</code> → EAGER.</p>
 <div class="key-point">Best practice: make ALL relationships LAZY, then fetch eagerly only when needed using <code>JOIN FETCH</code> or <code>@EntityGraph</code>.</div>`,
-        },
-        {
-          q: 'What is the N+1 problem in JPA? How to solve it?',
-          difficulty: 'hard',
-          a: `<p><strong>Problem</strong>: Loading parent entities triggers N additional queries for lazy children.</p>
+      },
+      {
+        q: 'What is the N+1 problem in JPA? How to solve it?',
+        difficulty: 'hard',
+        a: `<p><strong>Problem</strong>: Loading parent entities triggers N additional queries for lazy children.</p>
 <pre>List&lt;Order&gt; orders = orderRepo.findAll();  // 1 query
 for (Order o : orders) {
     o.getItems().size();  // N queries (one per order!)
@@ -364,11 +365,11 @@ List&lt;Order&gt; findByStatus(String status);
 @OneToMany(mappedBy = "order")
 private List&lt;OrderItem&gt; items;
 // Loads items in batches of 25 (WHERE order_id IN (?,?,?...)) instead of 1 by 1</pre>`,
-        },
-        {
-          q: 'Explain the difference between @OneToOne, @OneToMany, @ManyToOne, @ManyToMany.',
-          difficulty: 'medium',
-          a: `<pre>// @OneToOne: User ↔ Profile
+      },
+      {
+        q: 'Explain the difference between @OneToOne, @OneToMany, @ManyToOne, @ManyToMany.',
+        difficulty: 'medium',
+        a: `<pre>// @OneToOne: User ↔ Profile
 @Entity
 public class User {
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -399,11 +400,11 @@ public class Student {
     private Set&lt;Course&gt; courses = new HashSet&lt;&gt;();
 }</pre>
 <div class="key-point"><code>mappedBy</code> = inverse side (does NOT own FK). The side without <code>mappedBy</code> owns the relationship and controls the FK.</div>`,
-        },
-        {
-          q: 'What is the Persistence Context and EntityManager?',
-          difficulty: 'hard',
-          a: `<ul>
+      },
+      {
+        q: 'What is the Persistence Context and EntityManager?',
+        difficulty: 'hard',
+        a: `<ul>
 <li><strong>EntityManager</strong>: the main JPA interface for CRUD operations (<code>persist</code>, <code>find</code>, <code>merge</code>, <code>remove</code>, <code>createQuery</code>).</li>
 <li><strong>Persistence Context</strong>: first-level cache. Stores managed entities. Ensures only ONE instance per entity identity per context.</li>
 </ul>
@@ -418,11 +419,11 @@ em.flush();  // SQL: UPDATE (dirty checking detected change)</pre>
 <li>Transaction-scoped (default in Spring): lives for one <code>@Transactional</code> method.</li>
 <li>Extended: keeps entities managed across multiple transactions (used in stateful beans).</li>
 </ul>`,
-        },
-        {
-          q: 'What is the difference between JPQL, Criteria API, and Native queries?',
-          difficulty: 'medium',
-          a: `<pre>// JPQL: SQL-like, uses entity names (not table names)
+      },
+      {
+        q: 'What is the difference between JPQL, Criteria API, and Native queries?',
+        difficulty: 'medium',
+        a: `<pre>// JPQL: SQL-like, uses entity names (not table names)
 @Query("SELECT u FROM User u WHERE u.email = :email")
 User findByEmail(@Param("email") String email);
 
@@ -441,11 +442,11 @@ User findByEmailNative(String email);</pre>
 <li><strong>Criteria</strong>: type-safe, good for dynamic queries. Verbose.</li>
 <li><strong>Native</strong>: full SQL power. Not portable. Use for complex/optimized queries.</li>
 </ul>`,
-        },
-        {
-          q: 'Explain Hibernate first-level cache vs second-level cache.',
-          difficulty: 'hard',
-          a: `<ul>
+      },
+      {
+        q: 'Explain Hibernate first-level cache vs second-level cache.',
+        difficulty: 'hard',
+        a: `<ul>
 <li><strong>First-level cache (L1)</strong>: built-in, per EntityManager/Session. Cannot be disabled. One entity instance per ID. Scoped to transaction.</li>
 <li><strong>Second-level cache (L2)</strong>: shared across sessions. Optional. Must configure provider (EhCache, Caffeine, Redis).</li>
 </ul>
@@ -468,11 +469,11 @@ spring:
         javax:
           cache.provider: org.ehcache.jsr107.EhcacheCachingProvider</pre>
 <div class="key-point"><strong>Query cache</strong> is a third cache: stores query results (parameterized). Enable with <code>@QueryHint(name = "org.hibernate.cacheable", value = "true")</code>. Invalidated when any entity in the cached query's table changes.</div>`,
-        },
-        {
-          q: 'What is Spring Data JPA? What methods does JpaRepository provide?',
-          difficulty: 'medium',
-          a: `<p>Spring Data JPA eliminates boilerplate by auto-implementing repository interfaces.</p>
+      },
+      {
+        q: 'What is Spring Data JPA? What methods does JpaRepository provide?',
+        difficulty: 'medium',
+        a: `<p>Spring Data JPA eliminates boilerplate by auto-implementing repository interfaces.</p>
 <pre>public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
     // Built-in: save, findById, findAll, count, deleteById, existsById...
 
@@ -492,11 +493,11 @@ spring:
     @Query("UPDATE User u SET u.status = :status WHERE u.lastLogin &lt; :date")
     int deactivateInactiveUsers(@Param("status") String status, @Param("date") LocalDate date);
 }</pre>`,
-        },
-        {
-          q: 'What is Hibernate dirty checking? How does it work?',
-          difficulty: 'hard',
-          a: `<p>Hibernate automatically detects changes to managed entities and generates UPDATE statements on flush — without explicit save calls.</p>
+      },
+      {
+        q: 'What is Hibernate dirty checking? How does it work?',
+        difficulty: 'hard',
+        a: `<p>Hibernate automatically detects changes to managed entities and generates UPDATE statements on flush — without explicit save calls.</p>
 <pre>@Transactional
 public void updateUserName(Long id, String newName) {
     User user = userRepo.findById(id).orElseThrow();
@@ -512,11 +513,11 @@ public void updateUserName(Long id, String newName) {
 <li>If different → generates UPDATE SQL.</li>
 </ol>
 <div class="key-point">Pitfall: loading many entities for read-only → unnecessary dirty checking overhead. Use <code>@Transactional(readOnly = true)</code> or <code>Hibernate.setReadOnly(entity)</code>.</div>`,
-        },
-        {
-          q: 'What is the difference between CascadeType and orphanRemoval?',
-          difficulty: 'tricky',
-          a: `<ul>
+      },
+      {
+        q: 'What is the difference between CascadeType and orphanRemoval?',
+        difficulty: 'tricky',
+        a: `<ul>
 <li><strong>CascadeType</strong>: propagate operations from parent to child.</li>
 <ul>
 <li><code>PERSIST</code>: saving parent saves children too.</li>
@@ -535,11 +536,11 @@ orderRepo.delete(order);
 // orphanRemoval: remove item from list → deletes item from DB
 order.getItems().remove(item);  // → DELETE FROM order_items WHERE id = ?</pre>
 <div class="key-point">Without <code>orphanRemoval</code>, removing from collection only clears the FK (sets to null), doesn't delete the row.</div>`,
-        },
-        {
-          q: 'How to handle the LazyInitializationException?',
-          difficulty: 'tricky',
-          a: `<p><strong>Cause</strong>: accessing a LAZY-loaded relationship after the persistence context (session) is closed.</p>
+      },
+      {
+        q: 'How to handle the LazyInitializationException?',
+        difficulty: 'tricky',
+        a: `<p><strong>Cause</strong>: accessing a LAZY-loaded relationship after the persistence context (session) is closed.</p>
 <pre>// This throws LazyInitializationException!
 User user = userRepo.findById(1L).get();  // TX ends here
 user.getOrders().size();  // Session closed → BOOM!</pre>
@@ -552,11 +553,11 @@ user.getOrders().size();  // Session closed → BOOM!</pre>
 <li><strong>DTO projection</strong>: query only the data you need (no lazy proxies).</li>
 </ul>
 <div class="key-point">Best practice: set <code>spring.jpa.open-in-view=false</code> and use JOIN FETCH or DTOs. This forces you to think about data loading upfront.</div>`,
-        },
-        {
-          q: 'What are JPA Specifications and how to build dynamic queries?',
-          difficulty: 'hard',
-          a: `<pre>// Repository extends JpaSpecificationExecutor
+      },
+      {
+        q: 'What are JPA Specifications and how to build dynamic queries?',
+        difficulty: 'hard',
+        a: `<pre>// Repository extends JpaSpecificationExecutor
 public interface UserRepository extends JpaRepository&lt;User, Long&gt;,
     JpaSpecificationExecutor&lt;User&gt; { }
 
@@ -584,11 +585,11 @@ Page&lt;User&gt; users = userRepo.findAll(
     PageRequest.of(0, 20)
 );</pre>
 <div class="key-point">Specifications are reusable, composable (AND/OR/NOT), and type-safe. Great alternative to dynamic JPQL string building.</div>`,
-        },
-        {
-          q: 'What is the difference between @GeneratedValue strategies (IDENTITY, SEQUENCE, TABLE, AUTO)?',
-          difficulty: 'medium',
-          a: `<ul>
+      },
+      {
+        q: 'What is the difference between @GeneratedValue strategies (IDENTITY, SEQUENCE, TABLE, AUTO)?',
+        difficulty: 'medium',
+        a: `<ul>
 <li><strong>IDENTITY</strong>: auto-increment column (MySQL). ID assigned after INSERT. <strong>Breaks batch inserts</strong> (Hibernate must flush immediately).</li>
 <li><strong>SEQUENCE</strong>: DB sequence (PostgreSQL, Oracle). ID assigned before INSERT. Supports batch inserts. <strong>Preferred for Hibernate</strong>.</li>
 <li><strong>TABLE</strong>: simulates sequences with a table. Portable but slow (extra queries + locking).</li>
@@ -603,11 +604,11 @@ private Long id;
 // allocationSize = 50 → Hibernate pre-allocates 50 IDs per DB call
 // → fewer round trips for batch inserts</pre>
 <div class="key-point">IDENTITY disables JDBC batch inserts in Hibernate because it needs the generated ID immediately. Use SEQUENCE with <code>allocationSize</code> for best performance.</div>`,
-        },
-        {
-          q: 'What are JPA entity inheritance strategies?',
-          difficulty: 'hard',
-          a: `<p>JPA supports four strategies for mapping inheritance hierarchies to database tables:</p>
+      },
+      {
+        q: 'What are JPA entity inheritance strategies?',
+        difficulty: 'hard',
+        a: `<p>JPA supports four strategies for mapping inheritance hierarchies to database tables:</p>
 <pre>@Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)  // Default
 @DiscriminatorColumn(name = "type")
@@ -631,11 +632,11 @@ public class BankTransfer extends Payment {
 <tr><td>TABLE_PER_CLASS</td><td>1 table per concrete class</td><td>No nullable columns</td><td>Polymorphic queries require UNION ALL (slow)</td></tr>
 <tr><td>@MappedSuperclass</td><td>No table for parent</td><td>Simple, no polymorphic queries</td><td>Can't query by parent type</td></tr></table>
 <div class="key-point">Default to <code>SINGLE_TABLE</code> for best performance. Use <code>JOINED</code> when schema normalization matters. Avoid <code>TABLE_PER_CLASS</code> — polymorphic queries are extremely slow.</div>`,
-        },
-        {
-          q: 'What is optimistic locking with @Version in JPA?',
-          difficulty: 'hard',
-          a: `<p><strong>Optimistic locking</strong> prevents lost updates when multiple transactions modify the same row concurrently — without holding database locks.</p>
+      },
+      {
+        q: 'What is optimistic locking with @Version in JPA?',
+        difficulty: 'hard',
+        a: `<p><strong>Optimistic locking</strong> prevents lost updates when multiple transactions modify the same row concurrently — without holding database locks.</p>
 <pre>@Entity
 public class Product {
     @Id private Long id;
@@ -668,11 +669,11 @@ try {
 <li><strong>Pessimistic</strong> (SELECT FOR UPDATE): holds DB lock during transaction. Best for high-contention (booking systems).</li>
 </ul>
 <div class="key-point">@Version is ideal for web applications where conflicts are rare. The version field can be <code>Long</code>, <code>Integer</code>, <code>Short</code>, or <code>Timestamp</code>. Never modify the @Version field manually.</div>`,
-        },
-        {
-          q: 'What are DTO projections in JPA and why use them?',
-          difficulty: 'medium',
-          a: `<p>DTO projections let you select only the columns you need, avoiding loading entire entities (better performance).</p>
+      },
+      {
+        q: 'What are DTO projections in JPA and why use them?',
+        difficulty: 'medium',
+        a: `<p>DTO projections let you select only the columns you need, avoiding loading entire entities (better performance).</p>
 <pre>// Problem: loading full entity when you only need name and email
 User user = userRepo.findById(1L);  // loads ALL columns including blob fields
 
@@ -703,10 +704,9 @@ List&lt;Tuple&gt; findAllProjected();
 repo.findByStatus("active", UserSummary.class);
 repo.findByStatus("active", UserDto.class);</pre>
 <div class="key-point">DTO projections can dramatically improve performance by reducing data transfer. Interface projections are simplest. Use class-based DTOs when you need custom logic. Never load full entities just to display a list view.</div>`,
-        },
-      ],
-    },
+      },
+    ],
+  },
 
-    // ───────────────────────── 13. TYPESCRIPT ─────────────────────────
-  );
-})();
+  // ───────────────────────── 13. TYPESCRIPT ─────────────────────────
+];

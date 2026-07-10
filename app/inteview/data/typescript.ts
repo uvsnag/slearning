@@ -1,16 +1,17 @@
 // Interview data: typescript
 // Auto-generated from pv.html
-(function () {
-  (window.__pvTopics = window.__pvTopics || []).push(
-    {
-      id: 'typescript',
-      name: 'TypeScript',
-      icon: '🔷',
-      questions: [
-        {
-          q: 'What is TypeScript? Why use it over JavaScript?',
-          difficulty: 'easy',
-          a: `<ul>
+import type { PvTopic } from '../types';
+
+export const topics: PvTopic[] = [
+  {
+    id: 'typescript',
+    name: 'TypeScript',
+    icon: '🔷',
+    questions: [
+      {
+        q: 'What is TypeScript? Why use it over JavaScript?',
+        difficulty: 'easy',
+        a: `<ul>
 <li>TypeScript is a <strong>typed superset</strong> of JavaScript that compiles to plain JS.</li>
 <li>Adds: static types, interfaces, enums, generics, access modifiers, decorators.</li>
 </ul>
@@ -28,11 +29,11 @@ greet(42); // Runtime: TypeError: name.toUpperCase is not a function
 // TypeScript: compile-time error
 function greet(name: string): string { return name.toUpperCase(); }
 greet(42); // Error: Argument of type 'number' is not assignable to 'string'</pre>`,
-        },
-        {
-          q: 'Explain the difference between interface and type alias in TypeScript.',
-          difficulty: 'medium',
-          a: `<pre>// Interface: extendable, mergeable
+      },
+      {
+        q: 'Explain the difference between interface and type alias in TypeScript.',
+        difficulty: 'medium',
+        a: `<pre>// Interface: extendable, mergeable
 interface User {
   id: number;
   name: string;
@@ -56,11 +57,11 @@ type Readonly&lt;T&gt; = { readonly [P in keyof T]: T[P] };  // mapped type</pre
 <li>Interfaces are better for object shapes (class contracts).</li>
 </ul>
 <div class="key-point">Rule of thumb: use <code>interface</code> for objects/classes, <code>type</code> for unions, intersections, and complex types.</div>`,
-        },
-        {
-          q: 'What are Generics in TypeScript? Give practical examples.',
-          difficulty: 'hard',
-          a: `<p>Generics let you write reusable components that work with <strong>any type</strong> while preserving type safety.</p>
+      },
+      {
+        q: 'What are Generics in TypeScript? Give practical examples.',
+        difficulty: 'hard',
+        a: `<p>Generics let you write reusable components that work with <strong>any type</strong> while preserving type safety.</p>
 <pre>// Generic function
 function getFirst&lt;T&gt;(arr: T[]): T | undefined {
   return arr[0];
@@ -89,11 +90,11 @@ class DataStore&lt;T&gt; {
   add(item: T): void { this.items.push(item); }
   getAll(): T[] { return [...this.items]; }
 }</pre>`,
-        },
-        {
-          q: 'Explain union types, intersection types, and type narrowing.',
-          difficulty: 'medium',
-          a: `<pre>// Union: A OR B
+      },
+      {
+        q: 'Explain union types, intersection types, and type narrowing.',
+        difficulty: 'medium',
+        a: `<pre>// Union: A OR B
 type StringOrNumber = string | number;
 type Status = 'active' | 'inactive' | 'pending';
 
@@ -122,11 +123,11 @@ function process(value: string | number) {
   }
 }</pre>
 <div class="key-point">Always prefer discriminated unions over type assertions. They let the compiler exhaustively check all cases.</div>`,
-        },
-        {
-          q: "What is 'any' vs 'unknown' vs 'never' in TypeScript?",
-          difficulty: 'tricky',
-          a: `<ul>
+      },
+      {
+        q: "What is 'any' vs 'unknown' vs 'never' in TypeScript?",
+        difficulty: 'tricky',
+        a: `<ul>
 <li><strong>any</strong>: opts out of type checking entirely. Can do anything. <strong>Avoid.</strong></li>
 <li><strong>unknown</strong>: type-safe alternative to any. Must narrow before use.</li>
 <li><strong>never</strong>: represents values that never occur (unreachable code, functions that throw).</li>
@@ -152,11 +153,11 @@ function paint(c: Color) {
     default: return assertNever(c);  // Error if new color added but not handled
   }
 }</pre>`,
-        },
-        {
-          q: 'Explain TypeScript utility types: Partial, Required, Pick, Omit, Record, Readonly.',
-          difficulty: 'hard',
-          a: `<pre>interface User {
+      },
+      {
+        q: 'Explain TypeScript utility types: Partial, Required, Pick, Omit, Record, Readonly.',
+        difficulty: 'hard',
+        a: `<pre>interface User {
   id: number;
   name: string;
   email: string;
@@ -189,11 +190,11 @@ type FrozenUser = Readonly&lt;User&gt;;
 // Combining
 type UserForm = Partial&lt;Omit&lt;User, 'id'&gt;&gt; & Pick&lt;User, 'name'&gt;;
 // name required, email + age optional, id excluded</pre>`,
-        },
-        {
-          q: 'What are mapped types and conditional types?',
-          difficulty: 'hard',
-          a: `<pre>// Mapped type: transform properties
+      },
+      {
+        q: 'What are mapped types and conditional types?',
+        difficulty: 'hard',
+        a: `<pre>// Mapped type: transform properties
 type Nullable&lt;T&gt; = { [K in keyof T]: T[K] | null };
 type ReadonlyUser = { readonly [K in keyof User]: User[K] };
 
@@ -214,11 +215,11 @@ type X = Awaited&lt;Promise&lt;Promise&lt;string&gt;&gt;&gt;;  // string
 type EventName = \`on\${ Capitalize&lt;'click' | 'focus' | 'blur'&gt; }\`;
 // 'onClick' | 'onFocus' | 'onBlur'</pre>
 <div class="key-point">Mapped + Conditional types are the foundation of advanced TypeScript patterns — used heavily in library type definitions (React, Express, Prisma).</div>`,
-        },
-        {
-          q: 'What are type guards and how to create custom ones?',
-          difficulty: 'medium',
-          a: `<pre>// Built-in type guards
+      },
+      {
+        q: 'What are type guards and how to create custom ones?',
+        difficulty: 'medium',
+        a: `<pre>// Built-in type guards
 typeof value === 'string'        // primitive check
 value instanceof Date             // class check
 'property' in obj                 // property existence
@@ -247,11 +248,11 @@ function demo(val: unknown) {
   assertIsString(val);
   val.toUpperCase();  // TS knows it's string after assertion
 }</pre>`,
-        },
-        {
-          q: "Explain 'as const', const assertions, and literal types.",
-          difficulty: 'tricky',
-          a: `<pre>// Without as const: types are widened
+      },
+      {
+        q: "Explain 'as const', const assertions, and literal types.",
+        difficulty: 'tricky',
+        a: `<pre>// Without as const: types are widened
 const config = {
   endpoint: 'https://api.example.com',  // type: string
   retries: 3,                            // type: number
@@ -278,11 +279,11 @@ type Status = typeof STATUS[keyof typeof STATUS];
 function request(url: string, method: 'GET' | 'POST' | 'PUT' | 'DELETE') { }
 request('/users', 'GET');     // OK
 request('/users', 'PATCH');   // Error!</pre>`,
-        },
-        {
-          q: 'What are enums in TypeScript? What are the alternatives?',
-          difficulty: 'medium',
-          a: `<pre>// Numeric enum
+      },
+      {
+        q: 'What are enums in TypeScript? What are the alternatives?',
+        difficulty: 'medium',
+        a: `<pre>// Numeric enum
 enum Direction {
   Up = 0,     // default starts at 0
   Down = 1,
@@ -310,11 +311,11 @@ type Status = 'active' | 'inactive' | 'pending';
 const STATUS = { Active: 'ACTIVE', Inactive: 'INACTIVE' } as const;
 type Status = typeof STATUS[keyof typeof STATUS];</pre>
 <div class="key-point">Avoid numeric enums (runtime reverse mapping adds bloat). Prefer union types or <code>as const</code> objects for tree-shaking and simplicity.</div>`,
-        },
-        {
-          q: 'What are declaration files (.d.ts) and how do they work?',
-          difficulty: 'hard',
-          a: `<p>Declaration files provide <strong>type information</strong> for JavaScript libraries that don't have built-in types.</p>
+      },
+      {
+        q: 'What are declaration files (.d.ts) and how do they work?',
+        difficulty: 'hard',
+        a: `<p>Declaration files provide <strong>type information</strong> for JavaScript libraries that don't have built-in types.</p>
 <pre>// lodash.d.ts (example)
 declare module 'lodash' {
   export function chunk&lt;T&gt;(array: T[], size: number): T[][];
@@ -337,11 +338,11 @@ window.myApp.version;  // typed!</pre>
 <li><strong>DefinitelyTyped</strong>: GitHub repo hosting thousands of <code>@types</code> packages.</li>
 </ul>
 <div class="key-point">If a library has no types: install <code>@types/libname</code>. If none exists, create a <code>declarations.d.ts</code> with <code>declare module 'libname';</code> to silence errors.</div>`,
-        },
-        {
-          q: 'Explain TypeScript strict mode options and tsconfig.json key settings.',
-          difficulty: 'hard',
-          a: `<pre>// tsconfig.json
+      },
+      {
+        q: 'Explain TypeScript strict mode options and tsconfig.json key settings.',
+        difficulty: 'hard',
+        a: `<pre>// tsconfig.json
 {
   "compilerOptions": {
     "target": "ES2022",              // output JS version
@@ -367,11 +368,11 @@ window.myApp.version;  // typed!</pre>
   "exclude": ["node_modules", "dist"]
 }</pre>
 <div class="key-point">Always enable <code>"strict": true</code> for new projects. It catches the most common TypeScript errors. Disable individual checks only with justification.</div>`,
-        },
-        {
-          q: 'What are decorators in TypeScript?',
-          difficulty: 'hard',
-          a: `<p>Decorators are functions that modify classes, methods, properties, or parameters. Stage 3 proposal (native in TS 5.0+).</p>
+      },
+      {
+        q: 'What are decorators in TypeScript?',
+        difficulty: 'hard',
+        a: `<p>Decorators are functions that modify classes, methods, properties, or parameters. Stage 3 proposal (native in TS 5.0+).</p>
 <pre>// Class decorator (NestJS / Angular style)
 @Controller('/users')
 class UserController {
@@ -401,11 +402,11 @@ class Calculator {
 // → "Calling add with [2, 3]"
 // → "add returned 5"</pre>
 <div class="key-point">Enable with <code>"experimentalDecorators": true</code> in tsconfig. Heavily used by NestJS, Angular, TypeORM.</div>`,
-        },
-        {
-          q: 'How to handle null/undefined safely in TypeScript?',
-          difficulty: 'medium',
-          a: `<pre>// strictNullChecks: null and undefined are distinct types
+      },
+      {
+        q: 'How to handle null/undefined safely in TypeScript?',
+        difficulty: 'medium',
+        a: `<pre>// strictNullChecks: null and undefined are distinct types
 let name: string = null;     // Error!
 let name: string | null = null;  // OK
 
@@ -433,11 +434,11 @@ function greet(name: string, title?: string): string {
   return title ? \`\${title} \${name}\` : name;
 }</pre>
 <div class="key-point">Avoid <code>!</code> (non-null assertion) — it defeats the purpose of strictNullChecks. Use <code>?.</code> and <code>??</code> instead, or narrow with type guards.</div>`,
-        },
-        {
-          q: "What is the difference between 'type assertion' and 'type casting'?",
-          difficulty: 'tricky',
-          a: `<p>TypeScript has <strong>type assertions</strong> (not casting). They don't change the runtime value — only tell the compiler "trust me".</p>
+      },
+      {
+        q: "What is the difference between 'type assertion' and 'type casting'?",
+        difficulty: 'tricky',
+        a: `<p>TypeScript has <strong>type assertions</strong> (not casting). They don't change the runtime value — only tell the compiler "trust me".</p>
 <pre>// Type assertion (angle bracket or 'as')
 const input = document.getElementById('name') as HTMLInputElement;
 // or: const input = &lt;HTMLInputElement&gt;document.getElementById('name');
@@ -461,11 +462,11 @@ const palette = {
 } satisfies Record&lt;string, string | number[]&gt;;
 // palette.red is still number[] (not widened to string | number[])</pre>
 <div class="key-point"><code>as</code> doesn't change runtime behavior — it's purely compile-time. If you're wrong, you'll get runtime errors. Prefer type guards for safety.</div>`,
-        },
-        {
-          q: 'What is the difference between extends and implements in TypeScript?',
-          difficulty: 'medium',
-          a: `<ul>
+      },
+      {
+        q: 'What is the difference between extends and implements in TypeScript?',
+        difficulty: 'medium',
+        a: `<ul>
 <li><strong>extends</strong>: inherit from a class (get implementation) or constrain generics.</li>
 <li><strong>implements</strong>: promise to follow a contract (interface). Must provide all members.</li>
 </ul>
@@ -499,11 +500,11 @@ function getLength&lt;T extends { length: number }&gt;(item: T): number {
 }
 getLength('hello');  // OK: string has .length
 getLength(42);       // Error: number has no .length</pre>`,
-        },
-        {
-          q: 'What is the satisfies operator in TypeScript (4.9+)?',
-          difficulty: 'tricky',
-          a: `<p><code>satisfies</code> validates that an expression matches a type WITHOUT widening it. You get both type safety AND precise inference.</p>
+      },
+      {
+        q: 'What is the satisfies operator in TypeScript (4.9+)?',
+        difficulty: 'tricky',
+        a: `<p><code>satisfies</code> validates that an expression matches a type WITHOUT widening it. You get both type safety AND precise inference.</p>
 <pre>// Problem with 'as': loses precision
 type Color = 'red' | 'green' | 'blue';
 type Palette = Record&lt;Color, string | number[]&gt;;
@@ -532,11 +533,11 @@ const bad = {
   geen: '#00ff00',  // Error! 'geen' is not in Color
 } satisfies Palette;</pre>
 <div class="key-point"><code>satisfies</code> is the best of both worlds: type checking without losing narrow types. Use it instead of <code>as</code> whenever possible.</div>`,
-        },
-        {
-          q: 'What is the difference between void, undefined, and never as return types?',
-          difficulty: 'tricky',
-          a: `<pre>// void: function doesn't return a meaningful value
+      },
+      {
+        q: 'What is the difference between void, undefined, and never as return types?',
+        difficulty: 'tricky',
+        a: `<pre>// void: function doesn't return a meaningful value
 function log(msg: string): void {
   console.log(msg);
   // can return undefined implicitly or explicitly
@@ -561,11 +562,11 @@ type VoidCallback = () => void;
 const cb: VoidCallback = () => 42;  // OK! void ignores return value
 // This is why Array.push returns number but forEach expects void callback</pre>
 <div class="key-point">Trick: A <code>void</code> return type in a callback context means "ignore the return value" — it does NOT mean the function can't return something. This is by design for compatibility.</div>`,
-        },
-        {
-          q: 'What are template literal types in TypeScript?',
-          difficulty: 'hard',
-          a: `<pre>// Basic template literal types
+      },
+      {
+        q: 'What are template literal types in TypeScript?',
+        difficulty: 'hard',
+        a: `<pre>// Basic template literal types
 type Color = 'red' | 'blue';
 type Size = 'sm' | 'lg';
 type ClassName = \`\${Size}-\${Color}\`;
@@ -591,11 +592,11 @@ const bad: CSSValue = '100vw';     // Error!
 // Pattern matching with infer
 type ExtractId&lt;T&gt; = T extends \`user_\${infer Id}\` ? Id : never;
 type Result = ExtractId&lt;'user_123'&gt;;  // "123"</pre>`,
-        },
-        {
-          q: 'Explain TypeScript module augmentation and declaration merging.',
-          difficulty: 'hard',
-          a: `<pre>// Declaration merging: same interface name = merged
+      },
+      {
+        q: 'Explain TypeScript module augmentation and declaration merging.',
+        difficulty: 'hard',
+        a: `<pre>// Declaration merging: same interface name = merged
 interface User {
   id: number;
   name: string;
@@ -629,10 +630,9 @@ enum Status { Active = 'ACTIVE' }
 enum Status { Inactive = 'INACTIVE' } // merged!
 // Status.Active and Status.Inactive both work</pre>
 <div class="key-point">Declaration merging only works with <code>interface</code> and <code>namespace</code>, NOT with <code>type</code> aliases. This is one key reason to prefer <code>interface</code> for extensible shapes.</div>`,
-        },
-      ],
-    },
+      },
+    ],
+  },
 
-    // ───────────────────────── SYSTEM DESIGN ─────────────────────────
-  );
-})();
+  // ───────────────────────── SYSTEM DESIGN ─────────────────────────
+];

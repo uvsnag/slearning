@@ -1,7 +1,9 @@
 // Interview data: reactjs
 // Auto-generated from pv.html
-(function () {
-  (window.__pvTopics = window.__pvTopics || []).push({
+import type { PvTopic } from '../types';
+
+export const topics: PvTopic[] = [
+  {
     id: 'reactjs',
     name: 'ReactJS',
     icon: '⚛️',
@@ -694,5 +696,5 @@ function Header() {
       //   ],
       // },
     ],
-  });
-})();
+  },
+];

@@ -1,7 +1,7 @@
-import { redirect } from 'next/navigation';
+import InterviewPrep from './components/InterviewPrep';
 
 const InterviewPage = () => {
-  redirect('/inteview/pv.html');
+  return <InterviewPrep />;
 };
 
 export default InterviewPage;

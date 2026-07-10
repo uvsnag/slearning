@@ -1,16 +1,17 @@
 // Interview data: zustand, tanstack
-(function () {
-  (window.__pvTopics = window.__pvTopics || []).push(
-    // ───────────────────────── ZUSTAND ─────────────────────────
-    {
-      id: 'zustand',
-      name: 'Zustand',
-      icon: '🐻',
-      questions: [
-        {
-          q: 'What is Zustand and how does it compare to Redux and Context API?',
-          difficulty: 'easy',
-          a: `<p><strong>Zustand</strong> is a small, fast, unopinionated state management library for React. It uses a hook-based API with no boilerplate.</p>
+import type { PvTopic } from '../types';
+
+export const topics: PvTopic[] = [
+  // ───────────────────────── ZUSTAND ─────────────────────────
+  {
+    id: 'zustand',
+    name: 'Zustand',
+    icon: '🐻',
+    questions: [
+      {
+        q: 'What is Zustand and how does it compare to Redux and Context API?',
+        difficulty: 'easy',
+        a: `<p><strong>Zustand</strong> is a small, fast, unopinionated state management library for React. It uses a hook-based API with no boilerplate.</p>
 <table><tr><th>Aspect</th><th>Zustand</th><th>Redux Toolkit</th><th>Context API</th></tr>
 <tr><td>Boilerplate</td><td>Minimal</td><td>Medium (slices, store)</td><td>Low</td></tr>
 <tr><td>Bundle size</td><td>~1KB</td><td>~10KB</td><td>0 (built-in)</td></tr>
@@ -35,11 +36,11 @@ function Counter() {
   return &lt;button onClick={increment}&gt;{count}&lt;/button&gt;;
 }</pre>
 <div class="key-point">Zustand doesn't need a Provider wrapper. Components subscribe to specific slices of state and only re-render when those slices change.</div>`,
-        },
-        {
-          q: 'How does Zustand handle selectors and prevent unnecessary re-renders?',
-          difficulty: 'medium',
-          a: `<p>Zustand uses <strong>selectors</strong> to subscribe to specific parts of the store. Components only re-render when their selected state changes.</p>
+      },
+      {
+        q: 'How does Zustand handle selectors and prevent unnecessary re-renders?',
+        difficulty: 'medium',
+        a: `<p>Zustand uses <strong>selectors</strong> to subscribe to specific parts of the store. Components only re-render when their selected state changes.</p>
 <pre>const useStore = create((set) => ({
   user: { name: 'John', age: 30 },
   theme: 'dark',
@@ -75,11 +76,11 @@ const { name, age } = useStore(
   useShallow((state) => ({ name: state.user.name, age: state.user.age }))
 );</pre>
 <div class="key-point">Always use selectors to pick only what you need. Without a selector, the component subscribes to the entire store and re-renders on every state change. Use <code>shallow</code> when selecting multiple values as an object.</div>`,
-        },
-        {
-          q: 'How to handle async actions in Zustand?',
-          difficulty: 'medium',
-          a: `<p>Zustand handles async naturally — just use <code>async/await</code> inside actions. No thunks or middleware needed.</p>
+      },
+      {
+        q: 'How to handle async actions in Zustand?',
+        difficulty: 'medium',
+        a: `<p>Zustand handles async naturally — just use <code>async/await</code> inside actions. No thunks or middleware needed.</p>
 <pre>const useStore = create((set, get) => ({
   users: [],
   loading: false,
@@ -116,11 +117,11 @@ function UserList() {
   return users.map(u => &lt;div key={u.id}&gt;{u.name}&lt;/div&gt;);
 }</pre>
 <div class="key-point"><code>set()</code> updates state, <code>get()</code> reads current state inside actions. This is simpler than Redux's createAsyncThunk — just write normal async functions.</div>`,
-        },
-        {
-          q: 'What are Zustand middleware? Explain persist, devtools, and immer.',
-          difficulty: 'hard',
-          a: `<p>Zustand middleware wraps the store to add features like persistence, DevTools, and immutable updates.</p>
+      },
+      {
+        q: 'What are Zustand middleware? Explain persist, devtools, and immer.',
+        difficulty: 'hard',
+        a: `<p>Zustand middleware wraps the store to add features like persistence, DevTools, and immutable updates.</p>
 <pre>import { create } from 'zustand';
 import { persist, devtools } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
@@ -159,11 +160,11 @@ const logMiddleware = (config) => (set, get, api) =>
     api
   );</pre>
 <div class="key-point"><code>persist</code> saves state to localStorage (or custom storage). <code>devtools</code> enables Redux DevTools. <code>immer</code> allows direct mutation syntax for deeply nested state updates. Middleware are composed by nesting.</div>`,
-        },
-        {
-          q: 'How to structure a large Zustand store? Slices pattern.',
-          difficulty: 'hard',
-          a: `<p>For large apps, split the store into <strong>slices</strong> — separate files that each manage a domain, then combine them.</p>
+      },
+      {
+        q: 'How to structure a large Zustand store? Slices pattern.',
+        difficulty: 'hard',
+        a: `<p>For large apps, split the store into <strong>slices</strong> — separate files that each manage a domain, then combine them.</p>
 <pre>// slices/authSlice.ts
 export const createAuthSlice = (set, get) => ({
   user: null,
@@ -201,11 +202,11 @@ type StoreState = ReturnType&lt;typeof createAuthSlice&gt;
 const useAuthStore = create(createAuthSlice);
 const useCartStore = create(createCartSlice);</pre>
 <div class="key-point">Use slices when the store grows beyond ~10 state fields. For truly independent domains, prefer separate stores. Cross-slice access works via <code>get()</code> since all slices share the same store.</div>`,
-        },
-        {
-          q: 'How does Zustand work outside of React components?',
-          difficulty: 'medium',
-          a: `<p>Zustand stores can be used outside React — in utility functions, API interceptors, or tests.</p>
+      },
+      {
+        q: 'How does Zustand work outside of React components?',
+        difficulty: 'medium',
+        a: `<p>Zustand stores can be used outside React — in utility functions, API interceptors, or tests.</p>
 <pre>const useStore = create((set) => ({
   token: null,
   setToken: (token) => set({ token }),
@@ -235,11 +236,11 @@ useStore.setState({ token: 'new-token' });
 // ✅ Destroy store (useful in tests):
 useStore.destroy();</pre>
 <div class="key-point"><code>useStore.getState()</code> reads state, <code>useStore.setState()</code> writes state, <code>useStore.subscribe()</code> listens for changes — all work outside React. This makes Zustand great for integrating with non-React code.</div>`,
-        },
-        {
-          q: 'What are common Zustand anti-patterns and pitfalls?',
-          difficulty: 'tricky',
-          a: `<pre>// ❌ Anti-pattern 1: No selector — subscribes to entire store
+      },
+      {
+        q: 'What are common Zustand anti-patterns and pitfalls?',
+        difficulty: 'tricky',
+        a: `<pre>// ❌ Anti-pattern 1: No selector — subscribes to entire store
 const store = useStore(); // re-renders on ANY state change
 // ✅ Fix: always use a selector
 const count = useStore((s) => s.count);
@@ -268,11 +269,11 @@ const total = useStore((s) => s.items.reduce((sum, i) => sum + i.price, 0));
 // ❌ Anti-pattern 5: Using store for server state
 // Use TanStack Query for server state, Zustand for client state only</pre>
 <div class="key-point">Zustand is for <strong>client state</strong> (UI state, user preferences, form state). For server state (API data, caching, sync), use <strong>TanStack Query</strong>. Don't duplicate server data in Zustand.</div>`,
-        },
-        {
-          q: 'Zustand vs Redux Toolkit vs Jotai vs Recoil — when to use which?',
-          difficulty: 'hard',
-          a: `<table><tr><th>Library</th><th>Model</th><th>Best For</th><th>Size</th></tr>
+      },
+      {
+        q: 'Zustand vs Redux Toolkit vs Jotai vs Recoil — when to use which?',
+        difficulty: 'hard',
+        a: `<table><tr><th>Library</th><th>Model</th><th>Best For</th><th>Size</th></tr>
 <tr><td><strong>Zustand</strong></td><td>Single store, flux-like</td><td>Simple-medium apps, replaces Redux</td><td>~1KB</td></tr>
 <tr><td><strong>Redux Toolkit</strong></td><td>Single store, actions/reducers</td><td>Large apps, complex state logic, devtools</td><td>~10KB</td></tr>
 <tr><td><strong>Jotai</strong></td><td>Atomic (bottom-up)</td><td>Fine-grained reactivity, many independent pieces</td><td>~3KB</td></tr>
@@ -287,20 +288,20 @@ const total = useStore((s) => s.items.reduce((sum, i) => sum + i.price, 0));
 <li><strong>Theme / locale / auth (rarely changes)</strong>: Context API</li>
 </ul>
 <div class="key-point">Zustand is the most pragmatic choice for most React apps. It's simpler than Redux with equivalent power. Only choose Redux Toolkit when you need strict action logging, time-travel debugging, or your team already knows Redux.</div>`,
-        },
-      ],
-    },
+      },
+    ],
+  },
 
-    // ───────────────────────── TANSTACK ─────────────────────────
-    {
-      id: 'tanstack',
-      name: 'TanStack (Query/Form)',
-      icon: '🔥',
-      questions: [
-        {
-          q: 'What is TanStack Query (React Query)? Why use it instead of useEffect + fetch?',
-          difficulty: 'easy',
-          a: `<p><strong>TanStack Query</strong> is a server state management library for fetching, caching, synchronizing, and updating server data in React.</p>
+  // ───────────────────────── TANSTACK ─────────────────────────
+  {
+    id: 'tanstack',
+    name: 'TanStack (Query/Form)',
+    icon: '🔥',
+    questions: [
+      {
+        q: 'What is TanStack Query (React Query)? Why use it instead of useEffect + fetch?',
+        difficulty: 'easy',
+        a: `<p><strong>TanStack Query</strong> is a server state management library for fetching, caching, synchronizing, and updating server data in React.</p>
 <pre>// ❌ Without TanStack Query (manual approach)
 function Users() {
   const [users, setUsers] = useState([]);
@@ -338,11 +339,11 @@ function Users() {
 <li>Optimistic updates</li>
 </ul>
 <div class="key-point">TanStack Query manages <strong>server state</strong> (data from APIs). Use Zustand/Redux for <strong>client state</strong> (UI state, form state). Don't mix them.</div>`,
-        },
-        {
-          q: 'Explain queryKey, queryFn, and how caching works in TanStack Query.',
-          difficulty: 'medium',
-          a: `<p>Every query is identified by its <strong>queryKey</strong>. The cache stores data by key.</p>
+      },
+      {
+        q: 'Explain queryKey, queryFn, and how caching works in TanStack Query.',
+        difficulty: 'medium',
+        a: `<p>Every query is identified by its <strong>queryKey</strong>. The cache stores data by key.</p>
 <pre>// Simple key
 useQuery({ queryKey: ['users'], queryFn: fetchUsers });
 
@@ -374,11 +375,11 @@ useQuery({
   refetchInterval: 30000,       // poll every 30 seconds
 });</pre>
 <div class="key-point"><code>staleTime</code> = how long data is considered fresh (no background refetch). <code>gcTime</code> (formerly cacheTime) = how long unused data stays in memory. Set <code>staleTime: Infinity</code> for data that rarely changes.</div>`,
-        },
-        {
-          q: 'What is useMutation in TanStack Query? How to handle create/update/delete?',
-          difficulty: 'medium',
-          a: `<p><code>useMutation</code> handles data modification (POST, PUT, DELETE) with callbacks for success, error, and cache invalidation.</p>
+      },
+      {
+        q: 'What is useMutation in TanStack Query? How to handle create/update/delete?',
+        difficulty: 'medium',
+        a: `<p><code>useMutation</code> handles data modification (POST, PUT, DELETE) with callbacks for success, error, and cache invalidation.</p>
 <pre>import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 function CreateUser() {
@@ -415,11 +416,11 @@ function CreateUser() {
   );
 }</pre>
 <div class="key-point">After mutation, call <code>invalidateQueries</code> to refetch affected queries. This keeps the cache in sync with the server. For a better UX, use <strong>optimistic updates</strong>.</div>`,
-        },
-        {
-          q: 'What are optimistic updates in TanStack Query?',
-          difficulty: 'hard',
-          a: `<p><strong>Optimistic updates</strong> update the UI immediately (before the server responds), then roll back if the mutation fails.</p>
+      },
+      {
+        q: 'What are optimistic updates in TanStack Query?',
+        difficulty: 'hard',
+        a: `<p><strong>Optimistic updates</strong> update the UI immediately (before the server responds), then roll back if the mutation fails.</p>
 <pre>const mutation = useMutation({
   mutationFn: updateTodo,
 
@@ -452,11 +453,11 @@ function CreateUser() {
   },
 });</pre>
 <div class="key-point">Optimistic updates make the UI feel instant (no loading spinner). The pattern: snapshot → optimistic update → rollback on error → refetch on settle.</div>`,
-        },
-        {
-          q: 'How to implement pagination and infinite scroll with TanStack Query?',
-          difficulty: 'hard',
-          a: `<pre>// 1. Standard pagination
+      },
+      {
+        q: 'How to implement pagination and infinite scroll with TanStack Query?',
+        difficulty: 'hard',
+        a: `<pre>// 1. Standard pagination
 function UserList() {
   const [page, setPage] = useState(1);
 
@@ -509,11 +510,11 @@ function InfiniteUsers() {
   );
 }</pre>
 <div class="key-point"><code>keepPreviousData</code> prevents the UI from going blank when changing pages. <code>useInfiniteQuery</code> manages the page cursor and accumulated data automatically.</div>`,
-        },
-        {
-          q: 'What is TanStack Query DevTools and how to debug queries?',
-          difficulty: 'medium',
-          a: `<pre>// Install: npm install @tanstack/react-query-devtools
+      },
+      {
+        q: 'What is TanStack Query DevTools and how to debug queries?',
+        difficulty: 'medium',
+        a: `<pre>// Install: npm install @tanstack/react-query-devtools
 
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
@@ -540,11 +541,11 @@ function App() {
 <li><strong>Infinite loop</strong>: <code>queryFn</code> creates a new function reference each render. Stabilize it.</li>
 </ul>
 <div class="key-point">DevTools only show in development builds. They're the single best tool for understanding what TanStack Query is doing behind the scenes.</div>`,
-        },
-        {
-          q: 'How to configure a global QueryClient and default options?',
-          difficulty: 'medium',
-          a: `<pre>import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+      },
+      {
+        q: 'How to configure a global QueryClient and default options?',
+        difficulty: 'medium',
+        a: `<pre>import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -587,11 +588,11 @@ function App() {
   );
 }</pre>
 <div class="key-point">Set sensible defaults at the QueryClient level. Override per-query when needed. A 5-minute staleTime is a good default for most API data.</div>`,
-        },
-        {
-          q: 'How does TanStack Query handle dependent queries and parallel queries?',
-          difficulty: 'hard',
-          a: `<pre>// 1. Parallel queries (independent — fetch simultaneously)
+      },
+      {
+        q: 'How does TanStack Query handle dependent queries and parallel queries?',
+        difficulty: 'hard',
+        a: `<pre>// 1. Parallel queries (independent — fetch simultaneously)
 function Dashboard() {
   const usersQuery = useQuery({ queryKey: ['users'], queryFn: fetchUsers });
   const ordersQuery = useQuery({ queryKey: ['orders'], queryFn: fetchOrders });
@@ -628,11 +629,11 @@ function UsersList({ userIds }) {
   const allLoaded = userQueries.every(q => q.isSuccess);
 }</pre>
 <div class="key-point"><code>enabled: false</code> prevents a query from running. Use it for dependent queries, conditional fetching, or disabling auto-fetch. <code>useQueries</code> handles dynamic parallel queries.</div>`,
-        },
-        {
-          q: 'What is TanStack Form? How does it compare to React Hook Form?',
-          difficulty: 'medium',
-          a: `<p><strong>TanStack Form</strong> is a headless, type-safe form library with built-in validation, supporting React, Vue, Angular, and Solid.</p>
+      },
+      {
+        q: 'What is TanStack Form? How does it compare to React Hook Form?',
+        difficulty: 'medium',
+        a: `<p><strong>TanStack Form</strong> is a headless, type-safe form library with built-in validation, supporting React, Vue, Angular, and Solid.</p>
 <pre>import { useForm } from '@tanstack/react-form';
 
 function SignupForm() {
@@ -684,11 +685,11 @@ function SignupForm() {
 <tr><td>Maturity</td><td>Newer</td><td>Very mature</td></tr>
 </table>
 <div class="key-point">TanStack Form excels in type safety — field names and values are fully typed. React Hook Form is more mature with a larger ecosystem. Both are excellent choices.</div>`,
-        },
-        {
-          q: 'What is the difference between server state and client state? How does TanStack Query fit?',
-          difficulty: 'tricky',
-          a: `<p>Understanding this distinction is key to choosing the right tool.</p>
+      },
+      {
+        q: 'What is the difference between server state and client state? How does TanStack Query fit?',
+        difficulty: 'tricky',
+        a: `<p>Understanding this distinction is key to choosing the right tool.</p>
 <table><tr><th>Aspect</th><th>Server State</th><th>Client State</th></tr>
 <tr><td>Source of truth</td><td>Remote server / DB</td><td>Browser / memory</td></tr>
 <tr><td>Shared</td><td>Yes (other users see it)</td><td>No (local to this user)</td></tr>
@@ -716,8 +717,7 @@ const useUIStore = create((set) => ({
   toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
 }));</pre>
 <div class="key-point">The biggest architecture mistake is treating server state like client state. TanStack Query handles the hard parts of server state: caching, staleness, deduplication, retries, and background updates. Zustand handles client-only state.</div>`,
-        },
-      ],
-    },
-  );
-})();
+      },
+    ],
+  },
+];
