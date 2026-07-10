@@ -38,7 +38,7 @@ const LEGANCY_LINKS: NavLink[] = [
   { href: '/legancy-tools/sql-process-ck', label: 'SQL Process' },
   { href: '/legancy-tools/json-process', label: 'Json Process' },
   { href: '/legancy-tools/replace-process', label: 'Replace Process' },
-  { href: '/inteview/pv.html', label: 'PV' },
+  { href: '/inteview', label: 'PV' },
 ];
 
 export const NAV_SECTIONS: NavSection[] = [
