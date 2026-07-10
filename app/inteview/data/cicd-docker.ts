@@ -425,6 +425,42 @@ cosign verify registry/myapi:1.5.0 \\
 </ul>
 <div class="key-point">A senior answer sounds like: "we deploy small batches on demand behind flags, and if something breaks we roll back in minutes" — that is what elite DORA numbers mean in practice.</div>`,
       },
+      {
+        q: 'What makes a good CI pipeline? How do you order stages and deal with flaky tests?',
+        difficulty: 'tricky',
+        a: `<p>A good pipeline optimizes for <strong>trustworthy feedback time</strong>: the cheapest, most-likely-to-fail checks run first (fail fast), expensive checks run later and in parallel. A slow or flaky pipeline is worse than none — developers start batching changes and ignoring red builds, which quietly kills the whole point of CI.</p>
+<ul>
+<li><strong>Fail-fast ordering</strong>: lint/format → compile/typecheck → unit tests → build artifact → integration tests → E2E. Never make someone wait 20 minutes to learn about a lint error.</li>
+<li><strong>Parallelize</strong>: shard test suites across runners; run independent jobs concurrently.</li>
+<li><strong>Cache aggressively</strong>: dependencies and Docker layers between runs.</li>
+<li><strong>Flaky tests</strong>: detect them (pass-on-retry = flaky), <strong>quarantine</strong> them out of the blocking path, and fix or delete them under an SLA. A blanket "retry 3 times" policy hides real race conditions that will resurface in production.</li>
+<li><strong>Pipeline-as-code</strong>: the pipeline definition lives in the repo and is reviewed like any other change — no hand-edited server jobs that drift.</li>
+<li><strong>Time budget</strong>: keep the blocking path under ~10 minutes; push slower suites to a merge queue or nightly run.</li>
+</ul>
+<pre># Fail-fast: cheap checks gate the expensive ones
+jobs:
+  quick-checks:                        # ~1 min — catches most failures
+    steps:
+      - run: npm run lint
+      - run: npm run typecheck
+  unit:
+    needs: quick-checks
+    strategy:
+      fail-fast: true
+      matrix: { shard: [1, 2, 3, 4] }  # parallel test shards
+    steps:
+      - run: npm test -- --shard=\${{ matrix.shard }}/4
+  e2e:
+    needs: unit                        # slowest suite last, only if all else passed
+    steps:
+      - run: npx playwright test
+
+# Flaky-test policy:
+#   passes only on retry → tag @quarantine → excluded from the blocking run
+#   quarantined tests still run (non-blocking) + ticket with a fix-by date</pre>
+<p>Interviewer follow-up: "what do you do when the pipeline is red?" Senior answer: red main is a stop-the-line event — revert or fix forward immediately; nobody merges onto a broken trunk.</p>
+<div class="key-point">A pipeline's job is trustworthy feedback in under ~10 minutes: fail fast, parallelize the rest, and quarantine flaky tests instead of retrying them into green.</div>`,
+      },
     ],
   },
 
@@ -787,6 +823,96 @@ ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75.0"
 HEALTHCHECK CMD wget -qO- http://localhost:8080/actuator/health | grep -q UP
 ENTRYPOINT ["java", "org.springframework.boot.loader.launch.JarLauncher"]</pre>
 <div class="key-point">Without <code>MaxRAMPercentage</code> (or with <code>-Xmx</code> above the container limit) the JVM allocates past the cgroup limit and the container dies with exit 137 — the single most common "Java in Docker" production incident.</div>`,
+      },
+      {
+        q: "Why does my app ignore SIGTERM and take 10 seconds to stop? Explain the PID 1 problem.",
+        difficulty: 'tricky',
+        a: `<p><code>docker stop</code> sends <strong>SIGTERM to PID 1</strong>, waits (default 10s), then SIGKILLs. Two classic reasons your app never sees the SIGTERM:</p>
+<ol>
+<li><strong>Shell form vs exec form</strong>: <code>CMD npm start</code> actually runs <code>/bin/sh -c "npm start"</code> — the <strong>shell</strong> is PID 1, and it does NOT forward signals to its child. Your app is killed cold after the timeout, dropping in-flight requests. The exec form <code>CMD ["node", "server.js"]</code> makes your process PID 1 so it receives signals directly. (Same trap applies to ENTRYPOINT — and <code>npm start</code> itself also swallows signals.)</li>
+<li><strong>PID 1 is special</strong>: the kernel installs no default signal handlers for PID 1. If your process doesn't explicitly handle SIGTERM, the signal is simply ignored.</li>
+</ol>
+<p>Bonus failure mode: PID 1 must <strong>reap orphaned children</strong>. App runtimes don't do this, so if your process spawns subprocesses you accumulate <strong>zombie processes</strong>. Fix with a minimal init: <code>docker run --init</code> or tini.</p>
+<pre># BAD — shell form: sh is PID 1, node never gets SIGTERM
+CMD npm start                      # → /bin/sh -c "npm start"
+
+# GOOD — exec form (JSON array): node is PID 1, receives signals
+CMD ["node", "server.js"]
+
+# Belt and braces — tini forwards signals AND reaps zombies:
+ENTRYPOINT ["tini", "--"]
+CMD ["node", "server.js"]          # or: docker run --init myapp
+
+// In the app — actually handle the signal (PID 1 ignores it by default):
+process.on('SIGTERM', async () => {
+  await server.close();            // stop accepting, drain in-flight requests
+  await db.disconnect();
+  process.exit(0);
+});</pre>
+<p><strong>Kubernetes angle</strong>: same mechanics — SIGTERM, then SIGKILL after <code>terminationGracePeriodSeconds</code> (default 30s). Because endpoint removal races with the SIGTERM, a <code>preStop</code> hook with a short sleep avoids serving errors during rolling updates.</p>
+<div class="key-point">Always use exec-form CMD/ENTRYPOINT, handle SIGTERM in the app, and add tini/--init if you spawn children — otherwise every deploy is a hard kill of in-flight requests.</div>`,
+      },
+      {
+        q: 'Why does my JVM or Node app get OOMKilled (exit 137) even though I set memory flags?',
+        difficulty: 'tricky',
+        a: `<p>Exit 137 = SIGKILL from the kernel OOM killer: the container exceeded its <strong>cgroup memory limit</strong>. The trap is that <strong>the heap is only part of process memory</strong>:</p>
+<ul>
+<li><strong>JVM total ≈</strong> heap (<code>-Xmx</code>) + Metaspace + thread stacks (~1MB × thread count) + code cache + direct/NIO buffers + native libs. Setting <code>-Xmx</code> equal to the container limit therefore <em>guarantees</em> an eventual OOM kill — the kernel counts total RSS, not heap.</li>
+<li><strong>Rule of thumb</strong>: heap ≤ ~75% of the limit. Use <code>-XX:MaxRAMPercentage=75.0</code> — it reads the cgroup limit at startup, so resizing the pod's memory needs no image change.</li>
+<li><strong>cgroup awareness</strong>: JVM container support is on by default since JDK 8u191/10 — but <strong>cgroup v2</strong> (the default on modern distros and Kubernetes nodes) is only detected by JDK 8u372/11.0.16/15+. An older JDK on a cgroup v2 host sees the HOST's memory and happily sizes a giant heap.</li>
+<li><strong>Node</strong>: V8 does not read cgroup limits at all — its default old-space size can exceed a small container limit. Cap it yourself with <code>--max-old-space-size</code> and leave headroom for buffers and native memory.</li>
+<li><strong>Kubernetes</strong>: <code>requests</code> only affect scheduling; <code>limits</code> set the cgroup ceiling that triggers the kill.</li>
+</ul>
+<pre># Kubernetes:
+resources:
+  requests: { memory: "512Mi" }    # scheduler placement only
+  limits:   { memory: "512Mi" }    # cgroup limit — exceed it → SIGKILL (137)
+
+# JVM — heap sized FROM the container limit, with headroom:
+ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75.0 -XX:MaxMetaspaceSize=128m"
+
+# Node — V8 is NOT cgroup-aware; cap the heap yourself (~75% of limit):
+CMD ["node", "--max-old-space-size=384", "server.js"]
+
+# Diagnose:
+kubectl describe pod api-xyz       # Last State: Terminated, Reason: OOMKilled
+docker inspect &lt;id&gt; --format '{{.State.OOMKilled}}'   # true</pre>
+<p>Interviewer follow-up: "why did it only die under load?" — because thread count, direct buffers, and Metaspace all grow with traffic; the heap flag never covered them.</p>
+<div class="key-point">Exit 137 is the cgroup limit being hit, not a JVM error: size the heap as a percentage of the container limit and keep 25%+ headroom for non-heap memory.</div>`,
+      },
+      {
+        q: 'Alpine vs distroless vs slim — how do you choose a production base image?',
+        difficulty: 'hard',
+        a: `<p>The choice is a trade-off between size, attack surface, <strong>libc compatibility</strong>, and debuggability:</p>
+<table><tr><th>Base</th><th>Size</th><th>libc</th><th>Trade-off</th></tr>
+<tr><td>node:20 / debian</td><td>~1GB</td><td>glibc</td><td>Everything works; huge attack surface, slow pulls</td></tr>
+<tr><td>*-slim</td><td>~200MB</td><td>glibc</td><td>Good default: full compatibility, most packages removed</td></tr>
+<tr><td>*-alpine</td><td>~50MB</td><td><strong>musl</strong></td><td>Tiny, but musl breaks glibc-compiled native modules, has subtle DNS-resolver differences, and a slower allocator (hurts JVM/multithreaded apps)</td></tr>
+<tr><td>distroless</td><td>~20–130MB</td><td>glibc</td><td>No shell, no package manager — minimal attack surface, harder to poke around in</td></tr>
+<tr><td>scratch</td><td>~0</td><td>—</td><td>Static binaries only (Go, Rust)</td></tr></table>
+<ul>
+<li><strong>The musl trap</strong>: Alpine is not "small Debian" — it's a different libc. Prebuilt native npm wheels/binaries targeting glibc can crash at runtime or force slow source rebuilds. Verify before adopting.</li>
+<li><strong>Distroless debugging</strong>: no shell means <code>docker exec ... sh</code> fails by design; use ephemeral debug containers instead.</li>
+<li><strong>Why FROM node:latest is a bug</strong>: the tag moves — tomorrow's build silently gets a new major version, so builds are not reproducible and prod runs something you never tested. Pin the version, and pin the <strong>digest</strong> for immutability (a tag can be re-pushed; a digest cannot).</li>
+</ul>
+<pre># Build with a full image, ship without a shell:
+FROM node:20-slim AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --omit=dev
+COPY . .
+
+FROM gcr.io/distroless/nodejs20-debian12
+WORKDIR /app
+COPY --from=build /app /app
+CMD ["server.js"]                  # distroless entrypoint already runs node
+
+# Pin by digest — reproducible and tamper-proof:
+FROM node:20.11.1-slim@sha256:4b632f...
+
+# No shell in distroless? Attach an ephemeral debug container:
+kubectl debug -it api-xyz --image=busybox --target=api</pre>
+<div class="key-point">Default to slim or distroless (glibc); choose Alpine only after verifying musl compatibility — and never ship a floating tag like latest to production.</div>`,
       },
     ],
   },

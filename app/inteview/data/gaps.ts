@@ -271,6 +271,198 @@ const nextConfig = {
 </ul>
 <div class="key-point">Always use <code>next/image</code> for images in Next.js. It can reduce image sizes by 50-80% with zero effort. Use <code>priority</code> for above-the-fold images.</div>`,
       },
+      {
+        q: 'You see "Text content does not match server-rendered HTML" in the console. What causes hydration mismatches and how do you fix them?',
+        difficulty: 'tricky',
+        a: `<p>Hydration mismatch means the HTML React rendered on the server differs from what it renders on the client during the first render. React expects them to be <strong>identical</strong> — when they diverge, React logs a warning and may throw away the server HTML and re-render from scratch (slow, can flash wrong content).</p>
+<p><strong>Common causes:</strong></p>
+<ul>
+<li><strong>Non-deterministic values during render</strong>: <code>Date.now()</code>, <code>Math.random()</code>, <code>toLocaleString()</code> (server locale/timezone differs from the user's browser).</li>
+<li><strong>Browser-only APIs read during render</strong>: <code>localStorage</code>, <code>window.innerWidth</code> — they don't exist on the server, so the first client render produces different output.</li>
+<li><strong>Invalid HTML nesting</strong>: <code>&lt;p&gt;&lt;div&gt;...&lt;/div&gt;&lt;/p&gt;</code> — the browser "fixes" the DOM before React hydrates, so the trees no longer match.</li>
+<li><strong>Browser extensions</strong> injecting attributes/nodes (Grammarly, password managers) — not your bug, but users report it.</li>
+</ul>
+<pre>// BROKEN — different on server vs client:
+function Clock() {
+  return &lt;span&gt;{new Date().toLocaleTimeString()}&lt;/span&gt;;
+}
+
+function Theme() {
+  const theme = localStorage.getItem('theme'); // crashes on server / mismatches
+  return &lt;div className={theme}&gt;...&lt;/div&gt;;
+}
+
+// FIX 1 — render client-only values after mount:
+'use client';
+function Clock() {
+  const [time, setTime] = useState&lt;string | null&gt;(null);
+  useEffect(() => setTime(new Date().toLocaleTimeString()), []);
+  return &lt;span&gt;{time ?? '--:--'}&lt;/span&gt;; // server and first client render agree
+}
+
+// FIX 2 — suppress for a single unavoidable text node (timestamps):
+&lt;time suppressHydrationWarning&gt;{new Date().toLocaleString()}&lt;/time&gt;
+
+// FIX 3 — skip SSR entirely for a browser-dependent widget:
+const Map = dynamic(() => import('./Map'), { ssr: false });</pre>
+<p><strong>Interviewer follow-up:</strong> why not sprinkle <code>suppressHydrationWarning</code> everywhere? It only suppresses one level deep, hides real bugs, and doesn't fix the underlying re-render cost — it's for genuinely unavoidable cases like timestamps.</p>
+<div class="key-point">Hydration requires the first client render to be byte-identical to the server render — move anything non-deterministic or browser-dependent into useEffect, and reserve suppressHydrationWarning for single unavoidable text nodes.</div>`,
+      },
+      {
+        q: 'Why can you not pass a function or class instance as a prop from a Server Component to a Client Component?',
+        difficulty: 'tricky',
+        a: `<p>Server and Client Components run in <strong>different environments at different times</strong>. The server renders to a serialized payload (the RSC payload) that is sent over the network; props crossing the boundary must survive serialization. Functions capture closures over server scope (DB handles, secrets) — there is no way to ship that to a browser. Class instances lose their prototype: a <code>Date</code> arriving as a string, a custom class arriving as a plain object.</p>
+<pre>// BROKEN — build/runtime error:
+// "Functions cannot be passed directly to Client Components"
+export default async function Page() {
+  const user = await getUser();
+  return &lt;ProfileCard user={user} onSave={(u) => db.save(u)} /&gt;; // ✗ function prop
+}
+
+// FIX 1 — pass a Server Action (the one sanctioned exception):
+// actions.ts
+'use server';
+export async function saveUser(formData: FormData) {
+  await db.save(Object.fromEntries(formData));
+}
+// page.tsx (Server Component)
+&lt;ProfileCard user={user} saveAction={saveUser} /&gt;  // ✓ serializable reference
+
+// FIX 2 — children composition: interleave server content INSIDE a client shell
+// instead of passing it data it can't receive:
+'use client';
+function Collapsible({ children }) {          // client interactivity
+  const [open, setOpen] = useState(false);
+  return &lt;div&gt;
+    &lt;button onClick={() => setOpen(!open)}&gt;Toggle&lt;/button&gt;
+    {open &amp;&amp; children}
+  &lt;/div&gt;;
+}
+// Server Component passes ALREADY-RENDERED server content as children:
+&lt;Collapsible&gt;&lt;ServerOnlyReport /&gt;&lt;/Collapsible&gt;  // ✓</pre>
+<p><strong>Why Server Actions are allowed:</strong> <code>'use server'</code> functions aren't serialized as code — Next.js replaces them with an opaque reference (an ID) the client can invoke via an HTTP POST back to the server. The closure never leaves the server.</p>
+<p><strong>Follow-up trap:</strong> "so a Client Component can never contain server content?" Wrong — the children pattern above proves client components can <strong>compose</strong> server-rendered subtrees; they just can't <strong>create</strong> them.</p>
+<div class="key-point">The RSC boundary is a network serialization boundary: only serializable data and Server Action references cross it, and children composition is how you nest server content inside client interactivity.</div>`,
+      },
+      {
+        q: 'Your Next.js page shows stale data in production but works fine in dev. Explain the App Router caching layers and how to control them.',
+        difficulty: 'tricky',
+        a: `<p>The App Router has <strong>four distinct caches</strong>, and confusing them is the #1 source of "why is my data stale" bugs. Dev mostly bypasses them, so the bug only appears in <code>next build &amp;&amp; next start</code> or production.</p>
+<table><tr><th>Cache</th><th>Where</th><th>What</th><th>Duration</th></tr>
+<tr><td>Request memoization</td><td>Server</td><td>Identical fetch() calls within ONE render pass</td><td>Single request</td></tr>
+<tr><td>Data Cache</td><td>Server</td><td>fetch() responses across requests/deploys</td><td>Until revalidated</td></tr>
+<tr><td>Full Route Cache</td><td>Server</td><td>Rendered HTML + RSC payload of static routes</td><td>Until revalidated</td></tr>
+<tr><td>Router Cache</td><td>Client</td><td>Visited route payloads in the browser</td><td>Session / ~30s-5min</td></tr>
+</table>
+<pre>// A page with only cacheable fetches gets STATICALLY rendered at build
+// time (Full Route Cache) — it will never show fresh data until revalidated.
+
+// Opt out per-fetch:
+fetch(url, { cache: 'no-store' });           // always fresh
+fetch(url, { next: { revalidate: 60 } });    // ISR-style
+fetch(url, { next: { tags: ['products'] } });// tag for targeted purge
+
+// Opt out per-route (route segment config):
+export const dynamic = 'force-dynamic'; // whole route SSR every request
+export const revalidate = 60;           // whole route revalidates every 60s
+
+// On-demand invalidation after a mutation (Server Action):
+'use server';
+import { revalidatePath, revalidateTag } from 'next/cache';
+export async function updateProduct(data: FormData) {
+  await db.update(...);
+  revalidateTag('products');   // purges Data Cache entries with this tag
+  revalidatePath('/products'); // purges Full Route Cache + Router Cache for path
+}</pre>
+<p><strong>Version gotcha:</strong> in Next.js 14, <code>fetch()</code> defaulted to <code>force-cache</code> (cached). Next.js 15 flipped it: fetch is <strong>uncached by default</strong>, and GET Route Handlers/client Router Cache also became uncached — a deliberate response to how many teams were bitten by implicit caching.</p>
+<p><strong>Follow-up:</strong> "you called revalidateTag but the user still sees old data" — the client Router Cache holds the old payload; revalidatePath purges it on next navigation, or call <code>router.refresh()</code>.</p>
+<div class="key-point">Know the four caches (request memoization, Data Cache, Full Route Cache, client Router Cache), test caching behavior with next build not next dev, and remember Next 15 made fetch uncached by default.</div>`,
+      },
+      {
+        q: 'What are Server Actions, and why is "the button is hidden for non-admins" not a security model for them?',
+        difficulty: 'hard',
+        a: `<p>Server Actions are async functions marked <code>'use server'</code> that clients invoke via an automatically-created HTTP POST endpoint. They give you mutations without hand-writing API routes, plus <strong>progressive enhancement</strong>: a <code>&lt;form action={serverAction}&gt;</code> works even before JavaScript hydrates.</p>
+<pre>// actions.ts
+'use server';
+import { revalidatePath } from 'next/cache';
+import { getSession } from './auth';
+
+export async function deletePost(prevState: any, formData: FormData) {
+  // SECURITY: authorize INSIDE the action — it is a public endpoint.
+  const session = await getSession();
+  if (!session?.user || session.user.role !== 'admin') {
+    return { error: 'Unauthorized' };
+  }
+  const id = String(formData.get('id')); // validate/parse inputs (zod in real code)
+  await db.post.delete({ where: { id } });
+  revalidatePath('/posts');
+  return { success: true };
+}
+
+// posts.tsx
+'use client';
+import { useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
+
+function DeleteButton() {
+  const { pending } = useFormStatus(); // must be INSIDE the form
+  return &lt;button disabled={pending}&gt;{pending ? 'Deleting…' : 'Delete'}&lt;/button&gt;;
+}
+
+function PostRow({ id }) {
+  const [state, formAction] = useActionState(deletePost, null);
+  return &lt;form action={formAction}&gt;
+    &lt;input type="hidden" name="id" value={id} /&gt;
+    &lt;DeleteButton /&gt;
+    {state?.error &amp;&amp; &lt;p role="alert"&gt;{state.error}&lt;/p&gt;}
+  &lt;/form&gt;;
+}</pre>
+<p><strong>Why hiding the button is not security:</strong> every exported Server Action compiles to a public HTTP endpoint with a stable action ID. Anyone can replay the POST with curl — the UI never gatekeeps anything. Treat each action exactly like a public API route: authenticate, authorize, and validate input <strong>inside the action body</strong>.</p>
+<p><strong>Other failure modes interviewers probe:</strong> actions run sequentially (not for parallel reads — use Route Handlers or server fetches for GET-style data), and closing over sensitive server values in inline actions can leak them into the encrypted bound-args payload.</p>
+<div class="key-point">Server Actions are public POST endpoints in disguise — do auth and input validation inside every action, and use useFormStatus/useActionState for pending and error UI with progressive enhancement for free.</div>`,
+      },
+      {
+        q: 'How does streaming SSR with Suspense work in the App Router, and what do loading.tsx and error.tsx actually do?',
+        difficulty: 'hard',
+        a: `<p>Classic SSR is all-or-nothing: the server must finish <strong>every</strong> data fetch before sending byte one. Streaming SSR sends the shell immediately and <strong>streams in slow parts later</strong> over the same response, using <code>&lt;Suspense&gt;</code> boundaries as the seams.</p>
+<pre>// app/dashboard/page.tsx
+import { Suspense } from 'react';
+
+export default function Dashboard() {
+  return &lt;&gt;
+    &lt;Header /&gt;                         {/* sent immediately */}
+    &lt;Suspense fallback={&lt;StatsSkeleton /&gt;}&gt;
+      &lt;Stats /&gt;                        {/* async — streams in when ready */}
+    &lt;/Suspense&gt;
+    &lt;Suspense fallback={&lt;FeedSkeleton /&gt;}&gt;
+      &lt;SlowFeed /&gt;                     {/* independent — streams separately */}
+    &lt;/Suspense&gt;
+  &lt;/&gt;;
+}
+
+async function SlowFeed() {
+  const posts = await fetch('https://api.example.com/feed', { cache: 'no-store' })
+    .then(r => r.json());
+  return &lt;Feed posts={posts} /&gt;;
+}
+
+// app/dashboard/loading.tsx — implicit Suspense around the WHOLE page:
+export default function Loading() { return &lt;PageSkeleton /&gt;; }
+
+// app/dashboard/error.tsx — error boundary for the segment (must be client):
+'use client';
+export default function Error({ error, reset }) {
+  return &lt;div&gt;&lt;p&gt;Failed: {error.message}&lt;/p&gt;
+    &lt;button onClick={reset}&gt;Retry&lt;/button&gt;&lt;/div&gt;;
+}</pre>
+<ul>
+<li><code>loading.tsx</code> is sugar for wrapping the route segment in one big Suspense boundary. Fine-grained <code>&lt;Suspense&gt;</code> inside the page beats one whole-page spinner.</li>
+<li><code>error.tsx</code> creates a React error boundary per segment — a crashing widget takes down its segment, not the app; <code>reset()</code> re-renders the segment.</li>
+<li><strong>The subtle point:</strong> streaming improves TTFB and perceived performance, but <strong>total</strong> time to full content is unchanged — the slow query is still slow. You improved when users see <strong>something</strong>, not when they see <strong>everything</strong>.</li>
+</ul>
+<p><strong>Follow-ups:</strong> streaming requires a Node/edge runtime (not <code>output: 'export'</code>); an awaited fetch <strong>above</strong> your Suspense boundary in the tree still blocks the shell — suspend at the component that fetches, not the layout.</p>
+<div class="key-point">Suspense boundaries let the server flush the shell immediately and stream slow subtrees later — better TTFB and perceived speed, same total data time, with loading.tsx/error.tsx as per-segment Suspense and error boundaries.</div>`,
+      },
     ],
   },
 
@@ -379,6 +571,222 @@ function VirtualList({ items }) {
 <li><code>react-virtuoso</code>: grouped lists, infinite scroll</li>
 </ul>
 <div class="key-point">Use virtualization when rendering 100+ items in a list or table. It reduces DOM nodes from thousands to dozens, dramatically improving render time and memory usage.</div>`,
+      },
+      {
+        q: 'INP replaced FID as a Core Web Vital in March 2024. What does INP measure, why was FID insufficient, and how do you fix a bad INP score?',
+        difficulty: 'tricky',
+        a: `<p><strong>INP (Interaction to Next Paint)</strong> measures the latency of interactions across the <strong>whole page lifetime</strong> and reports (roughly) the worst one. Target: &lt;200ms. Each interaction's latency has three parts:</p>
+<ol>
+<li><strong>Input delay</strong> — main thread busy, handler can't even start (all FID measured).</li>
+<li><strong>Processing time</strong> — your event handlers actually running.</li>
+<li><strong>Presentation delay</strong> — time until the next frame paints the visual response.</li>
+</ol>
+<p><strong>Why FID was insufficient:</strong> it measured only the <strong>first</strong> input and only the <strong>delay</strong> part — never the handler cost or paint. A page could ace FID and still feel janky on every click after load. Most sites passed FID; INP actually discriminates.</p>
+<pre>// BAD INP — 300ms of sync work blocks the paint after click:
+button.addEventListener('click', () => {
+  applyFilters(bigDataset);   // long task: input frozen, no visual feedback
+  render(results);
+});
+
+// FIX — paint feedback first, yield, then do the work:
+button.addEventListener('click', async () => {
+  button.disabled = true;
+  spinner.show();                       // cheap visual response THIS frame
+  await scheduler.yield();              // let the browser paint
+  // (fallback: await new Promise(r => setTimeout(r, 0));)
+  for (const chunk of chunks(bigDataset, 500)) {
+    applyFilters(chunk);
+    await scheduler.yield();            // break the long task into pieces
+  }
+  render(results);
+});
+
+// React equivalent — keep the urgent update fast, defer the expensive one:
+const [isPending, startTransition] = useTransition();
+onChange={e => {
+  setQuery(e.target.value);                    // urgent: input echoes now
+  startTransition(() => setFiltered(filter(e.target.value))); // deferrable
+}}</pre>
+<p><strong>Other big INP levers:</strong> reduce hydration cost (less client JS, Server Components), avoid layout thrashing in handlers (read then write), debounce expensive input handlers, and move pure computation to Web Workers.</p>
+<p><strong>Follow-up:</strong> "your INP is bad but you can't reproduce it" — INP is a field metric at p75; check CrUX/RUM breakdowns by interaction and device class, not your M3 laptop.</p>
+<div class="key-point">INP scores the worst interaction over the whole session (delay + processing + paint), so the fix is breaking long tasks and yielding to the main thread so the browser can paint feedback within 200ms.</div>`,
+      },
+      {
+        q: 'Your LCP is 4.5s. Walk me through diagnosing and fixing it.',
+        difficulty: 'hard',
+        a: `<p>Never guess — decompose LCP into its <strong>four sub-parts</strong> (DevTools Performance panel and web-vitals attribution give these):</p>
+<table><tr><th>Sub-part</th><th>What it is</th><th>Typical fix</th></tr>
+<tr><td>TTFB</td><td>First byte of the HTML</td><td>CDN, server/DB tuning, cache the HTML</td></tr>
+<tr><td>Resource load delay</td><td>Gap before the LCP image even STARTS loading</td><td>Preload; don't hide the URL in CSS/JS</td></tr>
+<tr><td>Resource load time</td><td>Downloading the image itself</td><td>AVIF/WebP, right-sized srcset, CDN</td></tr>
+<tr><td>Render delay</td><td>Image loaded but not yet painted</td><td>Remove blocking scripts/CSS, avoid client-side rendering of the hero</td></tr>
+</table>
+<p><strong>Classic self-inflicted wounds:</strong></p>
+<pre>// BEFORE — three separate LCP killers:
+&lt;img src="/hero.jpg" loading="lazy" /&gt;
+&lt;!-- 1. NEVER lazy-load the LCP image: adds huge load delay --&gt;
+&lt;!-- 2. Hero as CSS background-image: found only after CSS parses --&gt;
+&lt;!-- 3. Hero rendered by client JS: waits for bundle + hydration --&gt;
+
+// AFTER:
+&lt;link rel="preload" as="image" href="/hero.avif"
+      imagesrcset="/hero-800.avif 800w, /hero-1600.avif 1600w"
+      fetchpriority="high" /&gt;
+&lt;img src="/hero-1600.avif"
+     srcset="/hero-800.avif 800w, /hero-1600.avif 1600w"
+     sizes="100vw" width="1600" height="640"
+     fetchpriority="high" decoding="async" alt="…" /&gt;
+&lt;!-- eager (default), discoverable in initial HTML, prioritized --&gt;
+
+// Plus: inline critical CSS so render isn't blocked on a stylesheet,
+// and serve HTML from a CDN edge to cut TTFB.</pre>
+<p><strong>Fix order by leverage:</strong> TTFB first (it delays everything downstream), then make the LCP resource discoverable early (preload + <code>fetchpriority="high"</code>), then shrink it, then unblock rendering. Note: <code>fetchpriority="high"</code> matters because browsers start images at low priority until layout proves they're in-viewport.</p>
+<p><strong>Follow-up trap:</strong> "we preloaded it, no change" — a preload competing with render-blocking CSS/fonts at the same priority may just reshuffle the queue; check the waterfall, not the checklist.</p>
+<div class="key-point">Decompose LCP into TTFB, load delay, load time, and render delay to find the dominant sub-part — and never lazy-load the LCP image; preload it with fetchpriority="high".</div>`,
+      },
+      {
+        q: 'How do you reduce JavaScript bundle size? Explain code splitting, tree shaking requirements, and the barrel-file trap.',
+        difficulty: 'hard',
+        a: `<p>JS is the most expensive byte type: it's downloaded, parsed, compiled, and executed on the main thread — directly hurting INP and TTI. Three levers:</p>
+<p><strong>1. Route/feature-based code splitting</strong> — ship code when it's needed:</p>
+<pre>// Load the chart library only when the modal opens:
+const Chart = React.lazy(() => import('./HeavyChart')); // own chunk
+
+function Analytics() {
+  const [open, setOpen] = useState(false);
+  return &lt;&gt;
+    &lt;button onClick={() => setOpen(true)}&gt;Show chart&lt;/button&gt;
+    {open &amp;&amp; &lt;Suspense fallback={&lt;Spinner /&gt;}&gt;&lt;Chart /&gt;&lt;/Suspense&gt;}
+  &lt;/&gt;;
+}
+// Next.js does this automatically per route; next/dynamic for components.</pre>
+<p><strong>2. Tree shaking</strong> — dead-code elimination, but only if the bundler can statically analyze imports:</p>
+<pre>// SHIPS ALL OF LODASH (~70KB min+gz) — lodash is CommonJS, not shakeable:
+import _ from 'lodash';
+_.debounce(fn, 200);
+
+// Shakeable alternatives:
+import debounce from 'lodash-es/debounce'; // ESM build, or:
+import { debounce } from 'lodash-es';      // shakes because it's ESM
+
+// package.json of a library — tells bundlers imports are pure:
+{ "sideEffects": false }   // or ["*.css"] if CSS imports have effects
+// Without this, bundlers must keep every imported module "just in case".</pre>
+<p><strong>3. The barrel-file trap</strong> — <code>index.ts</code> files that re-export everything:</p>
+<pre>// components/index.ts re-exports 50 components.
+import { Button } from '@/components';  // pulls the whole graph into
+                                        // the compile/parse path; if any
+                                        // re-export has side effects,
+                                        // shaking fails entirely.
+import { Button } from '@/components/Button'; // import directly instead
+// (Next.js optimizePackageImports mitigates this for listed packages.)</pre>
+<p><strong>Measure, don't guess:</strong> <code>@next/bundle-analyzer</code> / <code>webpack-bundle-analyzer</code> shows what's actually in each chunk — duplicated deps, accidental moment.js locales, a "utils" package dragging in an entire SDK.</p>
+<div class="key-point">Split by route so users pay for what they use, keep dependencies ESM with sideEffects declared so tree shaking works, import from concrete modules instead of barrels, and verify with a bundle analyzer.</div>`,
+      },
+      {
+        q: 'How do web fonts hurt performance, and what does a correct font-loading setup look like? (FOIT, FOUT, CLS)',
+        difficulty: 'hard',
+        a: `<p>Web fonts hit two vitals at once: text render (<strong>FOIT</strong> — invisible text while the font loads) and layout stability (<strong>CLS</strong> — the swap to the real font changes line breaks and shifts the page).</p>
+<ul>
+<li><strong>FOIT</strong> (flash of invisible text): default browser behavior blocks text up to ~3s waiting for the font. Worst option — content is unreadable.</li>
+<li><strong>FOUT</strong> (flash of unstyled text): show a fallback immediately, swap when ready. Readable, but the swap shifts layout if the fonts have different metrics.</li>
+</ul>
+<pre>/* 1. Self-host WOFF2 and show text immediately: */
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/inter-var.woff2') format('woff2');
+  font-display: swap;        /* FOUT, not FOIT — text always visible */
+  font-weight: 100 900;      /* one variable file, all weights */
+}
+
+/* 2. Kill the swap-induced CLS: metric-matched fallback */
+@font-face {
+  font-family: 'Inter-fallback';
+  src: local('Arial');
+  size-adjust: 107%;         /* scale Arial to Inter's glyph widths */
+  ascent-override: 90%;      /* match vertical metrics */
+  descent-override: 22%;
+}
+body { font-family: 'Inter', 'Inter-fallback', sans-serif; }
+
+&lt;!-- 3. Preload the ONE critical font file (crossorigin is required
+       even for same-origin fonts): --&gt;
+&lt;link rel="preload" href="/fonts/inter-var.woff2"
+      as="font" type="font/woff2" crossorigin /&gt;</pre>
+<p><strong>Why each piece:</strong> WOFF2 is ~30% smaller than WOFF; preloading matters because fonts are discovered <strong>late</strong> (HTML → CSS → @font-face → request); <code>size-adjust</code>/<code>ascent-override</code> make the fallback occupy the same space so the swap is visually free (this is exactly what <code>next/font</code> generates automatically, plus it self-hosts Google fonts to remove a third-party connection).</p>
+<p><strong>Senior alternative:</strong> for dashboards and app UIs, a system font stack (<code>font-family: system-ui, -apple-system, sans-serif</code>) costs zero bytes and zero CLS — question whether the brand font is worth it below the fold.</p>
+<p><strong>Follow-up:</strong> when is <code>font-display: optional</code> better? When brand fidelity is negotiable — it uses the font only if cached/instant, guaranteeing no swap shift at all.</p>
+<div class="key-point">Use self-hosted WOFF2 with font-display: swap, preload the critical file, and metric-match the fallback with size-adjust/ascent-override so the swap causes zero CLS — or just use next/font, which automates all of it.</div>`,
+      },
+      {
+        q: 'Design an HTTP caching strategy for a SPA. Why did your last deploy break for users with the app "already open in a tab"?',
+        difficulty: 'tricky',
+        a: `<p>The core rule: <strong>immutable, content-hashed assets get cached forever; the HTML that names them is never trusted stale.</strong></p>
+<pre># Hashed assets — the hash changes when content changes, so cache forever:
+/assets/app.3f9c1a.js
+Cache-Control: public, max-age=31536000, immutable
+# 'immutable' also stops revalidation on reload — no wasted 304s.
+
+# HTML entry point — must always be checked with the server:
+/index.html
+Cache-Control: no-cache            # cache it, but REVALIDATE every use
+ETag: "abc123"                     # unchanged → cheap 304, changed → new HTML
+# (no-cache ≠ no-store: no-store means never cache at all.)
+
+# API responses that tolerate slight staleness:
+Cache-Control: max-age=60, stale-while-revalidate=300
+# serve cached up to 60s; for 5 more minutes serve stale INSTANTLY
+# while refetching in the background — users never wait.</pre>
+<p><strong>The classic broken-deploy postmortem:</strong> someone set <code>max-age=3600</code> on <code>index.html</code>. Deploy ships <code>app.NEW.js</code> and deletes <code>app.OLD.js</code>. Users' cached HTML still references the old chunk → 404 on a script → white screen until the HTML cache expires. Same failure via a stale SPA tab lazy-loading a deleted chunk — handle <code>ChunkLoadError</code> by prompting a reload.</p>
+<pre>// Runtime guard for the stale-tab case:
+import(/* webpackChunkName: "settings" */ './Settings')
+  .catch(err => {
+    if (/Loading chunk .* failed/.test(err.message)) {
+      window.location.reload();  // stale index.html → fetch fresh one
+    } else throw err;
+  });
+// And: keep the previous deploy's assets on the CDN for a grace period
+// instead of deleting them atomically.</pre>
+<p><strong>CDN layer:</strong> the same headers drive edge caching; on deploy you purge/invalidate the HTML path only — hashed assets never need purging because new HTML references new URLs.</p>
+<p><strong>Follow-up:</strong> ETag vs Last-Modified? ETag is content-based and precise; Last-Modified has 1-second granularity and breaks with multi-server clock/mtime drift. Prefer ETag (but ensure it's consistent across servers — default Apache/Nginx ETags can include inode data).</p>
+<div class="key-point">Content-hashed assets get max-age=31536000, immutable; index.html gets no-cache + ETag; keep old assets deployed for a grace period and recover from chunk-load failures — most "deploy broke the app" incidents are exactly this pattern inverted.</div>`,
+      },
+      {
+        q: 'Your Lighthouse score is 98 but users complain the site is slow. Explain lab vs field data and how you would close the gap.',
+        difficulty: 'tricky',
+        a: `<p>The two data types answer different questions, and confusing them is how teams "pass CI" while losing users:</p>
+<table><tr><th></th><th>Lab (Lighthouse, WebPageTest)</th><th>Field (CrUX, RUM)</th></tr>
+<tr><td>Who</td><td>A synthetic run, one simulated device</td><td>Your real users, real devices/networks</td></tr>
+<tr><td>When</td><td>Cold load, no interaction (so: no real INP)</td><td>Whole sessions, all pages</td></tr>
+<tr><td>Statistic</td><td>One run (high variance)</td><td>p75 over 28 days (CrUX)</td></tr>
+<tr><td>Good for</td><td>Debugging, reproducibility, CI regression gates</td><td>Truth about experience, SEO ranking</td></tr>
+</table>
+<p><strong>Why the scores diverge:</strong> Lighthouse tests a cold, logged-out landing page on a simulated Moto G on your fast CI network profile — your users are on mid-tier Androids, logged in, on the heavy <code>/search</code> page, hitting cache states and third-party scripts (chat widgets, tag managers) that a lab run may not trigger. Lighthouse also cannot measure real INP at all — it approximates with TBT.</p>
+<pre>// Close the gap: instrument RUM with the web-vitals library
+import { onLCP, onINP, onCLS } from 'web-vitals/attribution';
+
+function send(metric) {
+  const body = JSON.stringify({
+    name: metric.name, value: metric.value, rating: metric.rating,
+    page: location.pathname,
+    // attribution tells you WHAT to fix, not just the number:
+    target: metric.attribution?.interactionTarget
+         || metric.attribution?.element,
+  });
+  navigator.sendBeacon('/api/vitals', body); // survives page unload
+}
+onLCP(send); onINP(send); onCLS(send);
+
+// Then segment p75 by page, device class, and country —
+// "INP p75 = 480ms on /search for low-end Android" is actionable.
+
+// Lab still has a job: performance budgets as a CI regression gate
+// (lighthouse-ci assertion config):
+{ "assertions": {
+    "largest-contentful-paint": ["error", { "maxNumericValue": 2500 }],
+    "total-byte-weight": ["error", { "maxNumericValue": 350000 }] } }</pre>
+<p><strong>The senior framing:</strong> field data (p75) decides <strong>whether</strong> you have a problem and where; lab tools reproduce and debug it; CI budgets stop it coming back. Google ranking uses CrUX field data — your Lighthouse score is irrelevant to SEO.</p>
+<div class="key-point">Lighthouse is a controlled experiment, not reality: trust p75 field data (CrUX/RUM via web-vitals) to find problems, use lab tools to debug them, and enforce lab budgets in CI to prevent regressions.</div>`,
       },
     ],
   },

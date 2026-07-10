@@ -289,6 +289,113 @@ const total = useStore((s) => s.items.reduce((sum, i) => sum + i.price, 0));
 </ul>
 <div class="key-point">Zustand is the most pragmatic choice for most React apps. It's simpler than Redux with equivalent power. Only choose Redux Toolkit when you need strict action logging, time-travel debugging, or your team already knows Redux.</div>`,
       },
+      {
+        q: 'What are the pitfalls of using Zustand with Next.js / SSR, and how do you fix them?',
+        difficulty: 'tricky',
+        a: `<p>Two classic senior-level traps: <strong>module-level stores leak state between requests on the server</strong>, and <strong>persist middleware causes hydration mismatches</strong>.</p>
+<p><strong>Pitfall 1 — the server singleton.</strong> On the client, a module-level store is one instance per browser tab — fine. On the server, the module is evaluated once per Node process, so <strong>every incoming request (every user!) shares the same store instance</strong> during SSR.</p>
+<pre>// ❌ BAD in Next.js: module-level store used during SSR
+export const useUserStore = create((set) => ({
+  user: null,
+  setUser: (user) => set({ user }),
+}));
+// Request A sets user → Request B server-renders with A's user.
+// That's cross-user data leakage, not just a stale-UI bug.
+
+// ✅ FIX: create ONE store per request/tree via Context
+// store.ts — note createStore (vanilla), not create
+export const createUserStore = (initialUser) =>
+  createStore((set) => ({
+    user: initialUser,
+    setUser: (user) => set({ user }),
+  }));
+
+// provider.tsx ('use client')
+const StoreContext = createContext(null);
+
+export function UserStoreProvider({ children, initialUser }) {
+  const storeRef = useRef(null);
+  if (!storeRef.current) {
+    storeRef.current = createUserStore(initialUser); // once per tree
+  }
+  return (
+    &lt;StoreContext.Provider value={storeRef.current}&gt;
+      {children}
+    &lt;/StoreContext.Provider&gt;
+  );
+}
+
+export function useUserStore(selector) {
+  const store = useContext(StoreContext);
+  if (!store) throw new Error('Missing UserStoreProvider');
+  return useStore(store, selector); // useStore from 'zustand'
+}</pre>
+<p><strong>Pitfall 2 — persist + hydration mismatch.</strong> The server renders with initial state; the client rehydrates from <code>localStorage</code> during the first render, so the HTML doesn't match → React hydration error.</p>
+<pre>// ✅ Defer rehydration until after mount
+const useCartStore = create(
+  persist((set) => ({ items: [] }), {
+    name: 'cart',
+    skipHydration: true, // don't read localStorage during render
+    onRehydrateStorage: () => (state) => {
+      console.log('rehydrated', state); // hook for post-hydration logic
+    },
+  })
+);
+
+function CartBadge() {
+  useEffect(() => {
+    useCartStore.persist.rehydrate(); // client-only, after mount
+  }, []);
+  const count = useCartStore((s) => s.items.length);
+  return &lt;span&gt;{count}&lt;/span&gt;;
+}</pre>
+<p><strong>Interviewer follow-up:</strong> "Why is Context suddenly OK here?" — Context carries the <em>store reference</em> (which never changes), not the state itself, so consumers still subscribe selectively and don't all re-render.</p>
+<div class="key-point">On the server a module-level Zustand store is a per-process singleton shared by all requests — in SSR apps create one store per request behind a Context provider, and defer <code>persist</code> rehydration to after mount to avoid hydration mismatches.</div>`,
+      },
+      {
+        q: 'What are transient updates in Zustand? How do you consume high-frequency state without re-rendering?',
+        difficulty: 'tricky',
+        a: `<p><strong>Transient updates</strong> mean reacting to state changes <em>without</em> triggering a React re-render. This matters for high-frequency data — mouse position, canvas animation, websocket price ticks — where re-rendering 20–60 times per second kills performance.</p>
+<pre>// Problem: a websocket pushes prices 20x/second.
+// useStore((s) => s.price) re-renders this component on EVERY tick.
+
+// ✅ Transient update: subscribe + write to the DOM (or a ref) directly
+function PriceTicker() {
+  const ref = useRef(null);
+  useEffect(
+    () =>
+      useTickerStore.subscribe((state) => {
+        // no React re-render — mutate the DOM node directly
+        if (ref.current) ref.current.textContent = state.price.toFixed(2);
+      }), // subscribe returns unsubscribe → perfect cleanup fn
+    []
+  );
+  return &lt;span ref={ref} /&gt;;
+}
+
+// Subscribe to ONE slice only: subscribeWithSelector middleware
+const useTickerStore = create(
+  subscribeWithSelector((set) => ({ price: 0, volume: 0 }))
+);
+
+useTickerStore.subscribe(
+  (s) => s.price,                     // selector
+  (price, prevPrice) => drawChart(price), // fires only when price changes
+  { fireImmediately: true }
+);</pre>
+<p>The related trap is the <strong>stale closure</strong>: reading hook-selected state inside a callback captures the value from the render it was created in.</p>
+<pre>// ❌ Stale: 'items' is frozen at the render that created onSave
+const items = useStore((s) => s.items);
+const onSave = useCallback(() => save(items), []); // old items!
+
+// ✅ Read at CALL time with getState() (or get() inside store actions)
+const onSave = useCallback(() => {
+  const { items } = useStore.getState(); // always current
+  save(items);
+}, []);</pre>
+<p><strong>Interviewer follow-up:</strong> "Isn't mutating the DOM anti-React?" — Yes, deliberately: for ephemeral high-frequency visuals React reconciliation adds cost with no benefit. Keep it scoped to leaf nodes; anything that affects layout/logic should go through normal renders.</p>
+<div class="key-point"><code>store.subscribe()</code> delivers updates without re-rendering — use it (with <code>subscribeWithSelector</code> for slices) for high-frequency data, and read with <code>getState()</code>/<code>get()</code> inside callbacks to avoid stale closures.</div>`,
+      },
     ],
   },
 
@@ -717,6 +824,138 @@ const useUIStore = create((set) => ({
   toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
 }));</pre>
 <div class="key-point">The biggest architecture mistake is treating server state like client state. TanStack Query handles the hard parts of server state: caching, staleness, deduplication, retries, and background updates. Zustand handles client-only state.</div>`,
+      },
+      {
+        q: 'Why are query keys like dependency arrays? Explain the stale-data bug and the query key factory pattern.',
+        difficulty: 'tricky',
+        a: `<p>The mental model interviewers probe: <strong>a queryKey is to a queryFn what a dependency array is to useEffect</strong>. Every value the queryFn reads must appear in the key — the key IS the cache identity and the refetch trigger.</p>
+<pre>// ❌ THE BUG: filter used by queryFn but missing from the key
+function Todos({ status }) {
+  return useQuery({
+    queryKey: ['todos'],                    // key never changes...
+    queryFn: () => fetchTodos({ status }),  // ...but the request does!
+  });
+}
+// Switch status 'open' → 'done': same key → Query happily returns
+// the cached 'open' list and sees no reason to refetch.
+// The UI silently shows the WRONG data. No error, no warning.
+
+// ✅ FIX: the key changes → new cache entry → automatic refetch
+useQuery({
+  queryKey: ['todos', { status }],
+  queryFn: () => fetchTodos({ status }),
+});</pre>
+<p>At scale, hand-written keys drift apart (<code>['todos', id]</code> here, <code>['todo', id]</code> there) and invalidation silently misses entries. The fix is a <strong>query key factory</strong> — one module that owns every key shape:</p>
+<pre>// queries/todoKeys.ts — single source of truth
+const todoKeys = {
+  all: ['todos'] as const,
+  lists: () => [...todoKeys.all, 'list'] as const,
+  list: (filters) => [...todoKeys.lists(), { filters }] as const,
+  details: () => [...todoKeys.all, 'detail'] as const,
+  detail: (id) => [...todoKeys.details(), id] as const,
+};
+
+useQuery({ queryKey: todoKeys.list({ status }), queryFn: ... });
+
+// Hierarchical (fuzzy) invalidation — matching is by PREFIX:
+queryClient.invalidateQueries({ queryKey: todoKeys.all });
+// matches ['todos'], ['todos','list',{...}], ['todos','detail', 5] — all of them
+
+queryClient.invalidateQueries({ queryKey: todoKeys.lists() });
+// matches only the list queries, detail caches stay fresh
+
+// exact: true disables prefix matching when you need surgical precision
+queryClient.invalidateQueries({ queryKey: todoKeys.detail(5), exact: true });</pre>
+<p><strong>Interviewer follow-ups:</strong> keys are hashed <em>deterministically</em>, so object property order doesn't matter (<code>{ page, status }</code> equals <code>{ status, page }</code>), but array order does. And because the key drives fetching, you rarely need <code>refetch()</code> — changing state that's part of the key is the idiomatic way to trigger a new request.</p>
+<div class="key-point">Treat the queryKey like a useEffect dependency array: every input of the queryFn belongs in it, centralize key shapes in a factory, and lean on prefix-based invalidation for cheap, reliable cache busting.</div>`,
+      },
+      {
+        q: 'invalidateQueries vs refetch vs setQueryData — when do you use each?',
+        difficulty: 'hard',
+        a: `<p>Three ways to "update" a query, with very different semantics — mixing them up causes either wasted network calls or stale UIs.</p>
+<table><tr><th>Method</th><th>What it does</th><th>Use when</th></tr>
+<tr><td><code>invalidateQueries</code></td><td>Marks matching queries stale; refetches <strong>active</strong> (mounted) ones now, inactive ones on next mount</td><td>"The server changed, I don't know the new value" — after most mutations</td></tr>
+<tr><td><code>refetch()</code></td><td>Re-runs <strong>this one query</strong> immediately, ignoring staleTime</td><td>Explicit user action: a "Reload" button</td></tr>
+<tr><td><code>setQueryData</code></td><td>Writes directly into the cache, <strong>no network at all</strong></td><td>You already have the fresh value (mutation response, websocket push, optimistic update)</td></tr>
+</table>
+<pre>const queryClient = useQueryClient();
+
+// 1. invalidateQueries — "this MIGHT be outdated, go check"
+queryClient.invalidateQueries({ queryKey: ['todos'] });
+// Active ['todos'...] queries refetch in the background;
+// unmounted ones are just flagged and refetch when remounted.
+// This laziness is the feature: no wasted requests for hidden screens.
+
+// 2. refetch — "fetch again NOW, staleness be damned"
+const { data, refetch, isFetching } = useQuery({
+  queryKey: ['report', id],
+  queryFn: () => fetchReport(id),
+});
+&lt;button onClick={() => refetch()} disabled={isFetching}&gt;Reload&lt;/button&gt;
+
+// ❌ Common misuse of refetch: reacting to a filter change
+useEffect(() => { refetch(); }, [statusFilter]); // fighting the library
+// ✅ Put the filter in the key — the key change refetches for you
+useQuery({ queryKey: ['todos', statusFilter], ... });
+
+// 3. setQueryData — the server already TOLD you the answer
+const mutation = useMutation({
+  mutationFn: updateTodo,
+  onSuccess: (updatedTodo) => {
+    // write the response straight into the cache — zero extra requests
+    queryClient.setQueryData(['todos', updatedTodo.id], updatedTodo);
+    // and update it inside the cached list too
+    queryClient.setQueryData(['todos'], (old) =>
+      old?.map((t) => (t.id === updatedTodo.id ? updatedTodo : t))
+    );
+  },
+});</pre>
+<p><strong>Failure modes:</strong> using <code>refetch()</code> everywhere ignores the cache and hammers the API; using only <code>setQueryData</code> after mutations lets list/aggregate queries drift from the server (a follow-up invalidate in <code>onSettled</code> is the safety net); invalidating <code>['todos']</code> when you meant one entry refetches every todo query via prefix matching.</p>
+<div class="key-point">Default to <code>invalidateQueries</code> after mutations, reserve <code>refetch()</code> for explicit user-triggered reloads, and use <code>setQueryData</code> only when you already hold the fresh server value — often followed by an invalidate as a consistency backstop.</div>`,
+      },
+      {
+        q: 'How does TanStack Query prevent race conditions? Explain request cancellation with AbortSignal.',
+        difficulty: 'tricky',
+        a: `<p>The classic race: <strong>search-as-you-type</strong>. The user types "re" (request A), then "react" (request B). B resolves first, then the slow A lands and overwrites the UI with results for "re" — an out-of-order response bug that plain <code>useEffect + fetch + setState</code> code has by default.</p>
+<pre>// TanStack Query is race-safe PER KEY: each keystroke produces a new
+// queryKey, and only data belonging to the CURRENT key is rendered.
+// A late response for ['search', 're'] can never overwrite
+// what a component subscribed to ['search', 'react'] displays.
+
+function Search() {
+  const [term, setTerm] = useState('');
+
+  const { data, isPlaceholderData } = useQuery({
+    queryKey: ['search', term],
+    // Query hands the queryFn an AbortSignal. Forward it, and the
+    // moment the query is superseded/unmounted the HTTP request is
+    // truly cancelled — not just ignored — saving bandwidth and
+    // server load, and freeing the retry logic from zombie requests.
+    queryFn: ({ signal }) =>
+      fetch(\`/api/search?q=\${encodeURIComponent(term)}\`, { signal })
+        .then((r) => r.json()),
+    enabled: term.length &gt; 1,
+    placeholderData: keepPreviousData, // keep old results visible while
+                                       // the new key loads → no flicker
+  });
+
+  return (
+    &lt;div style={{ opacity: isPlaceholderData ? 0.6 : 1 }}&gt;
+      &lt;input value={term} onChange={(e) => setTerm(e.target.value)} /&gt;
+      {data?.results.map((r) => &lt;div key={r.id}&gt;{r.title}&lt;/div&gt;)}
+    &lt;/div&gt;
+  );
+}
+
+// axios works the same way:
+queryFn: ({ signal }) => axios.get('/api/search', { params: { q: term }, signal })</pre>
+<p><strong>Subtleties interviewers dig into:</strong></p>
+<ul>
+<li>Without forwarding <code>signal</code>, Query still discards stale results (UI stays correct), but the abandoned requests keep running to completion — cancellation is an optimization you must opt into.</li>
+<li><code>keepPreviousData</code>/<code>placeholderData</code> solves the pagination-flicker cousin of this problem: page 2's key has no data yet, so page 1 stays on screen (with <code>isPlaceholderData</code> to dim it) instead of a loading blank.</li>
+<li>The same mechanism is why optimistic updates start with <code>await queryClient.cancelQueries(...)</code> — an in-flight background refetch resolving late would clobber your optimistic cache write.</li>
+</ul>
+<div class="key-point">Query keys make out-of-order responses harmless — a response only ever lands in its own key's cache — and forwarding the provided <code>AbortSignal</code> upgrades that from "ignore stale responses" to "actually cancel stale requests".</div>`,
       },
     ],
   },

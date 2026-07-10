@@ -273,6 +273,129 @@ public class Application { }
 public interface UserMapper { }</pre>
 <div class="key-point"><code>map-underscore-to-camel-case: true</code> eliminates the need for most resultMap definitions — database columns auto-map to Java fields.</div>`,
       },
+      {
+        q: 'How do you solve the N+1 problem in MyBatis?',
+        difficulty: 'hard',
+        a: `<p>MyBatis has its own N+1 trap: a <strong>nested select</strong> mapping fires one extra query per parent row. There are two mapping styles, and choosing the wrong one is the classic mistake.</p>
+<pre>&lt;!-- STYLE 1: Nested SELECT — causes N+1 if eager! --&gt;
+&lt;resultMap id="orderMap" type="Order"&gt;
+  &lt;id column="order_id" property="orderId"/&gt;
+  &lt;collection property="items"
+              column="order_id"
+              select="com.example.ItemMapper.findByOrderId"
+              fetchType="lazy"/&gt;   &lt;!-- lazy = query only when accessed --&gt;
+&lt;/resultMap&gt;
+&lt;select id="findOrders" resultMap="orderMap"&gt;
+  SELECT order_id, total FROM orders   &lt;!-- 1 query + N item queries --&gt;
+&lt;/select&gt;
+
+&lt;!-- STYLE 2: Nested resultMap + JOIN — ONE query, no N+1 --&gt;
+&lt;resultMap id="orderJoinMap" type="Order"&gt;
+  &lt;id column="order_id" property="orderId"/&gt;
+  &lt;result column="total" property="total"/&gt;
+  &lt;collection property="items" ofType="OrderItem"&gt;
+    &lt;id column="item_id" property="itemId"/&gt;
+    &lt;result column="product_name" property="productName"/&gt;
+  &lt;/collection&gt;
+&lt;/resultMap&gt;
+&lt;select id="findOrdersWithItems" resultMap="orderJoinMap"&gt;
+  SELECT o.order_id, o.total, i.item_id, i.product_name
+  FROM orders o LEFT JOIN order_items i ON o.order_id = i.order_id
+&lt;/select&gt;</pre>
+<ul>
+<li><strong>JOIN + nested resultMap</strong>: one round trip. MyBatis deduplicates parent rows by the <code>&lt;id&gt;</code> column — omit <code>&lt;id&gt;</code> and you get duplicated parents (a common follow-up trap). Downside: row explosion when joining multiple collections.</li>
+<li><strong>Nested select + <code>fetchType="lazy"</code></strong>: fine when children are rarely accessed (needs <code>lazyLoadingEnabled=true</code> and a proxy-friendly entity). If you loop over every parent and touch the collection, you are back to N+1.</li>
+</ul>
+<div class="key-point">Unlike JPA, MyBatis never hides the SQL — N+1 here is a mapping choice: default to JOIN + nested resultMap for "always needed" children, nested lazy select for "rarely needed" ones.</div>`,
+      },
+      {
+        q: 'Why is the MyBatis second-level cache dangerous in production with multiple app instances?',
+        difficulty: 'tricky',
+        a: `<p>The default <code>&lt;cache/&gt;</code> is an <strong>in-heap, per-JVM</strong> cache scoped to a mapper namespace. Two failure modes make it dangerous:</p>
+<p><strong>1. Multiple app instances → stale data.</strong> Each instance has its own cache; invalidation on write happens only locally.</p>
+<pre>&lt;!-- UserMapper.xml on instance A and instance B --&gt;
+&lt;cache eviction="LRU" flushInterval="60000" size="512"/&gt;
+
+// Timeline with 2 instances behind a load balancer:
+// t1: Instance A: SELECT user 42 → cached (name = "Old")
+// t2: Instance B: UPDATE user 42 SET name = 'New'
+//     → flushes ONLY instance B's cache
+// t3: Instance A: SELECT user 42 → serves "Old" from ITS cache
+//     → stale for up to flushInterval (or forever without one)</pre>
+<p><strong>2. Cross-namespace dirty reads.</strong> The cache is invalidated per <em>namespace</em>, not per <em>table</em>. If <code>OrderMapper</code> caches a query that JOINs <code>users</code>, an update via <code>UserMapper</code> does not flush <code>OrderMapper</code>'s cache:</p>
+<pre>&lt;!-- OrderMapper.xml — caches rows that include user_name --&gt;
+&lt;select id="findOrderWithUser" resultMap="..."&gt;
+  SELECT o.*, u.user_name FROM orders o JOIN users u ON ...
+&lt;/select&gt;
+&lt;!-- UserMapper.update flushes UserMapper's cache only → OrderMapper serves stale user_name --&gt;
+
+&lt;!-- Partial fix: share one cache region across the coupled namespaces --&gt;
+&lt;cache-ref namespace="com.example.mapper.UserMapper"/&gt;</pre>
+<p>Also: any writer outside MyBatis (DBA script, another service, a batch job) bypasses invalidation entirely; and <code>readOnly="false"</code> (the default) deserializes a copy on every hit, which costs CPU and requires <code>Serializable</code> entities.</p>
+<div class="key-point">In clustered deployments, disable the second-level cache and cache explicitly at the service layer (Redis/Caffeine via Spring Cache) where you control invalidation — or plug a distributed Cache implementation and accept the complexity.</div>`,
+      },
+      {
+        q: 'How do you stream a huge result set in MyBatis without OutOfMemoryError?',
+        difficulty: 'hard',
+        a: `<p>A normal mapper method returning <code>List&lt;T&gt;</code> materializes <strong>every row in memory</strong> before returning — 10M rows means OOM. Two problems must be solved: MyBatis buffering the list, and the <strong>JDBC driver</strong> buffering the whole ResultSet client-side (MySQL does this by default!).</p>
+<pre>// Option 1: Cursor&lt;T&gt; — lazy iteration over an open ResultSet
+@Select("SELECT * FROM events ORDER BY id")
+@Options(fetchSize = 1000)
+Cursor&lt;Event&gt; scanAll();
+
+@Transactional  // cursor needs the connection/session to stay open!
+public void export(Writer out) {
+    try (Cursor&lt;Event&gt; cursor = eventMapper.scanAll()) {
+        for (Event e : cursor) {      // rows hydrated one at a time
+            out.write(toCsv(e));
+        }
+    }
+}
+
+// Option 2: ResultHandler — push-style callback, void return type
+void scanAll(ResultHandler&lt;Event&gt; handler);
+
+eventMapper.scanAll(ctx -> process(ctx.getResultObject()));</pre>
+<p><strong>Driver-specific gotchas:</strong></p>
+<ul>
+<li><strong>MySQL</strong> ignores normal fetchSize values — you must use <code>fetchSize = Integer.MIN_VALUE</code> (row-by-row streaming) or add <code>useCursorFetch=true</code> to the JDBC URL for real server-side cursors.</li>
+<li><strong>PostgreSQL</strong> honors fetchSize only when <code>autoCommit=false</code> — hence the <code>@Transactional</code> requirement.</li>
+<li>Closing the SqlSession before iterating the Cursor throws — the classic bug is returning a <code>Cursor</code> from a non-transactional service method.</li>
+</ul>
+<div class="key-point">Streaming needs BOTH a streaming consumer (Cursor/ResultHandler) AND a driver-level fetchSize that actually streams — MySQL's Integer.MIN_VALUE trick is the interview follow-up everyone forgets.</div>`,
+      },
+      {
+        q: 'What is the OGNL "0 equals empty string" trap in MyBatis dynamic SQL?',
+        difficulty: 'tricky',
+        a: `<p>The condition everyone copy-pastes for strings silently breaks for numbers. In OGNL, comparing a <code>Number</code> to <code>''</code> coerces the empty string to <code>0.0</code> — so <strong>0 == '' is true</strong>.</p>
+<pre>&lt;!-- Looks safe, works for String... --&gt;
+&lt;if test="status != null and status != ''"&gt;
+  AND status = #{status}
+&lt;/if&gt;
+
+// But with Integer status = 0:
+//   status != ''  →  OGNL coerces '' to 0.0  →  0 != 0.0  →  FALSE
+//   → whole &lt;if&gt; is skipped
+//   → the "status = 0" filter silently disappears
+//   → query returns ALL rows (e.g. disabled users leak into results!)
+
+&lt;!-- FIX: numeric parameters get a null-check ONLY --&gt;
+&lt;if test="status != null"&gt;
+  AND status = #{status}
+&lt;/if&gt;</pre>
+<p><strong>Related OGNL pitfalls interviewers probe:</strong></p>
+<pre>&lt;!-- Single-quoted single character is a CHAR literal in OGNL --&gt;
+&lt;if test="type == 'A'"&gt;      &lt;!-- char 'A' vs String → may never match --&gt;
+&lt;if test='type == "A"'&gt;      &lt;!-- correct: swap quote nesting --&gt;
+&lt;if test="type == 'A'.toString()"&gt;  &lt;!-- alternative fix --&gt;
+
+&lt;!-- &lt;where&gt; only strips LEADING AND/OR — a trailing one still breaks --&gt;
+&lt;where&gt;
+  &lt;if test="name != null"&gt;user_name = #{name} AND&lt;/if&gt;  &lt;!-- BAD: trailing AND --&gt;
+&lt;/where&gt;
+&lt;!-- Use &lt;trim prefix="WHERE" prefixOverrides="AND |OR "&gt; for full control --&gt;</pre>
+<div class="key-point">Rule of thumb: <code>!= ''</code> checks are for String parameters only; numeric parameters need just <code>!= null</code> — otherwise legitimate 0 values silently drop the predicate and widen your query.</div>`,
+      },
     ],
   },
 
@@ -704,6 +827,143 @@ List&lt;Tuple&gt; findAllProjected();
 repo.findByStatus("active", UserSummary.class);
 repo.findByStatus("active", UserDto.class);</pre>
 <div class="key-point">DTO projections can dramatically improve performance by reducing data transfer. Interface projections are simplest. Use class-based DTOs when you need custom logic. Never load full entities just to display a list view.</div>`,
+      },
+      {
+        q: 'Why are equals() and hashCode() hard to implement correctly for JPA entities?',
+        difficulty: 'tricky',
+        a: `<p>Two properties of entities break the standard IDE-generated implementations:</p>
+<ul>
+<li><strong>The id is null before persist</strong> — an id-based hashCode <em>changes</em> when the entity is saved, violating the contract that hashCode must be stable while the object is in a hash-based collection.</li>
+<li><strong>Hibernate proxies</strong> — a lazy reference is a runtime subclass (<code>User$HibernateProxy$xyz</code>), so <code>getClass() != other.getClass()</code> comparisons fail even for the "same" row.</li>
+</ul>
+<pre>// The broken HashSet demo interviewers love:
+Set&lt;Order&gt; items = new HashSet&lt;&gt;();
+Order order = new Order();          // id = null → hashCode based on null
+items.add(order);
+em.persist(order);                  // id assigned → hashCode CHANGES
+em.flush();
+items.contains(order);              // false! Entity is "lost" in its own set
+
+// Robust pattern: id-based equals + CONSTANT hashCode + instanceof
+@Override
+public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof Order other)) return false;   // instanceof → proxy-safe
+    return id != null &amp;&amp; id.equals(other.getId());   // getter → proxy-safe
+    // two transient entities (both id null) are never equal
+}
+@Override
+public int hashCode() {
+    return getClass().hashCode();   // constant → never changes across persist
+}</pre>
+<ul>
+<li>Constant hashCode means all entities of a type land in one hash bucket — O(n) lookups. Acceptable, because entity Sets are small (an order's items, not a million rows).</li>
+<li>Alternative: equals/hashCode on an immutable <strong>business key</strong> (e.g. ISBN, username) — ideal when one exists, but most tables have none.</li>
+<li>Never use Lombok <code>@Data</code>/<code>@EqualsAndHashCode</code> on entities: it includes mutable fields and can trigger lazy loading (and StackOverflow on bidirectional links) inside equals.</li>
+</ul>
+<div class="key-point">Use instanceof + getId() equality with a constant hashCode — it survives persist (id assignment) and proxies, the two things that silently corrupt HashSets of entities.</div>`,
+      },
+      {
+        q: 'What is the difference between persist(), merge(), and Spring Data save()?',
+        difficulty: 'tricky',
+        a: `<ul>
+<li><strong>persist(e)</strong>: makes a <em>transient</em> entity managed. Throws <code>EntityExistsException</code> for detached entities. Returns void — the argument itself becomes managed.</li>
+<li><strong>merge(e)</strong>: copies the state of a detached entity onto a managed copy (loading it first if needed) and <strong>returns that NEW managed instance</strong>. The argument stays detached!</li>
+</ul>
+<pre>// THE classic merge bug:
+User detached = new User(1L, "Old");
+em.merge(detached);                 // returned instance ignored!
+detached.setName("New");            // mutating the DETACHED argument
+// commit → "New" is NEVER written. Only the managed copy is tracked.
+
+// Correct:
+User managed = em.merge(detached);
+managed.setName("New");             // tracked by dirty checking → UPDATE
+
+// Spring Data save() is just a dispatcher:
+@Transactional
+public &lt;S extends T&gt; S save(S entity) {
+    if (entityInformation.isNew(entity)) {   // id == null (or version == null)
+        em.persist(entity);
+        return entity;
+    } else {
+        return em.merge(entity);             // ← hidden merge!
+    }
+}</pre>
+<p><strong>Two senior-level consequences of save()'s dispatch:</strong></p>
+<ul>
+<li><strong>Extra SELECT</strong>: saving a new entity with a <em>pre-assigned id</em> (UUID, natural key) looks "not new" → merge → Hibernate first SELECTs to check existence, doubling round trips. Fix: implement <code>Persistable.isNew()</code> or add a <code>@Version</code> field (null version = new).</li>
+<li><strong>Lost-update surface</strong>: merge overwrites <em>every</em> column with the detached object's state — a stale detached entity silently reverts concurrent changes unless <code>@Version</code> guards it.</li>
+</ul>
+<div class="key-point">merge() returns the managed instance — always continue with the return value; and know that save() on an id-preset entity means merge + an extra SELECT unless you implement Persistable or use @Version.</div>`,
+      },
+      {
+        q: 'What is the difference between findById() and getReferenceById()?',
+        difficulty: 'hard',
+        a: `<ul>
+<li><strong>findById(id)</strong>: executes a <strong>SELECT immediately</strong>, returns <code>Optional.empty()</code> if the row does not exist. You get a real, initialized entity.</li>
+<li><strong>getReferenceById(id)</strong> (JPA <code>em.getReference()</code>): returns a <strong>lazy proxy without any SQL</strong>. The database is hit only when a non-id field is first accessed — and if the row is missing, <em>that access</em> throws <code>EntityNotFoundException</code> (possibly far from the call site, or even during serialization).</li>
+</ul>
+<pre>// The perfect use case: setting a foreign key WITHOUT loading the row
+@Transactional
+public void createOrder(Long customerId, OrderRequest req) {
+    Order order = new Order(req);
+
+    // BAD: pointless SELECT just to get a reference for the FK column
+    Customer c = customerRepo.findById(customerId).orElseThrow();
+
+    // GOOD: no SELECT at all — proxy carries the id, INSERT gets the FK
+    Customer ref = customerRepo.getReferenceById(customerId);
+    order.setCustomer(ref);
+
+    orderRepo.save(order);   // SQL: single INSERT INTO orders (..., customer_id)
+}
+
+// When the lazy reference bites:
+Customer ghost = customerRepo.getReferenceById(999L); // no SQL, "succeeds"
+ghost.getId();     // OK — id is held by the proxy itself
+ghost.getName();   // SELECT ... → row missing → EntityNotFoundException HERE</pre>
+<ul>
+<li>Requires an open persistence context at first access — a proxy escaping the transaction throws <code>LazyInitializationException</code>.</li>
+<li>Don't use it when you must <em>validate</em> existence up front or read fields — that's findById's job.</li>
+<li>Bonus: the missing-row failure only surfaces at INSERT time as an FK-constraint violation if you never touch the proxy — know which exception appears where.</li>
+</ul>
+<div class="key-point">getReferenceById() is the zero-SELECT way to wire foreign keys; findById() is for when you actually need the data or an existence check now, not a deferred EntityNotFoundException later.</div>`,
+      },
+      {
+        q: 'Why do bidirectional JPA relationships need synchronization helper methods?',
+        difficulty: 'hard',
+        a: `<p>In a bidirectional association only the <strong>owning side</strong> (the one <em>without</em> <code>mappedBy</code>, usually the <code>@ManyToOne</code>) is written to the database. Setting just the inverse side updates the in-memory object graph but produces the wrong SQL — or none at all.</p>
+<pre>// Order (inverse side)          OrderItem (owning side — has the FK)
+@OneToMany(mappedBy = "order",   @ManyToOne(fetch = FetchType.LAZY)
+  cascade = CascadeType.ALL,     @JoinColumn(name = "order_id")
+  orphanRemoval = true)          private Order order;
+private List&lt;OrderItem&gt; items = new ArrayList&lt;&gt;();
+
+// BUG 1: only inverse side set → FK never written
+order.getItems().add(item);      // item.order is still null!
+orderRepo.save(order);           // INSERT order_items (..., order_id = NULL)
+                                 // → NULL FK or constraint violation
+
+// BUG 2: only owning side set → FK correct, but in the SAME persistence
+// context order.getItems() doesn't contain item → stale reads, broken
+// cascades and equals/contains logic within the transaction.
+
+// FIX: helper methods that keep BOTH sides in sync — the entity's API
+public void addItem(OrderItem item) {
+    items.add(item);
+    item.setOrder(this);
+}
+public void removeItem(OrderItem item) {
+    items.remove(item);          // + orphanRemoval → DELETE
+    item.setOrder(null);
+}</pre>
+<ul>
+<li>Make <code>setItems()</code> non-public (or defensive) so callers must go through the helpers.</li>
+<li>Combined with <code>orphanRemoval = true</code>, <code>removeItem()</code> is the idiomatic "delete child" — no explicit repository delete needed.</li>
+<li>Interview follow-up: this is also why entity <code>equals()</code> must not traverse both sides — a naive implementation recurses infinitely (Order → items → order → ...), same for <code>toString()</code> and JSON serialization.</li>
+</ul>
+<div class="key-point">Only the owning side's field becomes SQL; sync helpers exist to keep the object graph and the database telling the same story — omit them and you get NULL foreign keys or a persistence context that lies to you.</div>`,
       },
     ],
   },

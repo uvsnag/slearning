@@ -814,6 +814,175 @@ interface UserApi {
 </ul>
 <div class="key-point">"RestTemplate is in maintenance mode; I'd use RestClient for blocking calls, WebClient only when we're actually reactive, and Feign when the platform already runs Spring Cloud" — a complete senior answer in one sentence.</div>`,
       },
+      {
+        q: 'Why does @Transactional silently do nothing on self-invocation (this.method()) or on private/final methods?',
+        difficulty: 'tricky',
+        a: `<p>Because <code>@Transactional</code> is implemented by a <strong>proxy</strong>, not by the method itself. Spring wraps your bean in a proxy object; callers get the proxy injected, and the proxy opens/commits the transaction <em>around</em> the call before delegating to your real object (the "target").</p>
+<pre>@Service
+public class ReportService {
+
+    public void generateAll() {        // called from outside → goes through proxy
+        for (Long id : ids) {
+            this.generateOne(id);      // ❌ 'this' is the TARGET, not the proxy!
+        }                              //    → @Transactional below is IGNORED
+    }
+
+    @Transactional
+    public void generateOne(Long id) { ... }   // runs with NO transaction
+
+    @Transactional
+    private void internal() { ... }    // ❌ private: proxy can't override → ignored
+    @Transactional
+    public final void locked() { ... } // ❌ final: CGLIB can't override → ignored
+}</pre>
+<p><strong>Why exactly</strong>: the proxy is a subclass (CGLIB) or interface implementation (JDK) that overrides your public methods to add TX logic. <code>this.generateOne()</code> is a plain Java call on the raw object — the proxy never sees it. Private methods can't be overridden at all; final methods can't be overridden by CGLIB. No error is raised — it just silently runs without a transaction, which is why this bug survives code review.</p>
+<p><strong>Fixes, in order of preference</strong>:</p>
+<ul>
+<li><strong>Move the method to another bean</strong> — the clean fix; the call now crosses a proxy boundary.</li>
+<li><strong>Programmatic TX</strong> with <code>TransactionTemplate</code>: <code>txTemplate.executeWithoutResult(s -> generateOne(id));</code> — no proxy needed.</li>
+<li><strong>Self-injection</strong>: inject your own proxy (<code>@Autowired @Lazy ReportService self;</code>) and call <code>self.generateOne(id)</code> — works, but a design smell.</li>
+<li>AspectJ weaving (<code>mode = AdviceMode.ASPECTJ</code>) removes the limitation entirely, at the cost of build complexity — mention it, rarely use it.</li>
+</ul>
+<div class="key-point">Every proxy-based annotation shares this trap — @Transactional, @Async, @Cacheable, @Retryable. "The annotation only works when the call goes through the proxy" is the one sentence that answers a whole family of interview questions.</div>`,
+      },
+      {
+        q: 'A prototype-scoped bean is injected into a singleton. How many instances are created, and how do you get true prototype behavior?',
+        difficulty: 'tricky',
+        a: `<p><strong>One.</strong> Injection happens exactly once — when the singleton is created at startup. The container asks for a prototype at that moment, gets a fresh instance, stores the reference in the singleton's field... and never asks again. The "new instance per use" semantics are silently lost.</p>
+<pre>@Component @Scope("prototype")
+public class PdfBuilder { private final StringBuilder buf = new StringBuilder(); }
+
+@Service                                  // singleton
+public class InvoiceService {
+    @Autowired private PdfBuilder builder;     // ❌ ONE builder, shared forever
+    public byte[] render(Invoice i) {
+        return builder.append(i).build();      // state leaks across requests!
+    }
+}</pre>
+<p><strong>Fixes</strong> — all inject "a way to get a fresh instance" instead of the instance:</p>
+<pre>// 1. ObjectProvider — explicit lookup, the modern idiomatic choice
+@Autowired private ObjectProvider&lt;PdfBuilder&gt; builders;
+public byte[] render(Invoice i) { return builders.getObject().append(i).build(); }
+
+// 2. @Lookup — Spring overrides this method at runtime to return a fresh bean
+@Lookup
+protected PdfBuilder createBuilder() { return null; }  // body is ignored
+
+// 3. Scoped proxy — injected object IS a proxy; every method call
+//    is routed to a brand-new (or scope-resolved) target instance
+@Component
+@Scope(value = "prototype", proxyMode = ScopedProxyMode.TARGET_CLASS)
+public class PdfBuilder { ... }</pre>
+<ul>
+<li>Scoped proxies are also how <code>request</code>/<code>session</code>-scoped beans get injected into singletons — same problem, same mechanism.</li>
+<li>Extra trap: Spring does <strong>not</strong> manage a prototype's destruction — <code>@PreDestroy</code> on a prototype never fires; you own its cleanup.</li>
+</ul>
+<div class="key-point">Scope is resolved at injection time, not at call time — inject a provider (or a scoped proxy), not the prototype itself. Bonus follow-up interviewers love: @PreDestroy is never called on prototypes.</div>`,
+      },
+      {
+        q: 'Output prediction: a bean has Aware interfaces, a BeanPostProcessor, @PostConstruct, InitializingBean, init-method, and @PreDestroy. What is the exact order printed?',
+        difficulty: 'tricky',
+        a: `<pre>@Component
+public class LifecycleBean implements BeanNameAware, InitializingBean, DisposableBean {
+    public LifecycleBean()                { System.out.println("1. constructor"); }
+    @Autowired void inject(Dep d)         { System.out.println("2. dependency injection"); }
+    public void setBeanName(String n)     { System.out.println("3. BeanNameAware"); }
+    @PostConstruct void post()            { System.out.println("5. @PostConstruct"); }
+    public void afterPropertiesSet()      { System.out.println("6. afterPropertiesSet"); }
+    public void customInit()              { System.out.println("7. init-method"); }   // @Bean(initMethod=...)
+    @PreDestroy void preDestroy()         { System.out.println("9. @PreDestroy"); }
+    public void destroy()                 { System.out.println("10. destroy()"); }
+}
+
+@Component
+public class MyBpp implements BeanPostProcessor {
+    public Object postProcessBeforeInitialization(Object b, String n) {
+        System.out.println("4. BPP.before"); return b; }
+    public Object postProcessAfterInitialization(Object b, String n)  {
+        System.out.println("8. BPP.after");  return b; }   // proxies created HERE
+}</pre>
+<p><strong>Exact order</strong>: constructor → dependency injection → Aware callbacks (BeanNameAware, BeanFactoryAware, ApplicationContextAware...) → <code>BeanPostProcessor.postProcessBeforeInitialization</code> → <code>@PostConstruct</code> → <code>afterPropertiesSet()</code> → custom init-method → <code>BeanPostProcessor.postProcessAfterInitialization</code> → bean in use → on shutdown: <code>@PreDestroy</code> → <code>destroy()</code> → custom destroy-method.</p>
+<p><strong>Why seniors must know this</strong>:</p>
+<ul>
+<li>AOP proxies (@Transactional, @Async) are created in <strong>postProcessAfterInitialization</strong> — so calling an annotated method from <code>@PostConstruct</code> may run on the raw, un-proxied bean.</li>
+<li><code>@PostConstruct</code> is itself implemented by a BeanPostProcessor (<code>CommonAnnotationBeanPostProcessor</code>) — annotations on a BeanPostProcessor bean itself may not work.</li>
+<li>Constructor runs <strong>before</strong> field injection — touching an @Autowired field in the constructor gives null (see the "@Autowired is null" classic).</li>
+</ul>
+<div class="key-point">Memorize the trio at the middle: BPP.before → @PostConstruct → afterPropertiesSet → init-method → BPP.after. The killer insight is that proxies appear only at BPP.after — everything earlier sees the raw object.</div>`,
+      },
+      {
+        q: 'Calling one @Bean method from another inside a @Configuration class — how many instances are created? What does proxyBeanMethods = false change?',
+        difficulty: 'tricky',
+        a: `<pre>@Configuration                       // "full" mode (default)
+public class AppConfig {
+    @Bean
+    public ObjectMapper objectMapper() { return new ObjectMapper(); }
+
+    @Bean
+    public UserClient userClient() {
+        return new UserClient(objectMapper());   // looks like a plain 'new'...
+    }
+    @Bean
+    public AuditClient auditClient() {
+        return new AuditClient(objectMapper());  // ...called twice!
+    }
+}</pre>
+<p><strong>In full mode: ONE instance.</strong> Spring subclasses the config class with <strong>CGLIB</strong>; the generated subclass overrides every <code>@Bean</code> method so that a call first checks the container — if the bean already exists, the existing singleton is returned instead of executing your method body again. That's why @Bean methods can't be <code>private</code> or <code>final</code>.</p>
+<pre>@Configuration(proxyBeanMethods = false)   // "lite" mode
+public class AppConfig {
+    @Bean ObjectMapper objectMapper() { return new ObjectMapper(); }
+    @Bean UserClient userClient() {
+        return new UserClient(objectMapper());  // ❌ now a REAL call → 2nd instance,
+    }                                           //    unmanaged, no proxies, no @PostConstruct
+    // ✅ lite-mode style: declare dependencies as parameters
+    @Bean AuditClient auditClient(ObjectMapper mapper) {   // injected by container
+        return new AuditClient(mapper);          // same singleton, no CGLIB needed
+    }
+}</pre>
+<ul>
+<li><strong>Why lite mode exists</strong>: no CGLIB subclass → faster startup, less memory, and required for GraalVM native images. All Spring Boot auto-configurations use <code>proxyBeanMethods = false</code>.</li>
+<li><strong>Failure mode</strong>: switching to lite mode without converting direct calls to method parameters silently creates duplicate, container-unmanaged objects — connection pools and schedulers created twice are the classic production symptom.</li>
+<li>Same trap applies to <code>@Component</code> classes with <code>@Bean</code> methods — those are always lite mode.</li>
+</ul>
+<div class="key-point">Full mode: CGLIB intercepts @Bean calls to preserve singleton semantics. Lite mode: inter-bean calls are plain Java — always pass dependencies as @Bean method parameters so the mode doesn't matter.</div>`,
+      },
+      {
+        q: '"My @Autowired field is null" — what are the causes and how do you debug it?',
+        difficulty: 'tricky',
+        a: `<p>Spring only injects into objects <strong>it created</strong>. A null @Autowired field almost always means the object holding the field never went through the container.</p>
+<pre>// Cause 1 — the #1 culprit: 'new' instead of injection
+UserService svc = new UserService();   // ❌ Spring never saw this object
+svc.process();                          // → NPE on svc's @Autowired fields
+// Fix: inject UserService itself; never 'new' a bean.
+
+// Cause 2 — static fields: injection targets instances, not classes
+@Autowired
+private static MailSender sender;      // ❌ stays null (silently!)
+// Fix: don't. If forced (legacy), use a non-static setter that assigns the static.
+
+// Cause 3 — using the field in the constructor (runs BEFORE injection)
+@Service
+public class CacheService {
+    @Autowired private UserRepo repo;
+    public CacheService() {
+        repo.findAll();                // ❌ NPE — fields injected after constructor
+    }
+    @PostConstruct
+    void init() { repo.findAll(); }    // ✅ runs after injection
+    // ✅ best: constructor injection makes this bug impossible
+}
+
+// Cause 4 — the class isn't a bean at all
+// missing @Component/@Service, or it lives OUTSIDE the
+// @SpringBootApplication package tree → never scanned, and whoever
+// 'new's it gets no injection.
+
+// Cause 5 — objects created by other frameworks (JPA entities,
+// Jackson-deserialized DTOs, JUnit test classes without the Spring
+// runner, plain servlet Filters) are not container-managed.</pre>
+<p><strong>Debugging checklist</strong>: Who instantiated this object — me or Spring? Is the class annotated and inside the scanned packages (<code>/actuator/beans</code> or a startup breakpoint confirms)? Is the field static? Am I touching it before construction finished?</p>
+<div class="key-point">Constructor injection with final fields turns every one of these silent nulls into an immediate, loud compile-time or startup failure — which is the real reason seniors insist on it.</div>`,
+      },
     ],
   },
 

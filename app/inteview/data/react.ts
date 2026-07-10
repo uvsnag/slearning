@@ -695,6 +695,199 @@ function Header() {
       },
       //   ],
       // },
+      {
+        q: 'Tricky: a setInterval inside useEffect with [] deps logs the same count forever. Why, and how do you fix it?',
+        difficulty: 'tricky',
+        a: `<p>This is the classic <strong>stale closure</strong> trap. The effect runs once, and the interval callback closes over the <code>count</code> value from that <strong>first render only</strong>.</p>
+<pre>function Counter() {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      console.log(count);      // Output: 0, 0, 0, 0, ... forever
+      setCount(count + 1);     // always 0 + 1 → count is stuck at 1
+    }, 1000);
+    return () => clearInterval(id);
+  }, []); // ← closure captures count = 0 and never sees updates
+
+  return &lt;h1&gt;{count}&lt;/h1&gt;;    // UI shows 1 forever
+}</pre>
+<p><strong>Why</strong>: each render creates a new closure with its own <code>count</code>. With <code>[]</code> deps the effect (and its interval callback) is created exactly once, permanently bound to the first render's <code>count = 0</code>. State updates create new renders — they never mutate old closures.</p>
+<p><strong>Fixes</strong> (in order of preference):</p>
+<pre>// 1. Functional update — doesn't need to read count from the closure
+useEffect(() => {
+  const id = setInterval(() => setCount(c => c + 1), 1000);
+  return () => clearInterval(id);
+}, []);
+
+// 2. Correct deps — works, but tears down/recreates the interval every tick
+useEffect(() => {
+  const id = setInterval(() => setCount(count + 1), 1000);
+  return () => clearInterval(id);
+}, [count]);
+
+// 3. useRef — an escape hatch to always read the latest value
+const countRef = useRef(count);
+useEffect(() => { countRef.current = count; });
+useEffect(() => {
+  const id = setInterval(() => console.log(countRef.current), 1000);
+  return () => clearInterval(id);
+}, []);</pre>
+<p><strong>Interviewer follow-up</strong>: the same trap hits event listeners added once, WebSocket handlers, and debounced callbacks. The <code>eslint-plugin-react-hooks</code> exhaustive-deps rule exists precisely to catch this — disabling it with a comment is usually hiding this bug.</p>
+<div class="key-point">Closures capture render-time values, not live bindings. Any callback created once but running forever will see stale state unless you use functional updates, correct deps, or a ref.</div>`,
+      },
+      {
+        q: 'Output prediction: three setCount(count + 1) calls in one click handler — what logs, and what does count become?',
+        difficulty: 'tricky',
+        a: `<pre>function App() {
+  const [count, setCount] = useState(0);
+
+  function handleClick() {
+    setCount(count + 1);
+    setCount(count + 1);
+    setCount(count + 1);
+    console.log(count);   // logs 0 — NOT 3, not even 1
+  }
+  // After the click, count === 1, not 3
+}</pre>
+<p><strong>Why the log shows 0</strong>: state behaves like a <strong>snapshot per render</strong>. <code>count</code> is a plain const captured when this render's closure was created. <code>setCount</code> never changes it — it schedules a re-render where a <em>new</em> <code>count</code> will exist.</p>
+<p><strong>Why count ends at 1</strong>: all three calls compute <code>0 + 1</code> from the same snapshot, and React batches them into one re-render. The last write wins with the same value: 1.</p>
+<pre>// To actually increment 3 times, pass an updater function:
+setCount(c => c + 1);
+setCount(c => c + 1);
+setCount(c => c + 1);
+// React queues the updaters and runs them in order: 0→1→2→3
+
+// flushSync forces a synchronous re-render...
+flushSync(() => setCount(count + 1));
+console.log(count); // STILL logs 0! The local variable is from the
+                    // old render's closure — only the DOM updated.</pre>
+<p><strong>Failure modes to mention</strong>: reading state right after setting it (use the value you already have, or an effect), and "fixing" it with <code>useRef</code> everywhere — which trades declarative rendering for mutable spaghetti.</p>
+<div class="key-point">State updates are not asynchronous promises — they are requests for a new render. Variables of the current render never change; use functional updaters whenever the next state depends on the previous one.</div>`,
+      },
+      {
+        q: 'How does React store hook state internally, and why exactly does a conditional hook break everything after it?',
+        difficulty: 'hard',
+        a: `<p>Hooks have <strong>no names or keys</strong>. React stores them as a <strong>linked list on the component's fiber</strong> (<code>fiber.memoizedState</code>), and matches each hook call to its stored state purely by <strong>call order</strong>.</p>
+<pre>// Simplified mental model — first render builds the list:
+// fiber.memoizedState → { state: 'Ada' } → { state: 0 } → { effect }
+//                          hook #1           hook #2       hook #3
+
+// On every re-render React walks the list in order:
+// 1st useState call → gets node #1, 2nd useState call → node #2, ...
+
+function Profile({ showBio }) {
+  const [name] = useState('Ada');          // hook #1
+  if (showBio) {
+    const [bio] = useState('loves math');  // ❌ sometimes hook #2
+  }
+  const [likes, setLikes] = useState(0);   // hook #2 or #3?!
+}
+// When showBio flips from true → false:
+// 'likes' now reads the node that stored 'bio' → state is mixed up,
+// and React throws: "Rendered fewer hooks than expected."</pre>
+<p><strong>Why</strong>: when <code>showBio</code> changes, the list still has 3 nodes but only 2 calls happen (or vice versa). React has no way to know a call was skipped — it just hands out the next node. Every hook <em>after</em> the condition silently receives the wrong state.</p>
+<p><strong>This one mechanism explains ALL the Rules of Hooks</strong>:</p>
+<ul>
+<li>No conditions/loops/early returns before hooks → call order must be identical every render.</li>
+<li>Only call from components/custom hooks → there must be a fiber currently rendering to attach the list to (calling elsewhere throws "Invalid hook call").</li>
+</ul>
+<pre>// Correct patterns: call unconditionally, branch on usage...
+const [bio] = useState('');
+if (showBio) { /* use bio */ }
+
+// ...or split the conditional part into its own component
+{showBio && &lt;Bio /&gt;}  // Bio has its own fiber and hook list</pre>
+<div class="key-point">Hook state is positional, not named — a hook's identity is "the Nth call in this component". Any change to call order between renders corrupts every subsequent hook.</div>`,
+      },
+      {
+        q: 'When exactly do useInsertionEffect, useLayoutEffect, and useEffect run — and which one fixes visual flicker?',
+        difficulty: 'hard',
+        a: `<p><strong>Timeline for a commit</strong>: render → <code>useInsertionEffect</code> (before DOM mutations) → React mutates the DOM → <code>useLayoutEffect</code> (synchronous, before paint) → browser paints → <code>useEffect</code> (async, after paint).</p>
+<p><strong>The flicker demo</strong> — a tooltip that must measure itself to position above its anchor:</p>
+<pre>function Tooltip({ anchorRect }) {
+  const ref = useRef(null);
+  const [height, setHeight] = useState(0);
+
+  // ❌ useEffect: browser PAINTS at top: 0 first, then re-renders
+  //    at the right position → user sees a 1-frame jump/flicker
+  // ✅ useLayoutEffect: runs before paint; the re-render with the
+  //    correct position happens before the user sees anything
+  useLayoutEffect(() => {
+    setHeight(ref.current.getBoundingClientRect().height);
+  }, []);
+
+  return &lt;div ref={ref} style={{ top: anchorRect.top - height }}&gt;...&lt;/div&gt;;
+}</pre>
+<p><strong>useInsertionEffect</strong> is a niche hook for <strong>CSS-in-JS libraries</strong>: it fires before layout effects read the DOM, so injected <code>&lt;style&gt;</code> rules exist before anything measures layout (avoiding repeated forced recalculations):</p>
+<pre>useInsertionEffect(() => {
+  const style = document.createElement('style');
+  style.textContent = rule;
+  document.head.appendChild(style);
+  return () => style.remove();
+}, [rule]);
+// You cannot access refs or set state here — the DOM isn't updated yet.</pre>
+<p><strong>Failure modes</strong>: overusing <code>useLayoutEffect</code> blocks paint and makes slow renders feel worse; on SSR it also triggers the "useLayoutEffect does nothing on the server" warning because no effects run during server rendering (fix: gate the component behind mount, or use <code>useEffect</code> when timing doesn't matter visually).</p>
+<div class="key-point">Default to useEffect; reach for useLayoutEffect only to measure/mutate the DOM before paint (flicker); useInsertionEffect is effectively reserved for CSS-in-JS style injection.</div>`,
+      },
+      {
+        q: 'You wrapped a component in React.memo but it re-renders every time anyway. What went wrong?',
+        difficulty: 'tricky',
+        a: `<p><code>React.memo</code> does a <strong>shallow comparison</strong> of props. Anything created inline during the parent's render — objects, arrays, functions, and <strong>JSX children</strong> — gets a new reference every time, so the comparison always fails.</p>
+<pre>const Row = React.memo(function Row({ item, style, onSelect }) {
+  return &lt;li style={style} onClick={() => onSelect(item.id)}&gt;{item.name}&lt;/li&gt;;
+});
+
+function List({ items }) {
+  return items.map(item => (
+    &lt;Row
+      key={item.id}
+      item={item}
+      style={{ padding: 8 }}            // ❌ new object every render
+      onSelect={id => select(id)}       // ❌ new function every render
+    /&gt;
+  ));
+}
+// memo compares prevProps.style === nextProps.style → always false
+// → Row re-renders every time; memo is pure overhead here.</pre>
+<p><strong>The sneakiest case — children</strong>: <code>&lt;Card&gt;&lt;p&gt;Hi&lt;/p&gt;&lt;/Card&gt;</code> creates a new element object for <code>&lt;p&gt;</code> on every parent render, so <code>memo(Card)</code> never bails out when it receives children inline.</p>
+<pre>// Fixes: stabilize every reference memo will compare
+const ROW_STYLE = { padding: 8 };                     // hoist static objects
+const onSelect = useCallback(id => select(id), []);   // stable function
+const header = useMemo(() => &lt;Header /&gt;, []);      // or lift children up
+                                                      // to a component that
+                                                      // rarely re-renders</pre>
+<p><strong>Follow-up interviewers love</strong>: "so should you memo everything?" — No. Every memo adds a comparison on every render and makes code harder to reason about; most components are cheap to re-render. <strong>Measure first</strong> with React DevTools Profiler, memoize the hot paths. Longer term, the React Compiler auto-memoizes and makes most manual memo/useCallback ceremony unnecessary.</p>
+<div class="key-point">React.memo is only as good as the stability of every prop reference — one inline object, function, or child defeats it entirely, and unmeasured memoization is often net-negative.</div>`,
+      },
+      {
+        q: 'Every consumer of your Context re-renders on each keystroke. Why, and what are the three standard fixes?',
+        difficulty: 'hard',
+        a: `<p>A Context consumer re-renders whenever the Provider's <code>value</code> changes <strong>by identity</strong> (<code>Object.is</code>). The classic bug is an inline object, which is a brand-new reference on every Provider render:</p>
+<pre>function AppProvider({ children }) {
+  const [user, setUser] = useState(null);
+  return (
+    // ❌ {{ user, setUser }} is a NEW object every render —
+    // ALL consumers re-render even when user didn't change
+    &lt;UserContext.Provider value={{ user, setUser }}&gt;
+      {children}
+    &lt;/UserContext.Provider&gt;
+  );
+}</pre>
+<p><strong>Fix 1 — memoize the value</strong>:</p>
+<pre>const value = useMemo(() => ({ user, setUser }), [user]);
+&lt;UserContext.Provider value={value}&gt;</pre>
+<p><strong>Fix 2 — split state and dispatch contexts</strong>. Setter/dispatch functions are stable, so components that only <em>update</em> state never re-render when state changes:</p>
+<pre>&lt;UserStateContext.Provider value={user}&gt;
+  &lt;UserDispatchContext.Provider value={setUser}&gt;
+    {children}
+  &lt;/UserDispatchContext.Provider&gt;
+&lt;/UserStateContext.Provider&gt;
+// A "Log out" button uses only UserDispatchContext → re-renders never</pre>
+<p><strong>Fix 3 — children composition</strong>. Note the Provider above receives <code>{children}</code> as a prop: when the Provider's own state changes, the <code>children</code> element is the <em>same reference</em> from the parent's render, so React can skip re-rendering non-consumer subtrees. Creating the tree <em>inside</em> the stateful component would forfeit this.</p>
+<p><strong>Remaining limitation</strong>: Context has no selectors — a consumer of <code>{ user, theme }</code> re-renders on theme changes even if it only reads <code>user</code>. That is when you split contexts further or move to Zustand/Jotai for subscription-based, fine-grained updates.</p>
+<div class="key-point">Context updates propagate by value identity: memoize the value, split read/write (state vs dispatch) contexts, and pass subtrees as children — or use a selector-based store when that's not enough.</div>`,
+      },
     ],
   },
 ];

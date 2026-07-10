@@ -841,6 +841,207 @@ useEffect(() => {
 <p><strong>Detection:</strong> Chrome DevTools → Memory tab → Heap snapshots → Compare before/after to find growing objects.</p>
 <div class="key-point">In React, the most common leak is forgetting to clean up in <code>useEffect</code>: subscriptions, intervals, event listeners, and AbortControllers for fetch requests.</div>`,
       },
+      {
+        q: "What is the output of ['1', '7', '11'].map(parseInt)? Why?",
+        difficulty: 'tricky',
+        a: `<p>The most famous JavaScript one-liner trap. The answer is <code>[1, NaN, 3]</code>.</p>
+<pre>['1', '7', '11'].map(parseInt);   // [1, NaN, 3]  😱
+
+// Why? map passes THREE args: (element, index, array)
+// and parseInt takes TWO: (string, radix)
+parseInt('1', 0);   // 1   (radix 0 → treated as 10)
+parseInt('7', 1);   // NaN (radix 1 is invalid!)
+parseInt('11', 2);  // 3   ('11' in binary = 3)
+
+// ✅ Fixes:
+['1', '7', '11'].map(Number);              // [1, 7, 11]
+['1', '7', '11'].map(s => parseInt(s, 10)); // [1, 7, 11]</pre>
+<div class="key-point">General lesson: never pass a function reference directly to <code>map/filter</code> unless you know its full signature — the extra <code>index</code> and <code>array</code> arguments silently bind to optional parameters. Always state the radix with <code>parseInt</code>.</div>`,
+      },
+      {
+        q: 'Why does 0.1 + 0.2 !== 0.3? How do you compare floats safely?',
+        difficulty: 'tricky',
+        a: `<pre>0.1 + 0.2;               // 0.30000000000000004
+0.1 + 0.2 === 0.3;       // false!
+
+// Why: JS numbers are IEEE-754 64-bit binary floats.
+// 0.1 and 0.2 have no exact binary representation (like 1/3 in decimal),
+// so both are stored slightly off, and the errors add up.
+
+// ✅ Compare with a tolerance (epsilon):
+function nearlyEqual(a, b) {
+  return Math.abs(a - b) &lt; Number.EPSILON;   // 2^-52
+}
+nearlyEqual(0.1 + 0.2, 0.3);  // true
+
+// ✅ For money: work in integer cents
+1000 + 2000 === 3000;          // cents — always exact
+
+// Related traps:
+0.1 + 0.2 + 0.3 === 0.3 + 0.2 + 0.1;   // false! (order matters)
+Number.MAX_SAFE_INTEGER;                 // 9007199254740991 (2^53 - 1)
+9007199254740992 === 9007199254740993;   // true! beyond safe range
+BigInt(9007199254740993n);               // use BigInt for big integers</pre>
+<div class="key-point">Every language with IEEE-754 doubles has this (Java, Python, C#…). Senior answer covers: why (binary fractions), how to compare (epsilon), and money handling (integer minor units or a decimal library).</div>`,
+      },
+      {
+        q: 'Can (a == 1 && a == 2 && a == 3) ever be true?',
+        difficulty: 'tricky',
+        a: `<p>Yes — three classic ways, each showing a different mechanism interviewers want you to explain.</p>
+<pre>// 1. valueOf — loose == triggers ToPrimitive coercion on objects
+const a = {
+  value: 0,
+  valueOf() { return ++this.value; }   // called on each == comparison
+};
+a == 1 && a == 2 && a == 3;   // true!
+
+// 2. Even works with STRICT === using a global getter
+let count = 0;
+Object.defineProperty(globalThis, 'b', {
+  get() { return ++count; }            // property read has a side effect
+});
+b === 1 && b === 2 && b === 3; // true!
+
+// 3. Proxy — intercepts the coercion
+const c = new Proxy({ i: 0 }, {
+  get(target, prop) {
+    if (prop === Symbol.toPrimitive) return () => ++target.i;
+  }
+});
+c == 1 && c == 2 && c == 3;   // true</pre>
+<div class="key-point">What's really being tested: you know <code>==</code> calls <code>[Symbol.toPrimitive]</code> / <code>valueOf</code> / <code>toString</code> on objects, and that property access can run arbitrary code. Real-world moral: side effects in getters/coercion make code unpredictable — never do this outside an interview.</div>`,
+      },
+      {
+        q: 'What is the output of [10, 9, 1].sort()? Array sort pitfalls.',
+        difficulty: 'tricky',
+        a: `<pre>[10, 9, 1].sort();          // [1, 10, 9]  😱 NOT [1, 9, 10]
+// Default sort converts elements to STRINGS and compares UTF-16 code units:
+// '1' &lt; '10' &lt; '9' (lexicographic)
+
+// ✅ Numeric sort needs a comparator:
+[10, 9, 1].sort((a, b) => a - b);   // [1, 9, 10]
+[10, 9, 1].sort((a, b) => b - a);   // [10, 9, 1] descending
+
+// Pitfall 2: sort MUTATES the array (and returns the same reference!)
+const original = [3, 1, 2];
+const sorted = original.sort();
+sorted === original;                 // true — original is changed too!
+const safe = [...original].sort((a, b) => a - b);  // copy first
+const safe2 = original.toSorted((a, b) => a - b);  // ES2023 immutable version
+
+// Pitfall 3: comparator must be consistent — return NEGATIVE/0/POSITIVE
+users.sort((a, b) => a.age - b.age);                    // numbers ✅
+names.sort((a, b) => a.localeCompare(b));               // strings ✅
+users.sort((a, b) => a.age &gt; b.age);  // ❌ returns true/false → broken order</pre>
+<div class="key-point">Since ES2019 <code>Array.prototype.sort</code> is guaranteed <strong>stable</strong> (equal elements keep their relative order) — a common senior follow-up. The mutating family (<code>sort/reverse/splice</code>) now has immutable twins: <code>toSorted/toReversed/toSpliced</code>.</div>`,
+      },
+      {
+        q: 'What is the output? (async/await + event loop ordering puzzle)',
+        difficulty: 'tricky',
+        a: `<pre>async function a1() {
+  console.log('a1 start');
+  await a2();
+  console.log('a1 end');        // everything AFTER await = microtask
+}
+async function a2() { console.log('a2'); }
+
+console.log('script start');
+setTimeout(() => console.log('setTimeout'), 0);
+a1();
+new Promise(resolve => {
+  console.log('promise');        // executor runs SYNCHRONOUSLY
+  resolve();
+}).then(() => console.log('then'));
+console.log('script end');
+
+// Output:
+// script start
+// a1 start      ← a1 runs synchronously until the await
+// a2            ← a2's body is also synchronous
+// promise       ← Promise executor is synchronous
+// script end    ← sync code done; now drain microtasks
+// a1 end        ← microtask 1 (queued at the await, before .then)
+// then          ← microtask 2
+// setTimeout    ← macrotask, always last</pre>
+<div class="key-point">The rules that generate the answer: (1) an <code>async</code> function runs <strong>synchronously until its first await</strong>; (2) <code>await</code> parks the rest of the function as a <strong>microtask</strong>; (3) all microtasks drain before the next macrotask. <code>await x</code> is equivalent to <code>Promise.resolve(x).then(rest-of-function)</code>.</div>`,
+      },
+      {
+        q: 'What is the output of Array(3).map(x => 1)? (sparse arrays and holes)',
+        difficulty: 'tricky',
+        a: `<pre>Array(3);                    // [empty × 3] — length 3, but NO elements (holes)
+Array(3).map(x => 1);        // [empty × 3]  😱 map SKIPS holes!
+Array(3).fill(0);            // [0, 0, 0] ✅
+
+// Why: Array(3) sets length=3 but creates no indexed properties.
+// map/forEach/filter iterate only over EXISTING indices.
+0 in Array(3);               // false — index 0 doesn't exist
+0 in [undefined, 1, 2];      // true
+
+// ✅ Ways to build a real array of length n:
+Array.from({ length: 3 }, (_, i) => i);  // [0, 1, 2]
+[...Array(3)].map((_, i) => i);          // [0, 1, 2] (spread fills holes with undefined)
+Array(3).fill(null).map((_, i) => i);    // [0, 1, 2]
+
+// More hole trivia:
+[,,].length;                 // 2 — trailing comma doesn't count!
+[1, , 3].length;             // 3, but index 1 is a hole
+Array(3).length;             // 3
+Array('3');                  // ['3'] — single non-number arg = element! 😱</pre>
+<div class="key-point"><code>Array(n)</code> with one numeric argument sets <em>length</em>; with anything else it creates elements — a design wart worth naming. Holes behave inconsistently across methods (<code>map</code> skips, spread converts to <code>undefined</code>, <code>includes</code> sees them) — avoid sparse arrays entirely.</div>`,
+      },
+      {
+        q: 'What is the difference between ==, ===, and Object.is()?',
+        difficulty: 'tricky',
+        a: `<table style="width:100%;border-collapse:collapse;margin:10px 0;font-size:.88rem;">
+<tr><th style="text-align:left;padding:6px;border-bottom:1px solid #ccc;">Comparison</th><th style="padding:6px;border-bottom:1px solid #ccc;">==</th><th style="padding:6px;border-bottom:1px solid #ccc;">===</th><th style="padding:6px;border-bottom:1px solid #ccc;">Object.is</th></tr>
+<tr><td style="padding:6px;"><code>'1' vs 1</code></td><td style="padding:6px;">true (coerces)</td><td style="padding:6px;">false</td><td style="padding:6px;">false</td></tr>
+<tr><td style="padding:6px;"><code>NaN vs NaN</code></td><td style="padding:6px;">false</td><td style="padding:6px;">false</td><td style="padding:6px;"><strong>true</strong></td></tr>
+<tr><td style="padding:6px;"><code>0 vs -0</code></td><td style="padding:6px;">true</td><td style="padding:6px;">true</td><td style="padding:6px;"><strong>false</strong></td></tr>
+<tr><td style="padding:6px;"><code>null vs undefined</code></td><td style="padding:6px;">true</td><td style="padding:6px;">false</td><td style="padding:6px;">false</td></tr>
+</table>
+<pre>NaN === NaN;             // false — the only value not equal to itself!
+Object.is(NaN, NaN);     // true
+Number.isNaN(x);         // the practical way to test for NaN
+
+0 === -0;                // true
+Object.is(0, -0);        // false (they differ: 1/0 = Infinity, 1/-0 = -Infinity)
+
+// Where this matters in real code:
+// React uses Object.is for useState bail-out and useEffect deps comparison!
+const [state, setState] = useState(obj);
+setState(obj);           // same reference per Object.is → NO re-render</pre>
+<div class="key-point"><code>===</code> for everyday code; <code>Object.is</code> is "SameValue" semantics — identical except it treats <code>NaN</code> as equal to itself and distinguishes <code>±0</code>. Knowing React relies on <code>Object.is</code> for state/deps comparison turns trivia into a senior answer.</div>`,
+      },
+      {
+        q: 'Why does forEach not work with async/await? Sequential vs parallel async loops.',
+        difficulty: 'tricky',
+        a: `<pre>// ❌ THE BUG: forEach ignores the returned promises
+const ids = [1, 2, 3];
+ids.forEach(async (id) => {
+  await saveToDb(id);        // fire-and-forget!
+});
+console.log('done');          // logs BEFORE any save completes 😱
+// forEach doesn't await its callback — errors are unhandled rejections too
+
+// ✅ SEQUENTIAL — one at a time (order matters, e.g. migrations):
+for (const id of ids) {
+  await saveToDb(id);         // total time = sum of all calls
+}
+
+// ✅ PARALLEL — all at once (independent work):
+await Promise.all(ids.map(id => saveToDb(id)));
+// total time ≈ slowest single call; rejects fast on first failure
+
+// ✅ PARALLEL, collect failures instead of fast-fail:
+const results = await Promise.allSettled(ids.map(id => saveToDb(id)));
+
+// ✅ LIMITED CONCURRENCY — e.g. max 5 at once against a rate-limited API:
+// use a pool library (p-limit) or chunk the work:
+for (let i = 0; i &lt; ids.length; i += 5) {
+  await Promise.all(ids.slice(i, i + 5).map(saveToDb));
+}</pre>
+<div class="key-point">The senior distinction: <code>map + Promise.all</code> = parallel, <code>for...of + await</code> = sequential, <code>forEach + async</code> = broken (unawaited promises, swallowed errors). Follow-up they love: "what if the array has 10,000 items?" → bounded concurrency, not <code>Promise.all</code>.</div>`,
+      },
       //   ],
       // },
     ],

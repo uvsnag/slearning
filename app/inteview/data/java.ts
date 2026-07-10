@@ -2780,6 +2780,212 @@ jcmd &lt;pid&gt; Thread.print           # same, jcmd is the modern entry point
 # Threads in WAITING on pool queues → upstream slowness (DB, HTTP)</pre>
 <div class="key-point">The senior signal is a <strong>workflow</strong>, not tool names: reproduce → capture (thread/heap dump, GC logs <code>-Xlog:gc*</code>) → analyze → fix → verify with the same measurement. Guessing flags without evidence is the anti-pattern.</div>`,
       },
+      {
+        q: 'What is the output? Integer a = 127, b = 127; a == b — Integer caching and autoboxing traps',
+        difficulty: 'tricky',
+        a: `<p>The most famous Java trick question. <code>Integer.valueOf()</code> caches values from <strong>-128 to 127</strong>, so small boxed integers are the SAME object.</p>
+<pre>Integer a = 127, b = 127;
+a == b;                    // true  — both from IntegerCache (same object)
+
+Integer c = 128, d = 128;
+c == d;                    // false — two different objects on the heap!
+c.equals(d);               // true  — always compare wrappers with equals()
+
+Integer e = 1000; int f = 1000;
+e == f;                    // true  — mixed Integer/int → e is UNBOXED, numeric compare
+
+// NPE traps with autoboxing:
+Map&lt;String, Integer&gt; map = new HashMap&lt;&gt;();
+int count = map.get("missing");   // NullPointerException! (null unboxed)
+
+Integer i = null;
+Integer r = true ? i : 0;         // NullPointerException!
+// mixed Integer/int operands → ternary result type is int → i.intValue() → NPE</pre>
+<div class="key-point">Cache exists for <code>Integer/Short/Byte/Long</code> (-128..127), <code>Character</code> (0..127), <code>Boolean</code>. Upper bound is tunable via <code>-XX:AutoBoxCacheMax</code> — which is why "it works with 127 but not 128" is the interviewer's favorite follow-up. Rule: NEVER use <code>==</code> on wrapper types.</div>`,
+      },
+      {
+        q: 'Is Java pass-by-value or pass-by-reference? Prove it.',
+        difficulty: 'tricky',
+        a: `<p>Java is <strong>ALWAYS pass-by-value</strong>. For objects, the value passed is a <strong>copy of the reference</strong> — not the object, and not a true "reference" in the C++ sense.</p>
+<pre>class Person { String name; Person(String n) { name = n; } }
+
+void change(Person p) {
+  p.name = "Changed";        // ✅ affects caller — p points to the SAME object
+  p = new Person("New");     // ❌ only reassigns the LOCAL copy of the reference
+  p.name = "Never seen";     // caller never sees this object
+}
+
+Person person = new Person("Original");
+change(person);
+System.out.println(person.name);  // "Changed" — mutation visible, reassignment not
+
+// The classic proof — swap does NOT work in Java:
+void swap(Person a, Person b) {
+  Person tmp = a; a = b; b = tmp;  // swaps local copies only
+}</pre>
+<div class="key-point">Interview phrasing that wins: "Java passes <strong>object references by value</strong>." You can <em>mutate</em> the object a parameter points to, but you can never <em>reassign</em> the caller's variable. If Java were pass-by-reference, <code>swap()</code> would work — it doesn't.</div>`,
+      },
+      {
+        q: 'Can finally override a return value or swallow an exception? What is the output?',
+        difficulty: 'tricky',
+        a: `<pre>// 1. return in finally OVERRIDES the try's return — and swallows exceptions!
+int test1() {
+  try {
+    throw new RuntimeException("lost forever");
+  } finally {
+    return 2;               // returns 2, exception silently DISAPPEARS
+  }
+}
+
+// 2. finally can NOT change an already-computed primitive return value
+int test2() {
+  int x = 1;
+  try {
+    return x;               // value 1 is saved to the operand stack HERE
+  } finally {
+    x = 99;                 // too late — does not affect the return
+  }
+}                           // returns 1
+
+// 3. ...but it CAN mutate a returned OBJECT (same reference)
+StringBuilder test3() {
+  StringBuilder sb = new StringBuilder("a");
+  try {
+    return sb;              // the REFERENCE is saved
+  } finally {
+    sb.append("b");         // mutates the same object
+  }
+}                           // returns "ab"
+
+// 4. When finally does NOT run:
+System.exit(0);             // JVM terminates — finally skipped
+// also: JVM crash, kill -9, infinite loop in try, daemon thread death</pre>
+<div class="key-point"><code>return</code>/<code>throw</code> inside <code>finally</code> discards any pending exception or return value from <code>try</code>/<code>catch</code> — a notorious bug source, and flagged by every linter. Rule: never exit from a <code>finally</code> block.</div>`,
+      },
+      {
+        q: 'What is type erasure? Why can you not overload List<String> vs List<Integer>?',
+        difficulty: 'tricky',
+        a: `<p>Generics exist only at <strong>compile time</strong>. The compiler erases them to raw types (bounds or <code>Object</code>) for backward compatibility with pre-Java-5 bytecode.</p>
+<pre>// ❌ Compile error: both erase to print(List) — same signature!
+void print(List&lt;String&gt; list) { }
+void print(List&lt;Integer&gt; list) { }
+
+List&lt;String&gt; a = new ArrayList&lt;&gt;();
+List&lt;Integer&gt; b = new ArrayList&lt;&gt;();
+a.getClass() == b.getClass();      // true — both ArrayList at runtime!
+
+// Consequences of erasure:
+if (x instanceof List&lt;String&gt;) { } // ❌ illegal — type gone at runtime
+T t = new T();                     // ❌ can't instantiate a type parameter
+T[] arr = new T[10];               // ❌ can't create generic arrays
+
+// Arrays are COVARIANT (unsafe), generics are INVARIANT (safe):
+Object[] objs = new String[1];
+objs[0] = 42;                      // compiles… ArrayStoreException at RUNTIME
+
+List&lt;Object&gt; list = new ArrayList&lt;String&gt;(); // ❌ COMPILE error — bug caught early</pre>
+<div class="key-point">Senior follow-ups: this is why you use <code>Class&lt;T&gt;</code> tokens or <code>TypeReference</code> in Jackson (<code>new TypeReference&lt;List&lt;User&gt;&gt;() {}</code> — an anonymous subclass preserves the generic type in its class metadata), and why the compiler generates <strong>bridge methods</strong> when a class overrides a generic method with a concrete type.</div>`,
+      },
+      {
+        q: 'What is the class initialization order? (static blocks, instance blocks, constructors — tricky output)',
+        difficulty: 'tricky',
+        a: `<pre>class Parent {
+  static { System.out.println("1. Parent static block"); }
+  { System.out.println("3. Parent instance block"); }
+  Parent() { System.out.println("4. Parent constructor"); }
+}
+class Child extends Parent {
+  static { System.out.println("2. Child static block"); }
+  { System.out.println("5. Child instance block"); }
+  Child() { System.out.println("6. Child constructor"); }
+}
+
+new Child();   // prints 1, 2, 3, 4, 5, 6
+new Child();   // prints ONLY 3, 4, 5, 6 — statics run once per class
+
+// Order: parent static → child static → (per instance:)
+//        parent fields+instance blocks → parent ctor →
+//        child fields+instance blocks → child ctor</pre>
+<p><strong>The deadly variant — calling an overridable method from a constructor:</strong></p>
+<pre>class Parent {
+  Parent() { init(); }                 // virtual call runs BEFORE Child's fields init
+  void init() { }
+}
+class Child extends Parent {
+  private String name = "child";
+  @Override void init() { System.out.println(name.length()); } // NPE! name still null
+}
+new Child(); // NullPointerException — child fields not yet assigned</pre>
+<div class="key-point">Two senior takeaways: (1) static init runs once, at first use of the class, parent-first; (2) <strong>never call overridable methods from a constructor</strong> (Effective Java Item 19) — the subclass part of the object doesn't exist yet.</div>`,
+      },
+      {
+        q: 'Why should you never use double for money? BigDecimal pitfalls.',
+        difficulty: 'tricky',
+        a: `<pre>System.out.println(0.1 + 0.2);        // 0.30000000000000004 (IEEE-754 binary!)
+System.out.println(1.03 - 0.42);      // 0.6100000000000001
+
+// Trap 1: the double constructor inherits the binary error
+new BigDecimal(0.1);
+// 0.1000000000000000055511151231257827021181583404541015625  ❌
+new BigDecimal("0.1");                // 0.1 ✅ use the STRING constructor
+BigDecimal.valueOf(0.1);              // 0.1 ✅ (goes through Double.toString)
+
+// Trap 2: equals() compares SCALE too — compareTo() doesn't
+new BigDecimal("2.0").equals(new BigDecimal("2.00"));      // false!
+new BigDecimal("2.0").compareTo(new BigDecimal("2.00"));   // 0 (equal)
+// → never use BigDecimal as a HashMap key / in a Set without normalizing scale
+
+// Trap 3: division can throw
+new BigDecimal("1").divide(new BigDecimal("3"));
+// ArithmeticException: Non-terminating decimal expansion
+new BigDecimal("1").divide(new BigDecimal("3"), 2, RoundingMode.HALF_UP); // 0.33 ✅</pre>
+<div class="key-point">Money options in production: <code>BigDecimal</code> (string constructor + explicit <code>RoundingMode</code>), or store <strong>long cents</strong> (minor units) — what payment systems actually do. Bonus trivia: <code>double</code> can't represent 0.1 exactly for the same reason 1/3 isn't exact in decimal.</div>`,
+      },
+      {
+        q: 'What is the output? Overload resolution with null, widening, boxing, and varargs',
+        difficulty: 'tricky',
+        a: `<pre>// 1. null picks the MOST SPECIFIC overload
+void m(Object o) { System.out.println("Object"); }
+void m(String s) { System.out.println("String"); }
+m(null);                    // "String" — String is more specific than Object
+
+// 2. ...but two unrelated types = ambiguous
+void f(String s) { }
+void f(Integer i) { }
+f(null);                    // ❌ COMPILE ERROR: reference to f is ambiguous
+f((String) null);           // ✅ fix with an explicit cast
+
+// 3. Priority: exact match &gt; widening &gt; boxing &gt; varargs
+void g(long l)     { System.out.println("long"); }
+void g(Integer i)  { System.out.println("Integer"); }
+void g(int... arr) { System.out.println("varargs"); }
+int x = 5;
+g(x);                       // "long" — primitive WIDENING beats boxing!
+// (a pre-Java-5 call must resolve the same way it always did)</pre>
+<div class="key-point">Overload resolution happens at <strong>compile time</strong> using the <em>static</em> type of arguments (unlike overriding, which dispatches at runtime on the object type). The widening-beats-boxing rule exists for backward compatibility and catches almost everyone.</div>`,
+      },
+      {
+        q: 'Can you override a static method in Java? (method hiding vs overriding)',
+        difficulty: 'tricky',
+        a: `<p>No. A static method with the same signature in a subclass <strong>hides</strong> the parent's method — it does not override it. The difference is <em>which type decides</em>:</p>
+<pre>class A {
+  static void staticM()  { System.out.println("A.static"); }
+  void instanceM()       { System.out.println("A.instance"); }
+}
+class B extends A {
+  static void staticM()  { System.out.println("B.static"); }   // HIDES (no @Override allowed)
+  @Override
+  void instanceM()       { System.out.println("B.instance"); } // OVERRIDES
+}
+
+A a = new B();
+a.staticM();    // "A.static"   — resolved at COMPILE time by REFERENCE type!
+a.instanceM();  // "B.instance" — virtual dispatch at RUNTIME by OBJECT type
+
+B.staticM();    // "B.static"
+// Never call statics through an instance — it reads like polymorphism but isn't.</pre>
+<div class="key-point">Related traps: <code>private</code> methods are never overridden (a same-signature method in the child is a new, unrelated method), and <strong>fields</strong> are also hidden, not overridden — <code>a.field</code> uses the reference type too. Only instance methods are polymorphic in Java.</div>`,
+      },
     ],
   },
 

@@ -929,6 +929,175 @@ Table: chunks
 <p><strong>Example:</strong> Dropbox splits files into 4MB blocks, hashes each block, and only uploads blocks that changed. If you edit one paragraph in a 100MB document, only a 4MB chunk is synced.</p>
 <div class="key-point">The magic is in <strong>chunking + deduplication + delta sync</strong>. This is what makes Dropbox fast even on slow connections.</div>`,
       },
+      {
+        q: 'What is a cache stampede (thundering herd) and how do you prevent it?',
+        difficulty: 'tricky',
+        a: `<p>A <strong>cache stampede</strong>: a popular cache key expires, and thousands of concurrent requests all miss at once and hit the database together — often taking it down. The nastiest version is self-inflicted: the DB slows, requests pile up, and the retry wave makes it worse.</p>
+<pre>The scenario:
+  key "home_feed" (10,000 req/s) expires at 12:00:00
+  → 10,000 requests miss simultaneously
+  → 10,000 identical queries slam the DB
+  → DB melts, latency spikes, retries amplify the load</pre>
+<p><strong>Defenses (combine several):</strong></p>
+<ul>
+<li><strong>Request coalescing / single-flight</strong>: only ONE request per key recomputes; the rest wait for its result (Go <code>singleflight</code>, a per-key mutex in Redis: <code>SET lock:key NX PX 3000</code>).</li>
+<li><strong>Stale-while-revalidate</strong>: serve the expired value immediately, refresh in the background. Users see slightly stale data instead of an outage.</li>
+<li><strong>Jittered TTL</strong>: <code>ttl = base + random(0, 10%)</code> so keys written together don't expire together.</li>
+<li><strong>Early probabilistic refresh</strong>: each hit refreshes with a probability that grows as expiry approaches (XFetch algorithm) — the key never actually expires under load.</li>
+<li><strong>Negative caching</strong>: cache "not found" results briefly so missing keys can't be used to bypass the cache.</li>
+</ul>
+<p><strong>Related: the hot key / celebrity problem</strong> — one key too popular for a single cache node (Bieber posts a photo):</p>
+<pre>Fixes: local in-process cache (even 1s TTL absorbs most reads),
+       replicate the key: feed:123#1..N on different nodes, pick randomly</pre>
+<div class="key-point">Interviewers push on this after any "add a cache" answer. The senior move is naming the failure mode unprompted: "I'd add jittered TTLs and single-flight so we don't stampede the DB on expiry."</div>`,
+      },
+      {
+        q: 'How do you generate unique IDs in a distributed system?',
+        difficulty: 'hard',
+        a: `<p>Auto-increment doesn't work across many nodes. Classic trade-off question: uniqueness vs sortability vs coordination.</p>
+<table><tr><th>Approach</th><th>Pros</th><th>Cons</th></tr>
+<tr><td>UUID v4</td><td>No coordination, trivial</td><td>128-bit, random → terrible as B-tree PK (random inserts fragment the index), not time-sortable</td></tr>
+<tr><td>DB auto-increment</td><td>Simple, sortable</td><td>SPOF, doesn't scale writes; multi-master offset trick (1,3,5.. / 2,4,6..) is brittle</td></tr>
+<tr><td>Ticket server (Flickr)</td><td>Central control</td><td>Extra hop, needs HA pair</td></tr>
+<tr><td>Snowflake</td><td>64-bit, time-sortable, no coordination per ID</td><td>Needs unique worker IDs, sensitive to clock skew</td></tr>
+<tr><td>UUID v7 / ULID / KSUID</td><td>Time-ordered + random, index-friendly</td><td>128-bit (bigger than Snowflake)</td></tr>
+</table>
+<pre>Twitter Snowflake — 64 bits:
+| 1 bit | 41 bits timestamp (ms) | 10 bits machine ID | 12 bits sequence |
+  sign    ~69 years of ms         1024 workers          4096 IDs/ms/worker
+
+= 4M+ IDs per second per worker, roughly time-sorted, fits in a BIGINT</pre>
+<p><strong>The tricky follow-up — clock skew:</strong> what if the machine clock moves backward (NTP correction)? Snowflake generators must refuse to issue IDs (wait or error) until the clock catches up, otherwise duplicates. This is the detail interviewers fish for.</p>
+<div class="key-point">Good default today: <strong>UUID v7</strong> (time-ordered, standardized, no infrastructure) or <strong>Snowflake</strong> when you need compact 64-bit sortable IDs. Mention why random UUIDv4 hurts clustered-index insert performance — that's the senior signal.</div>`,
+      },
+      {
+        q: 'Is exactly-once delivery possible in distributed systems?',
+        difficulty: 'tricky',
+        a: `<p>The trick question: <strong>exactly-once <em>delivery</em> is impossible</strong> over an unreliable network — but <strong>exactly-once <em>processing</em> (effectively-once)</strong> is achievable.</p>
+<pre>Why delivery can't be exactly-once:
+  Producer sends message → network timeout → was it received?
+  - Don't retry → maybe ZERO deliveries (message lost)
+  - Retry       → maybe TWO deliveries (it had arrived)
+  You cannot distinguish "lost" from "slow ack". (Two Generals problem)</pre>
+<p><strong>So real systems pick at-least-once + deduplication:</strong></p>
+<pre>1. Producer: retry until acknowledged (at-least-once)
+   + attach a stable message ID / idempotency key
+
+2. Consumer: make processing IDEMPOTENT
+   INSERT INTO processed_messages(message_id) VALUES (?)  -- unique constraint
+   → duplicate arrives → constraint violation → skip, ack, move on
+
+3. Or make the operation naturally idempotent:
+   SET balance = 100        (idempotent — safe to repeat)
+   vs balance = balance + 10 (NOT idempotent — must dedupe)</pre>
+<p><strong>What about "Kafka exactly-once semantics (EOS)"?</strong> It's transactional: for Kafka→Kafka pipelines, consuming offsets and producing results commit <em>atomically</em>, so reprocessing isn't visible downstream. The moment you touch an external system (DB, email, payment API), you're back to needing idempotency on that system.</p>
+<div class="key-point">Interview-ready answer: "Exactly-once delivery is impossible; we get effectively-once by combining at-least-once delivery with idempotent consumers — dedup table keyed by message ID, updated in the same transaction as the business change."</div>`,
+      },
+      {
+        q: 'How do you implement a distributed lock? What can go wrong?',
+        difficulty: 'tricky',
+        a: `<p>Naive Redis lock, and the interview is about its failure modes:</p>
+<pre>SET lock:order:42 &lt;token&gt; NX PX 30000   -- acquire: only if not exists, 30s TTL
+-- release: must be atomic check-and-delete (Lua), only if WE still own it:
+if redis.call("GET", key) == token then redis.call("DEL", key) end</pre>
+<p><strong>The famous failure (Kleppmann's GC-pause scenario):</strong></p>
+<pre>1. Client A acquires lock (TTL 30s)
+2. A hits a 40s stop-the-world GC pause / network blip
+3. Lock EXPIRES; client B acquires it and starts writing
+4. A wakes up, still believes it holds the lock → writes too
+→ TWO writers. The lock did not protect anything.</pre>
+<p><strong>Fix: fencing tokens</strong> — the lock service hands out a monotonically increasing number; the protected resource rejects stale tokens:</p>
+<pre>A gets lock with token 33 → pauses
+B gets lock with token 34 → writes (storage records 34)
+A wakes, writes with token 33 → storage: 33 &lt; 34 → REJECTED ✅</pre>
+<ul>
+<li><strong>Redis Redlock</strong> (quorum over N independent Redis nodes): controversial — Kleppmann showed it's unsafe under clock jumps/pauses without fencing. Fine for efficiency locks, not correctness locks.</li>
+<li><strong>ZooKeeper / etcd</strong>: consensus-backed, ephemeral nodes + monotonic versions (natural fencing tokens) — the right tool when correctness matters.</li>
+</ul>
+<div class="key-point">Senior distinction: is the lock for <strong>efficiency</strong> (avoid duplicate work — a flaky lock is fine) or <strong>correctness</strong> (prevent data corruption — needs consensus + fencing)? Often the best answer is no lock at all: a unique constraint, conditional update (<code>WHERE version = ?</code>), or idempotency achieves the same goal without the distributed-lock minefield.</div>`,
+      },
+      {
+        q: 'How do you do back-of-envelope capacity estimation in a system design interview?',
+        difficulty: 'medium',
+        a: `<p>Interviewers want the <em>method</em>, not precision. Round aggressively to powers of 10.</p>
+<pre>Numbers to memorize:
+  1 day ≈ 86,400 s ≈ 10^5 s
+  1M requests/day ≈ 12 req/s   (÷ 10^5)
+  peak traffic ≈ 2–5× average
+  char = 1 B, int/long = 4–8 B, UUID = 16 B, 1M × 1KB = 1 GB
+
+Worked example — Twitter-like service:
+  100M DAU, each writes 2 tweets, reads 100 tweets/day
+
+  Write QPS : 100M × 2 / 10^5  = 2,000 /s   (peak ~5,000)
+  Read QPS  : 100M × 100 / 10^5 = 100,000 /s (peak ~250,000)
+  → read:write = 50:1 → design is READ-heavy → cache + fan-out strategy
+
+  Storage: tweet ≈ 300 B metadata+text
+  200M tweets/day × 300 B ≈ 60 GB/day ≈ 22 TB/year (×3 replication = 66 TB)
+  10% have media (1 MB avg) → 20 TB/day of blobs → object storage + CDN
+
+  Bandwidth: reads 100k/s × 300 B ≈ 30 MB/s API (media via CDN, not our servers)
+
+  Cache (80/20 rule): 20% of daily reads hot
+  10^10 reads × 20% × 300 B ≈ 600 GB → a handful of Redis nodes</pre>
+<div class="key-point">The conclusions are the point, not the numbers: "read-heavy → cache aggressively", "media dominates storage → S3+CDN", "5k writes/s → a single well-tuned DB can't take 250k reads/s → replicas + cache". State assumptions out loud and sanity-check orders of magnitude.</div>`,
+      },
+      {
+        q: 'What are quorum reads and writes (N, R, W)?',
+        difficulty: 'hard',
+        a: `<p>In leaderless replication (Dynamo, Cassandra), each value lives on <strong>N</strong> replicas. A write must be confirmed by <strong>W</strong> nodes, a read queries <strong>R</strong> nodes.</p>
+<pre>The quorum condition:   R + W &gt; N
+→ read set and write set MUST overlap
+→ at least one node in every read has the latest write
+
+N=3, W=2, R=2  (typical):  2+2 &gt; 3 ✅
+  Write: send to 3 replicas, ack to client after 2 confirm
+  Read : ask 3 (or 2) replicas, take the value with newest version
+
+Tuning:
+  W=1, R=3 → fast writes, expensive reads
+  W=3, R=1 → slow writes, fast reads, write availability suffers
+  W=1, R=1 → fast everything, R+W ≤ N → stale reads possible</pre>
+<p><strong>Why quorums still aren't perfect (senior follow-ups):</strong></p>
+<ul>
+<li>Concurrent writes to different nodes → conflicts; need versioning (vector clocks) or last-write-wins (loses data on clock skew).</li>
+<li><strong>Sloppy quorum + hinted handoff</strong>: during a partition, writes land on stand-in nodes and are handed back later — availability up, overlap guarantee temporarily broken.</li>
+<li><strong>Read repair / anti-entropy</strong>: when a read sees divergent replicas, it writes the newest value back to stale ones.</li>
+</ul>
+<div class="key-point">Quorum ≠ strong consistency — it's tunable consistency. Cassandra exposes this per query: <code>QUORUM</code>, <code>ONE</code>, <code>LOCAL_QUORUM</code>, <code>ALL</code>. Knowing that R+W&gt;N gives overlap (not linearizability) is the distinction that separates senior answers.</div>`,
+      },
+      {
+        q: 'How do you prevent double payment / double charging? (idempotency in practice)',
+        difficulty: 'tricky',
+        a: `<p>The scenario every payment interviewer asks: user clicks Pay, request times out, client (or user) retries. Was the first request processed? You must make the retry <strong>safe</strong>.</p>
+<pre>1. Client generates an idempotency key ONCE per logical action
+   (UUID created when the Pay button is rendered — NOT per HTTP attempt)
+
+   POST /payments
+   Idempotency-Key: 3f2a-...-9c1b
+   { "orderId": 42, "amount": 99.00 }
+
+2. Server — atomically claim the key BEFORE doing the work:
+   INSERT INTO idempotency_keys (key, status, response)
+   VALUES ('3f2a...', 'IN_PROGRESS', NULL);   -- UNIQUE constraint on key
+
+   - insert OK        → first attempt → charge the card
+                        → UPDATE ... SET status='DONE', response={...}
+   - duplicate key    → status DONE        → return the SAVED response (no re-charge)
+                      → status IN_PROGRESS → 409/retry-later (first attempt still running)
+
+3. Downstream: pass the same key to the payment provider
+   (Stripe/PayPal support Idempotency-Key natively → dedupe on their side too)</pre>
+<p><strong>Details that mark a senior answer:</strong></p>
+<ul>
+<li>The dedupe check and the business write must be in the <strong>same DB transaction</strong> — check-then-act across two systems reintroduces the race.</li>
+<li>Key includes/binds the request payload hash — same key with different amount is an error, not a replay.</li>
+<li>Keys expire (e.g. 24h) so storage doesn't grow forever.</li>
+<li>Timeout ambiguity: on timeout the client must retry with the <strong>same key</strong> — retrying with a fresh key is exactly how double charges happen.</li>
+</ul>
+<div class="key-point">Pattern generalizes to any non-idempotent POST: unique constraint claims the operation, the stored response makes replays return identical results. "The database's unique constraint is doing the distributed coordination" is the key insight.</div>`,
+      },
     ],
   },
 
@@ -1289,6 +1458,175 @@ readinessProbe:
 # /actuator/health/liveness → checks process is alive
 # /actuator/health/readiness → checks DB connection, disk space, etc.</pre>
 <div class="key-point">A common mistake: putting DB checks in the liveness probe. If the DB is temporarily down, all service instances restart in a loop (crash cascade). Put DB checks in readiness probe instead.</div>`,
+      },
+      {
+        q: 'What is the dual-write problem?',
+        difficulty: 'tricky',
+        a: `<p>The trap behind most broken event-driven systems: a service must update its database <strong>and</strong> publish an event — and those are two systems that cannot share a transaction.</p>
+<pre>// ❌ The broken code that looks fine in review:
+@Transactional
+public void createOrder(Order order) {
+  orderRepository.save(order);          // DB write (transactional)
+  kafkaTemplate.send("orders", event);  // Kafka publish (NOT in the transaction!)
+}
+
+Failure modes:
+  1. DB commits, Kafka send fails/crashes  → order exists, downstream never told
+  2. Publish first, then DB fails          → downstream reacts to an order
+                                             that doesn't exist
+  3. Kafka send inside @Transactional but before commit
+     → consumer reads the event, queries your API, gets 404 (not committed yet)</pre>
+<p><strong>Correct solutions — make one system the source of truth:</strong></p>
+<ul>
+<li><strong>Transactional Outbox</strong>: write the event into an <code>outbox</code> table in the SAME DB transaction as the business data; a relay (poller or Debezium CDC) publishes it to Kafka afterwards. At-least-once → consumers must dedupe.</li>
+<li><strong>Change Data Capture</strong>: Debezium tails the DB write-ahead log and turns committed rows into events — the DB commit IS the publish decision.</li>
+<li><strong>Event sourcing</strong>: the event log is the primary store; DB state is derived — no second write to reconcile.</li>
+</ul>
+<div class="key-point">The general law: you can never atomically write to two independent systems without 2PC. Any design with "save to DB and also push to queue/cache/search-index" has this bug until proven otherwise — interviewers use it to test if you've operated real event-driven systems.</div>`,
+      },
+      {
+        q: 'What is a distributed monolith? What are the warning signs?',
+        difficulty: 'tricky',
+        a: `<p>A <strong>distributed monolith</strong> has microservice <em>costs</em> (network, ops, partial failure) with monolith <em>coupling</em> — the worst of both worlds. It's what most failed microservice migrations produce.</p>
+<p><strong>Warning signs checklist:</strong></p>
+<ul>
+<li><strong>Lockstep deploys</strong>: releasing service A requires releasing B and C at the same time (shared release train).</li>
+<li><strong>Synchronous call chains</strong>: A → B → C → D to serve one request; availability = product of all (99.9%⁴ ≈ 99.6%), latency = sum.</li>
+<li><strong>Shared database</strong>: two services read/write the same tables — schema changes need cross-team coordination; it's one data model wearing two costumes.</li>
+<li><strong>Chatty interfaces</strong>: one business operation = dozens of fine-grained calls between two services (the boundary is in the wrong place).</li>
+<li><strong>Shared domain libraries</strong>: bumping <code>common-domain-model.jar</code> forces redeploying every service.</li>
+<li><strong>Distributed transactions</strong> needed for routine operations.</li>
+</ul>
+<pre>The test: "Can you deploy this service alone, on a Tuesday,
+without asking any other team?"  No → distributed monolith.</pre>
+<p><strong>How to fix / avoid:</strong> split by business capability (not by layer or entity), give each service its own data, prefer async events over sync chains, enforce backward-compatible APIs so deploys decouple.</p>
+<div class="key-point">Senior take: a well-modularized monolith beats a distributed monolith every time — you pay network and consistency costs only when you get independent deployability and scaling in return. "We split the code but not the data or the deploys" is the standard failure story.</div>`,
+      },
+      {
+        q: 'When do retries make an outage worse? (retry storms, backoff, jitter)',
+        difficulty: 'tricky',
+        a: `<p>Retries are a load <em>amplifier</em>. During a partial outage, naive retries multiply traffic exactly when the system can least afford it — often converting a slowdown into a total collapse.</p>
+<pre>The amplification math (3 attempts per layer):
+  Client → Gateway → Service A → Service B (struggling)
+  3 × 3 × 3 = 27× load on B during ITS worst moment
+
+The death spiral:
+  B slows → callers time out → all retry → B's queue grows →
+  B slower → more retries → B dies → traffic shifts → C dies…</pre>
+<p><strong>Doing retries right:</strong></p>
+<pre>// Exponential backoff + FULL JITTER (AWS-recommended):
+delay = random(0, min(cap, base × 2^attempt))
+// jitter is not optional: without it, all clients that failed together
+// retry together — synchronized waves ("retry herd")
+
+Rules:
+  1. Retry only idempotent operations (GET, PUT with key) — or use idempotency keys
+  2. Retry only retryable errors: 503, 429, timeouts.  NEVER 400/401/404
+  3. Cap attempts (2–3), cap total time; honor Retry-After headers
+  4. Retry at ONE layer (usually the edge), not every hop
+  5. Retry BUDGET (e.g. retries ≤ 10% of requests) — beyond that, fail fast
+  6. Combine with circuit breaker: stop hammering a dead dependency
+  7. Deadline propagation: don't retry work whose caller already gave up</pre>
+<div class="key-point">Interview gold: "retries trade increased load for reduced error rate — a good trade only when failures are transient and load isn't the cause." If the dependency is overloaded, retries are gasoline. That's why retry budgets and circuit breakers exist.</div>`,
+      },
+      {
+        q: 'How do you decide service boundaries when splitting a monolith?',
+        difficulty: 'hard',
+        a: `<p>The hardest microservices question because there's no formula — interviewers want your <em>heuristics</em>.</p>
+<p><strong>Primary tool: DDD bounded contexts.</strong> Split along business capabilities, where the <em>language changes meaning</em>:</p>
+<pre>"Product" means different things per context:
+  Catalog   : name, images, description, SEO
+  Inventory : SKU, stock count, warehouse location
+  Pricing   : price, discounts, tax category
+→ three contexts, three services, three models —
+  NOT one giant shared Product entity</pre>
+<p><strong>Heuristics for a good boundary:</strong></p>
+<ul>
+<li><strong>Changes together → stays together</strong>: if every feature touches services A and B, the boundary is wrong (check your git history — files that co-change belong together).</li>
+<li><strong>Data ownership is decidable</strong>: exactly one service writes each piece of data.</li>
+<li><strong>Coarse interface</strong>: one business operation ≈ one call, not a chatty conversation.</li>
+<li><strong>Team-sized</strong>: one team owns it end to end (Conway's law is a tool — align service and team boundaries).</li>
+<li><strong>Different scaling/availability needs</strong>: image processing vs checkout.</li>
+</ul>
+<p><strong>Anti-patterns:</strong> entity services (UserService, OrderService, ProductService that are just tables with HTTP on top — every operation spans all of them), layer services (UI-service / logic-service / data-service), nano-services (operational cost &gt; value).</p>
+<p><strong>Process: Strangler Fig</strong> — extract the highest-value, least-coupled capability first, route traffic to it, repeat. Start with a modular monolith if boundaries are still unclear; module lines are cheap to move, network lines are not.</p>
+<div class="key-point">Best one-liner: "Services should be loosely coupled and highly cohesive — if you must open three services to ship one feature, you drew the lines wrong." Wrong boundaries cost more than no boundaries.</div>`,
+      },
+      {
+        q: 'How do you guarantee event ordering in event-driven microservices?',
+        difficulty: 'tricky',
+        a: `<p>Trick premise alert: there is <strong>no global ordering</strong> in a distributed system — the real question is <em>what scope of ordering do you actually need?</em> Usually: per entity.</p>
+<pre>Kafka's model:
+  - Ordering is guaranteed ONLY within a partition
+  - Same key → same partition → in order
+
+  producer.send("orders", key = orderId, event);
+  // OrderCreated(42), OrderPaid(42), OrderShipped(42)
+  // → all on one partition → consumed in order ✅
+  // Events for DIFFERENT orders may interleave — and that's fine.</pre>
+<p><strong>Where ordering silently breaks (the senior checklist):</strong></p>
+<ul>
+<li><strong>Producer retries</strong>: send 1 fails, send 2 succeeds, retry of 1 lands after 2 → set <code>enable.idempotence=true</code> (dedupes and preserves order per partition).</li>
+<li><strong>Consumer-side parallelism</strong>: consuming a partition then spraying events into a thread pool destroys the ordering Kafka gave you. Parallelize <em>by key</em>, not round-robin.</li>
+<li><strong>Repartitioning</strong>: changing partition count remaps keys → old and new events for one entity split across partitions during transition.</li>
+<li><strong>Multiple producers</strong> for one entity (or dual-write paths) → no defined order at all.</li>
+</ul>
+<p><strong>Designing to need less ordering:</strong></p>
+<pre>- Version/sequence number in the event: consumer rejects stale
+    if (event.version &lt;= current.version) skip;
+- Full-state ("fat") events instead of deltas → last-write-wins is safe
+- Idempotent handlers → duplicates and some reorderings become harmless</pre>
+<div class="key-point">Interview-ready summary: "Partition by aggregate ID for per-entity ordering, idempotent producer against retry reordering, keep per-key ordering through the consumer, and version events so out-of-order delivery is detectable. Global ordering doesn't exist and designs that require it don't scale."</div>`,
+      },
+      {
+        q: 'How do you join data across microservices, each with its own database?',
+        difficulty: 'tricky',
+        a: `<p>The question that exposes whether database-per-service was understood: "Show orders together with customer names" — but orders and customers live in different services. <code>JOIN</code> is gone. Options:</p>
+<p><strong>1. API composition (sync)</strong> — fine for small result sets:</p>
+<pre>GET /orders?userId=42        → Order Service
+GET /customers/42            → Customer Service
+→ merge in the caller (API gateway / BFF)
+
+Problems: N+1 calls for lists, latency = slowest call,
+          no cross-service filtering/sorting/pagination
+          ("orders of customers in Berlin, sorted by name" = fetch everything 😱)</pre>
+<p><strong>2. CQRS materialized view (async)</strong> — the scalable answer:</p>
+<pre>Customer Service ──CustomerUpdated──▶ ┌──────────────────┐
+                                      │  Order-History    │
+Order Service ────OrderCreated──────▶ │  View Service     │
+                                      │  (denormalized DB │
+                                      │   or Elasticsearch)│
+Query: one SELECT on the pre-joined view — fast, filterable, pageable
+Cost : eventual consistency + view rebuild logic</pre>
+<p><strong>3. Replicate a slice of the data</strong> — Order Service keeps a local copy of just <code>(customerId, name)</code>, updated by subscribing to customer events. Duplication is a feature here, not a sin: reads stay local and the service works even when Customer Service is down.</p>
+<p><strong>Anti-patterns:</strong> reaching into another service's database directly (couples you to their schema — the #1 microservice sin), and cross-service distributed queries at request time.</p>
+<div class="key-point">Senior framing: "In microservices you move joins from query time to <em>write time</em> — events keep a denormalized view fresh, and queries become single-service reads. You trade consistency lag for autonomy and read performance." If a query needs fresh, transactional joins across two services, that's evidence they should be one service.</div>`,
+      },
+      {
+        q: 'How do you evolve an API without breaking consumers? (contracts and versioning)',
+        difficulty: 'hard',
+        a: `<p>Independent deployability — the whole point of microservices — dies the moment an API change forces consumers to upgrade simultaneously. Compatibility discipline is what keeps it alive.</p>
+<pre>SAFE (backward-compatible):          BREAKING:
+  + add optional field to response     - remove/rename a field
+  + add optional request param         - change a field's type/format
+  + add new endpoint                   - make optional field required
+  + add enum value (careful!)          - change error codes/semantics
+                                       - tighten validation rules</pre>
+<p><strong>1. Tolerant reader (Postel's law)</strong>: consumers ignore unknown fields and don't fail on additions — e.g. don't configure Jackson to <code>FAIL_ON_UNKNOWN_PROPERTIES</code>.</p>
+<p><strong>2. Expand–contract (parallel change)</strong> for unavoidable breaking changes:</p>
+<pre>Goal: rename "name" → "fullName"
+  EXPAND  : write BOTH fields; readers still use "name"
+  MIGRATE : consumers switch to "fullName" at their own pace
+  CONTRACT: telemetry shows zero readers of "name" → remove it
+No simultaneous deploy ever required.</pre>
+<p><strong>3. Consumer-driven contract testing (Pact)</strong> — catches breakage in CI, before deploy:</p>
+<pre>Consumer declares what it uses:  "GET /users/42 → { id, name }"
+  → contract published to a broker
+Provider's CI replays every consumer contract against the real service
+  → provider removes "name" → PROVIDER's build fails, listing who breaks
+"can-i-deploy" gate: verified against all consumer versions in prod</pre>
+<p><strong>4. Explicit versioning as last resort</strong> (URL <code>/v2/</code>, header, or media type): you now run and patch two APIs — an operational cost, not a strategy. Prefer additive evolution so v2 is rare.</p>
+<div class="key-point">Ranked senior answer: "Additive changes + tolerant readers by default, expand–contract for breaking changes, contract tests to enforce it in CI, explicit versions only when a redesign is unavoidable." Bonus nuance: internal service-to-service APIs can evolve via expand–contract almost indefinitely; long-lived public APIs are where versioning earns its cost.</div>`,
       },
     ],
   },
@@ -1674,6 +2012,158 @@ if (attempts > 5) {
 String hash = BCrypt.hashpw(password, BCrypt.gensalt(12));
 // 12 rounds → ~250ms per hash → brute force is impractical</pre>
 <div class="key-point">Do not rely on account lockout alone — attackers can lock out legitimate users (denial of service). Combine rate limiting + progressive delays + MFA for robust protection.</div>`,
+      },
+      {
+        q: 'How does refresh token rotation with reuse detection work?',
+        difficulty: 'tricky',
+        a: `<p><strong>Refresh token rotation</strong> means every refresh token is <strong>one-time use</strong>: each time the client refreshes, the server issues a NEW refresh token and invalidates the old one. The senior-level part is <strong>reuse detection</strong> — what happens when an already-used token shows up again.</p>
+<pre>// Normal flow (rotation):
+Client                        Server
+  |-- POST /refresh (RT1) -->  |  RT1 valid → mark RT1 used
+  |&lt;-- AT2 + RT2 ------------  |  issue new pair, same "family" F
+  |-- POST /refresh (RT2) -->  |  RT2 valid → mark RT2 used
+  |&lt;-- AT3 + RT3 ------------  |
+
+// Theft scenario (reuse detection):
+Attacker steals RT2 and uses it first:
+  Attacker -- /refresh (RT2) --> server → OK, issues RT3' to attacker
+  Victim   -- /refresh (RT2) --> server → RT2 ALREADY USED!
+  → This is impossible in normal operation
+  → Someone has a stolen copy → REVOKE THE ENTIRE FAMILY F
+  → Both attacker's RT3' and victim's tokens are dead
+  → Victim re-authenticates; attacker is locked out</pre>
+<pre>// Server-side model:
+refresh_tokens table:
+  id | family_id | user_id | status (active|used|revoked) | expires_at
+
+async function refresh(token) {
+  const row = await db.findRefreshToken(hash(token));
+  if (!row) throw new AuthError(401);
+
+  if (row.status !== 'active') {
+    // Reuse detected → nuke the whole family
+    await db.revokeFamily(row.family_id);
+    alertSecurityTeam(row.user_id);
+    throw new AuthError(401);
+  }
+  await db.markUsed(row.id);
+  return issueNewPair(row.user_id, row.family_id); // same family
+}</pre>
+<p><strong>Why revoke the whole family?</strong> After reuse you cannot tell which party (victim or attacker) holds the "current" token — the attacker may have refreshed first and now owns the newest one. Killing the family is the only safe move.</p>
+<p><strong>Interviewer follow-ups:</strong> race conditions (a legitimate client retrying a timed-out refresh looks like reuse — allow a small grace window or make refresh idempotent per token), storing only <strong>hashes</strong> of refresh tokens, and binding the family to device/IP fingerprints for alerting.</p>
+<div class="key-point">Rotation limits the blast radius of a stolen refresh token; reuse detection turns the stolen token into a tripwire — one replay and the entire token family is revoked.</div>`,
+      },
+      {
+        q: 'Why should you NOT use JWT for user sessions? When does JWT actually win?',
+        difficulty: 'tricky',
+        a: `<p>This contrarian question separates seniors from tutorial-followers. JWT is often the <strong>wrong</strong> tool for classic browser sessions:</p>
+<ul>
+<li><strong>You can't revoke it</strong>: logout, password change, "ban this user now" — the token stays valid until <code>exp</code>. Every fix (blacklist in Redis, token versioning) reintroduces the server-side state JWT was supposed to eliminate.</li>
+<li><strong>Payload bloat</strong>: roles, permissions, profile data get stuffed in; the token is sent on EVERY request. A 4 KB JWT vs a 32-byte session ID on every call adds up.</li>
+<li><strong>Stale claims</strong>: role changes don't take effect until the token expires — admin demoted at 10:00 is still admin until 10:15.</li>
+<li><strong>Clock skew</strong>: <code>exp</code>/<code>nbf</code> checks across servers with drifting clocks cause mysterious intermittent 401s (mitigate with a small leeway).</li>
+<li><strong>Logout is a lie</strong>: deleting the cookie client-side doesn't invalidate the token an attacker already copied.</li>
+</ul>
+<pre>// Stateful session — boring and correct for one web app:
+// Cookie: sessionId=abc123 (HttpOnly, Secure, SameSite)
+const session = await redis.get('sess:' + sessionId);
+// Logout?    redis.del('sess:' + sessionId)  → dead INSTANTLY
+// Ban user?  delete all their sessions       → done
+// Lookup cost: ~0.2ms Redis GET — almost never your bottleneck
+
+// JWT "logout" in comparison:
+// option A: wait for exp (user is "logged out" but token works)
+// option B: Redis blacklist checked on every request
+//           → congratulations, you rebuilt session storage</pre>
+<p><strong>When JWT genuinely wins:</strong></p>
+<ul>
+<li><strong>Cross-service auth</strong>: service B verifies a token issued by auth server A with just the public key — no shared session store, no network hop.</li>
+<li><strong>Short-lived access tokens</strong> (5–15 min) paired with revocable server-side refresh tokens — the standard OAuth2 pattern.</li>
+<li><strong>Stateless one-shot grants</strong>: signed download links, email verification, password reset tokens.</li>
+</ul>
+<div class="key-point">For a single web app, a session ID in an HttpOnly cookie + Redis is simpler and instantly revocable. JWT earns its complexity only for short-lived, cross-service credentials — "stateless" just means the state problem moved, not disappeared.</div>`,
+      },
+      {
+        q: 'What is IDOR (Insecure Direct Object Reference) and how do you prevent it?',
+        difficulty: 'hard',
+        a: `<p><strong>IDOR</strong> is when an application exposes a direct reference to an internal object (an ID) and fails to check that the <em>authenticated</em> user is <em>authorized</em> for that specific object. It has topped the OWASP list (as Broken Access Control) for years because it's trivially easy to introduce.</p>
+<pre>// The attack — no tools needed, just curiosity:
+GET /api/orders/123   → my order. Logged in, token valid. 200 OK
+GET /api/orders/124   → someone ELSE's order... also 200 OK!
+
+// The vulnerable code — authentication ≠ authorization:
+app.get('/api/orders/:id', requireAuth, async (req, res) => {
+  const order = await db.query(
+    'SELECT * FROM orders WHERE id = ?', [req.params.id]
+  ); // ← checked WHO you are, never WHAT you may see
+  res.json(order);
+});</pre>
+<pre>// The fix: ownership is part of EVERY query, not an afterthought
+app.get('/api/orders/:id', requireAuth, async (req, res) => {
+  const order = await db.query(
+    'SELECT * FROM orders WHERE id = ? AND user_id = ?',
+    [req.params.id, req.user.id]   // ← scope to current user
+  );
+  if (!order) return res.sendStatus(404); // don't leak existence
+  res.json(order);
+});
+
+// Even better: make it impossible to forget
+class OrderRepository {
+  findForUser(orderId, userId) {   // no "find(orderId)" exists
+    return db.query('... WHERE id = ? AND user_id = ?',
+                    [orderId, userId]);
+  }
+}</pre>
+<p><strong>Why "hide the button in the UI" fails:</strong> the UI is not a security boundary — attackers use curl, not your React app. The check must live in the data-access path on the server.</p>
+<p><strong>Defense in depth:</strong></p>
+<ul>
+<li>Scope every query/repository method by owner or tenant — centralize it so a developer can't forget.</li>
+<li>Return <code>404</code> (not <code>403</code>) for objects the user can't see, so IDs can't be enumerated.</li>
+<li>Use UUIDs instead of sequential IDs — but only as an obscurity layer, <strong>never</strong> as the fix.</li>
+<li>Write authorization tests: "user A requests user B's resource → 404".</li>
+</ul>
+<div class="key-point">Authentication answers "who are you?"; authorization answers "may YOU touch THIS object?" — IDOR happens whenever the second check is missing, and the only real fix is an ownership predicate in every data access.</div>`,
+      },
+      {
+        q: 'How do you store and manage application secrets properly?',
+        difficulty: 'hard',
+        a: `<p>Secrets (DB passwords, API keys, signing keys) leak through predictable paths, and each naive storage level fails differently:</p>
+<ul>
+<li><strong>Hardcoded in source</strong>: lives forever in git history — rotating the secret doesn't scrub old commits; one leaked repo leaks everything.</li>
+<li><strong>.env files</strong>: fine locally, but they get committed by accident, copied to laptops, and pasted into Slack. No audit trail, no rotation.</li>
+<li><strong>Plain env vars in production</strong>: visible via <code>docker inspect</code>, <code>/proc/&lt;pid&gt;/environ</code>, crash dumps, and often echoed into logs by debug tooling.</li>
+</ul>
+<pre># The Docker image layer trap — a classic senior gotcha:
+FROM node:20
+COPY .env .          # layer 3 now contains the secret
+RUN rm .env          # layer 4 "deletes" it...
+# ...but layers are immutable! Anyone with the image runs:
+#   docker save app | tar -x && cat */layer.tar
+# and reads the secret from layer 3. Same trap:
+ARG DB_PASSWORD      # build args are baked into image history
+# → docker history --no-trunc shows it</pre>
+<pre>// The right pattern: fetch at runtime from a secret manager
+// (Vault, AWS Secrets Manager, GCP Secret Manager, Azure Key Vault)
+import { SecretsManagerClient, GetSecretValueCommand }
+  from '@aws-sdk/client-secrets-manager';
+
+const client = new SecretsManagerClient({});
+// No secret in code, image, or env — the pod's IAM role/service
+// account is the identity; the manager checks it and audits access.
+const res = await client.send(new GetSecretValueCommand({
+  SecretId: 'prod/payment-service/db',
+}));
+const { password } = JSON.parse(res.SecretString);</pre>
+<p><strong>What a real secrets setup gives you:</strong></p>
+<ul>
+<li><strong>Rotation</strong>: secrets change on a schedule (or on incident) without redeploys; apps re-fetch or receive new leases. Design for rotation from day one — retrofit is painful.</li>
+<li><strong>Least privilege</strong>: each service can read only its own secrets; a compromised pod doesn't leak the whole vault.</li>
+<li><strong>Audit log</strong>: who read which secret when — essential for incident response.</li>
+<li><strong>Dynamic secrets</strong> (Vault): short-lived, per-instance DB credentials that expire on their own — the strongest option.</li>
+</ul>
+<p><strong>Interviewer follow-ups:</strong> how does the app authenticate to the secret manager without... a secret? (Answer: platform identity — IAM roles, Kubernetes service accounts, instance metadata.) And: add pre-commit scanning (gitleaks, trufflehog) because someone WILL commit a key eventually.</p>
+<div class="key-point">Secrets should exist only in a dedicated manager with identity-based access, rotation, and audit — never in code, git history, Docker layers, or long-lived env files; assume anything that touched git or an image layer is already leaked.</div>`,
       },
     ],
   },
@@ -2260,6 +2750,229 @@ class CachingUserProxy implements UserService {
     }
 }</pre>
 <div class="key-point">Trick question tip: If asked "which pattern wraps another object?" — all three do! The difference is WHY: Adapter = interface mismatch, Facade = simplification, Proxy = access control.</div>`,
+      },
+      {
+        q: 'Why is double-checked locking broken without volatile?',
+        difficulty: 'tricky',
+        a: `<p>The classic Java singleton trap. Double-checked locking tries to avoid synchronizing on every <code>getInstance()</code> call — but without <code>volatile</code> it can return a <strong>half-constructed object</strong>.</p>
+<pre>// BROKEN without volatile:
+class Singleton {
+    private static Singleton instance;   // ← missing volatile!
+
+    static Singleton getInstance() {
+        if (instance == null) {                  // 1st check (no lock)
+            synchronized (Singleton.class) {
+                if (instance == null) {          // 2nd check (locked)
+                    instance = new Singleton();  // ← the problem
+                }
+            }
+        }
+        return instance;
+    }
+}
+
+// "instance = new Singleton()" is NOT atomic. It's roughly:
+//   1. allocate memory
+//   2. run constructor (initialize fields)
+//   3. assign reference to 'instance'
+// The JIT/CPU may REORDER 2 and 3. So Thread A can publish
+// the reference (step 3) BEFORE the constructor ran (step 2).
+// Thread B sees instance != null at the 1st check (no lock,
+// no happens-before!) and happily uses an object whose fields
+// are still default values (null/0). Rare, non-reproducible, brutal.</pre>
+<pre>// Fix 1: volatile — forbids the reorder, creates happens-before
+private static volatile Singleton instance;
+
+// Fix 2 (better): initialization-on-demand holder — lazy, fast, no locks
+class Singleton {
+    private static class Holder {
+        static final Singleton INSTANCE = new Singleton();
+    }
+    static Singleton getInstance() { return Holder.INSTANCE; }
+    // JVM class-loading guarantees safe, lazy, once-only init
+}
+
+// Fix 3 (Effective Java): enum singleton
+enum Singleton {
+    INSTANCE;
+    void doWork() { ... }
+    // serialization-safe and reflection-safe for free
+}</pre>
+<p><strong>Why interviewers love it:</strong> it tests whether you understand the Java Memory Model — that <code>null</code>-checks without synchronization give no visibility guarantees, and that object publication is a memory-ordering problem, not a logic problem.</p>
+<div class="key-point">Without <code>volatile</code>, instruction reordering can publish the reference before the constructor finishes — another thread sees a non-null, half-built object. Prefer the holder idiom or an enum over hand-rolled double-checked locking.</div>`,
+      },
+      {
+        q: 'Why favor composition over inheritance?',
+        difficulty: 'hard',
+        a: `<p>Inheritance couples your class to the <strong>implementation details</strong> of the parent — the "fragile base class" problem. The canonical demonstration is <code>InstrumentedHashSet</code> from <em>Effective Java</em>:</p>
+<pre>// BROKEN: inheritance leaks the parent's self-calls
+class InstrumentedHashSet&lt;E&gt; extends HashSet&lt;E&gt; {
+    private int addCount = 0;
+
+    @Override public boolean add(E e) {
+        addCount++;
+        return super.add(e);
+    }
+    @Override public boolean addAll(Collection&lt;? extends E&gt; c) {
+        addCount += c.size();
+        return super.addAll(c);   // ← HashSet.addAll calls add()
+    }                             //   internally... OUR add()!
+}
+
+InstrumentedHashSet&lt;String&gt; s = new InstrumentedHashSet&lt;&gt;();
+s.addAll(List.of("a", "b", "c"));
+s.getAddCount();  // 6, not 3! Counted once in addAll, once per add()
+
+// Worse: this depends on an UNDOCUMENTED detail of HashSet.
+// If a JDK update changes addAll to not call add(), the count
+// silently becomes 3. Your correctness depends on code you
+// don't own and can't see.</pre>
+<pre>// FIX: composition + delegation (wrapper / decorator style)
+class InstrumentedSet&lt;E&gt; implements Set&lt;E&gt; {
+    private final Set&lt;E&gt; inner;      // HAS-A, not IS-A
+    private int addCount = 0;
+
+    InstrumentedSet(Set&lt;E&gt; inner) { this.inner = inner; }
+
+    public boolean add(E e) { addCount++; return inner.add(e); }
+    public boolean addAll(Collection&lt;? extends E&gt; c) {
+        addCount += c.size();
+        return inner.addAll(c);  // inner's self-calls stay inside
+    }                            // inner — can't re-enter our code
+    // ...delegate the rest
+}
+// Bonus: works with ANY Set (HashSet, TreeSet, ...), not just one parent</pre>
+<p><strong>The deeper reasons:</strong></p>
+<ul>
+<li>Inheritance is decided at compile time and you get exactly one parent; composition can be swapped at runtime and combined freely.</li>
+<li>Subclassing breaks encapsulation: overriding requires knowing the parent's internal call graph.</li>
+<li>Inheritance means the subclass must honor the parent's full contract (LSP) — often you only wanted to reuse some code.</li>
+</ul>
+<p><strong>When inheritance IS right:</strong> a genuine is-a relationship where the base class is <em>designed and documented for extension</em> (or abstract with template methods). Otherwise, per Effective Java: "design and document for inheritance or else prohibit it."</p>
+<div class="key-point">Inheritance couples you to the parent's hidden self-call patterns — a JDK update can break your subclass. Composition forwards calls across a hard boundary, so you depend only on the public contract.</div>`,
+      },
+      {
+        q: 'What is the Anemic Domain Model anti-pattern?',
+        difficulty: 'hard',
+        a: `<p>An <strong>Anemic Domain Model</strong> (named by Martin Fowler) is when your "domain objects" are just getter/setter bags with zero behavior, and ALL business logic lives in service classes. It looks object-oriented but is procedural code wearing an OO costume.</p>
+<pre>// ANEMIC: the entity knows nothing, the service knows everything
+class Order {                       // just a data bag
+    private String status;
+    private List&lt;OrderLine&gt; lines;
+    // getters and setters... that's it
+}
+
+class OrderService {
+    void cancel(Order order) {
+        // business rules scattered in the service layer:
+        if (order.getStatus().equals("SHIPPED"))
+            throw new IllegalStateException("too late");
+        order.setStatus("CANCELLED");     // anyone can also just
+    }                                     // call setStatus("X")!
+}
+// Problem: NOTHING stops other code from doing
+// order.setStatus("CANCELLED") on a shipped order.
+// The invariant lives in one service method, hopefully.</pre>
+<pre>// RICH domain model: the entity protects its own invariants
+class Order {
+    private OrderStatus status;
+    private final List&lt;OrderLine&gt; lines = new ArrayList&lt;&gt;();
+
+    public void cancel() {
+        if (status == OrderStatus.SHIPPED)
+            throw new OrderAlreadyShippedException(id);
+        this.status = OrderStatus.CANCELLED;
+        registerEvent(new OrderCancelled(id));
+    }
+    public Money total() {
+        return lines.stream().map(OrderLine::subtotal)
+                    .reduce(Money.ZERO, Money::add);
+    }
+    // NO setStatus()! Invalid states are unrepresentable.
+}
+// The service shrinks to orchestration:
+//   load → order.cancel() → save → publish events</pre>
+<p><strong>Why it matters:</strong> with anemic models, invariants are enforced "by convention" across many services — each new code path is a chance to corrupt state. A rich model makes the compiler enforce them: there is simply no public mutator that allows an illegal transition.</p>
+<p><strong>Why it's debated (say this in the interview):</strong></p>
+<ul>
+<li>For <strong>simple CRUD</strong> apps, anemic + services is honest and fine — don't force ceremony onto forms-over-data.</li>
+<li>Logic spanning many aggregates genuinely belongs in domain services.</li>
+<li>Some ORMs and serializers push you toward no-arg constructors and setters; rich models take deliberate effort.</li>
+</ul>
+<div class="key-point">Anemic models scatter invariants across services where any caller can bypass them; rich models make illegal states unrepresentable — but judge by complexity: rich domain for complex business rules, plain CRUD for plain CRUD.</div>`,
+      },
+      {
+        q: 'When should you NOT use a design pattern?',
+        difficulty: 'tricky',
+        a: `<p>A favorite senior filter-question. The wrong answer is a blank stare; the right answer is that <strong>patterns are vocabulary, not goals</strong> — each one buys flexibility by adding indirection, and indirection has a permanent readability cost.</p>
+<pre>// Resume-driven design: a Strategy/Factory layer-cake...
+interface DiscountStrategy { BigDecimal apply(BigDecimal price); }
+class RegularDiscountStrategy implements DiscountStrategy { ... }
+class PremiumDiscountStrategy implements DiscountStrategy { ... }
+class DiscountStrategyFactory {
+    static DiscountStrategy create(CustomerType type) { ... }
+}
+class DiscountContext {
+    private DiscountStrategy strategy;  // 4 files, 2 indirections
+    ...
+}
+
+// ...for logic that was, and will remain, this:
+BigDecimal discount(CustomerType type, BigDecimal price) {
+    switch (type) {
+        case PREMIUM: return price.multiply(new BigDecimal("0.10"));
+        case REGULAR: return price.multiply(new BigDecimal("0.05"));
+        default:      return BigDecimal.ZERO;
+    }
+}
+// Two stable cases. The switch is readable in 5 seconds.
+// The pattern version makes readers chase 4 files to learn
+// the same thing — and both versions change the same amount
+// of code when a rule changes.</pre>
+<p><strong>Don't reach for a pattern when:</strong></p>
+<ul>
+<li><strong>The axis of change is speculative</strong> — YAGNI. Flexibility for changes that never come is pure cost. Refactor <em>to</em> a pattern when the third variant actually arrives ("Rule of Three").</li>
+<li><strong>The pattern is bigger than the problem</strong> — an if/else beats a Strategy for 2 stable branches; a constructor with named parameters beats a Builder for 3 fields.</li>
+<li><strong>The language already solved it</strong> — Strategy is just a lambda/function parameter in Java 8+/TypeScript; Observer is built into every event system; Singleton is a DI-container scope.</li>
+<li><strong>You're pattern-matching the name, not the forces</strong> — patterns are solutions to specific tensions; applying one without the tension is cargo culting.</li>
+</ul>
+<p><strong>How to frame it:</strong> patterns emerged as <em>descriptions</em> of good solutions, not prescriptions. Their biggest everyday value is communication — saying "this is a decorator" compresses a design conversation. Interviewers often follow up with: "show me a pattern you removed." Have a story.</p>
+<div class="key-point">Every pattern trades readability for flexibility along one axis of change — if that axis never changes, you paid the cost for nothing. Write the simple thing; refactor to the pattern when the second or third real variant shows up.</div>`,
+      },
+      {
+        q: 'What is a God Object, and what does the Law of Demeter say about train wrecks?',
+        difficulty: 'hard',
+        a: `<p>Two related coupling smells that interviewers probe together.</p>
+<p><strong>God Object</strong>: one class that knows too much and does too much — <code>AppManager</code>, <code>Utils</code>, a 4000-line <code>OrderService</code> touching pricing, inventory, email, and PDF generation. Every change routes through it, so it has maximal merge conflicts, untestable constructor dependencies, and no single reason to change (violates SRP by definition).</p>
+<p><strong>Law of Demeter</strong> ("only talk to your immediate friends"): a method should call methods on its own fields, its parameters, and objects it creates — not on objects <em>returned by</em> those objects. Violations look like train wrecks:</p>
+<pre>// Train wreck — coupled to the STRUCTURE of three objects:
+if (customer.getWallet().getPrimaryCard().getExpiry()
+            .isBefore(LocalDate.now())) {
+    // ...
+}
+// This code breaks if: Wallet is renamed, a customer can have
+// no wallet (NPE!), cards move to a payment service, expiry
+// becomes a range... You've hard-coded a path through the
+// object graph: customer → wallet → card → expiry.
+
+// Tell, don't ask — push the question to where the data lives:
+if (customer.hasExpiredPaymentMethod()) { ... }
+
+class Customer {
+    boolean hasExpiredPaymentMethod() {
+        return wallet != null && wallet.hasExpiredCard();
+    }
+}
+class Wallet {
+    boolean hasExpiredCard() {
+        return primaryCard != null && primaryCard.isExpired();
+    }
+}
+// Each class asks only its DIRECT neighbor one question.
+// Restructure the graph → only one class changes.</pre>
+<p><strong>Why the two smells feed each other:</strong> a God Object is usually built <em>from</em> train wrecks — since it reaches through everyone's internals, all logic gravitates into it. Applying tell-don't-ask redistributes behavior to the objects that own the data, which is exactly how you dismantle a God Object: identify field clusters used by disjoint method groups, extract them, and <em>move the behavior with the data</em>.</p>
+<p><strong>Nuance to volunteer:</strong> Demeter applies to <em>objects with behavior</em>, not plain data. Chaining through a DTO, a fluent builder, or a Stream pipeline (<code>list.stream().filter().map()</code>) is fine — those return new values, they don't expose a neighbor's internal structure.</p>
+<div class="key-point">Train wrecks couple you to the shape of the whole object graph; tell-don't-ask moves behavior next to its data — the same move that breaks up God Objects. But don't cargo-cult it: fluent APIs and DTO chains are not Demeter violations.</div>`,
       },
     ],
   },
@@ -3475,6 +4188,219 @@ set.add("apple"); set.add("apple"); // {apple} (only one!)
 Map&lt;String, Integer&gt; map = new HashMap&lt;&gt;();
 map.put("apple", 5); map.get("apple"); // 5</pre>
 <div class="key-point">*Use <code>LinkedHashSet</code>/<code>LinkedHashMap</code> for insertion order, <code>TreeSet</code>/<code>TreeMap</code> for sorted order. In interviews, choose the right collection: need uniqueness? Set. Need key-value? Map. Need ordering? List.</div>`,
+      },
+      {
+        q: 'Design an LRU Cache with O(1) get and put.',
+        difficulty: 'tricky',
+        a: `<p>THE classic senior coding question. An LRU (Least Recently Used) cache evicts the item that hasn't been touched for the longest time. The trick: <strong>no single structure gives O(1) for everything</strong>, so you combine two:</p>
+<ul>
+<li><strong>HashMap</strong>: key → node. O(1) lookup — but no notion of "order of use".</li>
+<li><strong>Doubly-linked list</strong>: nodes ordered by recency (head = most recent, tail = LRU victim). O(1) move-to-front and remove — but O(n) lookup.</li>
+</ul>
+<p>Why <em>doubly</em> linked? To remove a node in O(1) you need its <code>prev</code> pointer. Why not an array/ArrayList for order? Moving an element to the front is O(n). Each structure covers the other's weakness.</p>
+<pre>class LRUCache {
+  constructor(capacity) {
+    this.cap = capacity;
+    this.map = new Map();           // key -> node
+    this.head = {}; this.tail = {}; // sentinel nodes: no null checks
+    this.head.next = this.tail;
+    this.tail.prev = this.head;
+  }
+  _remove(n)  { n.prev.next = n.next; n.next.prev = n.prev; }
+  _addFront(n){ n.next = this.head.next; n.prev = this.head;
+                this.head.next.prev = n; this.head.next = n; }
+
+  get(key) {
+    const n = this.map.get(key);
+    if (!n) return -1;
+    this._remove(n); this._addFront(n);  // touch = move to front
+    return n.value;
+  }
+  put(key, value) {
+    if (this.map.has(key)) this._remove(this.map.get(key));
+    const n = { key, value };
+    this._addFront(n); this.map.set(key, n);
+    if (this.map.size > this.cap) {
+      const lru = this.tail.prev;        // real LRU node
+      this._remove(lru);
+      this.map.delete(lru.key);          // node stores key for this!
+    }
+  }
+}</pre>
+<pre>// Walkthrough, capacity 2:
+put(1,A) → [1]        put(2,B) → [2,1]
+get(1)   → A, [1,2]   // 1 touched, now most recent
+put(3,C) → evict tail = 2 → [3,1]
+get(2)   → -1         // gone</pre>
+<p><strong>Java one-liner (mention it, then still code the real thing):</strong></p>
+<pre>new LinkedHashMap&lt;K,V&gt;(16, 0.75f, true) {  // true = accessOrder!
+  protected boolean removeEldestEntry(Map.Entry&lt;K,V&gt; e) {
+    return size() > capacity;
+  }
+};</pre>
+<p><strong>Follow-ups to expect:</strong> classic pitfalls (forgetting to store the key in the node — you can't delete from the map on eviction without it; forgetting that <code>get</code> also reorders); thread safety (lock striping, or segment the cache like old ConcurrentHashMap); LFU as the harder sequel; TTL expiry on top.</p>
+<div class="key-point">LRU = HashMap for O(1) lookup + doubly-linked list for O(1) recency updates; each structure exists to fix the other's O(n) weakness, and the node must carry its key so eviction can clean the map.</div>`,
+      },
+      {
+        q: 'How do you find the Top-K elements from a huge stream of data?',
+        difficulty: 'hard',
+        a: `<p>The naive answer — sort everything, take the first K — is O(n log n) and requires holding all n items. The senior answer: keep a <strong>min-heap of size K</strong>.</p>
+<pre>// Top-K largest with a MIN-heap (yes, MIN — the counterintuitive part):
+// The heap root is the SMALLEST of the current top K —
+// i.e. the "weakest member of the club" = the cheapest to test against.
+function topK(stream, k) {
+  const heap = new MinHeap();
+  for (const x of stream) {
+    if (heap.size() < k) heap.push(x);
+    else if (x > heap.peek()) {   // beats the weakest member?
+      heap.pop();                 // kick it out
+      heap.push(x);               // O(log k)
+    }                             // else: ignore in O(1)
+  }
+  return heap.toArray();          // the top K
+}
+
+// Trace: k=3, stream = 5, 1, 9, 3, 7, 6
+// [5] → [1,5] → [1,5,9] → 3>1? yes → [3,5,9]
+// → 7>3? yes → [5,7,9] → 6>5? yes → [6,7,9]  ✓ top 3</pre>
+<table><tr><th>Approach</th><th>Time</th><th>Space</th><th>Streaming?</th></tr>
+<tr><td>Full sort</td><td>O(n log n)</td><td>O(n)</td><td>No — needs all data</td></tr>
+<tr><td>Min-heap of size K</td><td>O(n log k)</td><td><strong>O(k)</strong></td><td><strong>Yes</strong></td></tr>
+<tr><td>Quickselect</td><td>O(n) average</td><td>O(n), in-place</td><td>No — needs random access</td></tr></table>
+<p><strong>Why O(n log k) matters:</strong> for n = 1 billion and k = 100, log k ≈ 7 vs log n ≈ 30 — and O(k) memory means the billion items never need to fit in RAM. That's what makes it work on a <em>stream</em>.</p>
+<p><strong>When quickselect wins:</strong> the data already sits in an in-memory array, you only need this once, and you don't need the K results sorted — quickselect partitions around the K-th element in O(n) average. Its downsides: O(n²) worst case (mitigate with random pivots), destroys input order, useless for streams.</p>
+<p><strong>Follow-ups to expect:</strong> "top K <em>frequent</em> elements" (hash map of counts first, then heap over the entries); "top K across many machines" (each node computes local top K, merge the K·m candidates); "K comparable to n" (just sort).</p>
+<div class="key-point">Min-heap of size K: the root is the weakest of the current winners, so each new item needs one O(1) comparison and at most an O(log k) replace — O(n log k) time, O(k) space, and it works when the data can't fit in memory.</div>`,
+      },
+      {
+        q: 'How do you sort a 100 GB file with only 1 GB of RAM?',
+        difficulty: 'tricky',
+        a: `<p>The systems-flavored sorting question — it checks whether you know that sorting doesn't stop working when data exceeds RAM. The answer is <strong>external merge sort</strong>, the same algorithm inside databases (ORDER BY spills), MapReduce shuffles, and Unix <code>sort</code>.</p>
+<pre>// Phase 1: CHUNK → SORT → SPILL
+// Read ~1 GB at a time, sort in memory, write sorted "run" to disk.
+100 GB input
+  → read chunk 1 (1 GB) → quicksort in RAM → write run_001 (sorted)
+  → read chunk 2 (1 GB) → sort           → write run_002
+  → ... → 100 sorted run files on disk
+
+// Phase 2: K-WAY MERGE with a min-heap of size K (= 100)
+// Open all runs; heap holds ONE current element per run.
+heap = MinHeap of (value, runId)
+push first element of each run                  // 100 entries
+while heap not empty:
+    (v, run) = heap.pop()        // global minimum across all runs
+    output.write(v)              // buffered writes!
+    if run has next: heap.push(next element of run)
+
+// Memory in phase 2: 100 input buffers × ~10 MB + heap of 100
+// entries + output buffer — comfortably under 1 GB.</pre>
+<p><strong>Why a heap for the merge?</strong> Picking the minimum of K run-heads naively is O(K) per output element; the heap makes it O(log K). Total: O(n log K) merge after O(n log(chunk)) sorting — overall the classic O(n log n), just I/O-aware.</p>
+<p><strong>What actually dominates: disk I/O, not CPU.</strong> Every element is read twice and written twice (once per phase) — so the design goal is minimizing <em>passes</em>:</p>
+<ul>
+<li>Use large sequential, buffered reads/writes per run — random 4 KB I/O would destroy throughput, especially on HDDs.</li>
+<li>If runs outnumber what you can merge at once (too many open buffers), do <strong>multi-pass</strong> merging: merge 100 runs into 1 in groups, repeat. Passes = ceil(log_K(runs)).</li>
+<li>Replacement selection (heap-based run generation) produces runs ~2× RAM size on average → fewer runs → fewer merge passes.</li>
+</ul>
+<p><strong>Follow-ups to expect:</strong> "what if it's 100 TB?" → shard across machines, external-sort locally, then distributed merge (this is essentially the MapReduce shuffle); "what if lines are variable-length records?" → same idea, count bytes not rows; "how does your database do ORDER BY without an index?" → exactly this, look for "external sort" in the query plan.</p>
+<div class="key-point">External merge sort = sort RAM-sized chunks into sorted runs, then k-way merge them with a min-heap; the real engineering is minimizing disk passes with big sequential buffered I/O, because I/O — not comparisons — is the bottleneck.</div>`,
+      },
+      {
+        q: 'Find the missing or duplicate number in an array of 1..n — compare the three classic solutions.',
+        difficulty: 'tricky',
+        a: `<p>Deceptively simple, but interviewers use it to see how many tools you have — and whether you know each one's failure mode. Setup: array of numbers from 1..n with one missing (or one duplicated).</p>
+<pre>// Solution 1: Sum formula — O(n) time, O(1) space
+// Expected sum of 1..n = n(n+1)/2
+function findMissing(nums, n) {
+  let expected = n * (n + 1) / 2;
+  let actual = nums.reduce((a, b) => a + b, 0);
+  return expected - actual;
+}
+// FAILURE MODE: overflow. n = 10^9 → sum ≈ 5×10^17, past 2^53
+// (and past int32/int64 in other languages much sooner).
+// JS numbers silently lose precision → wrong answer, no error.</pre>
+<pre>// Solution 2: XOR trick — O(n) time, O(1) space, NO overflow
+// x ^ x = 0,  x ^ 0 = x,  XOR is commutative.
+// XOR all indices 1..n AND all values: pairs cancel,
+// only the missing number survives.
+function findMissing(nums, n) {
+  let x = 0;
+  for (let i = 1; i <= n; i++) x ^= i;
+  for (const v of nums) x ^= v;
+  return x;
+}
+// Why no overflow: XOR never carries — the result always fits
+// in the same bit-width as the inputs. This is the "why XOR"
+// answer interviewers fish for.</pre>
+<pre>// Solution 3: Floyd's cycle detection — for the DUPLICATE variant
+// (n+1 numbers in range 1..n, exactly one repeated;
+//  constraint: no modifying the array, O(1) space)
+// Treat value nums[i] as a pointer to index nums[i]:
+// a duplicate value = two arrows into the same node = a cycle.
+// The duplicate is the cycle's ENTRY point.
+function findDuplicate(nums) {
+  let slow = nums[0], fast = nums[0];
+  do { slow = nums[slow]; fast = nums[nums[fast]]; }
+  while (slow !== fast);        // phase 1: meet inside cycle
+  slow = nums[0];
+  while (slow !== fast) {       // phase 2: entry = duplicate
+    slow = nums[slow]; fast = nums[fast];
+  }
+  return slow;
+}
+// Same algorithm as linked-list cycle detection — recognizing
+// the array-as-implicit-linked-list mapping is the senior move.</pre>
+<table><tr><th>Approach</th><th>Time</th><th>Space</th><th>Gotcha</th></tr>
+<tr><td>Sum formula</td><td>O(n)</td><td>O(1)</td><td>Overflow on large n</td></tr>
+<tr><td>XOR</td><td>O(n)</td><td>O(1)</td><td>None — carry-free</td></tr>
+<tr><td>Floyd's</td><td>O(n)</td><td>O(1)</td><td>Only for duplicate; needs values as valid indices</td></tr></table>
+<p><strong>Follow-ups to expect:</strong> "TWO numbers missing?" (XOR gives a^b; split all numbers into two groups by any set bit of a^b, XOR each group separately); "duplicates AND missing together?" (XOR pairs or index-marking by negation if mutation is allowed).</p>
+<div class="key-point">Sum formula is the obvious answer with a silent overflow bug; XOR is carry-free so it can't overflow; and Floyd's works because an array of values-in-range IS an implicit linked list — the duplicate is the cycle entrance.</div>`,
+      },
+      {
+        q: 'What is Reservoir Sampling? How do you pick a random item from a stream of unknown length?',
+        difficulty: 'tricky',
+        a: `<p>Problem: items arrive one at a time; you don't know how many will come and can't store them all. When the stream ends, you must hold ONE item chosen <strong>uniformly at random</strong> — every item with probability exactly 1/n — using O(1) space.</p>
+<pre>// Reservoir sampling (k = 1):
+function sample(stream) {
+  let chosen = null, i = 0;
+  for (const item of stream) {
+    i++;
+    if (Math.floor(Math.random() * i) === 0) {  // probability 1/i
+      chosen = item;    // replace with prob 1/i
+    }
+  }
+  return chosen;
+}
+// item 1: kept with prob 1/1 (always, it's all we have)
+// item 2: replaces with prob 1/2
+// item 3: replaces with prob 1/3 ... item i: prob 1/i</pre>
+<p><strong>The proof (this IS the interview):</strong> why does "replace with probability 1/i" make every item end up with probability 1/n? Item j survives if it's chosen at step j AND never replaced afterwards:</p>
+<pre>P(item j survives)
+  = P(chosen at step j) × P(not replaced at j+1) × ... × P(not replaced at n)
+  = (1/j) × (j/(j+1)) × ((j+1)/(j+2)) × ... × ((n-1)/n)
+        ↑ telescoping: every numerator cancels the previous denominator
+  = 1/n            — same for EVERY j. Uniform. ∎
+
+// Sanity check, n = 3:
+// item 1: 1 × 1/2 × 2/3 = 1/3
+// item 2: 1/2 × 2/3     = 1/3
+// item 3: 1/3           = 1/3   ✓</pre>
+<p><strong>General k (Algorithm R):</strong> keep the first k items; for item i &gt; k, pick a random index r in [0, i); if r &lt; k, evict <code>reservoir[r]</code>. Each item ends with probability k/n, in O(k) space.</p>
+<pre>function reservoirK(stream, k) {
+  const res = []; let i = 0;
+  for (const item of stream) {
+    i++;
+    if (res.length < k) res.push(item);
+    else {
+      const r = Math.floor(Math.random() * i);   // 0..i-1
+      if (r < k) res[r] = item;                  // prob k/i
+    }
+  }
+  return res;
+}</pre>
+<p><strong>Where it shows up in real systems:</strong> log/trace sampling ("keep 1000 random requests from today"), online ML training-set selection, picking a random row from a huge table scan — anywhere n is unknown or too big to hold.</p>
+<p><strong>Follow-ups to expect:</strong> weighted reservoir sampling (Efraimidis–Spirakis: keep the k items with largest random^(1/weight) keys); distributed streams (sample per shard, then merge with counts); and the classic "prove it" — practice writing the telescoping product on a whiteboard.</p>
+<div class="key-point">Replace the held item with probability 1/i and the survival probabilities telescope to exactly 1/n for every item — uniform sampling from an unknown-length stream in O(1) space; be ready to write that two-line proof.</div>`,
       },
     ],
   },

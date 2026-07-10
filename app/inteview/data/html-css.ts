@@ -283,6 +283,119 @@ customElements.define('user-card', UserCard);
 </ul>
 <div class="key-point">Web Components work with any framework or no framework. Libraries like Lit simplify authoring. They're ideal for design systems shared across React, Angular, and Vue projects.</div>`,
       },
+      {
+        q: 'What blocks HTML parsing vs rendering? Walk through why a page can stay blank for 3 seconds.',
+        difficulty: 'tricky',
+        a: `<p>Two different kinds of "blocking" get conflated, and interviewers love probing the difference:</p>
+<ul>
+<li><strong>Parser-blocking</strong>: a synchronous <code>&lt;script&gt;</code> stops HTML parsing entirely — the browser must download and execute it before it continues, because the script could <code>document.write()</code> or mutate the DOM.</li>
+<li><strong>Render-blocking</strong>: stylesheets do NOT stop parsing, but they block building the render tree — the browser refuses to paint anything until the CSSOM is complete (otherwise you'd see a flash of unstyled content). Worse, a pending stylesheet also <strong>blocks execution of later sync scripts</strong>, because the script might read computed styles (<code>getComputedStyle</code>).</li>
+</ul>
+<p><strong>The "white page for 3s" walkthrough:</strong></p>
+<pre>&lt;head&gt;
+  &lt;link rel="stylesheet" href="https://slow-cdn.com/all.css"&gt;  &lt;!-- 3s download --&gt;
+  &lt;script src="app.js"&gt;&lt;/script&gt;  &lt;!-- can't RUN until all.css arrives --&gt;
+&lt;/head&gt;
+&lt;body&gt;&lt;h1&gt;Hello&lt;/h1&gt;&lt;/body&gt;
+
+&lt;!-- Timeline:
+     0.0s  HTML parsed up to &lt;link&gt;, CSS request starts
+     0.0s  parser reaches &lt;script&gt; — blocked: waits for CSSOM
+     3.0s  all.css arrives → CSSOM ready → app.js executes
+     3.1s  parsing resumes, render tree built, first paint
+     Result: user stares at white for ~3s even though the
+     HTML for &lt;h1&gt; arrived in the first packet. --&gt;</pre>
+<p><strong>Fixes, in order of impact:</strong></p>
+<ul>
+<li><code>defer</code> the script (or move to end of body) — decouples it from the stylesheet.</li>
+<li>Inline <strong>critical CSS</strong> in <code>&lt;head&gt;</code>, load the rest with <code>media="print" onload="this.media='all'"</code> or split by media query (non-matching media = not render-blocking).</li>
+<li><code>&lt;link rel="preconnect"&gt;</code> to the slow CDN, or self-host the CSS.</li>
+</ul>
+<div class="key-point">Sync scripts block the parser; stylesheets block rendering AND any sync script after them — so one slow CSS file on a third-party domain can freeze your entire page even though HTML parsing already delivered the content.</div>`,
+      },
+      {
+        q: 'Explain resource hints: preload vs prefetch vs preconnect vs dns-prefetch.',
+        difficulty: 'hard',
+        a: `<p>Resource hints let you tell the browser about resources <em>before</em> it discovers them naturally, cutting waterfall latency:</p>
+<pre>&lt;!-- preload: "I WILL need this for THIS page, fetch it NOW, high priority" --&gt;
+&lt;link rel="preload" href="/fonts/inter.woff2" as="font" type="font/woff2" crossorigin&gt;
+&lt;link rel="preload" href="/hero.avif" as="image"&gt;
+
+&lt;!-- prefetch: "the user will LIKELY need this on the NEXT page" (lowest priority, idle time) --&gt;
+&lt;link rel="prefetch" href="/checkout.js"&gt;
+
+&lt;!-- preconnect: "open DNS + TCP + TLS to this origin now" (no specific resource) --&gt;
+&lt;link rel="preconnect" href="https://api.example.com"&gt;
+&lt;link rel="preconnect" href="https://fonts.gstatic.com" crossorigin&gt;
+
+&lt;!-- dns-prefetch: DNS lookup only — cheap fallback for older browsers --&gt;
+&lt;link rel="dns-prefetch" href="https://analytics.example.com"&gt;</pre>
+<table style="width:100%;border-collapse:collapse;margin:10px 0;font-size:.88rem;">
+<tr><th style="text-align:left;padding:6px;border-bottom:1px solid #ccc;">Hint</th><th style="text-align:left;padding:6px;border-bottom:1px solid #ccc;">What it does</th><th style="text-align:left;padding:6px;border-bottom:1px solid #ccc;">Best for</th></tr>
+<tr><td style="padding:6px;"><code>preload</code></td><td style="padding:6px;">Full fetch, current page, high priority</td><td style="padding:6px;">Fonts, LCP hero image, critical CSS found late</td></tr>
+<tr><td style="padding:6px;"><code>prefetch</code></td><td style="padding:6px;">Full fetch, idle priority, cached for next navigation</td><td style="padding:6px;">Next-route bundles (hover on link)</td></tr>
+<tr><td style="padding:6px;"><code>preconnect</code></td><td style="padding:6px;">DNS + TCP + TLS handshake only</td><td style="padding:6px;">Known third-party origins (API, font CDN)</td></tr>
+<tr><td style="padding:6px;"><code>dns-prefetch</code></td><td style="padding:6px;">DNS lookup only</td><td style="padding:6px;">Many/low-priority third-party origins</td></tr>
+</table>
+<p><strong>Classic gotchas interviewers probe:</strong></p>
+<ul>
+<li>Fonts are the #1 preload use case: they're discovered <em>very late</em> (HTML → CSS → @font-face → fetch). Preloading skips two round trips. But you <strong>must add <code>crossorigin</code></strong> — fonts are fetched in CORS mode even same-origin, and a mismatched mode means the preload is ignored and the font downloads twice.</li>
+<li>Preloading things you don't use wastes bandwidth and steals priority from real resources — Chrome even warns "resource was preloaded but not used".</li>
+<li>Don't <code>preconnect</code> to more than a handful of origins; each open socket has a cost.</li>
+</ul>
+<div class="key-point">preload = this page, now; prefetch = next page, when idle; preconnect = warm up the connection. And fonts need <code>preload + as="font" + crossorigin</code> or the hint silently double-fetches.</div>`,
+      },
+      {
+        q: 'What happens when you type a URL and press Enter? (browser-side deep dive)',
+        difficulty: 'hard',
+        a: `<p>The classic system-design-meets-frontend question. A senior answer covers each stage and where time is actually spent:</p>
+<ol>
+<li><strong>URL parsing + HSTS check</strong>: browser decides search query vs URL, checks HSTS list (forces https), checks service worker registration (may skip network entirely).</li>
+<li><strong>DNS resolution</strong>: browser cache → OS cache → router → ISP resolver → recursive lookup. (~0–120ms)</li>
+<li><strong>TCP handshake</strong>: SYN → SYN-ACK → ACK (1 round trip).</li>
+<li><strong>TLS handshake</strong>: certificate exchange, key agreement — 1 RTT on TLS 1.3 (0-RTT on resumption); HTTP/3/QUIC merges transport + crypto handshakes.</li>
+<li><strong>HTTP request/response</strong>: request with cookies/headers; server responds. First chunk = TTFB. Response streams — the browser does NOT wait for the full document.</li>
+<li><strong>Parsing</strong>: HTML tokenized into the DOM <em>incrementally</em>. A <strong>preload scanner</strong> races ahead of the parser discovering <code>&lt;img&gt;</code>/<code>&lt;link&gt;</code>/<code>&lt;script&gt;</code> URLs even while the parser is blocked. CSS builds the CSSOM; sync scripts pause the parser.</li>
+<li><strong>Render</strong>: DOM + CSSOM → render tree → layout → paint → composite. First paint can happen long before the page finishes loading.</li>
+</ol>
+<pre>// Where did the time go? The Navigation Timing API mirrors these stages:
+const t = performance.getEntriesByType('navigation')[0];
+t.domainLookupEnd - t.domainLookupStart;   // DNS
+t.connectEnd - t.connectStart;             // TCP (+TLS)
+t.responseStart - t.requestStart;          // TTFB (server think time)
+t.domContentLoadedEventEnd - t.startTime;  // parse + sync scripts
+t.loadEventEnd - t.startTime;              // everything</pre>
+<p><strong>Follow-ups to expect:</strong> "Why is the second visit faster?" (DNS/TLS session/HTTP cache/bfcache), "Where would you add a CDN?" (moves TCP/TLS/TTFB closer to the user), "What's the preload scanner?" (it's why a parser-blocking script doesn't stop image downloads).</p>
+<div class="key-point">Structure the answer as network (DNS → TCP → TLS → TTFB) then rendering (parse → CRP), and name the measurement API — showing you can quantify each stage is what separates senior from mid-level.</div>`,
+      },
+      {
+        q: 'Why is input type="number" often the wrong choice? How do autocomplete attributes work?',
+        difficulty: 'tricky',
+        a: `<p>A senior-flavored forms question: the "obvious" input type is frequently a UX and correctness trap.</p>
+<p><strong>Problems with <code>type="number"</code>:</strong></p>
+<ul>
+<li><strong>Scroll-wheel disaster</strong>: hovering + scrolling silently changes the value — users change a dosage/price without noticing.</li>
+<li><strong>Not for "numeric strings"</strong>: credit cards, OTP codes, ZIP codes, phone numbers lose leading zeros (<code>0421</code> → <code>421</code>) and can render with locale thousand separators. They are identifiers, not quantities.</li>
+<li><strong>Silent empty value</strong>: type <code>1e</code> or <code>--5</code> and <code>input.value</code> is <code>""</code> (invalid intermediate state) — your JS sees an empty string while the user sees text.</li>
+<li>Spinner buttons are tiny, unlabeled, and announced inconsistently by screen readers.</li>
+</ul>
+<pre>&lt;!-- Wrong: card number is not a quantity --&gt;
+&lt;input type="number" name="cc"&gt;
+
+&lt;!-- Right: text + numeric keyboard + digit constraint --&gt;
+&lt;input type="text" inputmode="numeric" pattern="[0-9\\s]{13,19}"
+       autocomplete="cc-number" name="cc"&gt;
+
+&lt;!-- type="number" is fine for true quantities --&gt;
+&lt;input type="number" name="qty" min="1" max="99" step="1"&gt;</pre>
+<p><strong>Autocomplete attributes</strong> are a standardized vocabulary, not just on/off — they drive browser autofill, password managers, and one-tap address fill:</p>
+<pre>&lt;input autocomplete="email"&gt;
+&lt;input autocomplete="current-password"&gt;   &lt;!-- login --&gt;
+&lt;input autocomplete="new-password"&gt;       &lt;!-- signup: suggests generated password --&gt;
+&lt;input autocomplete="one-time-code"&gt;      &lt;!-- SMS OTP autofill on mobile --&gt;
+&lt;input autocomplete="shipping street-address"&gt;  &lt;!-- section modifiers --&gt;</pre>
+<div class="key-point">Rule of thumb: <code>type="number"</code> only for real quantities you'd do math on; use <code>inputmode="numeric"</code> + <code>pattern</code> for numeric identifiers, and always ship correct <code>autocomplete</code> tokens — autofill accuracy is a measurable conversion win.</div>`,
+      },
     ],
   },
 
@@ -644,6 +757,160 @@ article :is(h1, h2, h3) { margin-top: 2em; }
 <li>Scales well in large codebases</li>
 </ul>
 <div class="key-point">BEM looks verbose but prevents the CSS specificity mess that plagues large projects. Modern alternatives: CSS Modules (scoped automatically), Tailwind CSS (utility-first), CSS-in-JS (styled-components).</div>`,
+      },
+      {
+        q: 'What is margin collapsing? Predict the output: two stacked boxes with margins 30px and 20px.',
+        difficulty: 'tricky',
+        a: `<p>Vertical margins of block boxes in normal flow <strong>collapse</strong>: instead of adding, the result is the <strong>maximum</strong> of the two. Horizontal margins never collapse.</p>
+<pre>.a { margin-bottom: 30px; }
+.b { margin-top: 20px; }
+/* Gap between .a and .b = 30px, NOT 50px (max wins) */
+
+/* With a negative margin: positive-max + negative-min */
+.a { margin-bottom: 30px; }
+.b { margin-top: -20px; }
+/* Gap = 30 + (-20) = 10px */</pre>
+<p><strong>The three collapse cases:</strong></p>
+<ul>
+<li><strong>Adjacent siblings</strong> — as above.</li>
+<li><strong>Parent / first (or last) child</strong> — if nothing separates them (no border, padding, or inline content), the child's margin escapes THROUGH the parent. This is the classic "why is my parent's background not behind the heading's margin" bug:</li>
+</ul>
+<pre>&lt;div class="parent"&gt;   &lt;!-- background: teal --&gt;
+  &lt;h2 style="margin-top: 40px"&gt;Title&lt;/h2&gt;
+&lt;/div&gt;
+/* BUG: the 40px pushes the PARENT down; the teal box
+   starts right at the h2 text — margin leaked outside. */</pre>
+<ul>
+<li><strong>Empty blocks</strong> — an element with no height collapses its own top and bottom margins together.</li>
+</ul>
+<p><strong>What prevents collapsing:</strong> padding or border on the parent, creating a BFC (<code>display: flow-root</code>, <code>overflow: hidden</code>), and — critically — <strong>flex and grid items never collapse margins</strong>. Neither do floats or absolutely positioned elements.</p>
+<pre>/* Fixes for the parent/child leak: */
+.parent { padding-top: 1px; }        /* separator */
+.parent { display: flow-root; }      /* new BFC — cleanest */
+.parent { display: flex; flex-direction: column; }  /* flex items don't collapse */</pre>
+<div class="key-point">Collapsed margin = max of the positives (plus the most-negative negative); it happens only between block boxes in the same BFC — which is why "just make it flex" mysteriously fixes spacing bugs.</div>`,
+      },
+      {
+        q: 'What is a Block Formatting Context (BFC) and what real bugs does it fix?',
+        difficulty: 'hard',
+        a: `<p>A <strong>BFC</strong> is an isolated layout region: everything inside lays out independently, and the outside can't interfere. It's the invisible mechanism behind several "magic" CSS fixes.</p>
+<p><strong>What creates a BFC:</strong></p>
+<ul>
+<li><code>display: flow-root</code> — the modern, side-effect-free way.</li>
+<li><code>overflow</code> other than <code>visible</code> (<code>hidden</code>, <code>auto</code>, <code>scroll</code>) — the old hack.</li>
+<li>Floats, <code>position: absolute/fixed</code>, <code>display: inline-block</code>, table cells.</li>
+<li>Flex/grid <em>items</em> establish their own formatting context for their contents.</li>
+</ul>
+<p><strong>Three classic bugs a BFC fixes:</strong></p>
+<pre>/* 1. Parent collapses to zero height around floated children */
+.card { display: flow-root; }   /* now contains its floats
+                                   (replaces the old .clearfix hack) */
+
+/* 2. Margin collapsing through a parent (child margin leaks out) */
+.section { display: flow-root; }  /* child's margin-top stays INSIDE */
+
+/* 3. Text wrapping under a float instead of beside it */
+&lt;img class="avatar" style="float: left"&gt;
+&lt;div class="comment-body"&gt;long text...&lt;/div&gt;
+
+.comment-body { display: flow-root; }
+/* Becomes a rectangle NEXT to the float —
+   text no longer wraps underneath the image */</pre>
+<p><strong>Why <code>flow-root</code> over <code>overflow: hidden</code>?</strong> The overflow hack has side effects: it clips box-shadows, tooltips, and dropdowns, and breaks <code>position: sticky</code> in descendants. <code>flow-root</code> exists purely to create a BFC.</p>
+<div class="key-point">When floats escape, margins leak, or text wraps under a float, the answer is "create a BFC" — and in modern CSS that means <code>display: flow-root</code>, not <code>overflow: hidden</code>.</div>`,
+      },
+      {
+        q: 'Why is my position: sticky not working? List the debugging checklist.',
+        difficulty: 'tricky',
+        a: `<p>Sticky is the most silently-failing feature in CSS — it degrades to "just relative" with no error. The checklist, in the order you should check:</p>
+<ol>
+<li><strong>No threshold set</strong>: sticky does nothing without <code>top</code> (or <code>bottom/left/right</code>). <code>position: sticky;</code> alone is a no-op.</li>
+<li><strong>An ancestor has <code>overflow: hidden/auto/scroll</code></strong>: the element then sticks within THAT ancestor's scroll box, not the page — if that ancestor doesn't scroll, sticky never engages. This is the #1 real-world cause, often from an <code>overflow-x: hidden</code> slapped on a wrapper to kill horizontal scrollbars.</li>
+<li><strong>Parent is exactly as tall as the element</strong>: sticky only slides within its parent's box. If the parent has no extra height, there's no room to stick.</li>
+<li><strong>Flex/grid stretch</strong>: inside a flex row, items default to <code>align-items: stretch</code>, so the sticky item is full-height of its parent → case 3. Fix: <code>align-self: flex-start</code>.</li>
+</ol>
+<pre>/* The flex-sidebar case — sticky "not working": */
+.layout  { display: flex; }
+.sidebar { position: sticky; top: 0; }   /* ✗ stretched to full height */
+
+/* Fix: */
+.sidebar {
+  position: sticky;
+  top: 0;                    /* 1. threshold */
+  align-self: flex-start;    /* 4. stop stretching */
+  max-height: 100vh;         /* bonus: let long sidebars scroll */
+  overflow-y: auto;
+}
+
+/* Debug ancestor overflow in DevTools console: */
+let el = document.querySelector('.sidebar').parentElement;
+while (el) {
+  const o = getComputedStyle(el).overflow;
+  if (o !== 'visible') console.log(el, o);   // culprit found
+  el = el.parentElement;
+}</pre>
+<div class="key-point">Sticky needs: a threshold (<code>top</code>), a taller parent to slide within, and NO clipping ancestor between it and the scroller — and in flex layouts, <code>align-self: flex-start</code>.</div>`,
+      },
+      {
+        q: 'Why does content inside a flex item overflow instead of shrinking? (the min-width: auto trap)',
+        difficulty: 'tricky',
+        a: `<p>The single most common senior-level flexbox gotcha: flex items default to <code>min-width: auto</code> (not <code>0</code>), meaning <strong>a flex item refuses to shrink below its content's intrinsic minimum size</strong> — the longest word, the widest <code>&lt;pre&gt;</code> line, an unshrinkable table.</p>
+<pre>&lt;div class="chat"&gt;
+  &lt;div class="avatar"&gt;...&lt;/div&gt;
+  &lt;div class="message"&gt;
+    &lt;pre&gt;someVeryLongUnbreakableCodeLine.that.overflows()&lt;/pre&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+.chat    { display: flex; }
+.message { flex: 1; }
+/* ✗ The &lt;pre&gt;'s intrinsic width sets .message's minimum →
+   .message grows past the container, blows out the layout,
+   and the whole page gets a horizontal scrollbar. */
+
+/* ✓ Fix: allow the item to shrink */
+.message { flex: 1; min-width: 0; }
+.message pre { overflow-x: auto; }   /* pre scrolls INSIDE instead */
+
+/* Same trap for text-overflow: ellipsis in flex: */
+.title { flex: 1; min-width: 0; white-space: nowrap;
+         overflow: hidden; text-overflow: ellipsis; }</pre>
+<p><strong>Why does the spec do this?</strong> Deliberate: it prevents content from silently becoming unreadable when items shrink. But it inverts the intuition that <code>flex-shrink: 1</code> means "will shrink as needed".</p>
+<p><strong>Related facts interviewers probe:</strong></p>
+<ul>
+<li>Column direction: the same trap is <code>min-height: auto</code> — the cause of "my flex child won't scroll" (fix: <code>min-height: 0</code> on the scrollable item's ancestors in the flex chain).</li>
+<li>Grid has the identical rule: <code>1fr</code> is really <code>minmax(auto, 1fr)</code>; use <code>minmax(0, 1fr)</code> to allow shrinking.</li>
+<li><code>overflow: hidden/auto</code> on the flex item ALSO resets the auto minimum — which is why adding overflow "randomly" fixes it.</li>
+</ul>
+<div class="key-point">Text, <code>&lt;pre&gt;</code>, or charts overflowing a flex/grid track? The answer is almost always <code>min-width: 0</code> (or <code>minmax(0, 1fr)</code>) — flex items don't shrink below content size by default.</div>`,
+      },
+      {
+        q: 'Explain reflow vs repaint vs composite. What is layout thrashing and how do you fix it?',
+        difficulty: 'hard',
+        a: `<p>After a style change, the browser re-runs part of the rendering pipeline. How much depends on WHICH property changed:</p>
+<table style="width:100%;border-collapse:collapse;margin:10px 0;font-size:.88rem;">
+<tr><th style="text-align:left;padding:6px;border-bottom:1px solid #ccc;">Change</th><th style="text-align:left;padding:6px;border-bottom:1px solid #ccc;">Pipeline stages re-run</th><th style="text-align:left;padding:6px;border-bottom:1px solid #ccc;">Cost</th></tr>
+<tr><td style="padding:6px;"><code>width</code>, <code>font-size</code>, <code>top</code>, <code>display</code></td><td style="padding:6px;">Layout (reflow) → Paint → Composite</td><td style="padding:6px;">Expensive — can cascade to the whole tree</td></tr>
+<tr><td style="padding:6px;"><code>color</code>, <code>background</code>, <code>box-shadow</code>, <code>visibility</code></td><td style="padding:6px;">Paint → Composite</td><td style="padding:6px;">Medium</td></tr>
+<tr><td style="padding:6px;"><code>transform</code>, <code>opacity</code></td><td style="padding:6px;">Composite only (GPU thread)</td><td style="padding:6px;">Cheap — stays 60fps even if main thread is busy</td></tr>
+</table>
+<p><strong>Layout thrashing</strong>: layout is <em>lazy</em> — the browser batches writes and recalculates only when someone READS a layout value (<code>offsetHeight</code>, <code>getBoundingClientRect()</code>, <code>scrollTop</code>...). Interleaving reads and writes forces a synchronous reflow on every iteration:</p>
+<pre>// ✗ THRASHING: read → write → read → write... O(n) forced reflows
+boxes.forEach(box => {
+  const h = box.offsetHeight;          // READ  → forces layout
+  box.style.height = (h * 2) + 'px';   // WRITE → dirties layout
+});
+
+// ✓ BATCHED: all reads, then all writes → 1 reflow
+const heights = boxes.map(b => b.offsetHeight);   // read phase
+boxes.forEach((b, i) => {
+  b.style.height = (heights[i] * 2) + 'px';       // write phase
+});
+
+// ✓ Or schedule writes for the right frame slot:
+requestAnimationFrame(() => { /* writes here, after style/layout reads */ });</pre>
+<p><strong>Why animate only transform/opacity?</strong> The element gets its own compositor layer; the GPU just re-blends layers each frame — no layout, no paint, and it keeps running even while the main thread executes JS. Animating <code>left</code> instead of <code>translateX</code> re-lays-out every frame. <code>will-change: transform</code> promotes a layer ahead of time (use sparingly — each layer costs memory).</p>
+<div class="key-point">Know your property's pipeline exit: layout properties are the expensive ones, transform/opacity skip straight to the compositor — and never interleave layout reads with style writes in a loop.</div>`,
       },
     ],
   },

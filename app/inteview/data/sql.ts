@@ -410,6 +410,142 @@ SELECT
 FROM users;   -- one scan instead of three queries</pre>
 <div class="key-point">Interviewers use pivots to test whether you reach for one-pass conditional aggregation or naively run N separate queries / self-joins.</div>`,
       },
+      {
+        q: 'Why did my LEFT JOIN return fewer rows after adding a WHERE filter? (the LEFT JOIN that silently becomes an INNER JOIN)',
+        difficulty: 'tricky',
+        a: `<p>For an outer join, <strong>ON and WHERE are NOT interchangeable</strong>. ON decides what matches; WHERE filters the <em>joined result</em>. Unmatched left rows carry NULLs in all right-table columns — so any WHERE condition on a right-table column evaluates to UNKNOWN for them and throws them away, silently turning the LEFT JOIN into an INNER JOIN.</p>
+<pre>-- customers                     -- orders
+-- id | name                     -- id | customer_id | status
+--  1 | An                       -- 10 |      1      | paid
+--  2 | Bo                       -- 11 |      2      | cancelled
+--  3 | Chi                      -- (Chi has no orders)
+
+SELECT c.name, o.id, o.status
+FROM customers c
+LEFT JOIN orders o ON o.customer_id = c.id;
+-- 3 rows: An/paid, Bo/cancelled, Chi/NULL     ✅ all customers kept
+
+-- "Just show paid orders" — condition put in WHERE:
+SELECT c.name, o.id, o.status
+FROM customers c
+LEFT JOIN orders o ON o.customer_id = c.id
+WHERE o.status = 'paid';
+-- 1 row: An only! ❌ Bo fails the filter, and Chi's row is (Chi, NULL, NULL)
+-- → NULL = 'paid' is UNKNOWN → dropped. LEFT JOIN degraded to INNER JOIN.
+
+-- ✅ Fix: right-table filters belong in ON
+SELECT c.name, o.id, o.status
+FROM customers c
+LEFT JOIN orders o ON o.customer_id = c.id AND o.status = 'paid';
+-- 3 rows: An/paid, Bo/NULL, Chi/NULL — every customer, paid orders where they exist
+
+-- The one intentional exception — the anti-join pattern:
+SELECT c.* FROM customers c
+LEFT JOIN orders o ON o.customer_id = c.id
+WHERE o.id IS NULL;      -- customers with NO orders (IS NULL is the whole point here)</pre>
+<p>Why the bad habit exists: for an <strong>INNER</strong> join, ON vs WHERE placement makes no difference (the optimizer merges them), so developers learn it "doesn't matter" — until the first outer join. Interviewer follow-up: filters on the <strong>left</strong> table are safe in WHERE; only right-table conditions must move into ON.</p>
+<div class="key-point">In a LEFT JOIN, any WHERE condition on a right-table column (except IS NULL) silently converts it to an INNER JOIN — put right-side filters in the ON clause.</div>`,
+      },
+      {
+        q: 'Why does a row match neither status = X nor status != X? COUNT(*) vs COUNT(col) vs COUNT(DISTINCT col).',
+        difficulty: 'tricky',
+        a: `<p>Because of three-valued logic, a NULL row fails <strong>both</strong> a condition and its negation — so complementary filters do not partition the table, and different COUNT variants disagree. This silently loses rows in reports.</p>
+<pre>-- users
+-- id | status
+--  1 | active
+--  2 | inactive
+--  3 | NULL
+
+SELECT COUNT(*)               FROM users;   -- 3  (counts ROWS)
+SELECT COUNT(status)          FROM users;   -- 2  (skips NULLs!)
+SELECT COUNT(DISTINCT status) FROM users;   -- 2  ('active','inactive' — NULL ignored)
+
+SELECT * FROM users WHERE status =  'active';   -- 1 row (id 1)
+SELECT * FROM users WHERE status != 'active';   -- 1 row (id 2) — id 3 is MISSING!
+-- NULL != 'active' → UNKNOWN, and WHERE keeps only TRUE.
+-- Row 3 matches NEITHER query: the two "opposite" filters return 2 of 3 rows.
+
+-- ✅ Fixes:
+SELECT * FROM users WHERE status != 'active' OR status IS NULL;
+
+SELECT * FROM users WHERE status IS DISTINCT FROM 'active';  -- PostgreSQL, NULL-safe
+-- MySQL: WHERE NOT (status <=> 'active');
+
+-- Same trap inside aggregates — two "averages", two answers:
+SELECT AVG(score) FROM exams;               -- NULLs excluded from numerator AND denominator
+SELECT AVG(COALESCE(score, 0)) FROM exams;  -- missing treated as 0 → lower value</pre>
+<p>Failure mode in the wild: a dashboard splits users into "active" and "not active" tabs and the totals don't add up to COUNT(*) — nobody notices the NULL bucket. Interviewer follow-up: <code>COUNT(1)</code> is identical to <code>COUNT(*)</code> (the "COUNT(1) is faster" claim is a myth).</p>
+<div class="key-point">Before writing any negative filter, ask "is this column nullable?" — and remember COUNT(col) counts non-NULL values while COUNT(*) counts rows.</div>`,
+      },
+      {
+        q: 'IN vs EXISTS vs JOIN: when do they return different results for the same question?',
+        difficulty: 'tricky',
+        a: `<p>All three can answer "customers who have orders", but they are <strong>not semantically equivalent</strong> — the differences (row multiplication and NULL handling) are exactly what interviewers probe.</p>
+<pre>-- 1) JOIN: multiplies rows on 1-to-many!
+SELECT c.name
+FROM customers c
+JOIN orders o ON o.customer_id = c.id;
+-- An has 3 orders → 'An' appears 3 TIMES. Needs DISTINCT (extra sort/hash work).
+
+-- 2) IN: semi-join — each customer at most once
+SELECT name FROM customers
+WHERE id IN (SELECT customer_id FROM orders);
+
+-- 3) EXISTS: semi-join, and NULL-proof
+SELECT name FROM customers c
+WHERE EXISTS (SELECT 1 FROM orders o WHERE o.customer_id = c.id);
+
+-- The NEGATION is where they really diverge:
+SELECT name FROM customers
+WHERE id NOT IN (SELECT customer_id FROM orders);
+-- → ZERO rows if ANY orders.customer_id is NULL (three-valued logic bomb)
+
+SELECT name FROM customers c
+WHERE NOT EXISTS (SELECT 1 FROM orders o WHERE o.customer_id = c.id);
+-- → correct answer regardless of NULLs ✅</pre>
+<ul>
+<li><strong>JOIN</strong>: use when you need columns from <em>both</em> tables; be ready to explain the duplicate-row effect.</li>
+<li><strong>IN / EXISTS</strong>: pure existence tests (semi-joins). Modern optimizers usually rewrite both to the <em>same</em> semi-join plan — "EXISTS is always faster than IN" is outdated folklore; check the plan instead.</li>
+<li><strong>NOT IN vs NOT EXISTS</strong>: never NOT IN on a nullable subquery column; NOT EXISTS is also typically planned as an efficient anti-join.</li>
+</ul>
+<div class="key-point">Choose by semantics — semi-join for existence, JOIN for data from both sides — and default to NOT EXISTS over NOT IN; the optimizer usually makes their performance identical anyway.</div>`,
+      },
+      {
+        q: 'Two transactions read the same balance and both write back — one update vanishes. How do you prevent lost updates?',
+        difficulty: 'hard',
+        a: `<p>The <strong>lost update</strong> anomaly: read–modify–write done in the application means the second writer overwrites the first, because plain SELECTs take no locks under READ COMMITTED (the default in PostgreSQL, Oracle, SQL Server).</p>
+<pre>-- Session A                                 -- Session B
+BEGIN;                                       BEGIN;
+SELECT balance FROM acc WHERE id=1;  --100   SELECT balance FROM acc WHERE id=1;  --100
+-- app computes 100 - 30 = 70                -- app computes 100 - 50 = 50
+UPDATE acc SET balance=70 WHERE id=1;
+COMMIT;
+                                             UPDATE acc SET balance=50 WHERE id=1;
+                                             COMMIT;
+-- Final balance = 50. A's withdrawal vanished: 80 was spent from 100. ❌
+
+-- ✅ Fix 1: make the write atomic (best when the logic fits in SQL)
+UPDATE acc SET balance = balance - 30
+WHERE id = 1 AND balance >= 30;        -- also enforces the invariant
+
+-- ✅ Fix 2: pessimistic — SELECT ... FOR UPDATE locks the row until COMMIT
+BEGIN;
+SELECT balance FROM acc WHERE id = 1 FOR UPDATE;   -- Session B blocks HERE
+UPDATE acc SET balance = 70 WHERE id = 1;
+COMMIT;                                            -- B wakes and reads 70
+-- Variants: FOR UPDATE NOWAIT (fail fast), FOR UPDATE SKIP LOCKED (job queues)
+
+-- ✅ Fix 3: optimistic — version column, no lock held while the user thinks
+UPDATE acc SET balance = 70, version = version + 1
+WHERE id = 1 AND version = 41;         -- the version you originally read
+-- 0 rows affected → someone else won → reload and retry (JPA @Version does this)</pre>
+<ul>
+<li><strong>Pessimistic</strong> (FOR UPDATE): short transactions, frequent conflicts; risk = lock waits and deadlocks.</li>
+<li><strong>Optimistic</strong> (version check): edits spanning user think-time or HTTP requests, where holding a DB lock is impossible; risk = retries under contention.</li>
+<li><strong>Trick follow-up</strong>: MySQL REPEATABLE READ does <em>not</em> prevent lost updates (snapshot reads + last-write-wins); PostgreSQL REPEATABLE READ aborts one transaction with a serialization error — your code must retry.</li>
+</ul>
+<div class="key-point">Never do read–modify–write across statements without a strategy: atomic UPDATE, SELECT ... FOR UPDATE, or a version column — and know that isolation levels alone do not save you in MySQL.</div>`,
+      },
     ],
   },
 
@@ -836,6 +972,125 @@ REFRESH MATERIALIZED VIEW CONCURRENTLY daily_revenue;   -- no read lock
 <tr><td>Read cost</td><td>Underlying query each time</td><td>Like reading a table</td></tr>
 <tr><td>Use case</td><td>Abstraction, security</td><td>Expensive aggregations, dashboards</td></tr></table>
 <div class="key-point">Materialized views trade freshness for read speed — the same trade-off as a cache, but inside the database and queryable with SQL. Say that sentence in an interview.</div>`,
+      },
+      {
+        q: 'The column is indexed and the predicate is SARGable — why does the optimizer still choose a full table scan?',
+        difficulty: 'tricky',
+        a: `<p>Because index access costs roughly <strong>one random I/O per matching row</strong> (index leaf → heap lookup), while a sequential scan reads pages in bulk. Past a few percent selectivity, the full scan is genuinely <em>cheaper</em> — the optimizer ignoring your index is often the optimizer being right.</p>
+<pre>-- 1) Low selectivity: the index is used only when it pays off
+SELECT * FROM orders WHERE status = 'done';     -- 95% of rows
+-- → Seq Scan ✅ correct: index access = millions of random heap lookups
+
+SELECT * FROM orders WHERE status = 'failed';   -- 0.1% of rows
+-- → Index Scan ✅ same index, now worth it
+
+-- 2) OR across DIFFERENT columns cannot use one B-tree
+SELECT * FROM users WHERE email = 'an@x.com' OR phone = '555-1234';
+-- Fix: index BOTH columns (PostgreSQL combines them via BitmapOr),
+-- or rewrite as UNION so each branch seeks its own index:
+SELECT * FROM users WHERE email = 'an@x.com'
+UNION
+SELECT * FROM users WHERE phone = '555-1234';
+
+-- 3) Tiny table: everything fits in a few pages → scan always wins. Not a bug.
+
+-- 4) Prove it is a COST decision, not a broken index (PostgreSQL):
+SET enable_seqscan = off;    -- session-level experiment only!
+EXPLAIN ANALYZE SELECT * FROM orders WHERE status = 'done';
+-- If the forced index plan is SLOWER, the optimizer was right all along.
+-- MySQL equivalent: SELECT * FROM orders FORCE INDEX (idx_status) WHERE ...</pre>
+<p>Failure mode to mention: a partial index (<code>WHERE status IN ('new','processing')</code>) often beats a full index on a skewed column — you index only the selective slice you actually query.</p>
+<div class="key-point">An ignored index is usually a cost-based decision — estimate the selectivity first, verify with enable_seqscan=off / FORCE INDEX, and only then blame statistics or the index design.</div>`,
+      },
+      {
+        q: 'EXPLAIN says rows=12 but the step actually returned 480,000 — why are estimates wrong and how do you fix the plan?',
+        difficulty: 'hard',
+        a: `<p>Join strategy, join order, and memory grants are all chosen from <strong>row estimates</strong>. When the estimate is off by orders of magnitude, the optimizer picks a plan that is catastrophic at the real size — the classic symptom is a Nested Loop chosen for half a million rows.</p>
+<pre>EXPLAIN ANALYZE
+SELECT * FROM addresses WHERE city = 'Hanoi' AND country = 'VN';
+-- Nested Loop  (estimated rows=12)  (actual rows=480000)   ← 40,000× off!
+-- Cause: the planner multiplies selectivities as if columns were independent:
+--   sel(city='Hanoi') × sel(country='VN') = tiny → wrong join strategy → minutes.
+
+-- Fix 1: stale statistics (classic right after a bulk load / big DELETE)
+ANALYZE addresses;                  -- MySQL: ANALYZE TABLE addresses;
+-- autovacuum/auto-analyze has thresholds — a 10M-row COPY may not have triggered it yet
+
+-- Fix 2: correlated columns → extended statistics (PostgreSQL 10+)
+CREATE STATISTICS addr_city_country (dependencies)
+  ON city, country FROM addresses;
+ANALYZE addresses;
+-- Planner now knows city implies country → realistic estimate → Hash Join ✅
+
+-- Fix 3: skewed data + prepared statements reusing one generic plan
+-- (fast for 'rare_value', terrible for 'common_value')
+SET plan_cache_mode = force_custom_plan;   -- PostgreSQL: re-plan per parameter</pre>
+<ul>
+<li><strong>How to spot it</strong>: in EXPLAIN ANALYZE, scan every node for estimated vs actual rows diverging by 100× or more — that node is where the plan went wrong, regardless of where time is spent.</li>
+<li><strong>Why hints are the last resort</strong>: forcing a join type fixes today's query and breaks next year's data distribution; fixing statistics fixes the whole workload.</li>
+</ul>
+<div class="key-point">A bad plan is almost always a bad estimate — compare estimated vs actual rows node by node, then repair statistics (ANALYZE, extended statistics for correlated columns) before rewriting the query.</div>`,
+      },
+      {
+        q: 'MySQL EXPLAIN shows "Using filesort" and "Using temporary" — what do they mean and how do you eliminate them?',
+        difficulty: 'hard',
+        a: `<p>Both flags mean "no index delivers rows in the order I need". <strong>Using filesort</strong> = an explicit sort step (despite the name it may be in-memory; it spills to disk past sort_buffer_size). <strong>Using temporary</strong> = an implicit temp table, typically for GROUP BY / DISTINCT / some UNIONs. On big tables under LIMIT they are performance killers, because the whole set is materialized before the LIMIT applies.</p>
+<pre>EXPLAIN SELECT * FROM orders
+WHERE  customer_id = 42
+ORDER  BY created_at DESC
+LIMIT  10;
+-- Extra: Using where; Using filesort
+-- → reads ALL of customer 42's orders, sorts them, keeps 10
+
+CREATE INDEX idx_cust_created ON orders (customer_id, created_at);
+-- Extra: Using where
+-- → index delivers rows already sorted (backward scan) — touches ~10 rows ✅
+
+-- Mixed sort directions defeat a normal index:
+-- ORDER BY created_at DESC, id ASC          → filesort is back
+CREATE INDEX idx_mixed ON orders (customer_id, created_at DESC, id ASC);  -- MySQL 8.0+
+
+-- "Using temporary": GROUP BY that no index can feed in order
+EXPLAIN SELECT status, COUNT(*) FROM orders GROUP BY status;
+-- Extra: Using temporary
+CREATE INDEX idx_status ON orders (status);
+-- Extra: Using index   → streams groups straight off the index, no temp table ✅</pre>
+<p>Design rule for the supporting composite index: <strong>equality-filter columns first, then the ORDER BY / GROUP BY columns</strong>, matching direction. Interviewer follow-up: a range predicate (<code>created_at > ?</code>) before the sort column breaks the ordering guarantee — the index can filter or sort, not both, past the range column.</p>
+<div class="key-point">filesort/temporary do not mean "on disk" — they mean the index is not providing the required order; fix by shaping a composite index as (equality columns..., order-by columns) in matching directions.</div>`,
+      },
+      {
+        q: 'How exactly does each extra index slow down writes? (write amplification, HOT updates, index bloat)',
+        difficulty: 'hard',
+        a: `<p>Every secondary index is a separate B-tree the database must keep in sync on <strong>every write</strong> — indexes are paid for at write time, not just in disk space.</p>
+<pre>-- One INSERT into a table with 6 secondary indexes =
+--   1 heap write + 6 B-tree inserts (+ page splits + WAL for each) → ~7× amplification
+
+-- PostgreSQL UPDATE gotcha: MVCC writes a NEW row version.
+UPDATE users SET last_login = now() WHERE id = 42;
+-- If last_login is NOT indexed and the page has free space → HOT update:
+--   heap-only tuple, ZERO index maintenance ✅
+-- Now add: CREATE INDEX ON users(last_login);
+--   → every such update must insert into ALL indexes on the table ❌
+--   (you just indexed your hottest write path)
+
+-- Leave page space so HOT updates stay possible on update-heavy tables:
+ALTER TABLE users SET (fillfactor = 80);
+
+-- Find dead weight — unused indexes are pure write overhead:
+SELECT indexrelname, idx_scan,
+       pg_size_pretty(pg_relation_size(indexrelid)) AS size
+FROM pg_stat_user_indexes
+WHERE idx_scan = 0
+ORDER BY pg_relation_size(indexrelid) DESC;
+
+-- Redundant: idx(a) is covered by idx(a, b) → drop idx(a)
+-- Bloated after heavy churn: rebuild without blocking writes
+REINDEX INDEX CONCURRENTLY idx_orders_status;</pre>
+<ul>
+<li><strong>Failure mode</strong>: an "add an index for every slow query" culture quietly halves bulk-load and OLTP write throughput, then someone blames the database.</li>
+<li><strong>Bloat</strong>: deleted/updated entries leave dead space in index pages; range scans read the dead pages too, so a bloated index makes <em>reads</em> slower as well.</li>
+</ul>
+<div class="key-point">Before adding an index ask two questions: does it break HOT updates on a hot column, and will anyone actually use it — and audit pg_stat_user_indexes regularly to drop the ones nobody does.</div>`,
       },
     ],
   },

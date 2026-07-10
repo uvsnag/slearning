@@ -631,6 +631,185 @@ enum Status { Inactive = 'INACTIVE' } // merged!
 // Status.Active and Status.Inactive both work</pre>
 <div class="key-point">Declaration merging only works with <code>interface</code> and <code>namespace</code>, NOT with <code>type</code> aliases. This is one key reason to prefer <code>interface</code> for extensible shapes.</div>`,
       },
+      {
+        q: 'Why does an inline object literal fail type checking when the same object assigned to a variable passes? (Excess property checks)',
+        difficulty: 'tricky',
+        a: `<p>TypeScript is <strong>structurally typed</strong>: an object with <strong>more</strong> properties than the target type is normally assignable ("at least these properties"). But <strong>fresh object literals</strong> — literals passed directly to a parameter or annotated variable — get an extra lint-like pass called the <strong>excess property check</strong>: any property not declared in the target type is an error. Once the literal is assigned to a variable, it loses "freshness" and only plain structural compatibility applies.</p>
+<pre>interface Options {
+  title: string;
+  width?: number;
+}
+function createWindow(opts: Options) { /* ... */ }
+
+// 1. Fresh literal → excess property check fires
+createWindow({ title: 'Hi', widht: 100 });
+// Error: 'widht' does not exist in type 'Options'. Did you mean 'width'?
+
+// 2. Same object via a variable → passes!
+const opts = { title: 'Hi', widht: 100 };  // inferred: { title: string; widht: number }
+createWindow(opts);  // OK — structurally it has at least { title: string }
+
+// 3. Escape hatches that silently disable the check:
+createWindow({ title: 'Hi', widht: 100 } as Options);  // assertion kills it
+interface Loose { title: string; [key: string]: unknown; }  // index signature allows anything</pre>
+<p><strong>Why it exists</strong>: with optional properties, a typo like <code>widht</code> would otherwise be a perfectly valid structural supertype and the bug would ship silently. The check only runs on fresh literals because that is the one place the extra property <strong>cannot</strong> be intentional — nothing else can read it.</p>
+<p><strong>Where it hides bugs</strong>: config objects built in a variable first, spread from user input, or widened by a helper function bypass the check — typos in optional flags (<code>retires</code> vs <code>retries</code>) go unnoticed. Interviewer follow-up: how to protect variables too? Use <code>satisfies Options</code> on the variable declaration — it re-runs full checking without widening.</p>
+<div class="key-point">Excess property checking is a special-case lint on fresh object literals, not part of structural assignability — assigning through a variable or an <code>as</code> assertion silently disables it, so use <code>satisfies</code> to keep the safety.</div>`,
+      },
+      {
+        q: 'TypeScript is structurally typed — what problems does that cause, and how do branded types simulate nominal typing?',
+        difficulty: 'hard',
+        a: `<p>In a <strong>structural</strong> type system, compatibility is decided by <strong>shape</strong>, not by the name of the declaration. Two unrelated interfaces with identical members are fully interchangeable — unlike Java/C# where the class name (nominal typing) matters.</p>
+<pre>interface UserId { value: string; }
+interface ProductId { value: string; }
+
+function loadUser(id: UserId) { /* ... */ }
+const pid: ProductId = { value: 'p-42' };
+loadUser(pid);  // Compiles! Identical shape → interchangeable
+
+// The empty-interface trap: {} matches almost EVERYTHING
+interface AnyProps {}
+const a: AnyProps = 42;        // OK — number has "at least no members"
+const b: AnyProps = 'hello';   // OK
+const c: AnyProps = () => {};  // OK — only null/undefined are rejected</pre>
+<p><strong>Real failure mode</strong>: domain IDs. If <code>userId</code>, <code>orderId</code>, and <code>productId</code> are all <code>string</code>, swapping arguments compiles and corrupts data at runtime. The fix is a <strong>branded (opaque) type</strong> — intersect the primitive with a phantom property that never exists at runtime:</p>
+<pre>type UserId  = string & { readonly __brand: 'UserId' };
+type OrderId = string & { readonly __brand: 'OrderId' };
+
+// Factory is the only sanctioned way to create one
+function toUserId(raw: string): UserId {
+  // validate format here, then bless the value
+  return raw as UserId;
+}
+
+function getUser(id: UserId) { /* ... */ }
+const orderId = 'o-77' as OrderId;
+
+getUser(orderId);       // Error: '__brand' types are incompatible
+getUser('u-1');         // Error: plain string lacks the brand
+getUser(toUserId('u-1')); // OK — and it is still just a string at runtime</pre>
+<p>The brand property is purely compile-time fiction — no object is ever created, zero runtime cost. Libraries like Zod expose the same idea as <code>z.string().brand&lt;'UserId'&gt;()</code>. Interviewer follow-up: why <code>unique symbol</code> brands? They prevent two accidental identical brand strings from unifying.</p>
+<div class="key-point">Structural typing means names are documentation, not identity — when identity matters (IDs, validated strings, units), brand the type so the compiler enforces provenance at zero runtime cost.</div>`,
+      },
+      {
+        q: 'What are distributive conditional types? Why does Exclude work, and when do you need [T] extends [U]?',
+        difficulty: 'tricky',
+        a: `<p>A conditional type <code>T extends U ? X : Y</code> is <strong>distributive</strong> when <code>T</code> is a <strong>naked type parameter</strong>: applied to a union, it runs once per member and unions the results. This single rule is what makes <code>Exclude</code>, <code>Extract</code>, and <code>NonNullable</code> possible.</p>
+<pre>// Exclude, from scratch — one line, all the magic is distribution
+type MyExclude&lt;T, U&gt; = T extends U ? never : T;
+
+type T1 = MyExclude&lt;'a' | 'b' | 'c', 'a'&gt;;  // 'b' | 'c'
+// Evaluates member-by-member:
+//   ('a' extends 'a' ? never : 'a')   → never
+// | ('b' extends 'a' ? never : 'b')   → 'b'
+// | ('c' extends 'a' ? never : 'c')   → 'c'
+// never disappears from unions → 'b' | 'c'
+
+// Distribution changes the SHAPE of results:
+type ToArray&lt;T&gt; = T extends any ? T[] : never;
+type A = ToArray&lt;string | number&gt;;   // string[] | number[]  (two array types!)
+
+// Wrap both sides in a tuple to DISABLE distribution:
+type ToArrayAll&lt;T&gt; = [T] extends [any] ? T[] : never;
+type B = ToArrayAll&lt;string | number&gt;;  // (string | number)[]  (one array type)</pre>
+<p><strong>The classic gotcha</strong>: <code>never</code> is the empty union, so distributing over it produces… nothing:</p>
+<pre>type IsNever&lt;T&gt; = T extends never ? true : false;
+type X = IsNever&lt;never&gt;;   // never — NOT true! Zero members → zero results
+
+type IsNeverFixed&lt;T&gt; = [T] extends [never] ? true : false;
+type Y = IsNeverFixed&lt;never&gt;;  // true — tuple wrapper blocks distribution</pre>
+<p>Combine with <code>infer</code> and you can dissect any type: <code>type ElementOf&lt;T&gt; = T extends readonly (infer E)[] ? E : never;</code>. Follow-ups interviewers like: why does <code>keyof (A | B)</code> give only shared keys, and why does <code>boolean</code> distribute as <code>true | false</code> (it is literally that union)?</p>
+<div class="key-point">A naked type parameter before <code>extends</code> distributes over unions — it is the engine behind Exclude/Extract, and <code>[T] extends [U]</code> is the standard switch to turn it off (mandatory when testing for <code>never</code>).</div>`,
+      },
+      {
+        q: 'Implement Partial, Pick, and Readonly from scratch, and explain "as" key remapping in mapped types.',
+        difficulty: 'hard',
+        a: `<p>Every built-in utility type is a one-line <strong>mapped type</strong> — knowing how to write them shows you understand <code>keyof</code>, indexed access, and modifiers rather than memorizing an API.</p>
+<pre>// The standard library, reimplemented:
+type MyPartial&lt;T&gt;  = { [K in keyof T]?: T[K] };            // add ? modifier
+type MyRequired&lt;T&gt; = { [K in keyof T]-?: T[K] };           // -? REMOVES optionality
+type MyReadonly&lt;T&gt; = { readonly [K in keyof T]: T[K] };
+type Mutable&lt;T&gt;    = { -readonly [K in keyof T]: T[K] };   // -readonly strips it
+type MyPick&lt;T, K extends keyof T&gt; = { [P in K]: T[P] };
+type MyRecord&lt;K extends PropertyKey, V&gt; = { [P in K]: V };</pre>
+<p><strong>Key remapping with <code>as</code></strong> (TS 4.1+) lets the mapped type produce <strong>different key names</strong> — or drop keys entirely by mapping them to <code>never</code>:</p>
+<pre>// Derive a getters interface from a data model
+type Getters&lt;T&gt; = {
+  [K in keyof T as \`get\${Capitalize&lt;string & K&gt;}\`]: () => T[K];
+};
+interface Person { name: string; age: number; }
+type PersonGetters = Getters&lt;Person&gt;;
+// { getName: () => string; getAge: () => number; }
+// (string & K filters out symbol keys so Capitalize accepts it)
+
+// Filter properties BY VALUE TYPE — remap unwanted keys to never
+type OmitByType&lt;T, V&gt; = {
+  [K in keyof T as T[K] extends V ? never : K]: T[K];
+};
+type NoFunctions = OmitByType&lt;{ id: number; save: () => void }, Function&gt;;
+// { id: number }
+
+// Omit is just Pick + Exclude composed:
+type MyOmit&lt;T, K extends PropertyKey&gt; = MyPick&lt;T, Exclude&lt;keyof T, K&gt;&gt;;</pre>
+<p><strong>Why it matters</strong>: this is how Prisma derives model types from your schema, how React types <code>on*</code> event props, and how tRPC infers client types from server routers — types are <strong>computed</strong> from a single source of truth instead of hand-written twice. Follow-up: mapped types are <strong>homomorphic</strong> when mapping over <code>keyof T</code> — they preserve <code>?</code>/<code>readonly</code> modifiers from the original, which is why <code>Partial&lt;Readonly&lt;T&gt;&gt;</code> keeps readonly.</p>
+<div class="key-point">Utility types are one-line mapped types; <code>as</code> remapping (including "remap to never" filtering) is the tool for deriving whole APIs from a single model type instead of maintaining parallel declarations.</div>`,
+      },
+      {
+        q: 'What are the pitfalls of numeric enums and const enums that make senior engineers avoid them?',
+        difficulty: 'tricky',
+        a: `<p>Enums are one of TypeScript's few features that generate runtime code with surprising semantics — three concrete traps come up in real codebases:</p>
+<p><strong>1. Numeric enums get reverse mappings</strong> — the compiled object maps both ways, which bloats bundles and breaks <code>Object.keys</code> assumptions:</p>
+<pre>enum Level { Low, High }
+// Compiles to:
+// var Level = {};
+// Level[Level["Low"] = 0] = "Low";
+// Level[Level["High"] = 1] = "High";
+Object.keys(Level);  // ["0", "1", "Low", "High"] — 4 keys, not 2!
+Level[0];            // "Low" (reverse lookup — string enums do NOT have this)</pre>
+<p><strong>2. Pre-TS-5.0, numeric enums accepted ANY number</strong> — a legendary soundness hole:</p>
+<pre>enum Status { Active = 1, Inactive = 2 }
+const s: Status = 99;  // No error before TypeScript 5.0!
+// Anything arriving from JSON.parse could claim to be a Status.
+// TS 5.0 finally made enums into unions of their literal members.</pre>
+<p><strong>3. <code>const enum</code> breaks single-file transpilers</strong>. Members are inlined at the call site, which requires whole-program type information. Babel, esbuild, swc, and <code>ts.transpileModule</code> compile one file at a time, so the enum object does not exist and inlining cannot happen — under <code>isolatedModules</code> TypeScript errors on exported const enums, and without it you get runtime <code>ReferenceError</code>s. Publishing const enums in a library's .d.ts also couples consumers to your compiler settings.</p>
+<pre>// The alternatives senior codebases actually use:
+type Status = 'active' | 'inactive';           // union of string literals: zero runtime cost
+
+const STATUS = { Active: 'active', Inactive: 'inactive' } as const;
+type Status2 = typeof STATUS[keyof typeof STATUS];  // value object + derived type
+// Iterable, tree-shakeable, no reverse mapping, transpiler-safe</pre>
+<div class="key-point">Numeric enums leak reverse mappings and (pre-5.0) accepted any number; const enums break isolated-module transpilers — prefer string-literal unions or <code>as const</code> objects, which give the same ergonomics with plain JavaScript semantics.</div>`,
+      },
+      {
+        q: 'Where is TypeScript deliberately unsound? Explain method bivariance and array covariance.',
+        difficulty: 'tricky',
+        a: `<p>TypeScript trades soundness for ergonomics in a few documented places — a program can typecheck and still crash with a type error at runtime. Seniors are expected to know the holes so <code>strict</code> mode isn't mistaken for a proof.</p>
+<p><strong>1. Method parameter bivariance.</strong> Sound function subtyping requires parameters to be <strong>contravariant</strong> (a handler must accept at least what the interface promises). <code>strictFunctionTypes</code> enforces this — but <strong>only for function-property syntax, not method shorthand</strong>:</p>
+<pre>interface EventBusStrict {
+  handle: (e: MouseEvent) => void;   // property syntax → checked strictly
+}
+interface EventBusLoose {
+  handle(e: MouseEvent): void;       // method shorthand → still BIVARIANT!
+}
+
+declare const onKey: (e: KeyboardEvent) => void;
+const a: EventBusStrict = { handle: onKey };  // Error (good — KeyboardEvent is narrower)
+const b: EventBusLoose  = { handle: onKey };  // Compiles! Then a MouseEvent arrives
+// at runtime and onKey reads e.key → undefined. Bivariance was kept so
+// Array&lt;Dog&gt; could remain assignable to Array&lt;Animal&gt; (push is a method).</pre>
+<p><strong>2. Array covariance.</strong> <code>Dog[]</code> is assignable to <code>Animal[]</code> even though arrays are mutable — the write side is unchecked:</p>
+<pre>class Animal { name = ''; }
+class Dog extends Animal { bark() { return 'woof'; } }
+class Cat extends Animal { meow() { return 'meow'; } }
+
+const dogs: Dog[] = [new Dog()];
+const animals: Animal[] = dogs;   // allowed: covariant
+animals.push(new Cat());          // typechecks — it IS an Animal[]
+dogs[1].bark();                   // runtime TypeError: dogs[1].bark is not a function
+// Mitigation: accept readonly Animal[] — no push, covariance becomes safe.</pre>
+<p><strong>3. Other sanctioned holes</strong>: <code>any</code> silently infects everything it touches; <code>as</code>/double assertion overrides the checker; indexed access <code>arr[i]</code> is assumed present unless <code>noUncheckedIndexedAccess</code> is on; <code>JSON.parse</code> returns <code>any</code>. Follow-up interviewers love: why not make it sound? Because TS must type existing JavaScript idioms — full soundness (like Flow attempted) rejects too much real-world code.</p>
+<div class="key-point">TypeScript is intentionally unsound: method-shorthand parameters stay bivariant even under strictFunctionTypes and mutable arrays are covariant — so use function-property syntax for callbacks, <code>readonly T[]</code> for inputs, and runtime validation at trust boundaries.</div>`,
+      },
     ],
   },
 
