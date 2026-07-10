@@ -28,6 +28,7 @@ const MOBILE_LINKS: NavLink[] = [
 
 const SOURCE_CODE_LINKS: NavLink[] = [
   { href: '/source-code', label: 'All Projects' },
+  { href: '/source-code/code-playground', label: 'Playground (Run Java/JS)' },
   { href: '/source-code/java-microservice', label: 'Java Microservice' },
   { href: '/source-code/microservice-learning', label: 'MS Learning Platform' },
 ];

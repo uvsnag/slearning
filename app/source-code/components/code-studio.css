@@ -781,6 +781,181 @@
   text-transform: capitalize;
 }
 
+/* ---------------- playground: editable code ---------------- */
+
+.cs-code-editable {
+  position: relative;
+  /* the transparent textarea overlays the gutter, so disable the row hover */
+}
+
+.cs-code-editable .cs-code-line:hover {
+  background: transparent;
+}
+
+.cs-edit-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  border: none;
+  outline: none;
+  resize: none;
+  overflow: hidden;
+  padding: 6px 32px 0 56px;
+  background: transparent;
+  color: transparent;
+  caret-color: #f0f0f0;
+  font-family: var(--cs-mono);
+  font-size: 13px;
+  line-height: 1.55;
+  white-space: pre;
+}
+
+.cs-edit-input::selection {
+  background: rgba(58, 111, 163, 0.55);
+}
+
+/* ---------------- playground: run controls ---------------- */
+
+.cs-crumb-actions {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 14px;
+}
+
+.cs-run-btn {
+  background: #2ea043;
+  color: #ffffff;
+  padding: 2px 12px;
+  border-radius: 3px;
+  font-size: 11.5px;
+  white-space: nowrap;
+}
+
+.cs-run-btn:hover:not(:disabled) {
+  background: #3fb950;
+}
+
+.cs-run-btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.cs-reset-btn,
+.cs-format-btn {
+  color: var(--cs-text-dim);
+  border: 1px solid #565656;
+  padding: 1px 8px;
+  border-radius: 3px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.cs-reset-btn:hover,
+.cs-format-btn:hover:not(:disabled) {
+  color: #ffffff;
+  background: #4a4a4a;
+}
+
+.cs-format-btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+/* ---------------- playground: output console ---------------- */
+
+.cs-console {
+  flex: none;
+  height: 200px;
+  max-height: 45%;
+  border-top: 1px solid var(--cs-border);
+  display: flex;
+  flex-direction: column;
+  background: #181818;
+}
+
+.cs-console-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 12px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cs-text-dim);
+  border-bottom: 1px solid #2a2a2a;
+  flex: none;
+  user-select: none;
+}
+
+.cs-console-title {
+  color: #cccccc;
+}
+
+.cs-console-running {
+  color: #3fb950;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.cs-console-spacer {
+  flex: 1;
+}
+
+.cs-console-header button {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  border-radius: 3px;
+  color: var(--cs-text-dim);
+  font-size: 11px;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.cs-console-header button:hover {
+  background: #37373d;
+  color: #ffffff;
+}
+
+.cs-console-body {
+  flex: 1;
+  overflow: auto;
+  padding: 6px 14px 10px;
+  font-family: var(--cs-mono);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.cs-console-line {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.cs-console-out {
+  color: #d4d4d4;
+}
+
+.cs-console-err {
+  color: #f48771;
+}
+
+.cs-console-system {
+  color: #6a9955;
+  font-style: italic;
+}
+
+.cs-status-btn {
+  cursor: pointer;
+}
+
+.cs-status-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
 /* ---------------- scrollbars (webkit) ---------------- */
 
 .cs-root ::-webkit-scrollbar {
