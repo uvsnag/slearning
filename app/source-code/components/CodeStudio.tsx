@@ -21,6 +21,7 @@ import {
   CloseIcon,
   CollapseAllIcon,
   DatabaseIcon,
+  ExpandAllIcon,
   FileBadge,
   FilesIcon,
   GearIcon,
@@ -118,6 +119,13 @@ export default function CodeStudio({ project }: { project: StudioProject }) {
     return next;
   };
 
+  const expandFolders = (paths: string[]) =>
+    setExpandedFolders((prev) => {
+      const next = new Set(prev);
+      for (const p of paths) next.add(p);
+      return next;
+    });
+
   /* ----- resolve active tab content ----- */
   let activeFile: CodeFile | undefined;
   let activeDb: { connection: DbConnection; table: DbTable; schema: string } | undefined;
@@ -142,9 +150,9 @@ export default function CodeStudio({ project }: { project: StudioProject }) {
       {/* ---------- title bar ---------- */}
       <div className="cs-titlebar">
         <span className="cs-dots" aria-hidden="true">
-          <i className="cs-dot cs-dot-r" />
+          {/* <i className="cs-dot cs-dot-r" />
           <i className="cs-dot cs-dot-y" />
-          <i className="cs-dot cs-dot-g" />
+          <i className="cs-dot cs-dot-g" /> */}
         </span>
         <span className="cs-titlebar-text">{project.name} — Code Studio</span>
         <Link href="/source-code" className="cs-titlebar-back">
@@ -204,7 +212,7 @@ export default function CodeStudio({ project }: { project: StudioProject }) {
                     title="Expand all folders"
                     onClick={() => setExpandedFolders(new Set(allFolderPaths))}
                   >
-                    +
+                    <ExpandAllIcon />
                   </button>
                 </span>
               )}
@@ -221,6 +229,7 @@ export default function CodeStudio({ project }: { project: StudioProject }) {
                       setExpandedFolders((prev) => toggleSetKey(prev, path))
                     }
                     onOpenFile={(path) => openTab(fileTab(path))}
+                    onExpandFolders={expandFolders}
                   />
                 </div>
               </>

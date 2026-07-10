@@ -240,10 +240,40 @@
   white-space: nowrap;
   color: var(--cs-text);
   line-height: 1.5;
+  cursor: pointer;
 }
 
 .cs-tree-row:hover {
   background: var(--cs-hover);
+}
+
+.cs-tree-folder:focus-visible {
+  outline: 1px solid var(--cs-accent);
+  outline-offset: -1px;
+}
+
+/* Inline action revealed on folder hover (e.g. "expand all inside") */
+.cs-tree-action {
+  margin-left: auto;
+  flex: none;
+  width: 20px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  color: var(--cs-text-dim);
+  opacity: 0;
+}
+
+.cs-tree-folder:hover .cs-tree-action,
+.cs-tree-folder:focus-within .cs-tree-action {
+  opacity: 1;
+}
+
+.cs-tree-action:hover {
+  background: #37373d;
+  color: #ffffff;
 }
 
 .cs-tree-row-active,

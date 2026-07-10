@@ -98,7 +98,7 @@ export const javaMicroserviceProject: StudioProject = {
   databases: JAVA_MICROSERVICE_DATABASES,
   defaultOpenPaths: [
     'README.md',
-    'order-service/src/main/java/com/demo/order/saga/OrderSagaOrchestrator.java',
-    'order-service/src/main/java/com/demo/order/outbox/OutboxRelay.java',
+    // 'order-service/src/main/java/com/demo/order/saga/OrderSagaOrchestrator.java',
+    // 'order-service/src/main/java/com/demo/order/outbox/OutboxRelay.java',
   ],
 };
