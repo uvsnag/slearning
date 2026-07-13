@@ -11,12 +11,21 @@ export const topics: PvTopic[] = [
       {
         q: 'What is the Virtual DOM and how does React reconciliation work?',
         difficulty: 'medium',
-        a: `<ul>
-<li><strong>Virtual DOM</strong>: lightweight JS representation of the real DOM.</li>
-<li><strong>Reconciliation</strong>: React diffs the new VDOM tree with the old one and computes minimal changes (<strong>diffing algorithm</strong>).</li>
-<li>Two heuristics: (1) different element types → rebuild entire subtree; (2) <code>key</code> prop identifies items in lists.</li>
+        a: `<p>The <strong>Virtual DOM (VDOM)</strong> is a lightweight JavaScript object tree that mirrors the real DOM. React keeps one in memory and uses it as a staging area: instead of mutating the real DOM directly on every state change, React first updates the cheap in-memory tree, then figures out the smallest set of real DOM operations needed.</p>
+<p><strong>Why bother?</strong> Real DOM mutations are expensive (they trigger layout, style recalculation, and paint). Reading/writing a plain JS object is cheap. By batching and minimizing real DOM writes, React lets you write simple declarative code (<em>"UI is a function of state"</em>) while it handles efficient updates under the hood.</p>
+<p><strong>Reconciliation</strong> is the process where React <em>diffs</em> the new VDOM tree against the previous one and computes the minimal patch. A truly optimal tree diff is O(n³), which is unusable, so React uses two heuristics to get O(n):</p>
+<ul>
+<li><strong>Different element type → throw it away.</strong> If a node changes from <code>&lt;div&gt;</code> to <code>&lt;span&gt;</code> (or from <code>ComponentA</code> to <code>ComponentB</code>), React unmounts the whole subtree and rebuilds it — it never tries to diff across types.</li>
+<li><strong>Same type → keep the DOM node, update changed attributes,</strong> then recurse into children.</li>
+<li><strong>Lists use the <code>key</code> prop</strong> to match children between renders, so React can reorder/reuse nodes instead of recreating them.</li>
 </ul>
-<div class="key-point">React Fiber (React 16+) broke rendering into units of work, enabling prioritization and interruption of renders.</div>`,
+<pre>// State change → React builds a NEW virtual tree
+// old:  &lt;ul&gt;&lt;li&gt;A&lt;/li&gt;&lt;li&gt;B&lt;/li&gt;&lt;/ul&gt;
+// new:  &lt;ul&gt;&lt;li&gt;A&lt;/li&gt;&lt;li&gt;B&lt;/li&gt;&lt;li&gt;C&lt;/li&gt;&lt;/ul&gt;
+// Diff result: keep A and B untouched, INSERT one &lt;li&gt;C&lt;/li&gt;
+// → one real DOM insertion instead of rebuilding the whole list</pre>
+<p>Then comes the <strong>commit phase</strong>: React applies the computed changes to the real DOM in one batch.</p>
+<div class="key-point">Common myth: "the Virtual DOM is faster than the real DOM." It isn't — it's an <em>extra</em> layer. The win is that it lets React <em>minimize and batch</em> real DOM writes while you write declarative code. React Fiber (16+) rewrote reconciliation to split work into interruptible units, enabling prioritization, time-slicing, and concurrent features.</div>`,
       },
       {
         q: 'Explain the React component lifecycle (class and hooks).',
@@ -39,49 +48,96 @@ export const topics: PvTopic[] = [
       {
         q: 'What is the difference between useState and useReducer?',
         difficulty: 'medium',
-        a: `<ul>
-<li><strong>useState</strong>: simple state (primitives, toggles). Direct set.</li>
-<li><strong>useReducer</strong>: complex state logic, multiple sub-values, or when next state depends on previous.</li>
+        a: `<p>Both manage state in a function component — they are two ends of the same spectrum. <code>useState</code> is a thin convenience built <em>on top of</em> <code>useReducer</code>. The real question is <strong>where the update logic lives</strong>.</p>
+<ul>
+<li><strong>useState</strong> — you call <code>setX(newValue)</code> directly at the call site. Best for independent, simple values: toggles, inputs, counters, a single object.</li>
+<li><strong>useReducer</strong> — you <code>dispatch({ type })</code> an action and a single <code>reducer</code> function decides the next state. Best when several values change together, when the next state depends on the previous one, or when the same state is updated from many places.</li>
 </ul>
-<pre>const [state, dispatch] = useReducer(reducer, initialState);
+<pre>const [state, dispatch] = useReducer(reducer, { count: 0, step: 1 });
 
 function reducer(state, action) {
   switch (action.type) {
-    case 'increment': return { ...state, count: state.count + 1 };
-    case 'decrement': return { ...state, count: state.count - 1 };
+    case 'increment': return { ...state, count: state.count + state.step };
+    case 'decrement': return { ...state, count: state.count - state.step };
+    case 'reset':     return { ...state, count: 0 };
     default: return state;
   }
-}</pre>
-<div class="key-point">Rule of thumb: if your state update logic requires more than 2-3 conditions, use <code>useReducer</code>.</div>`,
+}
+// Components just dispatch intent — they don't know HOW state changes:
+&lt;button onClick={() => dispatch({ type: 'increment' })}&gt;+&lt;/button&gt;</pre>
+<p><strong>Why reach for useReducer?</strong></p>
+<ul>
+<li><strong>Centralized, testable logic</strong> — the reducer is a pure function <code>(state, action) => newState</code> you can unit-test with zero React.</li>
+<li><strong>Predictable transitions</strong> — all the ways state can change live in one <code>switch</code>, so complex flows (form wizards, fetch loading/success/error) are easy to reason about.</li>
+<li><strong>Stable <code>dispatch</code></strong> — its identity never changes across renders, so passing it deep (via Context or props) never causes re-renders, unlike a fresh setter closure.</li>
+</ul>
+<div class="key-point">Rule of thumb: reach for <code>useReducer</code> when several pieces of state change together, when updates depend on the previous state through multiple branches, or when you find yourself passing many setters down the tree. For a single toggle or text field, <code>useState</code> is clearer — don't over-engineer.</div>`,
       },
       {
         q: 'What is useCallback vs useMemo?',
         difficulty: 'medium',
-        a: `<ul>
-<li><strong>useMemo</strong>: memoizes a <strong>computed value</strong>. Avoids expensive recalculation.</li>
-<li><strong>useCallback</strong>: memoizes a <strong>function reference</strong>. Prevents child re-renders when passing callbacks.</li>
+        a: `<p>Both cache something between renders and recompute only when their dependency array changes. The difference is <strong>what they cache</strong>:</p>
+<ul>
+<li><strong>useMemo</strong> caches a <strong>computed value</strong> — it runs the function and remembers its <em>result</em>. Use it to avoid re-running an expensive calculation on every render.</li>
+<li><strong>useCallback</strong> caches a <strong>function reference itself</strong> — it remembers the <em>function</em>, not its result. Use it to keep a callback's identity stable across renders.</li>
 </ul>
-<pre>const expensiveResult = useMemo(() => computeExpensive(data), [data]);
-const handleClick = useCallback(() => doSomething(id), [id]);</pre>
-<div class="key-point"><code>useCallback(fn, deps)</code> is equivalent to <code>useMemo(() => fn, deps)</code>.</div>`,
+<pre>// useMemo → remembers the RETURNED VALUE
+const sorted = useMemo(() => items.sort(compare), [items]);
+
+// useCallback → remembers the FUNCTION
+const handleClick = useCallback(() => doSomething(id), [id]);
+
+// They are literally the same thing:
+useCallback(fn, deps) === useMemo(() => fn, deps)</pre>
+<p><strong>Why does a stable reference even matter?</strong> On every render, JavaScript creates brand-new object, array, and function values. Two functions with identical code are <code>!==</code> each other. That new identity breaks things that compare props by reference:</p>
+<ul>
+<li>A child wrapped in <code>React.memo</code> re-renders because its <code>onClick</code> prop is "new" every time.</li>
+<li>A <code>useEffect</code>/<code>useMemo</code> that lists the function/value in its deps re-fires every render.</li>
+</ul>
+<pre>const Child = React.memo(({ onClick }) => { ... });
+
+function Parent() {
+  // ❌ new function each render → memo on Child is useless
+  // const handle = () => doThing();
+  // ✅ stable identity → Child only re-renders when 'id' changes
+  const handle = useCallback(() => doThing(id), [id]);
+  return &lt;Child onClick={handle} /&gt;;
+}</pre>
+<div class="key-point">The #1 gotcha: <code>useCallback</code> only helps if the consumer actually depends on referential equality (a <code>React.memo</code> child or a dependency array). Wrapping a callback passed to a plain <code>&lt;button onClick&gt;</code> does nothing but add overhead. And both hooks are a performance optimization only — never put logic your app's <em>correctness</em> depends on inside them; React may discard the cache.</div>`,
       },
       {
         q: 'What causes unnecessary re-renders and how to prevent them?',
         difficulty: 'hard',
-        a: `<p><strong>Causes</strong>:</p>
+        a: `<p>First, a crucial mental model: <strong>a re-render is not a DOM update.</strong> When a component re-renders, React just re-runs the function and diffs its output — if nothing changed, no DOM touches happen. So most re-renders are cheap and harmless. You only care about the ones that are <em>frequent</em> and <em>expensive</em> (big trees, heavy computation). Don't optimize blindly — measure with the React DevTools Profiler first.</p>
+<p><strong>What triggers a re-render:</strong></p>
 <ul>
-<li>Parent re-renders → all children re-render.</li>
-<li>New object/array/function references on every render.</li>
-<li>Context value changes.</li>
+<li><strong>State/props change</strong> in the component itself.</li>
+<li><strong>Parent re-renders</strong> → by default <em>every</em> child re-renders, regardless of whether its props changed.</li>
+<li><strong>Context value changes</strong> → every consumer of that context re-renders.</li>
 </ul>
-<p><strong>Solutions</strong>:</p>
+<p>The subtle part is what makes these fire <em>unnecessarily</em>: creating <strong>new object/array/function references</strong> during render. Since <code>{} !== {}</code>, a fresh inline value looks "changed" to any shallow comparison (<code>React.memo</code>, dependency arrays), defeating memoization.</p>
+<p><strong>Solutions — and why each one works:</strong></p>
 <ul>
-<li><code>React.memo(Component)</code> – skip re-render if props unchanged (shallow compare).</li>
-<li><code>useMemo</code> / <code>useCallback</code> – stabilize references.</li>
-<li>Split context into multiple smaller contexts.</li>
-<li>Move state down closer to where it's used.</li>
-<li>Use <code>children</code> pattern to avoid re-rendering static parts.</li>
-</ul>`,
+<li><strong><code>React.memo(Component)</code></strong> — makes a child skip re-rendering when its props are shallow-equal to last time. Breaks the automatic "parent renders → child renders" chain.</li>
+<li><strong><code>useMemo</code> / <code>useCallback</code></strong> — stabilize the object/function references you pass into a memoized child or a dependency array, so the shallow compare actually passes.</li>
+<li><strong>Move state down</strong> — if only a small subtree reads a piece of state, push that state into a child component so state changes only re-render that subtree, not the whole page.</li>
+<li><strong>Lift static content into <code>children</code></strong> — an element passed as <code>children</code> keeps the same reference when the stateful parent re-renders, so React skips re-rendering it.</li>
+<li><strong>Split context</strong> — put frequently-changing and rarely-changing values in separate contexts so a change to one doesn't wake consumers of the other.</li>
+</ul>
+<pre>// "Move state down" — isolate the fast-changing input
+// ❌ typing re-renders &lt;ExpensiveTree /&gt; on every keystroke
+function Page() {
+  const [text, setText] = useState('');
+  return (&lt;&gt;
+    &lt;input value={text} onChange={e => setText(e.target.value)} /&gt;
+    &lt;ExpensiveTree /&gt;
+  &lt;/&gt;);
+}
+// ✅ contain the state so only SearchBox re-renders
+function Page() {
+  return (&lt;&gt;&lt;SearchBox /&gt;&lt;ExpensiveTree /&gt;&lt;/&gt;);
+}</pre>
+<div class="key-point">Order of attack: (1) profile to confirm there's a real problem, (2) fix it structurally — move state down or pass children — before reaching for memo, (3) only then add <code>React.memo</code>/<code>useMemo</code>/<code>useCallback</code>, remembering they only help if <em>every</em> prop reference is stable. The upcoming React Compiler auto-memoizes and removes most of this manual work.</div>`,
       },
       {
         q: 'Explain React Context API. What are its limitations?',
@@ -98,7 +154,9 @@ const handleClick = useCallback(() => doSomething(id), [id]);</pre>
       {
         q: 'What are React custom hooks? Give an example.',
         difficulty: 'medium',
-        a: `<p>Custom hooks extract <strong>reusable stateful logic</strong>. Must start with <code>use</code> prefix.</p>
+        a: `<p>A <strong>custom hook</strong> is just a JavaScript function whose name starts with <code>use</code> and that calls other hooks. Its purpose is to <strong>extract and reuse stateful logic</strong> — the <em>behaviour</em>, not the markup — across components.</p>
+<p><strong>Why the <code>use</code> prefix matters:</strong> it's not cosmetic. The linter (<code>eslint-plugin-react-hooks</code>) relies on the prefix to enforce the Rules of Hooks — a function starting with <code>use</code> is allowed to call hooks and is checked for conditional/looped calls. Without it, the tooling can't verify hook safety.</p>
+<p><strong>Key insight:</strong> two components using the same custom hook <em>do not share state</em> — each call gets its own isolated state. A custom hook shares <em>logic</em>, never data. (To share data, you still need Context or a store.)</p>
 <pre>function useLocalStorage(key, initialValue) {
   const [value, setValue] = useState(() => {
     const stored = localStorage.getItem(key);
@@ -109,11 +167,14 @@ const handleClick = useCallback(() => doSomething(id), [id]);</pre>
     localStorage.setItem(key, JSON.stringify(value));
   }, [key, value]);
 
-  return [value, setValue];
+  return [value, setValue];  // same shape as useState → familiar API
 }
 
-// Usage
-const [theme, setTheme] = useLocalStorage('theme', 'light');</pre>`,
+// Usage — reads like built-in useState, but persists to localStorage.
+// Each component that calls this gets its OWN independent value.
+const [theme, setTheme] = useLocalStorage('theme', 'light');</pre>
+<p>Custom hooks are how modern React replaced HOCs and render props: instead of wrapping components in extra layers (wrapper hell), you compose behaviour by simply calling functions — <code>useAuth()</code>, <code>useFetch(url)</code>, <code>useDebounce(value)</code>, <code>useMediaQuery(q)</code>.</p>
+<div class="key-point">A custom hook shares stateful <em>logic</em>, not <em>state</em> — every call site gets a fresh, isolated copy of the hooks inside it. Return a tuple <code>[value, setter]</code> or an object to match the ergonomics of built-in hooks, and keep each hook focused on one concern so it stays composable.</div>`,
       },
       {
         q: 'What is the difference between controlled and uncontrolled components?',
@@ -135,8 +196,12 @@ const inputRef = useRef();
       {
         q: 'What is React.lazy and Suspense? Explain code splitting.',
         difficulty: 'medium',
-        a: `<p><strong>Code splitting</strong>: break bundle into smaller chunks loaded on demand.</p>
-<pre>const LazyComponent = React.lazy(() => import('./HeavyComponent'));
+        a: `<p><strong>Code splitting</strong> means breaking your JavaScript bundle into smaller chunks that load on demand, instead of shipping one giant file the user must download before seeing anything. The problem it solves: as an app grows, the single bundle balloons, and the user pays to download code for routes/features they may never visit — hurting initial load time.</p>
+<p><strong><code>React.lazy</code></strong> defers loading a component until it's first rendered. It takes a function that returns a dynamic <code>import()</code> (which bundlers like Webpack/Vite split into a separate chunk automatically).</p>
+<p><strong><code>Suspense</code></strong> is the boundary that shows a <code>fallback</code> UI while that chunk (or any suspending resource) is loading.</p>
+<pre>// This component's code lives in its OWN chunk,
+// downloaded only when &lt;LazyComponent /&gt; actually renders.
+const LazyComponent = React.lazy(() => import('./HeavyComponent'));
 
 function App() {
   return (
@@ -145,28 +210,50 @@ function App() {
     &lt;/Suspense&gt;
   );
 }</pre>
-<ul>
-<li><code>React.lazy</code> takes a function returning a dynamic <code>import()</code>.</li>
-<li><code>Suspense</code> shows fallback while chunk loads.</li>
-<li>Route-based splitting is the most impactful strategy.</li>
-</ul>`,
+<p><strong>Why route-based splitting is the highest-impact strategy:</strong> a user visiting <code>/dashboard</code> shouldn't download the code for <code>/settings</code>, <code>/admin</code>, etc. Splitting at the route level means each page loads roughly only its own code.</p>
+<pre>const Dashboard = React.lazy(() => import('./routes/Dashboard'));
+const Settings  = React.lazy(() => import('./routes/Settings'));
+
+&lt;Suspense fallback={&lt;PageSkeleton /&gt;}&gt;
+  &lt;Routes&gt;
+    &lt;Route path="/dashboard" element={&lt;Dashboard /&gt;} /&gt;
+    &lt;Route path="/settings"  element={&lt;Settings /&gt;} /&gt;
+  &lt;/Routes&gt;
+&lt;/Suspense&gt;</pre>
+<div class="key-point">Two classic gotchas: (1) <code>React.lazy</code> only works with <strong>default exports</strong> — for a named export, re-map it: <code>lazy(() =&gt; import('./x').then(m =&gt; ({ default: m.Named })))</code>. (2) Always render a lazy component <em>inside</em> a <code>Suspense</code> boundary, or React throws. Place the boundary thoughtfully — one high-up boundary gives a single spinner; nested boundaries let sections load independently.</div>`,
       },
       {
         q: 'What is the useRef hook? When to use it vs useState?',
         difficulty: 'medium',
-        a: `<ul>
-<li><code>useRef</code> returns a mutable <code>.current</code> property that persists across renders.</li>
-<li>Changing <code>.current</code> does <strong>NOT</strong> trigger re-render.</li>
-</ul>
-<p><strong>Use cases</strong>:</p>
+        a: `<p><code>useRef(initial)</code> returns a plain, mutable object <code>{ current: initial }</code> that React keeps <strong>the same instance of across every render</strong>. Think of it as an "instance variable" for a function component — a box you can read and write at any time.</p>
+<p>Two properties define it, and they're exactly what distinguishes it from state:</p>
 <ul>
-<li>Access DOM elements: <code>&lt;input ref={inputRef} /&gt;</code></li>
-<li>Store previous value, interval IDs, or any mutable value without causing re-render.</li>
+<li>The object <strong>persists</strong> across renders (a normal local variable would be re-created each render).</li>
+<li>Mutating <code>.current</code> does <strong>NOT</strong> trigger a re-render (setting state does).</li>
 </ul>
-<pre>const renderCount = useRef(0);
-useEffect(() => {
-  renderCount.current++; // doesn't cause re-render
-});</pre>`,
+<p><strong>useRef vs useState — how to choose:</strong></p>
+<table>
+<tr><th></th><th>useState</th><th>useRef</th></tr>
+<tr><td>Change triggers re-render?</td><td>Yes</td><td>No</td></tr>
+<tr><td>Value read during render?</td><td>Yes — it's the rendered UI</td><td>Avoid — may be stale/mutating</td></tr>
+<tr><td>Update timing</td><td>Async (next render)</td><td>Synchronous, immediate</td></tr>
+<tr><td>Use for</td><td>Data the UI displays</td><td>Values the UI does <em>not</em> display</td></tr>
+</table>
+<p><strong>The decision rule:</strong> if the value should appear on screen (and updating it should redraw the UI), use <code>useState</code>. If it's bookkeeping the render output doesn't depend on, use <code>useRef</code>.</p>
+<pre>// 1. Accessing a DOM node
+const inputRef = useRef(null);
+&lt;input ref={inputRef} /&gt;
+// later: inputRef.current.focus();
+
+// 2. Holding a mutable value without re-rendering
+const timerId = useRef(null);
+timerId.current = setInterval(tick, 1000);   // store it
+clearInterval(timerId.current);              // clear it later
+
+// 3. Remembering the previous value of a prop/state
+const prevCount = useRef(count);
+useEffect(() => { prevCount.current = count; }, [count]);</pre>
+<div class="key-point">Don't read or write <code>ref.current</code> <em>during</em> rendering (except lazy initialization) — it makes rendering impure and results unpredictable; touch it in event handlers or effects. And remember: because writes don't re-render, storing UI-visible data in a ref means the screen won't update when it changes — that's a bug, not an optimization.</div>`,
       },
       {
         q: 'Explain React Server Components (RSC) and their benefits.',

@@ -102,33 +102,46 @@ null === undefined // false</pre>
       {
         q: "Explain 'this' keyword in different contexts.",
         difficulty: 'hard',
-        a: `<ul>
-<li><strong>Global</strong>: <code>window</code> (browser) or <code>global</code> (Node). In strict mode: <code>undefined</code>.</li>
-<li><strong>Object method</strong>: the object before the dot.</li>
-<li><strong>Constructor (new)</strong>: the newly created object.</li>
-<li><strong>Arrow function</strong>: inherits <code>this</code> from enclosing lexical scope (NOT own <code>this</code>).</li>
-<li><strong>call/apply/bind</strong>: explicitly set <code>this</code>.</li>
-</ul>
+        a: `<p><code>this</code> is <strong>not</strong> fixed when a function is written — it is decided by <em>how the function is called</em> (its call-site). There are five rules, checked in priority order:</p>
+<ol>
+<li><strong>new binding</strong>: <code>new Foo()</code> → <code>this</code> is the brand-new object being constructed.</li>
+<li><strong>Explicit binding</strong>: <code>call</code>/<code>apply</code>/<code>bind</code> → <code>this</code> is exactly the argument you pass.</li>
+<li><strong>Implicit binding</strong>: <code>obj.method()</code> → <code>this</code> is the object before the dot.</li>
+<li><strong>Default binding</strong>: a plain <code>fn()</code> call → <code>this</code> is <code>undefined</code> in strict mode, otherwise the global object (<code>window</code>/<code>global</code>).</li>
+<li><strong>Arrow functions</strong>: ignore all of the above. They have no <code>this</code> of their own and capture it <strong>lexically</strong> from the enclosing scope at definition time.</li>
+</ol>
 <pre>const obj = {
   name: 'Alice',
-  greet: function() { return this.name; },     // 'Alice'
-  greetArrow: () => this.name                   // undefined (lexical this = global)
-};</pre>`,
+  greet() { return this.name; },      // implicit → 'Alice'
+  greetArrow: () => this.name         // lexical → this = module/global → undefined
+};
+obj.greet();                          // 'Alice'
+
+const fn = obj.greet;
+fn();                                 // undefined — default binding, lost the object!
+fn.call(obj);                         // 'Alice'   — explicit binding restores it</pre>
+<p>The classic trap: passing a method as a callback (<code>setTimeout(obj.greet, 0)</code>) strips the implicit binding, so <code>this</code> falls back to default. Fix with <code>bind</code> or an arrow wrapper: <code>setTimeout(() =&gt; obj.greet(), 0)</code>.</p>
+<div class="key-point">Interview gotcha: an arrow method on an object literal does NOT bind <code>this</code> to that object. Arrows resolve <code>this</code> lexically, so it points at whatever <code>this</code> was where the object was defined (usually the module top level = <code>undefined</code>). Use a regular method for object methods.</div>`,
       },
       {
         q: 'What is the difference between call(), apply(), and bind()?',
         difficulty: 'medium',
-        a: `<ul>
-<li><code>call(thisArg, arg1, arg2)</code> – invokes immediately with individual args.</li>
-<li><code>apply(thisArg, [args])</code> – invokes immediately with array of args.</li>
-<li><code>bind(thisArg, arg1)</code> – returns a NEW function with bound <code>this</code> (does NOT invoke).</li>
+        a: `<p>All three let you <strong>explicitly set <code>this</code></strong> for a function, overriding the default call-site rules. They exist because a function in JavaScript is a standalone value — detaching a method from its object loses the <code>this</code> binding, and these methods let you reattach it (or borrow a method for a different object).</p>
+<ul>
+<li><code>call(thisArg, arg1, arg2, …)</code> – invokes <strong>immediately</strong>, arguments passed individually.</li>
+<li><code>apply(thisArg, [argsArray])</code> – invokes <strong>immediately</strong>, arguments passed as an array (mnemonic: <em>A</em>pply = <em>A</em>rray).</li>
+<li><code>bind(thisArg, arg1, …)</code> – does NOT invoke; returns a <strong>new function</strong> with <code>this</code> (and any leading args) permanently locked in, to be called later.</li>
 </ul>
-<pre>function greet(greeting) { return greeting + ' ' + this.name; }
+<pre>function greet(greeting, punct) { return greeting + ' ' + this.name + punct; }
 const user = { name: 'Bob' };
-greet.call(user, 'Hi');   // 'Hi Bob'
-greet.apply(user, ['Hi']); // 'Hi Bob'
-const bound = greet.bind(user, 'Hi');
-bound(); // 'Hi Bob'</pre>`,
+
+greet.call(user, 'Hi', '!');       // 'Hi Bob!'  — args listed
+greet.apply(user, ['Hi', '!']);    // 'Hi Bob!'  — args in an array
+
+const boundHi = greet.bind(user, 'Hi'); // partial application: 'Hi' fixed
+boundHi('?');                       // 'Hi Bob?'  — called later, add the rest</pre>
+<p><strong>Why each is useful:</strong> <code>apply</code> shines when args are already in an array (before spread existed, <code>Math.max.apply(null, nums)</code> was the idiom). <code>bind</code> preserves <code>this</code> for callbacks (<code>setTimeout(this.tick.bind(this), 1000)</code>) and enables partial application. <code>call</code> is common for method borrowing, e.g. running an array method on an array-like: <code>Array.prototype.slice.call(arguments)</code>.</p>
+<div class="key-point">Remember: call/apply <strong>invoke now</strong>; bind <strong>returns a function for later</strong>. And <code>bind</code> is permanent — a bound function's <code>this</code> cannot be re-bound (a second <code>bind</code> or a later <code>call</code> is ignored), while arrow functions ignore all three entirely.</div>`,
       },
       {
         q: 'Explain Promises, async/await, and error handling patterns.',
@@ -156,21 +169,34 @@ async function getOrders(id) {
       {
         q: 'What is debounce vs throttle? Implement debounce.',
         difficulty: 'medium',
-        a: `<ul>
-<li><strong>Debounce</strong>: waits until user STOPS triggering for X ms, then fires once. Use for: search input, resize.</li>
-<li><strong>Throttle</strong>: fires at most once every X ms. Use for: scroll, mousemove.</li>
-</ul>
-<pre>function debounce(fn, delay) {
+        a: `<p>Both limit how often an expensive handler runs, but they answer different questions. <strong>Debounce</strong> asks "have things gone quiet?" — it resets a timer on every call and only fires once the events STOP for X ms. <strong>Throttle</strong> asks "has enough time passed?" — it fires at most once per X ms, ignoring the calls in between.</p>
+<table style="width:100%;border-collapse:collapse;margin:10px 0;font-size:.88rem;">
+<tr><th style="text-align:left;padding:6px;border-bottom:1px solid #ccc;"></th><th style="padding:6px;border-bottom:1px solid #ccc;">Debounce</th><th style="padding:6px;border-bottom:1px solid #ccc;">Throttle</th></tr>
+<tr><td style="padding:6px;">Fires</td><td style="padding:6px;">Once, after activity stops</td><td style="padding:6px;">At a steady max rate during activity</td></tr>
+<tr><td style="padding:6px;">Use for</td><td style="padding:6px;">Search-as-you-type, resize end, autosave</td><td style="padding:6px;">Scroll, mousemove, drag, rapid clicks</td></tr>
+</table>
+<pre>// Debounce: only runs after 'delay' ms of silence
+function debounce(fn, delay) {
   let timer;
   return function(...args) {
-    clearTimeout(timer);
+    clearTimeout(timer);                    // cancel the pending call
     timer = setTimeout(() => fn.apply(this, args), delay);
   };
 }
 
-const search = debounce((query) => {
-  fetch('/api/search?q=' + encodeURIComponent(query));
-}, 300);</pre>`,
+// Throttle: runs at most once per 'limit' ms
+function throttle(fn, limit) {
+  let waiting = false;
+  return function(...args) {
+    if (waiting) return;                    // ignore calls during cooldown
+    fn.apply(this, args);
+    waiting = true;
+    setTimeout(() => { waiting = false; }, limit);
+  };
+}
+
+const search = debounce((q) => fetch('/api/search?q=' + encodeURIComponent(q)), 300);</pre>
+<div class="key-point">If a user types "hello" quickly, a <strong>debounced</strong> search fires ONE request after they pause; a <strong>throttled</strong> one fires roughly every X ms while they keep typing. Rule of thumb: debounce when you only care about the final state, throttle when you want regular updates during a continuous stream.</div>`,
       },
       {
         q: 'What are WeakMap and WeakSet? When to use them?',
@@ -274,17 +300,19 @@ add(1)(2, 3);   // 6</pre>
       {
         q: 'What is the output? (Tricky type coercion questions)',
         difficulty: 'tricky',
-        a: `<pre>[] + []          // "" (both coerced to "")
-[] + {}          // "[object Object]"
-{} + []          // 0 (in console, {} parsed as block)
-true + true      // 2
-'5' - 3          // 2 (- triggers numeric coercion)
-'5' + 3          // "53" (+ triggers string concat)
-null + 1         // 1
-undefined + 1    // NaN
-typeof null      // "object" (historical bug)
-typeof NaN       // "number"
-NaN === NaN      // false (use Number.isNaN())</pre>`,
+        a: `<p>These outputs all come from JavaScript's <strong>implicit type coercion</strong>. Two rules explain almost everything: (1) <code>+</code> is overloaded — if <em>either</em> operand is a string (or an object that stringifies to one), it does string concatenation; otherwise numeric addition. (2) Every other arithmetic operator (<code>-</code>, <code>*</code>, <code>/</code>) has no string form, so it always coerces both sides to numbers first.</p>
+<pre>[] + []          // "" — arrays stringify to "", so "" + "" = ""
+[] + {}          // "[object Object]" — "" + "[object Object]"
+{} + []          // 0 — leading {} parsed as an empty BLOCK, then +[] = 0
+true + true      // 2 — booleans coerce to numbers (1 + 1)
+'5' - 3          // 2 — '-' forces numeric: 5 - 3
+'5' + 3          // "53" — '+' with a string concatenates
+null + 1         // 1 — null coerces to 0
+undefined + 1    // NaN — undefined coerces to NaN
+typeof null      // "object" — historical bug, never fixable
+typeof NaN       // "number" — NaN is still a numeric value
+NaN === NaN      // false — NaN is not equal to itself; use Number.isNaN()</pre>
+<div class="key-point">The interview point isn't memorising the table — it's naming the mechanism: objects are coerced to primitives via <code>valueOf</code>/<code>toString</code>, <code>+</code> prefers string when either side is a string, and every other operator prefers number. In production code, never rely on implicit coercion — it is exactly the source of these surprises.</div>`,
       },
       {
         q: 'Explain Proxy and Reflect in JavaScript.',
@@ -384,7 +412,9 @@ const { a, ...others } = { a: 1, b: 2, c: 3 };
       {
         q: 'What are template literals and tagged templates?',
         difficulty: 'medium',
-        a: `<pre>// Template literals: backtick strings with expressions
+        a: `<p><strong>Template literals</strong> are strings delimited by backticks. They add three things over quoted strings: <strong>interpolation</strong> (embedding any expression), true <strong>multi-line</strong> strings without <code>\\n</code>, and the ability to be <em>tagged</em>.</p>
+<p>A <strong>tagged template</strong> is a function placed directly before a template literal. Instead of just building the string, JavaScript calls that function with the static text chunks as the first argument (an array) and the interpolated values as the remaining arguments. Because the function decides how the pieces are recombined, it can inspect and transform the input first — this is the basis for safe HTML/SQL escaping, CSS-in-JS, and embedded DSLs.</p>
+<pre>// Template literals: backtick strings with expressions
 const name = 'World';
 const greeting = \`Hello \${name}!\`;      // "Hello World!"
 const multiline = \`Line 1
@@ -403,7 +433,8 @@ highlight\`\${user} is \${age} years old\`;
 // Practical: SQL query safety (libraries use this)
 // css\`color: red;\` in styled-components
 // html\`<div>\${content}</div>\` in lit-html
-// gql\`query { user { name } }\` in GraphQL</pre>`,
+// gql\`query { user { name } }\` in GraphQL</pre>
+<div class="key-point">A tag function receives two things: <code>strings</code> (the literal chunks — plus a <code>strings.raw</code> variant where escapes like <code>\\n</code> are left un-processed) and <code>...values</code> (the interpolated results). Because the tag controls how values get inserted, libraries use it to auto-escape untrusted input — the real advantage over plain string concatenation.</div>`,
       },
       {
         q: 'What is destructuring in JavaScript?',

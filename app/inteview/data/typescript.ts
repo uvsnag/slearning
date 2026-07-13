@@ -61,7 +61,8 @@ type Readonly&lt;T&gt; = { readonly [P in keyof T]: T[P] };  // mapped type</pre
       {
         q: 'What are Generics in TypeScript? Give practical examples.',
         difficulty: 'hard',
-        a: `<p>Generics let you write reusable components that work with <strong>any type</strong> while preserving type safety.</p>
+        a: `<p>Generics let you write reusable components that work with <strong>any type</strong> while preserving type safety. Think of a type parameter <code>&lt;T&gt;</code> as a <em>type variable</em>: the caller (or the compiler, via inference) fills it in, and that same <code>T</code> flows through the whole signature so inputs and outputs stay linked.</p>
+<p><strong>Why not just use <code>any</code>?</strong> <code>any</code> throws the type away — a <code>getFirst</code> that returns <code>any</code> would let you call <code>.toUpperCase()</code> on a number with no warning. A generic returns the <em>actual</em> element type, so the compiler keeps checking what you do with the result. Generics are the line between "works with many types" and "gives up on types".</p>
 <pre>// Generic function
 function getFirst&lt;T&gt;(arr: T[]): T | undefined {
   return arr[0];
@@ -89,12 +90,20 @@ class DataStore&lt;T&gt; {
   private items: T[] = [];
   add(item: T): void { this.items.push(item); }
   getAll(): T[] { return [...this.items]; }
-}</pre>`,
+}</pre>
+<p><strong>Constraints</strong> (<code>K extends keyof T</code>) restrict what a type parameter can be so the body can safely touch its members. Without the constraint, <code>obj[key]</code> would be an error, because an unconstrained <code>T</code> might not have that key at all.</p>
+<div class="key-point">Prefer letting TypeScript <strong>infer</strong> type arguments (<code>getFirst([1,2,3])</code>) over writing them explicitly (<code>getFirst&lt;number&gt;(...)</code>) — explicit arguments are only needed when inference can't work it out. Rule of thumb: if a type parameter appears only <em>once</em> in a signature, it probably shouldn't be generic at all.</div>`,
       },
       {
         q: 'Explain union types, intersection types, and type narrowing.',
         difficulty: 'medium',
-        a: `<pre>// Union: A OR B
+        a: `<p>These three features work together: unions and intersections <em>build</em> composite types, and narrowing is how you safely <em>use</em> a union afterwards.</p>
+<ul>
+<li><strong>Union (<code>A | B</code>)</strong> — the value is <em>either</em> A or B. Until you narrow, you may only touch members common to <strong>both</strong>. Read <code>|</code> as "or".</li>
+<li><strong>Intersection (<code>A &amp; B</code>)</strong> — the value has <em>all</em> members of A <strong>and</strong> B at once. Used to compose/mix shapes. Read <code>&amp;</code> as "and".</li>
+<li><strong>Narrowing</strong> — inside a branch the compiler <em>refines</em> a union down to one member using checks like <code>typeof</code>, <code>instanceof</code>, <code>in</code>, or a discriminant property, then unlocks that member's specific API.</li>
+</ul>
+<pre>// Union: A OR B
 type StringOrNumber = string | number;
 type Status = 'active' | 'inactive' | 'pending';
 
@@ -122,7 +131,8 @@ function process(value: string | number) {
     value.toFixed(2);     // TS knows it's number
   }
 }</pre>
-<div class="key-point">Always prefer discriminated unions over type assertions. They let the compiler exhaustively check all cases.</div>`,
+<p><strong>The naming feels backwards</strong>: an <em>intersection</em> of object types has <em>more</em> members (a bigger shape, fewer values that qualify), while a <em>union</em> has fewer safely-accessible members (a smaller common shape, more values that qualify). It matches set theory on the set of <em>legal values</em>, not on the set of properties — which trips up almost everyone at first.</p>
+<div class="key-point">Always prefer discriminated unions (a shared literal <code>kind</code>/<code>type</code> tag) over type assertions. They let the compiler narrow automatically and <strong>exhaustively</strong> check every case — add an <code>assertNever(x: never)</code> default and forgetting a new variant becomes a compile error.</div>`,
       },
       {
         q: "What is 'any' vs 'unknown' vs 'never' in TypeScript?",
@@ -157,7 +167,17 @@ function paint(c: Color) {
       {
         q: 'Explain TypeScript utility types: Partial, Required, Pick, Omit, Record, Readonly.',
         difficulty: 'hard',
-        a: `<pre>interface User {
+        a: `<p>Utility types are built-in <strong>generic type transformers</strong>. Rather than hand-writing a second interface every time you need a variation of a shape — a "create" DTO without the <code>id</code>, an "update" DTO where everything is optional — you <strong>derive</strong> it from one source type. When the base changes, every derived type updates automatically. This is the DRY principle applied to types, and it eliminates the classic bug where a field is renamed in one interface but a stale duplicate lingers.</p>
+<table>
+<tr><th>Utility</th><th>Effect</th><th>Typical use</th></tr>
+<tr><td><code>Partial&lt;T&gt;</code></td><td>all props optional</td><td>update / patch payloads</td></tr>
+<tr><td><code>Required&lt;T&gt;</code></td><td>all props required</td><td>after validating a config</td></tr>
+<tr><td><code>Pick&lt;T, K&gt;</code></td><td>keep only keys K</td><td>narrow view / preview DTO</td></tr>
+<tr><td><code>Omit&lt;T, K&gt;</code></td><td>drop keys K</td><td>"create" DTO without id</td></tr>
+<tr><td><code>Record&lt;K, V&gt;</code></td><td>object of K → V</td><td>lookups / dictionaries</td></tr>
+<tr><td><code>Readonly&lt;T&gt;</code></td><td>all props readonly</td><td>immutable data / props</td></tr>
+</table>
+<pre>interface User {
   id: number;
   name: string;
   email: string;
@@ -189,7 +209,9 @@ type FrozenUser = Readonly&lt;User&gt;;
 
 // Combining
 type UserForm = Partial&lt;Omit&lt;User, 'id'&gt;&gt; & Pick&lt;User, 'name'&gt;;
-// name required, email + age optional, id excluded</pre>`,
+// name required, email + age optional, id excluded</pre>
+<p>They <strong>compose</strong> freely (as the last example shows) because each just returns another type. Note the pairs of opposites: <code>Pick</code>/<code>Omit</code> (allow-list vs deny-list of keys) and <code>Partial</code>/<code>Required</code>.</p>
+<div class="key-point">Reach for a utility type before writing a new interface by hand — deriving from a single source of truth means a field rename can't leave a stale duplicate behind. Watch one gotcha: <code>Partial</code> and <code>Readonly</code> are <strong>shallow</strong> (one level deep); nested objects keep their original modifiers unless you write a recursive <code>DeepPartial</code>.</div>`,
       },
       {
         q: 'What are mapped types and conditional types?',
@@ -219,7 +241,8 @@ type EventName = \`on\${ Capitalize&lt;'click' | 'focus' | 'blur'&gt; }\`;
       {
         q: 'What are type guards and how to create custom ones?',
         difficulty: 'medium',
-        a: `<pre>// Built-in type guards
+        a: `<p>A <strong>type guard</strong> is any expression that lets the compiler <em>narrow</em> a broad type to a more specific one within a scope. TypeScript understands several guards automatically (<code>typeof</code>, <code>instanceof</code>, <code>in</code>), but for your own domain logic you write a <strong>custom guard</strong> whose return type is a <em>type predicate</em> — <code>pet is Fish</code>. That predicate is the signal that tells the compiler "if this returns <code>true</code>, treat the argument as a Fish from here on".</p>
+<pre>// Built-in type guards
 typeof value === 'string'        // primitive check
 value instanceof Date             // class check
 'property' in obj                 // property existence
@@ -247,12 +270,15 @@ function assertIsString(val: unknown): asserts val is string {
 function demo(val: unknown) {
   assertIsString(val);
   val.toUpperCase();  // TS knows it's string after assertion
-}</pre>`,
+}</pre>
+<p>The two flavours differ in <em>how</em> they narrow: a <strong>predicate guard</strong> (<code>pet is Fish</code>) narrows inside an <code>if</code>/<code>else</code> branch, while an <strong>assertion function</strong> (<code>asserts val is string</code>) narrows for the rest of the scope by <em>throwing</em> when the check fails — handy for validating inputs up front.</p>
+<div class="key-point">The guard must return <code>pet is Fish</code>, not just <code>boolean</code> — with a plain <code>boolean</code> return the compiler runs your check but still won't narrow the type. And a predicate is an <strong>unchecked promise</strong>: if the runtime logic inside is wrong, TypeScript trusts you anyway, so keep the body honest (or use a schema validator like Zod that generates the guard for you).</div>`,
       },
       {
         q: "Explain 'as const', const assertions, and literal types.",
         difficulty: 'tricky',
-        a: `<pre>// Without as const: types are widened
+        a: `<p>By default TypeScript <strong>widens</strong> literal values to their general type, because it assumes most values are meant to change: a mutable object property or array element is inferred as <code>string</code> / <code>string[]</code> rather than the exact literal you wrote. <code>as const</code> is a <strong>const assertion</strong> that tells the compiler the opposite — "this value is fully immutable, keep the most specific type possible." It does three things at once: narrows every literal to its exact value, marks every property <code>readonly</code>, and turns arrays into <code>readonly</code> tuples.</p>
+<pre>// Without as const: types are widened
 const config = {
   endpoint: 'https://api.example.com',  // type: string
   retries: 3,                            // type: number
@@ -278,7 +304,8 @@ type Status = typeof STATUS[keyof typeof STATUS];
 // Literal types in function signatures
 function request(url: string, method: 'GET' | 'POST' | 'PUT' | 'DELETE') { }
 request('/users', 'GET');     // OK
-request('/users', 'PATCH');   // Error!</pre>`,
+request('/users', 'PATCH');   // Error!</pre>
+<div class="key-point"><code>as const</code> is the idiomatic way to get enum-like behaviour without <code>enum</code>: an <code>as const</code> object plus <code>typeof STATUS[keyof typeof STATUS]</code> gives you both the runtime values <em>and</em> a precise literal union, with zero generated code and full tree-shaking. Gotcha: the result is deeply <code>readonly</code>, so you can't pass it where a mutable array/object is expected without copying (spread) or a cast.</div>`,
       },
       {
         q: 'What are enums in TypeScript? What are the alternatives?',
@@ -566,7 +593,9 @@ const cb: VoidCallback = () => 42;  // OK! void ignores return value
       {
         q: 'What are template literal types in TypeScript?',
         difficulty: 'hard',
-        a: `<pre>// Basic template literal types
+        a: `<p>Template literal types apply JavaScript's backtick-string interpolation <strong>at the type level</strong>: you build new string-literal types by embedding other string-literal types inside a template. When you interpolate a union, TypeScript produces the <strong>cross-product</strong> of every combination — so two 2-member unions expand into four literal types.</p>
+<p><strong>Why they matter</strong>: real APIs are full of strings whose <em>structure</em> carries meaning — event handler names, CSS values, route params, prefixed keys. Together with the intrinsic helpers (<code>Uppercase</code>, <code>Lowercase</code>, <code>Capitalize</code>, <code>Uncapitalize</code>) and <code>infer</code> for pattern-matching, template literal types let the compiler validate and even <em>parse</em> those strings, catching typos that a plain <code>string</code> type would wave through.</p>
+<pre>// Basic template literal types
 type Color = 'red' | 'blue';
 type Size = 'sm' | 'lg';
 type ClassName = \`\${Size}-\${Color}\`;
@@ -591,7 +620,8 @@ const bad: CSSValue = '100vw';     // Error!
 
 // Pattern matching with infer
 type ExtractId&lt;T&gt; = T extends \`user_\${infer Id}\` ? Id : never;
-type Result = ExtractId&lt;'user_123'&gt;;  // "123"</pre>`,
+type Result = ExtractId&lt;'user_123'&gt;;  // "123"</pre>
+<div class="key-point">Combined with <code>infer</code>, template literal types can pull structured data <em>out</em> of a string type (extracting <code>"123"</code> from <code>"user_123"</code>) — this is how libraries type-check route paths and query strings. Beware the combinatorial explosion: crossing several large unions multiplies out fast and can blow past TypeScript's type-complexity limits.</div>`,
       },
       {
         q: 'Explain TypeScript module augmentation and declaration merging.',

@@ -12,17 +12,31 @@ export const topics: PvTopic[] = [
         q: 'What are the types of SQL JOINs? Explain with examples.',
         difficulty: 'easy',
         a: `<ul>
-<li><strong>INNER JOIN</strong>: rows matching in both tables.</li>
-<li><strong>LEFT JOIN</strong>: all rows from left + matching right (NULL if no match).</li>
-<li><strong>RIGHT JOIN</strong>: all rows from right + matching left.</li>
-<li><strong>FULL OUTER JOIN</strong>: all rows from both tables.</li>
-<li><strong>CROSS JOIN</strong>: Cartesian product (every row × every row).</li>
-<li><strong>SELF JOIN</strong>: table joined with itself.</li>
+<li><strong>INNER JOIN</strong> — only rows with a match in <em>both</em> tables; non-matching rows on either side are dropped.</li>
+<li><strong>LEFT (OUTER) JOIN</strong> — <em>all</em> rows from the left table + matching right rows; right columns are <code>NULL</code> where there's no match.</li>
+<li><strong>RIGHT (OUTER) JOIN</strong> — the mirror image: all rows from the right table. (Rarely used — people flip the table order and write LEFT instead.)</li>
+<li><strong>FULL OUTER JOIN</strong> — all rows from both sides, <code>NULL</code>s filling the gaps. (PostgreSQL/SQL Server; <strong>MySQL lacks it</strong> — emulate with <code>LEFT JOIN ... UNION ... RIGHT JOIN</code>.)</li>
+<li><strong>CROSS JOIN</strong> — Cartesian product: every left row × every right row (no ON clause). Handy for generating combinations/calendars.</li>
+<li><strong>SELF JOIN</strong> — a table joined to itself via aliases, e.g. employee → their manager in the same table.</li>
 </ul>
-<pre>-- Find employees with their managers
+<pre>-- customers(id,name)          orders(id, customer_id, total)
+--  1 An  2 Bo  3 Chi          10→cust1  11→cust1  12→cust2   (Chi has none)
+
+-- INNER JOIN: only customers who HAVE orders
+SELECT c.name, o.total FROM customers c
+JOIN orders o ON o.customer_id = c.id;
+-- An/… , An/… , Bo/…            (Chi excluded)
+
+-- LEFT JOIN: EVERY customer, orders where they exist
+SELECT c.name, o.total FROM customers c
+LEFT JOIN orders o ON o.customer_id = c.id;
+-- An/… , An/… , Bo/… , Chi/NULL  (Chi kept, total = NULL)
+
+-- SELF JOIN: pair each employee with their manager
 SELECT e.name AS employee, m.name AS manager
 FROM employees e
-LEFT JOIN employees m ON e.manager_id = m.id;</pre>`,
+LEFT JOIN employees m ON e.manager_id = m.id;   -- LEFT keeps the CEO (no manager)</pre>
+<div class="key-point">Pick by intent: <strong>INNER</strong> when a row must exist on both sides; <strong>LEFT</strong> when the left table is the "master" list you must keep in full (customers with or without orders). Trap: putting a right-table filter in <code>WHERE</code> silently turns a LEFT JOIN into an INNER JOIN — right-side conditions belong in the <code>ON</code> clause (covered in its own question).</div>`,
       },
       {
         q: 'What is the difference between WHERE and HAVING?',
@@ -154,18 +168,25 @@ order_lines(order_id, product_id, qty)     -- pure relationships
       {
         q: 'What is a deadlock? How to prevent it?',
         difficulty: 'hard',
-        a: `<p>A <strong>deadlock</strong> occurs when two transactions wait for each other's locks, creating a cycle.</p>
-<pre>-- TX1: UPDATE accounts SET ... WHERE id = 1; (locks row 1)
---       UPDATE accounts SET ... WHERE id = 2; (waits for TX2)
--- TX2: UPDATE accounts SET ... WHERE id = 2; (locks row 2)
---       UPDATE accounts SET ... WHERE id = 1; (waits for TX1) → DEADLOCK!</pre>
-<p><strong>Prevention</strong>:</p>
+        a: `<p>A <strong>deadlock</strong> is a cycle of waiting: each transaction holds a lock the other needs, so neither can proceed.</p>
+<pre>-- TX1                                    -- TX2
+UPDATE accounts SET ... WHERE id = 1;    -- locks row 1
+                                         UPDATE accounts SET ... WHERE id = 2;  -- locks row 2
+UPDATE accounts SET ... WHERE id = 2;    -- waits for TX2  ┐
+                                         UPDATE accounts SET ... WHERE id = 1;  -- waits for TX1
+--                                                          └── cycle → DEADLOCK!</pre>
+<p><strong>How the database handles it:</strong> unlike an application hang, the DB has a <strong>deadlock detector</strong> — it maintains a "waits-for" graph and, on finding a cycle, kills one transaction (the <strong>victim</strong>, usually the one cheapest to roll back). That transaction fails with an error (PostgreSQL <code>40P01</code>, MySQL <code>1213</code>) and must be <strong>retried by the application</strong>. So the first rule is: catch the deadlock error and retry the whole transaction.</p>
+<p><strong>Prevention:</strong></p>
 <ul>
-<li>Always lock resources in the <strong>same order</strong>.</li>
-<li>Keep transactions <strong>short</strong>.</li>
-<li>Use <strong>SELECT ... FOR UPDATE NOWAIT</strong> to fail fast.</li>
-<li>Use appropriate isolation levels.</li>
-</ul>`,
+<li><strong>Consistent lock ordering</strong> — the #1 fix. If every transaction acquires locks in the same order (e.g. always ascending by id), a cycle is impossible:
+<pre>-- ✅ Both transactions touch ids in the SAME order → no cycle
+UPDATE accounts SET ... WHERE id = LEAST(:a, :b);
+UPDATE accounts SET ... WHERE id = GREATEST(:a, :b);</pre></li>
+<li><strong>Keep transactions short</strong> — fewer locks held for less time = smaller collision window. Never do slow work (HTTP calls, user think-time) inside a transaction.</li>
+<li><strong>Fail fast</strong> — <code>SELECT ... FOR UPDATE NOWAIT</code> (error immediately) or <code>SKIP LOCKED</code> (skip locked rows — ideal for job queues) instead of waiting indefinitely.</li>
+<li><strong>Reduce lock scope</strong> — touch a single canonical row to serialize contenders, and prefer row-level over table-level locks.</li>
+</ul>
+<div class="key-point">Deadlock (a cycle, auto-resolved by the DB killing a victim) ≠ lock wait/timeout (one TX simply waits and eventually times out). The senior answer pairs a <strong>prevention</strong> strategy (consistent lock order, short TXs) with a <strong>recovery</strong> strategy (detect the deadlock error code and retry) — you need both.</div>`,
       },
       {
         q: 'What is the difference between clustered and non-clustered indexes?',
@@ -214,49 +235,60 @@ CALL transfer(1, 2, 100.00);</pre>
       {
         q: 'Write SQL: Find the Nth highest salary.',
         difficulty: 'tricky',
-        a: `<pre>-- Method 1: DENSE_RANK
+        a: `<p>"Nth highest" hinges on how you treat <strong>ties</strong>. All three methods below find the 3rd-highest <em>distinct</em> salary — the version interviewers usually want.</p>
+<pre>-- Method 1: DENSE_RANK ← preferred (clear, standard, tie-correct)
 SELECT salary FROM (
   SELECT salary, DENSE_RANK() OVER (ORDER BY salary DESC) AS rnk
   FROM employees
 ) ranked
-WHERE rnk = 3; -- 3rd highest
+WHERE rnk = 3;              -- 3rd highest DISTINCT salary
+-- DENSE_RANK gives ties the same rank with NO gaps, so "3rd distinct value" = rnk 3.
+-- (Use RANK if you want gaps after ties; ROW_NUMBER if every row must be unique.)
 
--- Method 2: OFFSET
+-- Method 2: OFFSET ← simplest to write
 SELECT DISTINCT salary
 FROM employees
 ORDER BY salary DESC
-LIMIT 1 OFFSET 2; -- 0-indexed
+LIMIT 1 OFFSET 2;          -- skip the top 2 distinct salaries, take the next (0-indexed)
 
--- Method 3: Correlated subquery
+-- Method 3: Correlated subquery ← works without window functions (older DBs)
 SELECT DISTINCT salary
 FROM employees e1
-WHERE 3 = (
-  SELECT COUNT(DISTINCT salary)
-  FROM employees e2
-  WHERE e2.salary >= e1.salary
-);</pre>`,
+WHERE 3 = (SELECT COUNT(DISTINCT salary)
+           FROM employees e2 WHERE e2.salary >= e1.salary);
+-- "salary such that exactly 3 distinct salaries are >= it". O(n²) — avoid on big tables.</pre>
+<ul>
+<li><strong>Edge case</strong>: if fewer than N distinct salaries exist, all three correctly return <strong>no rows</strong> (interviewers love "what if N=10 but there are only 4 salaries?").</li>
+<li><strong>Ties</strong>: keep <code>DISTINCT</code> / use <code>DENSE_RANK</code> to rank by <em>value</em>; drop <code>DISTINCT</code> and use <code>ROW_NUMBER</code> if you mean the Nth <em>row/person</em>.</li>
+</ul>
+<div class="key-point">Reach for <strong>DENSE_RANK</strong> in the interview: it states intent, handles ties correctly, and generalizes to "top-N per group" with <code>PARTITION BY</code>. The correlated subquery is the "no window functions available" fallback — mention its O(n²) cost.</div>`,
       },
       {
         q: 'Write SQL: Find duplicate records in a table.',
         difficulty: 'medium',
-        a: `<pre>-- Find duplicates
+        a: `<p>Two separate tasks: <strong>detecting</strong> duplicates, and <strong>deleting</strong> them while keeping one copy.</p>
+<pre>-- 1. DETECT: group by the "duplicate key", keep groups with more than one row
 SELECT email, COUNT(*) AS cnt
 FROM users
 GROUP BY email
-HAVING COUNT(*) > 1;
+HAVING COUNT(*) > 1;          -- HAVING filters groups (WHERE can't see COUNT)
 
--- Delete duplicates (keep lowest ID)
+-- 2. DELETE keeping the lowest id — simple, but has a NULL trap:
 DELETE FROM users
-WHERE id NOT IN (
-  SELECT MIN(id) FROM users GROUP BY email
-);
+WHERE id NOT IN (SELECT MIN(id) FROM users GROUP BY email);
+-- ⚠️ if any id could be NULL, NOT IN returns nothing (three-valued logic — see the NULL question)
 
--- Using CTE + ROW_NUMBER (safer)
+-- 3. DELETE with CTE + ROW_NUMBER ← safest and most flexible
 WITH cte AS (
   SELECT id, ROW_NUMBER() OVER (PARTITION BY email ORDER BY id) AS rn
-  FROM users
+  FROM users                  -- rn = 1 for the row to KEEP, 2,3… for duplicates
 )
-DELETE FROM users WHERE id IN (SELECT id FROM cte WHERE rn > 1);</pre>`,
+DELETE FROM users WHERE id IN (SELECT id FROM cte WHERE rn > 1);</pre>
+<ul>
+<li><strong>Why ROW_NUMBER is safest</strong>: no <code>NOT IN</code>/NULL pitfall, and the window's <code>ORDER BY</code> lets you choose exactly which row survives (lowest id, newest <code>updated_at</code>, etc.).</li>
+<li><strong>Prevent recurrence</strong>: after cleanup, add a <code>UNIQUE</code> constraint on the key — <code>ALTER TABLE users ADD CONSTRAINT uq_email UNIQUE(email);</code> — so duplicates can't reappear.</li>
+</ul>
+<div class="key-point">Detect with <code>GROUP BY … HAVING COUNT(*) &gt; 1</code>; delete with <code>ROW_NUMBER() OVER (PARTITION BY key ORDER BY …)</code> and remove <code>rn &gt; 1</code>. Then enforce a UNIQUE index so the bug is fixed for good.</div>`,
       },
       {
         q: 'Explain recursive CTEs. Give an example.',
@@ -558,18 +590,30 @@ WHERE id = 1 AND version = 41;         -- the version you originally read
       {
         q: 'How to read and interpret an EXPLAIN / Execution Plan?',
         difficulty: 'hard',
-        a: `<pre>EXPLAIN ANALYZE SELECT * FROM orders WHERE customer_id = 42;</pre>
-<p>Key things to look for:</p>
+        a: `<p><code>EXPLAIN</code> shows the optimizer's chosen plan with <em>estimates</em>; <code>EXPLAIN ANALYZE</code> actually runs the query and adds <em>real</em> timings and row counts. Read the plan tree from the <strong>most-indented node outward</strong> — inner nodes run first and feed their parents.</p>
+<pre>EXPLAIN (ANALYZE, BUFFERS)
+SELECT * FROM orders WHERE customer_id = 42;
+
+-- Index Scan using idx_orders_customer on orders
+--   (cost=0.43..8.45 rows=3 width=64)          ← estimate
+--   (actual time=0.02..0.03 rows=3 loops=1)    ← reality
+--   Buffers: shared hit=4                        ← 4 pages, all from cache</pre>
+<p><strong>How to read each part:</strong></p>
 <ul>
-<li><strong>Seq Scan</strong>: full table scan → consider adding an index.</li>
-<li><strong>Index Scan / Index Only Scan</strong>: good, using index.</li>
-<li><strong>Nested Loop</strong>: fine for small result sets. Bad for large joins.</li>
-<li><strong>Hash Join</strong>: good for large equi-joins.</li>
-<li><strong>Sort</strong>: expensive if no index supports the ORDER BY.</li>
-<li><strong>Actual rows vs estimated rows</strong>: large mismatch → stale statistics, run ANALYZE.</li>
-<li><strong>Buffers</strong>: shared hit (cache) vs read (disk) → measure I/O impact.</li>
+<li><strong>cost=start..total</strong> — arbitrary optimizer units (not ms). Only the <em>relative</em> value matters: the planner picks the lowest-total-cost plan.</li>
+<li><strong>rows (estimate) vs actual rows</strong> — the single most important check. Off by 10–100×+ → <strong>stale/incorrect statistics</strong>; run <code>ANALYZE</code>. Bad estimates cause bad plans.</li>
+<li><strong>loops</strong> — a node's real cost is <code>actual time × loops</code>; a cheap-looking inner node run 100,000 times in a Nested Loop is your bottleneck.</li>
+<li><strong>Buffers</strong> — <code>shared hit</code> = from cache, <code>read</code> = from disk. Lots of <code>read</code> = I/O-bound.</li>
 </ul>
-<div class="key-point">Always use <code>EXPLAIN ANALYZE</code> (actually runs the query) for real timing, not just <code>EXPLAIN</code> (estimates only).</div>`,
+<p><strong>Node types you'll see (and what they signal):</strong></p>
+<ul>
+<li><strong>Seq Scan</strong> — full table scan. Fine on tiny tables or when returning most rows; a red flag on a large table with a selective filter → add an index.</li>
+<li><strong>Index Scan</strong> — seek via index, then fetch rows. <strong>Index Only Scan</strong> — answered entirely from the index (covering) → fastest.</li>
+<li><strong>Nested Loop</strong> — great for small row counts, catastrophic when the outer side is large (the "rows=12 but actual=480000" trap).</li>
+<li><strong>Hash Join</strong> — builds a hash table, best for large equi-joins. <strong>Merge Join</strong> — good when both inputs are already sorted.</li>
+<li><strong>Sort / Hash Aggregate</strong> — materializing work; expensive if it spills to disk (watch for "external merge Disk").</li>
+</ul>
+<div class="key-point">Workflow: run <code>EXPLAIN (ANALYZE, BUFFERS)</code>, then scan every node for <strong>estimated vs actual rows diverging</strong> — that node is where the plan went wrong. Fix statistics first (<code>ANALYZE</code>), then indexing, and rewrite the query only as a last resort. MySQL equivalent: <code>EXPLAIN ANALYZE</code> (8.0+) or <code>EXPLAIN FORMAT=JSON</code>.</div>`,
       },
       {
         q: 'What are the most common causes of slow SQL queries?',
@@ -642,14 +686,26 @@ FROM pg_stat_user_indexes WHERE idx_scan = 0;</pre>
       {
         q: 'What is a covering index and index-only scan?',
         difficulty: 'hard',
-        a: `<p>A <strong>covering index</strong> includes ALL columns needed by the query → no need to access the table (heap).</p>
-<pre>-- Query
+        a: `<p>A <strong>covering index</strong> contains <em>every</em> column a query needs — both the ones it filters/sorts on and the ones it returns. The database can then answer the query <strong>from the index alone</strong>, skipping the expensive hop back to the table (heap) for each row. The plan shows an <strong>Index Only Scan</strong>.</p>
+<pre>-- Query: filter on status, return name+email, ordered by name
 SELECT name, email FROM users WHERE status = 'active' ORDER BY name;
 
--- Covering index
-CREATE INDEX idx_covering ON users(status, name, email);</pre>
-<p>Execution plan shows <strong>Index Only Scan</strong> → fastest possible. No random I/O to heap.</p>
-<div class="key-point">In PostgreSQL: use <code>INCLUDE</code> for non-searchable columns: <code>CREATE INDEX idx ON users(status) INCLUDE (name, email);</code></div>`,
+-- Covering index: status (filter) + name (filter/order) + email (payload)
+CREATE INDEX idx_users_covering ON users(status, name, email);
+-- → Index Only Scan: no heap access, and rows already in name order (no Sort step)</pre>
+<p><strong>Two ways to add the payload columns (PostgreSQL):</strong></p>
+<pre>-- (a) as key columns — usable for filtering AND ordering, kept sorted:
+CREATE INDEX idx_a ON users(status, name, email);
+
+-- (b) INCLUDE — stored only at the leaf level as payload; NOT usable for
+--     searching or ordering, but keeps the index narrower and cheaper:
+CREATE INDEX idx_b ON users(status, name) INCLUDE (email);</pre>
+<ul>
+<li>Use <strong>key columns</strong> for anything you filter or sort by; use <strong>INCLUDE</strong> for columns you only need to <em>return</em>.</li>
+<li><strong>Trade-off</strong>: a covering index is wider → more disk and more write cost on every INSERT/UPDATE of those columns. Cover the few hot read queries, not everything.</li>
+<li><strong>PostgreSQL caveat</strong>: an Index Only Scan still consults the <em>visibility map</em>; on a table with many recent updates it may fall back to heap fetches until <code>VACUUM</code> runs.</li>
+</ul>
+<div class="key-point">Covering index = "the index answers the whole query." Order key columns as <strong>equality filters → sort columns → range filters</strong>, and push return-only columns into <code>INCLUDE</code> to keep the index lean. MySQL/InnoDB: every secondary index implicitly includes the primary key, and covering shows as "Using index" in EXPLAIN.</div>`,
       },
       {
         q: 'How to optimize pagination for large datasets?',
@@ -751,15 +807,27 @@ CREATE TABLE orders_2024_q1 PARTITION OF orders
       {
         q: 'How to optimize COUNT(*) on large tables?',
         difficulty: 'hard',
-        a: `<p><code>COUNT(*)</code> on large tables is inherently slow (must scan all rows in MVCC databases like PostgreSQL).</p>
-<p><strong>Strategies</strong>:</p>
+        a: `<p><strong>Why it's slow:</strong> in an MVCC database (PostgreSQL), a row's visibility depends on the querying transaction, so <code>COUNT(*)</code> can't read a single stored counter — it must scan every row (or at least a full index) to check which versions are visible. On tens of millions of rows that's seconds.</p>
+<pre>-- 1) Approximate total — instant, good enough for "≈ 12M results"
+SELECT reltuples::bigint AS estimate
+FROM pg_class WHERE relname = 'orders';         -- maintained by ANALYZE/autovacuum
+
+-- 2) Filtered count backed by an index (fast when the slice is small)
+CREATE INDEX idx_orders_status ON orders(status);
+SELECT COUNT(*) FROM orders WHERE status = 'active';    -- index scan, not full table
+
+-- 3) Maintained counter — exact and O(1) to read; cost moves to write time
+CREATE TABLE order_counts (status text PRIMARY KEY, n bigint);
+-- keep current with a trigger on INSERT/DELETE, or a scheduled refresh
+
+-- 4) Pagination: replace "total pages" with "is there a next page?"
+SELECT * FROM orders WHERE id > :last ORDER BY id LIMIT :size + 1;
+-- fetched size+1 rows? → a next page exists. No COUNT(*) needed at all.</pre>
 <ul>
-<li><strong>Approximate count</strong>: <code>SELECT reltuples FROM pg_class WHERE relname = 'orders';</code></li>
-<li><strong>Materialized view / cache</strong>: store count in a summary table, update via triggers or scheduled job.</li>
-<li><strong>COUNT with covering index</strong>: <code>CREATE INDEX idx ON orders(status);</code> → <code>SELECT COUNT(*) FROM orders WHERE status = 'active';</code></li>
-<li><strong>EXPLAIN hack</strong>: parse estimated rows from execution plan.</li>
-<li><strong>Avoid COUNT in pagination</strong>: use "has next page" pattern instead of total count.</li>
-</ul>`,
+<li><strong>Exact + fast is a trade-off</strong>: cheap-to-read exact counts cost you either at write time (trigger/summary table) or in freshness (a materialized view refreshed on a schedule).</li>
+<li><strong>COUNT(*) vs COUNT(1) vs COUNT(col)</strong>: <code>COUNT(*)</code> and <code>COUNT(1)</code> are identical (both count rows — "COUNT(1) is faster" is a myth); <code>COUNT(col)</code> counts only non-NULL values, so it can return a smaller number.</li>
+</ul>
+<div class="key-point">Ask first: does the feature actually need an <em>exact</em> total? "Showing 1–20 of ~12M" is fine with <code>reltuples</code>; most APIs need no total at all (use the "has next page" pattern). Reserve exact live counts for a maintained summary table.</div>`,
       },
       {
         q: 'What are the differences between EXIST vs IN vs JOIN for subqueries?',
@@ -781,21 +849,34 @@ JOIN items i ON o.id = i.order_id;</pre>
       {
         q: 'How to identify and fix slow queries in production?',
         difficulty: 'hard',
-        a: `<p><strong>Identify</strong>:</p>
+        a: `<p>Work in three phases: <strong>find</strong> the worst queries with data (not guesses), <strong>diagnose</strong> each with its plan, then <strong>fix and verify</strong>.</p>
+<p><strong>1. Find — turn on the slow query log and query the stats view:</strong></p>
+<pre>-- PostgreSQL: log any statement slower than 500ms
+ALTER SYSTEM SET log_min_duration_statement = '500ms';   -- then SELECT pg_reload_conf();
+
+-- pg_stat_statements: the goldmine — rank by TOTAL time, not per-call time
+--   (a 5ms query run 2M times hurts more than a 3s query run once)
+SELECT query, calls, mean_exec_time, total_exec_time
+FROM pg_stat_statements
+ORDER BY total_exec_time DESC
+LIMIT 20;
+
+-- MySQL equivalent:
+SET GLOBAL slow_query_log = 'ON';
+SET GLOBAL long_query_time = 0.5;
+-- then aggregate with pt-query-digest / performance_schema</pre>
+<p><strong>2. Diagnose — get the real plan for the top offenders:</strong></p>
+<pre>EXPLAIN (ANALYZE, BUFFERS) &lt;the slow query&gt;;
+-- look for: Seq Scans on big tables, estimated-vs-actual row blowups,
+--           Nested Loops over large sets, Sort/Hash spilling to disk</pre>
+<p><strong>3. Fix — cheapest, most-targeted change first, then re-measure:</strong></p>
 <ul>
-<li><strong>Slow query log</strong>: MySQL <code>slow_query_log</code>, PostgreSQL <code>log_min_duration_statement</code>.</li>
-<li><strong>pg_stat_statements</strong> (PostgreSQL): top queries by total time, calls, mean time.</li>
-<li><strong>APM tools</strong>: New Relic, Datadog, Elastic APM – trace DB calls from application.</li>
-<li><strong>EXPLAIN ANALYZE</strong>: check actual execution plan.</li>
+<li>Refresh statistics (<code>ANALYZE table;</code>) — a stale estimate is the most common root cause after a bulk load or big DELETE.</li>
+<li>Add the missing index (find culprits via <code>pg_stat_user_tables.seq_scan</code>); build it with <code>CREATE INDEX CONCURRENTLY</code> to avoid locking writes.</li>
+<li>Rewrite the query — kill correlated subqueries, make predicates SARGable, fix ORM N+1.</li>
+<li>Scale out only after the query itself is sound: connection pooling (PgBouncer/HikariCP), read replicas for read-heavy load, caching.</li>
 </ul>
-<p><strong>Fix</strong>:</p>
-<ul>
-<li>Add missing indexes (check <code>pg_stat_user_tables</code> for seq_scan counts).</li>
-<li>Rewrite query (avoid correlated subqueries, optimize JOINs).</li>
-<li>Update statistics: <code>ANALYZE table_name;</code></li>
-<li>Consider read replicas for heavy read workloads.</li>
-<li>Connection pooling (PgBouncer, HikariCP).</li>
-</ul>`,
+<div class="key-point">The senior signal is <strong>evidence-driven order</strong>: rank by total time in <code>pg_stat_statements</code> → read the plan → fix statistics/index/query → verify with the same measurement. Adding indexes by guesswork (and never dropping the unused ones) is the anti-pattern.</div>`,
       },
       {
         q: 'What is database connection pooling and why is it important?',

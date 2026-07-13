@@ -473,17 +473,20 @@ jobs:
       {
         q: 'What is Docker? How is it different from a Virtual Machine?',
         difficulty: 'easy',
-        a: `<ul>
-<li><strong>Docker</strong>: OS-level virtualization. Containers share the host kernel. Lightweight, fast startup.</li>
-<li><strong>VM</strong>: hardware-level virtualization. Each VM has its own OS. Heavy, slow startup.</li>
+        a: `<p><strong>Docker</strong> packages an app with its dependencies into a container that runs as an isolated process on the host. The key idea is <strong>where the isolation happens</strong>:</p>
+<ul>
+<li><strong>Docker (OS-level virtualization)</strong>: containers <strong>share the host's kernel</strong>; isolation comes from Linux <strong>namespaces</strong> (what a process can see — its own PIDs, network, filesystem) and <strong>cgroups</strong> (what it can use — CPU, memory). There is no guest OS to boot, so a container is really just a confined process — hence MB-sized images and millisecond startup.</li>
+<li><strong>VM (hardware-level virtualization)</strong>: a hypervisor emulates hardware and each VM runs a <strong>full guest OS with its own kernel</strong>. That gives stronger isolation but costs GBs of disk and RAM and takes seconds-to-minutes to boot.</li>
 </ul>
+<p>Analogy: VMs are separate houses (each with its own foundation and utilities); containers are apartments in one building (shared foundation/kernel, private locked doors).</p>
 <table style="width:100%;border-collapse:collapse;margin:10px 0;">
 <tr><th style="text-align:left;padding:6px;border-bottom:1px solid #ccc;"></th><th style="padding:6px;border-bottom:1px solid #ccc;">Docker</th><th style="padding:6px;border-bottom:1px solid #ccc;">VM</th></tr>
 <tr><td style="padding:6px;">Startup</td><td style="padding:6px;">Seconds</td><td style="padding:6px;">Minutes</td></tr>
 <tr><td style="padding:6px;">Size</td><td style="padding:6px;">MBs</td><td style="padding:6px;">GBs</td></tr>
 <tr><td style="padding:6px;">Isolation</td><td style="padding:6px;">Process-level</td><td style="padding:6px;">Full OS</td></tr>
 <tr><td style="padding:6px;">Performance</td><td style="padding:6px;">Near native</td><td style="padding:6px;">Overhead</td></tr>
-</table>`,
+</table>
+<div class="key-point">The one-liner: containers share the host kernel (namespaces + cgroups), VMs each run their own kernel on a hypervisor. Gotcha — because the kernel is shared, a Linux container needs a Linux kernel: on Windows/macOS "Docker" actually runs a lightweight Linux VM under the hood, and the isolation is weaker than a VM's, which is why untrusted multi-tenant workloads still lean on VMs (or micro-VMs like Firecracker).</div>`,
       },
       {
         q: 'Explain Docker architecture: Engine, Daemon, CLI, Images, Containers, Registry.',
@@ -526,26 +529,35 @@ CMD ["node", "server.js"]     # default command</pre>
       {
         q: 'How do Docker layers work? How to optimize image size?',
         difficulty: 'hard',
-        a: `<p>Each instruction creates a <strong>read-only layer</strong>. Layers are cached and shared between images.</p>
-<p><strong>Optimization strategies</strong>:</p>
+        a: `<p>An image is a <strong>stack of read-only layers</strong>. Each instruction that changes the filesystem (<code>FROM</code>, <code>RUN</code>, <code>COPY</code>, <code>ADD</code>) adds one layer on top; a union filesystem (overlayfs) merges them into what looks like a single filesystem. When you run a container, Docker adds a thin <strong>writable layer</strong> on top using <strong>copy-on-write</strong>: reads come from the shared read-only layers, and the first write to a file copies it up into the container's own layer.</p>
+<p>Two consequences that drive everything:</p>
 <ul>
-<li>Use <strong>multi-stage builds</strong>: build in one stage, copy only artifacts to final slim image.</li>
-<li>Order instructions from least to most frequently changed (dependencies before source code).</li>
-<li>Combine RUN commands to reduce layers.</li>
-<li>Use <code>.dockerignore</code> to exclude unnecessary files.</li>
-<li>Use slim/alpine base images.</li>
+<li><strong>Layers are shared and cached</strong>. If ten images share the same <code>node:20-alpine</code> base, that base is stored once on disk and pulled once. During a build, a layer is reused from cache only if its instruction <em>and</em> its inputs are unchanged.</li>
+<li><strong>A change busts the cache for that layer and every layer after it.</strong> This is why instruction order matters: if you <code>COPY . .</code> before installing dependencies, editing one source file invalidates the (expensive) dependency-install layer and forces a full reinstall.</li>
 </ul>
-<pre># Multi-stage build
+<p><strong>Optimization strategies</strong> — and why each works:</p>
+<ul>
+<li><strong>Multi-stage builds</strong>: build with a full toolchain in one stage, then <code>COPY --from</code> only the final artifact into a slim runtime image. Build tools never ship, so the image is smaller and the attack surface shrinks.</li>
+<li><strong>Order least- to most-frequently-changed</strong>: base → OS packages → dependency manifests → <code>npm ci</code> → source. Code changes (the frequent case) then only rebuild the cheap final layers.</li>
+<li><strong>Combine related <code>RUN</code> commands</strong> with <code>&amp;&amp;</code> and clean up in the same layer — deleting a cache in a <em>later</em> layer doesn't shrink the image, because the earlier layer still holds the files.</li>
+<li><strong>Use <code>.dockerignore</code></strong> to keep <code>.git</code>, <code>node_modules</code>, and secrets out of the build context (smaller context, better caching, no accidental leaks).</li>
+<li><strong>Use slim/alpine/distroless base images</strong> to cut the baseline size.</li>
+</ul>
+<pre># Dependencies copied and installed BEFORE source → the install layer
+# stays cached until package*.json actually changes.
 FROM node:20 AS builder
 WORKDIR /app
-COPY . .
-RUN npm ci && npm run build
+COPY package*.json ./          # changes rarely
+RUN npm ci                     # expensive layer — cached across code edits
+COPY . .                       # changes often → only this + below rebuild
+RUN npm run build
 
-FROM node:20-alpine
+FROM node:20-alpine            # slim runtime, no build tools
 WORKDIR /app
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
-CMD ["node", "dist/server.js"]</pre>`,
+CMD ["node", "dist/server.js"]</pre>
+<div class="key-point">The mental model: an image is cached, shared, read-only layers; a container is a copy-on-write layer on top. Put what changes least at the top of the Dockerfile — a cache miss invalidates that layer <em>and everything below it</em>.</div>`,
       },
       {
         q: 'What is the difference between CMD and ENTRYPOINT?',
@@ -565,33 +577,41 @@ docker run myapp bash             # python app.py bash (!) </pre>
       {
         q: 'Explain Docker networking: bridge, host, none, overlay.',
         difficulty: 'hard',
-        a: `<ul>
-<li><strong>bridge</strong> (default): isolated network. Containers communicate via container name/IP. Port mapping needed for host access.</li>
-<li><strong>host</strong>: container shares host's network stack. No isolation. Best performance.</li>
-<li><strong>none</strong>: no networking. Complete isolation.</li>
-<li><strong>overlay</strong>: spans multiple Docker hosts (Swarm/Kubernetes). Encrypted communication.</li>
+        a: `<p>Docker networking is built on Linux network namespaces — each driver is a different trade-off between <strong>isolation</strong>, <strong>performance</strong>, and <strong>reach</strong> (single host vs cluster).</p>
+<ul>
+<li><strong>bridge</strong> (default on a single host): each container gets its own network namespace and a private IP on a virtual bridge (<code>docker0</code>). Containers are isolated from the host; to expose one you publish a port (<code>-p 8080:80</code>), which adds a NAT rule. <em>Key nuance</em>: on the <strong>default</strong> bridge, containers can only reach each other by IP; on a <strong>user-defined</strong> bridge (<code>docker network create</code>) Docker runs an embedded DNS server so they resolve each other by <strong>container name</strong>. That is why Compose puts every service on a user-defined network.</li>
+<li><strong>host</strong>: the container shares the host's network namespace directly — no virtual bridge, no NAT, no port mapping (the container binds host ports as-is). Fastest (no NAT overhead) but there is <strong>no network isolation</strong> and ports can collide with the host's. Use only for latency-sensitive or high-throughput workloads. (Linux only; behaves differently on Docker Desktop.)</li>
+<li><strong>none</strong>: the container gets its own namespace with only a loopback interface — <strong>no external connectivity at all</strong>. Use for maximum isolation: untrusted batch jobs or a workload you'll attach a custom interface to.</li>
+<li><strong>overlay</strong>: a software-defined network that spans <strong>multiple Docker hosts</strong> (Swarm / Kubernetes-style clusters) so containers on different machines talk as if on one LAN, with optional encryption. This is the multi-host answer; bridge is single-host only.</li>
 </ul>
-<pre>docker network create mynet
+<pre># User-defined bridge → DNS by container name (the common case)
+docker network create mynet
 docker run --network mynet --name api myapi
-docker run --network mynet --name db postgres
-# api can reach db via hostname "db"</pre>`,
+docker run --network mynet --name db  postgres
+# api reaches the database at hostname "db" — no IPs, no links needed
+
+docker run --network host   nginx      # binds host :80 directly, no -p
+docker run --network none   batch-job  # fully offline</pre>
+<div class="key-point">Interview gotcha: containers on the <em>default</em> bridge cannot resolve each other by name — only a user-defined bridge (or Compose, which creates one for you) gives automatic DNS. Reach for <code>host</code> only when you truly need to skip NAT, and <code>overlay</code> only when the network must cross hosts.</div>`,
       },
       {
         q: 'What are Docker volumes? Named volume vs bind mount vs tmpfs.',
         difficulty: 'medium',
-        a: `<ul>
-<li><strong>Named volume</strong>: managed by Docker. Stored in <code>/var/lib/docker/volumes/</code>. Best for data persistence.</li>
-<li><strong>Bind mount</strong>: maps host directory to container. Best for development (code syncing).</li>
-<li><strong>tmpfs</strong>: in-memory, non-persistent. Best for sensitive data (secrets, temp files).</li>
+        a: `<p><strong>Why volumes exist</strong>: a container's writable layer is <strong>ephemeral</strong> — it's discarded when the container is removed, and copy-on-write to it is slow for heavy I/O like a database. Volumes bypass the writable layer to give you <strong>persistent, fast storage that outlives the container</strong>. Docker offers three mount types:</p>
+<ul>
+<li><strong>Named volume</strong>: storage fully managed by Docker (under <code>/var/lib/docker/volumes/</code>). The container doesn't care where it physically lives. This is the right choice for <strong>production data</strong> (databases, uploads): it's portable, backable-up (<code>docker volume</code> commands), and decoupled from the host's directory layout.</li>
+<li><strong>Bind mount</strong>: maps a <strong>specific host directory</strong> into the container. Great for <strong>development</strong> — mount your source so code changes hot-reload without rebuilding. Trade-offs: it couples the container to the host's exact path, and file ownership/permissions (UID/GID) leak between host and container, which is a common source of "permission denied" bugs.</li>
+<li><strong>tmpfs</strong>: an <strong>in-memory</strong> mount (Linux only), never written to disk and gone when the container stops. Use for <strong>secrets and scratch data</strong> you don't want persisted, or hot temp files where you want to avoid disk I/O.</li>
 </ul>
-<pre># Named volume
+<pre># Named volume — Docker manages it; survives container removal
 docker run -v mydata:/var/lib/mysql mysql
 
-# Bind mount
+# Bind mount — live host path; ideal for dev hot-reload
 docker run -v $(pwd)/src:/app/src node
 
-# tmpfs
-docker run --tmpfs /tmp myapp</pre>`,
+# tmpfs — in RAM, nothing touches disk
+docker run --tmpfs /tmp myapp</pre>
+<div class="key-point">Rule of thumb: <strong>named volumes for persistent app/database data</strong> (portable, Docker-managed), <strong>bind mounts for local development</strong> (live source), <strong>tmpfs for secrets/temp</strong>. A classic gotcha: with <code>-v name:/path</code> the first token has no slash (named volume) but <code>-v /host/path:/path</code> has one (bind mount) — the leading slash is what decides which you get.</div>`,
       },
       {
         q: 'What is Docker Compose? Explain key sections.',
@@ -620,17 +640,21 @@ volumes:
       {
         q: 'What is the difference between Docker Swarm and Kubernetes?',
         difficulty: 'hard',
-        a: `<ul>
-<li><strong>Docker Swarm</strong>: simple orchestration built into Docker. Easy setup. Limited features.</li>
-<li><strong>Kubernetes (K8s)</strong>: industry standard. Rich ecosystem, auto-scaling, self-healing, rolling updates, service mesh. Steeper learning curve.</li>
+        a: `<p>Both are <strong>container orchestrators</strong> — they schedule containers across a cluster of machines, keep the desired number running, handle networking between them, and roll out updates. The difference is one of <strong>power vs simplicity</strong>.</p>
+<ul>
+<li><strong>Docker Swarm</strong>: orchestration built straight into the Docker engine. You already know the tooling (<code>docker service</code>, Compose-style files) and a cluster is two commands away. The cost is a ceiling: no built-in autoscaling, a thinner ecosystem, and momentum that has clearly moved elsewhere.</li>
+<li><strong>Kubernetes (K8s)</strong>: the industry-standard control plane. Declarative desired-state reconciliation, horizontal autoscaling (HPA), self-healing, rich rollout strategies, a huge ecosystem (Helm, operators, service mesh, every cloud offers a managed version). The cost is real operational complexity — more moving parts (API server, etcd, scheduler, controllers) and a steep learning curve.</li>
 </ul>
 <table style="width:100%;border-collapse:collapse;margin:10px 0;">
 <tr><th style="text-align:left;padding:6px;border-bottom:1px solid #ccc;"></th><th style="padding:6px;border-bottom:1px solid #ccc;">Swarm</th><th style="padding:6px;border-bottom:1px solid #ccc;">K8s</th></tr>
 <tr><td style="padding:6px;">Setup</td><td style="padding:6px;">Simple</td><td style="padding:6px;">Complex</td></tr>
 <tr><td style="padding:6px;">Scaling</td><td style="padding:6px;">Manual</td><td style="padding:6px;">Auto (HPA)</td></tr>
+<tr><td style="padding:6px;">Self-healing</td><td style="padding:6px;">Restart on failure</td><td style="padding:6px;">Reconciliation loop</td></tr>
 <tr><td style="padding:6px;">Networking</td><td style="padding:6px;">Overlay</td><td style="padding:6px;">CNI plugins</td></tr>
-<tr><td style="padding:6px;">Community</td><td style="padding:6px;">Declining</td><td style="padding:6px;">Massive</td></tr>
-</table>`,
+<tr><td style="padding:6px;">Ecosystem</td><td style="padding:6px;">Small</td><td style="padding:6px;">Massive (Helm, operators, mesh)</td></tr>
+<tr><td style="padding:6px;">Community</td><td style="padding:6px;">Declining</td><td style="padding:6px;">Dominant</td></tr>
+</table>
+<div class="key-point">How to answer "which should we use?": <strong>Swarm</strong> if the team is small, the app is simple, and you want to be running today — it's genuinely fine at small scale. <strong>Kubernetes</strong> if you need autoscaling, a rich ecosystem, multi-cloud portability, or you're hiring for skills the market already has. In practice K8s (usually managed — EKS/GKE/AKS) has won for anything non-trivial, so the honest senior answer is "Swarm to start simple, but expect to standardize on managed Kubernetes as you grow."</div>`,
       },
       {
         q: 'How does Docker image caching work in CI/CD?',

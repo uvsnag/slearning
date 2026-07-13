@@ -205,37 +205,92 @@ Generational Hypothesis: Most objects die young.
       {
         q: 'What is the difference between HashMap, LinkedHashMap, TreeMap, and ConcurrentHashMap?',
         difficulty: 'medium',
-        a: `<ul>
-<li><strong>HashMap</strong>: O(1), no order, allows one null key.</li>
-<li><strong>LinkedHashMap</strong>: maintains <strong>insertion order</strong>.</li>
-<li><strong>TreeMap</strong>: <strong>sorted by keys</strong> (natural order or Comparator). O(log n).</li>
-<li><strong>ConcurrentHashMap</strong>: thread-safe, no null keys/values, uses segment locking (Java 7) or CAS + synchronized (Java 8+).</li>
-</ul>`,
+        a: `<p>All four implement <code>Map</code> but differ in <strong>ordering</strong>, <strong>performance</strong>, and <strong>thread-safety</strong>.</p>
+<ul>
+<li><strong>HashMap</strong> — a hash table. O(1) average get/put, <strong>no ordering</strong> guarantee (iteration order may change on resize). Allows <strong>one null key</strong> and multiple null values. Not thread-safe. The default choice.</li>
+<li><strong>LinkedHashMap</strong> — HashMap plus a doubly-linked list threaded through the entries, so it preserves <strong>insertion order</strong> (or <strong>access order</strong> when built with <code>accessOrder=true</code>). Slightly more memory. The natural base for an <strong>LRU cache</strong>.</li>
+<li><strong>TreeMap</strong> — a red-black tree. Keys are kept <strong>sorted</strong> (natural order, or a supplied <code>Comparator</code>). O(log n) get/put, no null keys. Implements <code>NavigableMap</code> → range and nearest-key queries.</li>
+<li><strong>ConcurrentHashMap</strong> — a thread-safe HashMap for concurrent access. <strong>No null keys or values.</strong> Uses CAS + per-bucket <code>synchronized</code> (Java 8+) so threads writing different buckets proceed in parallel — far faster than <code>Collections.synchronizedMap</code> or <code>Hashtable</code>, which lock the whole map.</li>
+</ul>
+<table>
+<tr><th>Feature</th><th>HashMap</th><th>LinkedHashMap</th><th>TreeMap</th><th>ConcurrentHashMap</th></tr>
+<tr><td>Ordering</td><td>None</td><td>Insertion/access</td><td>Sorted by key</td><td>None</td></tr>
+<tr><td>get/put</td><td>O(1)</td><td>O(1)</td><td>O(log n)</td><td>O(1)</td></tr>
+<tr><td>Null key</td><td>1 allowed</td><td>1 allowed</td><td>Not allowed</td><td>Not allowed</td></tr>
+<tr><td>Thread-safe</td><td>No</td><td>No</td><td>No</td><td>Yes</td></tr>
+</table>
+<pre>// TreeMap navigation — the reason to pick it over HashMap:
+TreeMap&lt;Integer, String&gt; tm = new TreeMap&lt;&gt;();
+tm.firstKey(); tm.lastKey();
+tm.floorKey(50);      // greatest key &lt;= 50
+tm.ceilingKey(50);    // smallest key &gt;= 50
+tm.headMap(50);       // all entries with key &lt; 50
+
+// LinkedHashMap as an LRU cache (access-order + removeEldestEntry):
+new LinkedHashMap&lt;K,V&gt;(16, 0.75f, true) {
+    protected boolean removeEldestEntry(Map.Entry&lt;K,V&gt; e) { return size() &gt; MAX; }
+};</pre>
+<div class="key-point">How to choose: default to <strong>HashMap</strong>; need predictable iteration order → <strong>LinkedHashMap</strong>; need sorted keys or range queries → <strong>TreeMap</strong>; shared across threads → <strong>ConcurrentHashMap</strong>. Trick: TreeMap decides key equality with <code>compareTo</code>/<code>Comparator</code>, <strong>not</strong> <code>equals</code> — if your comparator returns 0 for two keys, TreeMap treats them as the same key even when <code>equals()</code> disagrees.</div>`,
       },
       {
         q: 'Explain Java Streams. What is the difference between intermediate and terminal operations?',
         difficulty: 'medium',
-        a: `<ul>
-<li><strong>Intermediate</strong>: lazy, return Stream → <code>filter()</code>, <code>map()</code>, <code>sorted()</code>, <code>distinct()</code>, <code>flatMap()</code>.</li>
-<li><strong>Terminal</strong>: trigger execution → <code>collect()</code>, <code>forEach()</code>, <code>reduce()</code>, <code>count()</code>, <code>findFirst()</code>.</li>
+        a: `<p>A stream pipeline has three parts: a <strong>source</strong> (collection, array, generator) → zero or more <strong>intermediate</strong> operations → exactly one <strong>terminal</strong> operation.</p>
+<ul>
+<li><strong>Intermediate</strong> — return a new <code>Stream</code> (so they chain) and are <strong>lazy</strong>: they don't run until a terminal op is attached. Examples: <code>filter()</code>, <code>map()</code>, <code>flatMap()</code>, <code>sorted()</code>, <code>distinct()</code>, <code>limit()</code>, <code>peek()</code>.</li>
+<li><strong>Terminal</strong> — produce a result or side effect and <strong>trigger execution</strong> of the whole pipeline. Afterwards the stream is consumed and cannot be reused. Examples: <code>collect()</code>, <code>reduce()</code>, <code>forEach()</code>, <code>count()</code>, <code>findFirst()</code>, <code>anyMatch()</code>, <code>toList()</code>.</li>
 </ul>
 <pre>List&lt;String&gt; names = employees.stream()
-    .filter(e -> e.getSalary() > 50000)
-    .map(Employee::getName)
-    .sorted()
-    .collect(Collectors.toList());</pre>
-<div class="key-point">Trick: Streams are <strong>lazy</strong> – nothing executes until a terminal operation is called.</div>`,
+    .filter(e -> e.getSalary() > 50000)   // intermediate (lazy)
+    .map(Employee::getName)               // intermediate (lazy)
+    .sorted()                             // intermediate (stateful)
+    .collect(Collectors.toList());        // terminal → NOW everything runs</pre>
+<p><strong>Two consequences of laziness:</strong></p>
+<ul>
+<li><strong>Fusion</strong> — elements flow through the entire chain one at a time, not stage by stage. The <code>filter</code>+<code>map</code> above are a single pass over the data, not two.</li>
+<li><strong>Short-circuiting</strong> — <code>findFirst()</code>, <code>anyMatch()</code>, <code>limit()</code> can stop early without touching the whole source (they even work on infinite streams).</li>
+</ul>
+<pre>// Short-circuit: processes only until the first match
+Stream.iterate(1, n -> n + 1)      // infinite stream
+      .filter(n -> n % 7 == 0)
+      .findFirst();                 // 7 — stops immediately
+
+// Stateless vs stateful intermediate ops:
+// stateless: filter, map     (each element handled independently)
+// stateful:  sorted, distinct, limit  (need other/all elements first)</pre>
+<div class="key-point">Trick: "What if a stream has no terminal operation?" — Nothing runs; the intermediate ops never execute. "Can you reuse a stream?" — No. After a terminal op, any further operation throws <code>IllegalStateException: stream has already been operated upon or closed</code> — build a fresh stream from the source.</div>`,
       },
       {
         q: 'What is Optional in Java? Why use it?',
         difficulty: 'medium',
-        a: `<p><code>Optional&lt;T&gt;</code> is a container that may or may not hold a non-null value. Designed to reduce <code>NullPointerException</code>.</p>
-<pre>Optional&lt;String&gt; name = Optional.ofNullable(getName());
-String result = name
-    .filter(n -> n.length() > 3)
+        a: `<p><code>Optional&lt;T&gt;</code> is a container that holds either a non-null value or nothing. Its purpose is to make "a value might be absent" <strong>explicit in the type signature</strong>, forcing callers to handle the empty case instead of being surprised by a <code>NullPointerException</code>.</p>
+<pre>// Creating:
+Optional.of(value)          // value MUST be non-null, else NPE
+Optional.ofNullable(value)  // null → becomes an empty Optional
+Optional.empty()            // explicitly empty
+
+// Consuming — prefer these over isPresent()/get():
+opt.orElse(defaultValue)              // the value, or a default
+opt.orElseGet(() -> expensiveDefault) // default computed lazily (only if empty)
+opt.orElseThrow(() -> new NotFoundException())  // the value, or throw
+opt.ifPresent(v -> process(v))        // run only if present
+opt.map(String::toUpperCase)          // transform if present, stays empty otherwise
+opt.filter(v -> v.length() > 3)       // keep the value only if it matches
+opt.flatMap(this::lookup)             // chain another Optional-returning call</pre>
+<pre>// Real example — a null-safe pipeline with no explicit null checks:
+String city = Optional.ofNullable(user)
+    .map(User::getAddress)
+    .map(Address::getCity)
     .map(String::toUpperCase)
-    .orElse("UNKNOWN");</pre>
-<div class="key-point">Never use <code>Optional</code> for class fields or method parameters – only for return types.</div>`,
+    .orElse("UNKNOWN");
+// user, address, or city null anywhere → "UNKNOWN". Never an NPE.</pre>
+<p><strong>Anti-patterns (frequently probed in interviews):</strong></p>
+<ul>
+<li><strong>Don't</strong> call <code>opt.get()</code> unguarded — it throws <code>NoSuchElementException</code>, no better than an NPE. Use an <code>orElse*</code> / <code>ifPresent</code> method.</li>
+<li><strong>Don't</strong> write <code>if (opt.isPresent()) return opt.get();</code> — that's just a null check with more ceremony. Use <code>orElse</code>/<code>map</code>.</li>
+<li><strong>Prefer <code>orElseGet</code> over <code>orElse</code></strong> when the default is costly: <code>orElse(buildDefault())</code> ALWAYS evaluates <code>buildDefault()</code>, even when the value is present; <code>orElseGet</code> only calls the supplier when empty.</li>
+</ul>
+<div class="key-point">Design rule: use <code>Optional</code> only as a <strong>method return type</strong> (e.g. <code>Optional&lt;User&gt; findById(id)</code>). Do NOT use it for fields, method parameters, or collection elements — it adds an allocation, isn't <code>Serializable</code>, and an empty collection already means "nothing". Trick: an <code>Optional</code> reference can itself be <code>null</code>, so never <code>return null</code> from a method declared to return <code>Optional</code> — return <code>Optional.empty()</code>.</div>`,
       },
       {
         q: 'Explain the volatile keyword in Java.',
@@ -280,14 +335,37 @@ public static Singleton getInstance() {
       {
         q: 'What are the differences between synchronized, ReentrantLock, and ReadWriteLock?',
         difficulty: 'hard',
-        a: `<ul>
-<li><strong>synchronized</strong>: implicit lock, auto-released. Simple but no tryLock/timeout.</li>
-<li><strong>ReentrantLock</strong>: explicit lock/unlock. Supports <code>tryLock()</code>, <code>lockInterruptibly()</code>, fairness.</li>
-<li><strong>ReadWriteLock</strong>: allows multiple concurrent readers, exclusive writers. Great for read-heavy workloads.</li>
+        a: `<p>All three provide mutual exclusion; they differ in how much control and flexibility you get.</p>
+<ul>
+<li><strong><code>synchronized</code></strong> — the built-in intrinsic lock (a keyword). Acquired on entering a block/method and <strong>released automatically</strong> on exit, even if an exception is thrown. Simple and leak-proof, but: no timeout, can't be interrupted while waiting, always unfair, and there's no "try and give up".</li>
+<li><strong><code>ReentrantLock</code></strong> — an explicit <code>Lock</code> object. You call <code>lock()</code>/<code>unlock()</code> yourself (always in <code>try/finally</code>). Adds <code>tryLock()</code>, <code>tryLock(timeout)</code>, <code>lockInterruptibly()</code>, optional <strong>fairness</strong>, and multiple condition variables. "Reentrant" = the same thread may acquire it repeatedly (just like <code>synchronized</code>).</li>
+<li><strong><code>ReadWriteLock</code></strong> — a pair of locks: <strong>many</strong> threads can hold the read lock at once, but the write lock is <strong>exclusive</strong>. Ideal for data that's read often and written rarely (caches, config).</li>
 </ul>
-<pre>ReentrantReadWriteLock rwl = new ReentrantReadWriteLock();
-rwl.readLock().lock();   // multiple threads can hold this
-rwl.writeLock().lock();  // exclusive</pre>`,
+<pre>// synchronized — auto-release, nothing to remember
+public synchronized void increment() { count++; }
+synchronized (lockObject) { /* critical section */ }
+
+// ReentrantLock — MUST unlock in finally, or the lock leaks forever
+private final ReentrantLock lock = new ReentrantLock();
+lock.lock();
+try {
+    // critical section
+} finally {
+    lock.unlock();          // ⚠️ always in finally
+}
+
+// tryLock — never block forever (a deadlock-avoidance tactic):
+if (lock.tryLock(1, TimeUnit.SECONDS)) {
+    try { /* work */ } finally { lock.unlock(); }
+} else {
+    // couldn't acquire in time — back off / retry
+}
+
+// ReadWriteLock — concurrent reads, exclusive writes:
+ReadWriteLock rw = new ReentrantReadWriteLock();
+rw.readLock().lock();   try { return cache.get(key); } finally { rw.readLock().unlock(); }
+rw.writeLock().lock();  try { cache.put(key, val);   } finally { rw.writeLock().unlock(); }</pre>
+<div class="key-point">Default to <code>synchronized</code> — it's simpler and can't leak. Reach for <code>ReentrantLock</code> only when you need something it lacks: timeout, interruptible waiting, fairness, or condition variables (<code>lock.newCondition()</code>). Use <code>ReadWriteLock</code> for read-heavy caches — but if writes are frequent the reader/writer bookkeeping can be slower than plain <code>synchronized</code>. Trick: for read-mostly data, <code>StampedLock</code> (Java 8) with optimistic reads outperforms <code>ReadWriteLock</code>.</div>`,
       },
       {
         q: 'What is the difference between CompletableFuture and Future?',
@@ -364,14 +442,30 @@ class OrderService {
       {
         q: "What happens when you type 'new Object()' in Java? (Object creation lifecycle)",
         difficulty: 'tricky',
-        a: `<ol>
-<li>Class is loaded by ClassLoader (if not already loaded).</li>
-<li>Memory is allocated on the <strong>heap</strong> for the object.</li>
-<li>Fields are set to <strong>default values</strong> (0, null, false).</li>
-<li><strong>Instance initializers</strong> and <strong>field assignments</strong> run (in order of appearance).</li>
-<li><strong>Constructor</strong> body executes (after calling <code>super()</code>).</li>
-<li>Reference is returned to the caller (stored on stack).</li>
-</ol>`,
+        a: `<p>Executing <code>new Object()</code> compiles to two bytecodes — <code>new</code> (allocate) followed by <code>invokespecial</code> (run the constructor) — and triggers several ordered phases:</p>
+<ol>
+<li><strong>Loading &amp; initialization</strong> — if the class isn't loaded, the ClassLoader loads it, then it's linked (verify → prepare → resolve) and initialized: static blocks and static field assignments run <strong>once</strong>, parent-first.</li>
+<li><strong>Heap allocation</strong> — memory for the instance is reserved on the heap.</li>
+<li><strong>Zero / default init</strong> — every field is set to its default (<code>0</code>, <code>0.0</code>, <code>false</code>, <code>null</code>) <em>before</em> any of your code runs.</li>
+<li><strong>Constructor chaining</strong> — <code>super(...)</code> runs first, all the way up to <code>Object</code>, so the parent is fully built before the child.</li>
+<li><strong>Instance initializers &amp; field assignments</strong> — instance-initializer blocks and inline field initializers run in <strong>source order</strong>, right after <code>super()</code> returns.</li>
+<li><strong>Constructor body</strong> — the rest of the constructor executes.</li>
+<li><strong>Reference returned</strong> — the reference to the finished object is handed back to the caller (held in a local variable on the stack).</li>
+</ol>
+<pre>class Parent {
+    Parent() { System.out.println("2. Parent ctor"); }
+}
+class Child extends Parent {
+    private int x = initX();                         // runs AFTER super()
+    { System.out.println("3b. Child instance block"); }
+    Child() {
+        // super() called implicitly here → prints "2"
+        System.out.println("4. Child ctor body");
+    }
+    private int initX() { System.out.println("3a. field init"); return 10; }
+}
+// new Child() prints: 2 → 3a → 3b (initializers in source order) → 4</pre>
+<div class="key-point">Two senior traps: (1) fields hold their defaults (<code>0</code>/<code>null</code>) <em>before</em> initializers run, so a constructor that calls an <strong>overridable method</strong> sees the subclass's fields still unset — never call overridable methods from a constructor (Effective Java Item 19). (2) Static initialization happens once, lazily, on first active use of the class — not per object.</div>`,
       },
       {
         q: 'What is the difference between Checked and Unchecked Exceptions?',
@@ -400,26 +494,94 @@ try (var reader = Files.newBufferedReader(path)) {   // try-with-resources
       {
         q: 'Explain the Java ClassLoader hierarchy and how class loading works.',
         difficulty: 'hard',
-        a: `<ol>
-<li><strong>Bootstrap ClassLoader</strong>: loads core Java classes (rt.jar). Written in native code.</li>
-<li><strong>Extension/Platform ClassLoader</strong>: loads from <code>jre/lib/ext</code>.</li>
-<li><strong>Application ClassLoader</strong>: loads from classpath.</li>
+        a: `<p>Class loaders bring <code>.class</code> bytecode into the JVM on demand. They form a <strong>parent-child hierarchy</strong> and follow the <strong>parent-delegation model</strong>.</p>
+<ol>
+<li><strong>Bootstrap ClassLoader</strong> — loads the core JDK classes (<code>java.lang.*</code> etc., from <code>rt.jar</code> / the base module). Written in native code; appears as <code>null</code> from <code>getClassLoader()</code>.</li>
+<li><strong>Platform ClassLoader</strong> (called Extension ClassLoader before Java 9) — loads platform/extension modules.</li>
+<li><strong>Application (System) ClassLoader</strong> — loads your application's classes from the classpath / module path. This is the default loader for your code.</li>
 </ol>
-<p><strong>Delegation model</strong>: child asks parent first → prevents duplicate loading and ensures core classes can't be overridden.</p>
-<div class="key-point">Trick: "Can you load two different versions of the same class?" → Yes, with <strong>custom ClassLoaders</strong> (used by app servers like Tomcat for war isolation).</div>`,
+<p><strong>Parent-delegation model</strong> — when asked to load a class, a loader first <strong>delegates upward</strong> to its parent; it only loads the class itself if every ancestor fails to find it.</p>
+<pre>ClassLoader.loadClass():
+  1. Already loaded? → return the cached Class
+  2. Ask the PARENT to load it (recurses up to Bootstrap)
+  3. Parent couldn't? → THIS loader tries to find/define it
+  4. Still not found? → ClassNotFoundException</pre>
+<p>Why delegation matters:</p>
+<ul>
+<li><strong>Security</strong> — you can't replace <code>java.lang.String</code> with a malicious version; the Bootstrap loader always wins for core classes.</li>
+<li><strong>Type identity</strong> — a class's runtime identity is (fully-qualified name + defining ClassLoader). The same class loaded by two different loaders becomes two <strong>incompatible types</strong> → <code>ClassCastException</code> if you mix instances.</li>
+</ul>
+<pre>// Inspect the hierarchy:
+String.class.getClassLoader();               // null (Bootstrap)
+MyApp.class.getClassLoader();                // AppClassLoader
+MyApp.class.getClassLoader().getParent();    // PlatformClassLoader
+
+// Custom loader — override findClass(), NOT loadClass() (keeps delegation intact):
+class MyLoader extends ClassLoader {
+    protected Class&lt;?&gt; findClass(String name) {
+        byte[] bytes = loadBytes(name);
+        return defineClass(name, bytes, 0, bytes.length);
+    }
+}</pre>
+<div class="key-point">Trick: "Can you load two different versions of the same class?" — Yes, using <strong>separate custom ClassLoaders</strong> that don't share a common parent for that class. Tomcat / JEE servers do exactly this to isolate each deployed WAR's libraries. "When is delegation deliberately broken?" — JDBC/JNDI/SPI use the <strong>Thread Context ClassLoader</strong> so a parent-loaded core API can load a child-supplied implementation — the one sanctioned exception to strict delegation.</div>`,
       },
       {
         q: 'What are functional interfaces and lambda expressions?',
         difficulty: 'medium',
-        a: `<p>A <strong>functional interface</strong> has exactly <strong>one abstract method</strong>. Annotated with <code>@FunctionalInterface</code>.</p>
+        a: `<p>These two features are two halves of the same idea: a <strong>lambda expression</strong> is a concise way to supply the implementation of a <strong>functional interface</strong>. You can't have a lambda without a functional interface as its target type.</p>
+
+<p><strong>1. Functional interface</strong> — an interface with exactly <strong>one abstract method</strong> (SAM = Single Abstract Method). The <code>@FunctionalInterface</code> annotation is optional but recommended: it makes the compiler reject the interface if a second abstract method sneaks in. <code>default</code>, <code>static</code>, and <code>private</code> methods don't count against the "one abstract method" rule.</p>
+<pre>@FunctionalInterface
+interface Calculator {
+    int apply(int a, int b);                 // the single abstract method
+    default Calculator memo() { ... }        // allowed — not abstract
+}</pre>
+
+<p><strong>2. Lambda expression</strong> — an anonymous function written as <code>(parameters) -> body</code>. It implements the single abstract method of a functional interface; the compiler infers <em>which</em> interface from the target type (the variable, parameter, or return type it's assigned to).</p>
+<pre>// Before Java 8: anonymous class — verbose
+Calculator add = new Calculator() {
+    @Override public int apply(int a, int b) { return a + b; }
+};
+
+// Java 8+: lambda — identical behaviour, one line
+Calculator add = (a, b) -> a + b;
+add.apply(2, 3);   // 5
+
+// Syntax variations:
+() -> 42                       // no parameters
+x  -> x * 2                    // one parameter, parentheses optional
+(x, y) -> x + y                // multiple parameters
+(int x, int y) -> x + y        // explicit types (rarely needed)
+x -> { log(x); return x * 2; } // block body → needs braces + return</pre>
+
+<p><strong>The standard functional interfaces</strong> (<code>java.util.function</code>) — you rarely write your own:</p>
 <ul>
-<li><code>Predicate&lt;T&gt;</code> → <code>boolean test(T t)</code></li>
-<li><code>Function&lt;T,R&gt;</code> → <code>R apply(T t)</code></li>
-<li><code>Consumer&lt;T&gt;</code> → <code>void accept(T t)</code></li>
-<li><code>Supplier&lt;T&gt;</code> → <code>T get()</code></li>
+<li><code>Predicate&lt;T&gt;</code> → <code>boolean test(T t)</code> — a condition (used by <code>filter</code>)</li>
+<li><code>Function&lt;T,R&gt;</code> → <code>R apply(T t)</code> — transform T into R (used by <code>map</code>)</li>
+<li><code>Consumer&lt;T&gt;</code> → <code>void accept(T t)</code> — a side effect, returns nothing</li>
+<li><code>Supplier&lt;T&gt;</code> → <code>T get()</code> — produces a value, takes nothing (lazy)</li>
+<li><code>UnaryOperator&lt;T&gt;</code> / <code>BinaryOperator&lt;T&gt;</code> / <code>BiFunction&lt;T,U,R&gt;</code> — common variants</li>
 </ul>
 <pre>Predicate&lt;String&gt; notEmpty = s -> s != null && !s.isEmpty();
-Function&lt;String, Integer&gt; len = String::length;</pre>`,
+Function&lt;String, Integer&gt; len = String::length;
+Supplier&lt;List&lt;String&gt;&gt; newList = ArrayList::new;</pre>
+
+<p><strong>Method references</strong> — an even shorter form when the lambda body just calls one existing method:</p>
+<pre>Function&lt;String, Integer&gt; len = s -> s.length();   // lambda
+Function&lt;String, Integer&gt; len = String::length;    // method reference — same thing
+
+// Four kinds:
+String::toUpperCase        // instance method of an arbitrary object of a type
+System.out::println        // instance method of a specific object
+Integer::parseInt          // static method
+ArrayList::new             // constructor reference</pre>
+
+<p><strong>Variable capture</strong> — a lambda may read variables from its enclosing scope, but they must be <strong>effectively final</strong> (assigned exactly once). That's why you can't increment a local counter inside a lambda.</p>
+<pre>int factor = 10;                                    // effectively final
+Function&lt;Integer,Integer&gt; scale = n -> n * factor;  // ✅ captures factor
+// factor = 20;                                     // ❌ breaks capture → compile error</pre>
+
+<div class="key-point">Trick: "Lambda vs anonymous class?" — (1) <code>this</code> inside a lambda refers to the <em>enclosing</em> instance; inside an anonymous class it refers to the anonymous class itself. (2) Lambdas don't introduce a new scope (can't shadow enclosing variables). (3) Lambdas compile to <code>invokedynamic</code> with no extra <code>.class</code> file, whereas an anonymous class generates <code>Outer$1.class</code>. A lambda can implement <strong>only</strong> a functional interface — never an abstract class.</div>`,
       },
       {
         q: 'What is the difference between fail-fast and fail-safe iterators?',
@@ -443,29 +605,77 @@ for (var it = list.iterator(); it.hasNext(); ) {
       {
         q: 'Explain Spring Boot dependency injection and IoC container.',
         difficulty: 'medium',
-        a: `<ul>
-<li><strong>IoC</strong> (Inversion of Control): framework creates and manages objects (beans), not us.</li>
-<li><strong>DI types</strong>: Constructor injection (preferred), Setter injection, Field injection (<code>@Autowired</code>).</li>
-<li><strong>Bean scopes</strong>: <code>singleton</code> (default), <code>prototype</code>, <code>request</code>, <code>session</code>.</li>
-</ul>
+        a: `<p><strong>IoC (Inversion of Control)</strong> is the principle: instead of your objects creating their own dependencies with <code>new</code>, the framework creates and wires them for you. You "invert" control of object construction and lifecycle to the container. <strong>Dependency Injection (DI)</strong> is the concrete technique that implements IoC — the container <em>injects</em> a class's collaborators from the outside rather than the class fetching them itself.</p>
+
+<p><strong>The IoC container</strong> (<code>ApplicationContext</code>) scans for beans (classes marked <code>@Component</code>, <code>@Service</code>, <code>@Repository</code>, or produced by <code>@Bean</code> methods), builds a dependency graph, then instantiates and wires them in the correct order — as singletons by default.</p>
+
+<p><strong>Three types of injection:</strong></p>
+
+<p><strong>1. Constructor injection (PREFERRED)</strong> — dependencies are declared as constructor parameters:</p>
 <pre>@Service
 public class OrderService {
-    private final PaymentGateway gateway; // interface
-    public OrderService(PaymentGateway gateway) { // constructor DI
+    private final PaymentGateway gateway;         // final — guaranteed set
+
+    // Since Spring 4.3, @Autowired is optional when there's ONE constructor
+    public OrderService(PaymentGateway gateway) {
         this.gateway = gateway;
     }
 }</pre>
-<div class="key-point">Constructor injection is preferred: immutable, testable, fails fast if dependency missing.</div>`,
+<p>Why it's preferred:</p>
+<ul>
+<li><strong>Immutability</strong> — fields can be <code>final</code>, so the object is fully built once and never changes. Inherently thread-safe.</li>
+<li><strong>Guaranteed dependencies</strong> — you literally cannot construct the object without its required collaborators, so it can never exist in a half-initialised state.</li>
+<li><strong>Fails fast</strong> — a missing or circular dependency is caught at <em>startup</em>, not at the first method call in production.</li>
+<li><strong>Testable without Spring</strong> — a unit test just calls <code>new OrderService(mockGateway)</code>. No container, no reflection.</li>
+<li><strong>Surfaces design smells</strong> — a constructor with 8 parameters visibly screams "this class does too much" (violates SRP); field injection hides that.</li>
+</ul>
+
+<p><strong>2. Setter injection</strong> — for genuinely <em>optional</em> or reconfigurable dependencies:</p>
+<pre>@Autowired
+public void setCache(CacheManager cache) { this.cache = cache; }</pre>
+
+<p><strong>3. Field injection (AVOID)</strong> — <code>@Autowired</code> placed directly on a field:</p>
+<pre>@Service
+public class OrderService {
+    @Autowired private PaymentGateway gateway;    // ❌ convenient but problematic
+}</pre>
+<p>Why to avoid it:</p>
+<ul>
+<li><strong>Can't be <code>final</code></strong> — the field is mutable; no immutability guarantee.</li>
+<li><strong>Hard to test</strong> — you can't set the dependency without Spring or reflection (<code>ReflectionTestUtils</code>). A plain <code>new</code> leaves it <code>null</code> → NPE.</li>
+<li><strong>Hides too many dependencies</strong> — nothing stops you piling on 15 <code>@Autowired</code> fields, so god-classes grow unnoticed.</li>
+<li><strong>Invalid until injected</strong> — the object is briefly in an unusable state, and it breaks entirely if used outside the container.</li>
+</ul>
+
+<p><strong>Bean scopes:</strong> <code>singleton</code> (default — one shared instance per container), <code>prototype</code> (a new instance every time it's requested), plus the web scopes <code>request</code>, <code>session</code>, and <code>application</code>.</p>
+
+<div class="key-point">Trick: "How do you resolve a circular dependency (A needs B, B needs A)?" — Constructor injection <em>can't</em>, and Spring throws <code>BeanCurrentlyInCreationException</code> at startup — which is actually good, it exposes the design flaw. Field/setter injection quietly hides the cycle. Best fix: refactor to break the cycle; last resort: <code>@Lazy</code> on one side. "Two beans match one type?" — disambiguate with <code>@Qualifier("name")</code> or mark one <code>@Primary</code>.</div>`,
       },
       {
         q: 'What is the difference between @Component, @Service, @Repository, and @Controller?',
         difficulty: 'easy',
-        a: `<ul>
-<li><strong>@Component</strong>: generic Spring-managed bean.</li>
-<li><strong>@Service</strong>: business logic layer (semantic only, no extra behavior).</li>
-<li><strong>@Repository</strong>: data access layer. Adds <strong>exception translation</strong> (DB exceptions → Spring DataAccessException).</li>
-<li><strong>@Controller</strong>: web layer, returns views. <code>@RestController</code> = <code>@Controller</code> + <code>@ResponseBody</code>.</li>
-</ul>`,
+        a: `<p>All four are <strong>stereotype annotations</strong> — they mark a class as a Spring-managed bean so component scanning registers it. <code>@Service</code>, <code>@Repository</code>, and <code>@Controller</code> are <strong>specializations of <code>@Component</code></strong>. Most are functionally identical; the differences are about <strong>semantics</strong> (which layer the class belongs to) plus a couple that add real behavior.</p>
+<pre>@Component   // generic bean — use when none of the others fit (utilities, helpers)
+public class RetryHelper { ... }
+
+@Service     // business-logic layer — a pure semantic marker
+public class OrderService { ... }
+
+@Repository  // data-access layer — ADDS behavior (see below)
+public class JpaOrderRepository { ... }
+
+@Controller  // web layer — handles HTTP, return value resolved as a view name
+public class OrderController { ... }
+
+@RestController  // = @Controller + @ResponseBody — return value serialized to the body
+public class OrderApiController { ... }</pre>
+<p><strong>The ones that add real behavior:</strong></p>
+<ul>
+<li><strong>@Repository</strong> — enables <strong>exception translation</strong>: a <code>PersistenceExceptionTranslationPostProcessor</code> wraps low-level, vendor-specific exceptions (<code>SQLException</code>, Hibernate's <code>ConstraintViolationException</code>) into Spring's consistent, unchecked <code>DataAccessException</code> hierarchy — so your service layer isn't coupled to JDBC/JPA specifics.</li>
+<li><strong>@Controller</strong> — its methods are treated as <strong>request handlers</strong> by Spring MVC's <code>DispatcherServlet</code>, and return values are resolved as view names.</li>
+<li><strong>@RestController</strong> — adds <code>@ResponseBody</code> to every method, so return values are serialized straight to the response body (JSON via Jackson) instead of resolved as views.</li>
+</ul>
+<div class="key-point">Why not just use <code>@Component</code> everywhere? (1) <strong>Readability</strong> — the annotation documents the architectural layer. (2) <strong>@Repository gets exception translation</strong> for free. (3) <strong>Targeted AOP / scanning</strong> — you can write pointcuts or scan filters against a stereotype (e.g. apply an aspect to every <code>@Service</code>). Trick: "Does @Service behave differently from @Component?" — No, it's purely semantic today, but it's still preferred for clarity and future-proofing.</div>`,
       },
       {
         q: 'What is the difference between @Transactional propagation levels?',
@@ -504,20 +714,44 @@ public class AuditService {
       {
         q: 'What are design patterns commonly asked in Java interviews?',
         difficulty: 'hard',
-        a: `<ul>
-<li><strong>Singleton</strong>: one instance (use enum or double-checked locking).</li>
-<li><strong>Factory Method</strong>: subclass decides which class to instantiate.</li>
-<li><strong>Builder</strong>: step-by-step construction (<code>Lombok @Builder</code>).</li>
-<li><strong>Strategy</strong>: interchangeable algorithms via interface.</li>
-<li><strong>Observer</strong>: event-driven notification (pub/sub).</li>
-<li><strong>Proxy</strong>: Spring AOP, lazy loading.</li>
-<li><strong>Template Method</strong>: skeleton in base class, steps in subclasses.</li>
+        a: `<p>Interviewers group patterns into <strong>Creational</strong> (object creation), <strong>Structural</strong> (composition), and <strong>Behavioral</strong> (communication). Know the <em>problem each one solves</em> and a real Java/Spring example — not just the definition.</p>
+<p><strong>Creational:</strong></p>
+<ul>
+<li><strong>Singleton</strong> — exactly one instance, globally accessible. Prefer an <code>enum</code> (thread-safe and serialization-safe) or double-checked locking with <code>volatile</code>. <em>JDK: <code>Runtime.getRuntime()</code>; Spring: singleton-scoped beans.</em></li>
+<li><strong>Factory Method</strong> — a method decides which concrete class to instantiate, hiding <code>new</code> from the caller. <em>JDK: <code>Calendar.getInstance()</code>, <code>List.of()</code>.</em></li>
+<li><strong>Builder</strong> — construct a complex object step by step; avoids telescoping constructors. <em>JDK: <code>StringBuilder</code>, <code>Stream.Builder</code>; Lombok: <code>@Builder</code>.</em></li>
+<li><strong>Abstract Factory</strong> — a factory of related factories (families of products).</li>
 </ul>
-<pre>// Thread-safe Singleton
-public enum Singleton {
+<p><strong>Structural:</strong></p>
+<ul>
+<li><strong>Adapter</strong> — make an incompatible interface usable. <em>JDK: <code>Arrays.asList()</code>, <code>InputStreamReader</code>.</em></li>
+<li><strong>Decorator</strong> — wrap an object to add behavior without subclassing. <em>JDK: <code>new BufferedReader(new FileReader(...))</code>, <code>Collections.unmodifiableList()</code>.</em></li>
+<li><strong>Proxy</strong> — a stand-in that controls access (lazy loading, security, remoting). <em>Spring AOP, <code>@Transactional</code>, Hibernate lazy entities.</em></li>
+<li><strong>Facade</strong> — one simple interface over a complex subsystem.</li>
+</ul>
+<p><strong>Behavioral:</strong></p>
+<ul>
+<li><strong>Strategy</strong> — interchangeable algorithms behind one interface, swappable at runtime. <em>JDK: <code>Comparator</code>; the pattern most naturally expressed with lambdas.</em></li>
+<li><strong>Observer</strong> — publish/subscribe; notify dependents on state change. <em>JDK: listeners; Spring: <code>ApplicationEvent</code>.</em></li>
+<li><strong>Template Method</strong> — a base class defines the skeleton, subclasses fill in the steps. <em>Spring: <code>JdbcTemplate</code>, <code>RestTemplate</code>.</em></li>
+<li><strong>Chain of Responsibility</strong> — pass a request along a chain of handlers. <em>Servlet <code>Filter</code> chain, Spring Security filters.</em></li>
+</ul>
+<pre>// Singleton — the recommended enum form: thread-safe + serialization-safe
+public enum Config {
     INSTANCE;
-    public void doSomething() { }
-}</pre>`,
+    public String get(String key) { ... }
+}
+
+// Strategy with lambdas (idiomatic modern Java):
+interface Discount { double apply(double price); }
+Map&lt;String, Discount&gt; strategies = Map.of(
+    "GOLD",   p -> p * 0.8,
+    "SILVER", p -> p * 0.9);
+double price = strategies.get(tier).apply(base);
+
+// Builder:
+User u = User.builder().name("John").age(30).email("j@x.com").build();</pre>
+<div class="key-point">Trick: "Which patterns does Spring use most?" — Proxy (AOP / @Transactional), Singleton (beans), Factory (BeanFactory), Template Method (JdbcTemplate), Strategy (countless pluggable interfaces). "Strategy vs State?" — same structure, different intent: Strategy swaps an algorithm chosen by the client; State changes behavior as the object's own state transitions. Favor composition (Strategy) over inheritance (Template Method) where you can.</div>`,
       },
       {
         q: 'What is the difference between final, finally, and finalize in Java?',

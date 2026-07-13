@@ -61,8 +61,13 @@ Horizontal: 1 server → 10 servers behind a load balancer</pre>
 <li><strong>IP Hash</strong>: Same user always goes to the same server (useful for sessions).</li>
 <li><strong>Weighted</strong>: Powerful servers get more traffic.</li>
 </ul>
+<p><strong>Layer 4 vs Layer 7 load balancing:</strong></p>
+<ul>
+<li><strong>L4 (transport)</strong> — routes by IP address and TCP/UDP port only, without looking at the request content. Extremely fast and protocol-agnostic, but can't decide based on URL or headers. (AWS NLB, HAProxy in TCP mode.)</li>
+<li><strong>L7 (application)</strong> — reads the HTTP request, so it can route by URL path, host, headers, or cookies (<code>/api/*</code> → API servers, <code>/images/*</code> → static servers), terminate SSL, and do content-based routing. Slightly slower, far smarter. (Nginx, AWS ALB.)</li>
+</ul>
 <p><strong>Example:</strong> When you visit google.com, your request hits a load balancer that routes you to one of thousands of servers — you never know which one.</p>
-<div class="key-point">Popular tools: <strong>Nginx</strong>, <strong>HAProxy</strong>, <strong>AWS ALB/ELB</strong>. Always use a load balancer when you have multiple servers.</div>`,
+<div class="key-point">Popular tools: <strong>Nginx</strong>, <strong>HAProxy</strong>, <strong>AWS ALB (L7) / NLB (L4)</strong>. Make the balancer itself redundant (active-passive pair) — otherwise it's a single point of failure. For sticky sessions, prefer a shared session store (Redis) over IP-hash stickiness, so any server can serve any user.</div>`,
       },
       {
         q: 'What is Caching and why is it important in system design?',
@@ -71,15 +76,30 @@ Horizontal: 1 server → 10 servers behind a load balancer</pre>
 <p><strong>Analogy:</strong> Instead of going to the library every time you need a recipe, you photocopy your favorite recipes and keep them on your fridge (cache). Much faster!</p>
 <pre>Without cache:  User → Server → Database (slow, every time)
 With cache:     User → Server → Cache (fast!) → DB only if not in cache</pre>
-<p><strong>Types of caching:</strong></p>
+<p><strong>Where you can cache (layers):</strong></p>
 <ul>
 <li><strong>Client-side</strong>: Browser cache (images, CSS, JS files)</li>
 <li><strong>CDN cache</strong>: Static files served from servers near the user</li>
 <li><strong>Application cache</strong>: Redis / Memcached storing DB query results</li>
-<li><strong>Database cache</strong>: Query cache built into the DB</li>
+<li><strong>Database cache</strong>: Query cache / buffer pool built into the DB</li>
+</ul>
+<p><strong>Caching strategies (how reads &amp; writes interact with the cache):</strong></p>
+<ul>
+<li><strong>Cache-aside (lazy loading)</strong> — the app checks the cache; on a miss it reads the DB and populates the cache. Most common. Only requested data is cached, but the first read is always a miss.</li>
+<li><strong>Read-through</strong> — the cache layer itself loads from the DB on a miss (the app only talks to the cache). Same effect as cache-aside, less app code.</li>
+<li><strong>Write-through</strong> — writes go to the cache AND the DB synchronously. Cache is always fresh, but writes are slower.</li>
+<li><strong>Write-back (write-behind)</strong> — write to the cache, flush to the DB asynchronously later. Fast writes, but risk of data loss if the cache dies before flushing.</li>
+<li><strong>Write-around</strong> — writes skip the cache and go straight to the DB (cache is filled only on read). Good when freshly written data isn't re-read soon.</li>
+</ul>
+<p><strong>Eviction policies (what to drop when the cache is full):</strong></p>
+<ul>
+<li><strong>LRU (Least Recently Used)</strong> — evict the item untouched the longest. The usual default.</li>
+<li><strong>LFU (Least Frequently Used)</strong> — evict the least-accessed item.</li>
+<li><strong>FIFO</strong> — evict the oldest inserted item.</li>
+<li><strong>TTL</strong> — every entry expires after a set time regardless of use.</li>
 </ul>
 <p><strong>Example:</strong> Instagram caches popular user profiles in Redis. Instead of hitting the database for Cristiano Ronaldo's profile 1 million times/second, they read it from cache in <strong>&lt;1ms</strong>.</p>
-<div class="key-point">Cache is not free — you must handle <strong>cache invalidation</strong> (when the real data changes, the cache must be updated). This is one of the hardest problems in CS!</div>`,
+<div class="key-point">Cache is not free — the two hard parts are <strong>invalidation</strong> (keeping cached data in sync when the source changes, or you serve stale reads) and picking the right <strong>strategy + eviction + TTL</strong>. Sensible default: cache-aside + LRU + a bounded TTL. Watch for the <strong>cache stampede</strong> when a hot key expires (covered separately).</div>`,
       },
       {
         q: 'What is a CDN (Content Delivery Network)?',
@@ -135,8 +155,15 @@ With index on email:
 | 1  | John  | john@mail.com  |
 
 NoSQL (MongoDB document):
-{ _id: 1, name: "John", email: "john@mail.com", 
+{ _id: 1, name: "John", email: "john@mail.com",
   hobbies: ["chess", "coding"], address: { city: "NYC" } }</pre>
+<p><strong>The four types of NoSQL (they are NOT one thing):</strong></p>
+<ul>
+<li><strong>Document</strong> (MongoDB, Couchbase) — JSON-like documents with flexible nested data. Great for catalogs, user profiles, content.</li>
+<li><strong>Key-Value</strong> (Redis, DynamoDB) — a giant hash map; the fastest possible lookup by key. Great for caching, sessions, counters.</li>
+<li><strong>Wide-Column</strong> (Cassandra, HBase) — rows with dynamic columns, tuned for huge write volume and range scans. Great for time-series, logs, IoT.</li>
+<li><strong>Graph</strong> (Neo4j, Neptune) — nodes + edges, optimized for traversing relationships. Great for social networks, recommendations, fraud detection.</li>
+</ul>
 <table><tr><th>Use SQL when</th><th>Use NoSQL when</th></tr>
 <tr><td>Data has clear relationships (orders ↔ users)</td><td>Data structure changes often</td></tr>
 <tr><td>Need ACID transactions (banking)</td><td>Need massive horizontal scaling</td></tr>
@@ -260,6 +287,18 @@ Asynchronous (with queue):
 <li><strong>Retry on failure</strong>: If email service is down, message stays in queue</li>
 <li><strong>Background jobs</strong>: Image resizing, report generation, notifications</li>
 </ul>
+<p><strong>Two messaging models:</strong></p>
+<ul>
+<li><strong>Queue (point-to-point)</strong>: each message is delivered to exactly ONE consumer. Add more consumers to share the load (competing consumers). E.g. SQS, RabbitMQ queues.</li>
+<li><strong>Pub/Sub (publish-subscribe)</strong>: each message is delivered to ALL subscribers — every interested service gets its own copy. E.g. Kafka topics, SNS, RabbitMQ fanout.</li>
+</ul>
+<p><strong>Delivery guarantees (a common follow-up):</strong></p>
+<ul>
+<li><strong>At-most-once</strong>: fire and forget; may lose messages. Rarely acceptable.</li>
+<li><strong>At-least-once</strong>: retried until acknowledged; may deliver duplicates → consumers must be <strong>idempotent</strong>. The practical default.</li>
+<li><strong>Exactly-once</strong>: no loss, no duplicates — very hard in practice; usually emulated with at-least-once + deduplication (covered separately).</li>
+</ul>
+<p><strong>Queue vs log</strong>: a classic queue (RabbitMQ/SQS) deletes a message once it's consumed; a log (Kafka) keeps messages for a retention period, so multiple consumers can read at their own pace and replay history.</p>
 <p><strong>Example:</strong> When you upload a video to YouTube, it responds instantly with "Processing...". The actual encoding runs asynchronously via a message queue across many servers.</p>
 <div class="key-point">Popular tools: <strong>RabbitMQ</strong>, <strong>Apache Kafka</strong>, <strong>AWS SQS</strong>, <strong>Redis Streams</strong>.</div>`,
       },

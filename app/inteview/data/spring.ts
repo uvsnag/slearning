@@ -11,19 +11,27 @@ export const topics: PvTopic[] = [
       {
         q: 'What is Spring Boot and how is it different from Spring Framework?',
         difficulty: 'easy',
-        a: `<ul>
-<li><strong>Spring Framework</strong>: comprehensive Java framework (IoC, AOP, MVC, Data, Security). Requires manual configuration (XML or Java Config).</li>
-<li><strong>Spring Boot</strong>: opinionated layer on top of Spring that provides <strong>auto-configuration</strong>, embedded server, starter dependencies, and production-ready features.</li>
+        a: `<p><strong>Spring Boot is not a replacement for the Spring Framework — it sits on top of it.</strong> The Framework provides the core (IoC container, AOP, MVC, Data, Security); Boot adds "convention over configuration" tooling so you spend almost no time on setup.</p>
+<ul>
+<li><strong>Spring Framework</strong> — the foundational libraries. Powerful, but requires <strong>manual wiring</strong>: XML or Java <code>@Configuration</code>, an external servlet container, explicit <code>DispatcherServlet</code> setup, and hand-picked, version-matched dependencies.</li>
+<li><strong>Spring Boot</strong> — an opinionated layer over the Framework that adds four things:
+  <ul>
+    <li><strong>Auto-configuration</strong> — inspects the classpath and configures sensible beans automatically (sees a JDBC driver → configures a DataSource).</li>
+    <li><strong>Starter dependencies</strong> — one dependency pulls in a curated, version-aligned set (e.g. <code>spring-boot-starter-web</code>).</li>
+    <li><strong>Embedded server</strong> — Tomcat/Jetty/Undertow bundled into the JAR, so you run a plain <code>java -jar app.jar</code> — no external container to install.</li>
+    <li><strong>Production-ready features</strong> — Actuator (health, metrics), externalized configuration, sensible logging, all out of the box.</li>
+  </ul>
+</li>
 </ul>
-<pre>// Spring: need web.xml, DispatcherServlet config, component scan...
-// Spring Boot: just this
+<pre>// Spring: web.xml, DispatcherServlet config, component-scan XML, external server...
+// Spring Boot: just this — auto-configured, embedded server, runnable JAR
 @SpringBootApplication
 public class App {
     public static void main(String[] args) {
         SpringApplication.run(App.class, args);
     }
 }</pre>
-<div class="key-point">Spring Boot eliminates boilerplate. You focus on business logic, Boot handles wiring.</div>`,
+<div class="key-point">One-line answer: "Spring Boot IS Spring, plus auto-configuration, starters, an embedded server, and Actuator — it removes the plumbing so you write business logic." You can override any auto-configured bean by defining your own (<code>@ConditionalOnMissingBean</code> means your bean wins).</div>`,
       },
       {
         q: 'Explain @SpringBootApplication annotation. What does it combine?',
@@ -43,15 +51,24 @@ public class App { }</pre>`,
       {
         q: 'What are Spring Boot Starters? Name the most commonly used ones.',
         difficulty: 'easy',
-        a: `<p>Starters are curated sets of dependencies for a specific purpose. One dependency brings everything needed.</p>
+        a: `<p>A <strong>starter</strong> is a dependency descriptor that bundles a curated, version-compatible set of libraries for one purpose. Instead of hand-picking a dozen JARs and matching their versions, you add one starter and get everything, correctly aligned.</p>
+<pre>&lt;!-- One line pulls in Spring MVC + embedded Tomcat + Jackson + validation --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
+&lt;/dependency&gt;   &lt;!-- note: NO version number needed --&gt;</pre>
+<p><strong>Commonly used starters:</strong></p>
 <ul>
-<li><code>spring-boot-starter-web</code> – REST APIs (Tomcat, Jackson, Spring MVC)</li>
-<li><code>spring-boot-starter-data-jpa</code> – JPA + Hibernate + HikariCP</li>
-<li><code>spring-boot-starter-security</code> – authentication, authorization</li>
-<li><code>spring-boot-starter-test</code> – JUnit 5, Mockito, AssertJ, MockMvc</li>
-<li><code>spring-boot-starter-validation</code> – Bean Validation (Hibernate Validator)</li>
-<li><code>spring-boot-starter-actuator</code> – health checks, metrics, monitoring</li>
-</ul>`,
+<li><code>spring-boot-starter-web</code> — REST APIs / MVC (embedded Tomcat, Jackson, Spring MVC)</li>
+<li><code>spring-boot-starter-data-jpa</code> — JPA + Hibernate + HikariCP connection pool</li>
+<li><code>spring-boot-starter-security</code> — authentication &amp; authorization</li>
+<li><code>spring-boot-starter-test</code> — JUnit 5, Mockito, AssertJ, MockMvc (included by default)</li>
+<li><code>spring-boot-starter-validation</code> — Bean Validation (Hibernate Validator)</li>
+<li><code>spring-boot-starter-actuator</code> — health checks, metrics, monitoring</li>
+<li><code>spring-boot-starter-data-redis</code> / <code>-amqp</code> / <code>-webflux</code> — Redis, RabbitMQ, reactive web</li>
+</ul>
+<p><strong>How version management works:</strong> your project inherits from <code>spring-boot-starter-parent</code> (or imports <code>spring-boot-dependencies</code> as a BOM), which pins the version of every managed library. That's why starters carry no explicit version — the parent/BOM resolves it, guaranteeing the whole set is mutually compatible. Upgrade Boot's version once and every managed dependency moves together.</p>
+<div class="key-point">Trick: "What's the difference between a starter and a normal dependency?" — a starter contains almost no code itself; it's a POM that transitively declares the real libraries plus an auto-configuration module. You can build your own <code>acme-spring-boot-starter</code> to package company-wide defaults the same way.</div>`,
       },
       {
         q: 'How does Spring Boot auto-configuration work internally?',
@@ -78,8 +95,14 @@ public class DataSourceAutoConfiguration {
       {
         q: 'Explain Spring Boot Profiles. How to use them?',
         difficulty: 'medium',
-        a: `<p>Profiles allow different configurations for different environments (dev, test, prod).</p>
-<pre># application-dev.yml
+        a: `<p>Profiles let you keep <strong>environment-specific configuration and beans</strong> (dev, test, staging, prod) in one codebase and switch between them at launch — no rebuild.</p>
+<p><strong>1. Profile-specific config files</strong> — <code>application-{profile}.yml</code> is layered <em>on top of</em> the base <code>application.yml</code>; the active profile's values override the shared defaults.</p>
+<pre># application.yml            (always loaded — shared defaults)
+spring:
+  jpa:
+    open-in-view: false
+
+# application-dev.yml         (loaded only when 'dev' is active)
 spring:
   datasource:
     url: jdbc:h2:mem:testdb
@@ -88,15 +111,22 @@ spring:
 spring:
   datasource:
     url: jdbc:postgresql://prod-db:5432/myapp</pre>
-<p><strong>Activate</strong>:</p>
+<p><strong>2. Activate a profile</strong> (later source wins):</p>
 <ul>
-<li>Property: <code>spring.profiles.active=dev</code></li>
-<li>CLI: <code>java -jar app.jar --spring.profiles.active=prod</code></li>
-<li>Env: <code>SPRING_PROFILES_ACTIVE=prod</code></li>
+<li>Property: <code>spring.profiles.active=dev</code> in <code>application.yml</code></li>
+<li>Env var: <code>SPRING_PROFILES_ACTIVE=prod</code> (typical in containers)</li>
+<li>CLI: <code>java -jar app.jar --spring.profiles.active=prod</code> (highest precedence)</li>
 </ul>
-<pre>@Profile("dev")
-@Bean
-public DataSource devDataSource() { ... }</pre>`,
+<p><strong>3. Profile-scoped beans</strong> — a bean exists only when its profile is active:</p>
+<pre>@Bean @Profile("dev")   DataSource devDs()  { return new EmbeddedDatabaseBuilder()...; }
+@Bean @Profile("prod")  DataSource prodDs() { return hikariDataSource(); }
+@Bean @Profile("!prod") FakeMailer mailer() { ... }   // any profile EXCEPT prod</pre>
+<ul>
+<li><strong>Profile groups</strong> (Boot 2.4+): activate several at once — <code>spring.profiles.group.prod=prod-db,prod-cache,monitoring</code>.</li>
+<li><strong>Default profile</strong>: config with no <code>@Profile</code> is always active; <code>@Profile("default")</code> applies only when NO profile is set.</li>
+<li><strong>In tests</strong>: <code>@ActiveProfiles("test")</code> on the test class.</li>
+</ul>
+<div class="key-point">Gotcha: profiles are for <strong>environment wiring</strong> (which DB, which mailer), NOT runtime feature flags — you can't flip a profile without a restart, and scattering <code>@Profile</code> through business code makes behavior hard to follow. For toggles that change at runtime, use a feature-flag library or a config property read at call time.</div>`,
       },
       {
         q: 'What is Spring Boot Actuator? What endpoints does it expose?',
@@ -124,8 +154,8 @@ management:
       {
         q: 'How does Spring Boot handle exception handling in REST APIs?',
         difficulty: 'medium',
-        a: `<p>Use <code>@ControllerAdvice</code> + <code>@ExceptionHandler</code> for global exception handling:</p>
-<pre>@RestControllerAdvice
+        a: `<p>Centralize error handling with <code>@RestControllerAdvice</code> so controllers stay free of try/catch. A class annotated with it applies its <code>@ExceptionHandler</code> methods <strong>globally, across every controller</strong>; each method maps one exception type to an HTTP response.</p>
+<pre>@RestControllerAdvice          // = @ControllerAdvice + @ResponseBody (returns JSON)
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
@@ -134,6 +164,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
+    // @Valid failures land here — turn field errors into a readable message
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity&lt;ErrorResponse&gt; handleValidation(MethodArgumentNotValidException ex) {
         String msg = ex.getBindingResult().getFieldErrors().stream()
@@ -142,11 +173,25 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(new ErrorResponse(400, msg));
     }
 
+    // Fallback — catch-all so the client never sees a raw stack trace
     @ExceptionHandler(Exception.class)
     public ResponseEntity&lt;ErrorResponse&gt; handleGeneral(Exception ex) {
+        log.error("Unhandled exception", ex);          // log the detail server-side
         return ResponseEntity.status(500).body(new ErrorResponse(500, "Internal error"));
     }
-}</pre>`,
+}</pre>
+<p><strong>How resolution works</strong> — when a controller throws, Spring searches for a handler in this order:</p>
+<ol>
+<li>An <code>@ExceptionHandler</code> in the <em>same</em> controller.</li>
+<li>An <code>@ExceptionHandler</code> in a <code>@ControllerAdvice</code> class, matched by the <strong>most specific</strong> exception type (<code>ResourceNotFoundException</code> beats <code>Exception</code>).</li>
+<li>Spring's default handling (<code>BasicErrorController</code> → the <code>/error</code> response).</li>
+</ol>
+<ul>
+<li><strong>Map status declaratively</strong>: annotate the exception (or handler) with <code>@ResponseStatus(HttpStatus.NOT_FOUND)</code> instead of building the status by hand.</li>
+<li><strong>Spring Boot 3</strong>: prefer returning a <code>ProblemDetail</code> (RFC 7807) for a standardized <code>{type, title, status, detail, instance}</code> body.</li>
+<li><strong>Never leak internals</strong>: log the stack trace server-side, return a safe, generic message to the client.</li>
+</ul>
+<div class="key-point">Trick: "@ControllerAdvice vs @RestControllerAdvice?" — the Rest variant adds <code>@ResponseBody</code>, so return values are serialized to JSON instead of resolved as view names. "Why isn't my handler firing?" — a more specific handler (or one in the throwing controller) took priority, or the exception was thrown from a Filter (outside Spring MVC), which advice cannot catch.</div>`,
       },
       {
         q: 'What are @RequestMapping, @GetMapping, @PostMapping, @PathVariable, @RequestParam, @RequestBody?',
@@ -207,24 +252,33 @@ public class SecurityConfig {
       {
         q: 'What is the difference between @Bean and @Component?',
         difficulty: 'medium',
-        a: `<ul>
-<li><strong>@Component</strong>: class-level annotation. Spring auto-detects via component scanning. You own the class.</li>
-<li><strong>@Bean</strong>: method-level annotation in <code>@Configuration</code> class. Used for third-party classes you can't annotate. Full control over instantiation.</li>
+        a: `<p>Both register a bean in the container; the difference is <strong>where the annotation goes and who instantiates the object</strong>.</p>
+<ul>
+<li><strong>@Component</strong> (and its stereotypes <code>@Service</code>/<code>@Repository</code>/<code>@Controller</code>) — a <strong>class-level</strong> marker. Spring discovers it by <strong>component scanning</strong> and instantiates it via its constructor. Use it for <strong>your own</strong> classes that you can annotate.</li>
+<li><strong>@Bean</strong> — a <strong>method-level</strong> annotation inside a <code>@Configuration</code> class. <strong>You</strong> write the method body that builds and returns the object; Spring calls the method and manages the result. Use it when you <strong>can't annotate the class</strong> (a third-party type) or need <strong>custom construction logic</strong>.</li>
 </ul>
-<pre>// @Component: you own the class
+<pre>// @Component: your class → Spring instantiates it via component scanning
 @Component
 public class MyService { }
 
-// @Bean: third-party class, or custom init logic
+// @Bean: third-party class OR custom wiring you control by hand
 @Configuration
 public class AppConfig {
-    @Bean
-    public RestTemplate restTemplate() {
-        return new RestTemplateBuilder()
-            .setConnectTimeout(Duration.ofSeconds(5))
-            .build();
+    @Bean(destroyMethod = "close")            // lifecycle hooks — your call
+    public RestClient restClient() {
+        return RestClient.builder()
+            .baseUrl("https://api.example.com")
+            .requestFactory(withTimeouts(5_000, 5_000))
+            .build();                          // full control over the instance
     }
-}</pre>`,
+}</pre>
+<p><strong>Key distinctions:</strong></p>
+<ul>
+<li><strong>Who constructs it</strong>: <code>@Component</code> → Spring, via the constructor (it must be able to inject every argument). <code>@Bean</code> → your method body, so you can pass literals, choose an implementation, or configure the object step by step.</li>
+<li><strong>Multiple beans of one type</strong>: with <code>@Bean</code> you can declare several methods returning the same type with different configuration; a <code>@Component</code> class maps to exactly one bean definition.</li>
+<li><strong>Inter-bean references</strong>: calling one <code>@Bean</code> method from another still returns the singleton (in default "full" <code>@Configuration</code> mode, via a CGLIB proxy) — not a fresh object.</li>
+</ul>
+<div class="key-point">Rule of thumb: <strong>own the class → <code>@Component</code></strong> (less code, auto-detected); <strong>third-party class or complex setup → <code>@Bean</code></strong> in a <code>@Configuration</code>. Trick: you can't put <code>@Component</code> on a library type you don't control — that's exactly when <code>@Bean</code> is the answer.</div>`,
       },
       {
         q: 'Explain Spring Boot configuration properties binding with @ConfigurationProperties.',
@@ -313,28 +367,39 @@ public class LoggingAspect {
       {
         q: 'Explain @Transactional in depth. What are common pitfalls?',
         difficulty: 'hard',
-        a: `<pre>@Service
+        a: `<p><code>@Transactional</code> wraps a method in a database transaction: begin before, commit on normal return, roll back on failure. It's implemented by a <strong>proxy</strong> around the bean — the source of most gotchas.</p>
+<pre>@Service
 public class OrderService {
     @Transactional(
-        propagation = Propagation.REQUIRED,
-        isolation = Isolation.READ_COMMITTED,
-        rollbackFor = Exception.class,
-        timeout = 30
+        propagation = Propagation.REQUIRED,      // join existing TX, or start one
+        isolation   = Isolation.READ_COMMITTED,  // what concurrent TXs can see
+        rollbackFor = Exception.class,           // also roll back on checked exceptions
+        timeout     = 30,                        // seconds before forced rollback
+        readOnly    = false
     )
     public void placeOrder(Order order) {
         orderRepo.save(order);
-        paymentService.charge(order);  // if fails → entire TX rolls back
+        paymentService.charge(order);   // throws → the whole method rolls back
         inventoryService.deduct(order);
     }
 }</pre>
-<p><strong>Common pitfalls</strong>:</p>
+<p><strong>Propagation — how the method relates to an existing transaction:</strong></p>
 <ul>
-<li><strong>Self-invocation</strong>: calling <code>@Transactional</code> method from same class → proxy bypassed → no TX!</li>
-<li><strong>Checked exceptions</strong>: by default only rolls back on unchecked exceptions. Use <code>rollbackFor = Exception.class</code>.</li>
-<li><strong>Long transactions</strong>: holding DB locks too long → timeout/deadlock.</li>
-<li><strong>Private methods</strong>: <code>@Transactional</code> on private methods has no effect (proxy can't intercept).</li>
-<li><strong>Not on interface</strong>: if using JDK proxy, annotation must be on interface method.</li>
-</ul>`,
+<li><strong>REQUIRED</strong> (default) — join the caller's TX if one exists, else start a new one. One rollback rolls back everything.</li>
+<li><strong>REQUIRES_NEW</strong> — suspend any current TX and run in an independent one that commits/rolls back on its own (e.g. an audit log that must persist even if the caller fails).</li>
+<li><strong>NESTED</strong> — a savepoint inside the current TX; the inner part can roll back alone while the outer survives (JDBC savepoints; many JPA providers don't support it).</li>
+<li><strong>SUPPORTS / NOT_SUPPORTED / MANDATORY / NEVER</strong> — run with-TX-if-present / suspend and run non-TX / require one (else throw) / forbid one (else throw).</li>
+</ul>
+<p><strong>Isolation — what this TX sees of concurrent changes:</strong> <code>READ_UNCOMMITTED</code> → <code>READ_COMMITTED</code> (common default) → <code>REPEATABLE_READ</code> → <code>SERIALIZABLE</code>, trading fewer anomalies (dirty / non-repeatable / phantom reads) for more locking and abort risk. <code>DEFAULT</code> uses the database's own setting.</p>
+<p><strong>Rollback rule:</strong> Spring rolls back <strong>only on unchecked exceptions</strong> (<code>RuntimeException</code>/<code>Error</code>) by default. A checked exception <em>commits</em> unless you add <code>rollbackFor = Exception.class</code> — the single most common silent data-integrity bug.</p>
+<p><strong>Common pitfalls:</strong></p>
+<ul>
+<li><strong>Self-invocation</strong>: calling a <code>@Transactional</code> method via <code>this.method()</code> bypasses the proxy → no transaction (see the dedicated question).</li>
+<li><strong>private / final methods</strong>: the proxy can't override them → the annotation is silently ignored.</li>
+<li><strong>Long transactions</strong>: holding locks/connections across slow work (HTTP calls, big loops) → pool exhaustion, timeouts, deadlocks. Keep them short.</li>
+<li><strong>readOnly = true</strong>: a hint (skips Hibernate dirty-checking/flush, may route to a replica) — not a hard guarantee against writes.</li>
+</ul>
+<div class="key-point">Interview core: "REQUIRED joins, REQUIRES_NEW is independent, NESTED uses a savepoint; and it only rolls back on unchecked exceptions unless you set rollbackFor." The proxy-based self-invocation trap is the follow-up they're really testing.</div>`,
       },
       {
         q: 'How to implement pagination and sorting in Spring Boot?',
