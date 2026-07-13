@@ -53,7 +53,7 @@ export default function CodeEditor({ file, value, onChange, onRun, onFormat }: C
           </div>
         ))}
         <textarea
-          className="cs-edit-input"
+          className="cs-edit-input no-darkmode"
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={handleKeyDown}

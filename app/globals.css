@@ -731,7 +731,7 @@ ul.mst-menu > li {
 }
 .dark-90 input[type='submit'],
 .dark-90 select,
-.dark-90 textarea,
+.dark-90 textarea:not(.no-darkmode),
 .dark-90 button {
   color: var(--studio-dark-text);
   background-color: var(--color-dark-surface);
