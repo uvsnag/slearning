@@ -332,9 +332,9 @@ cf.whenComplete((result, ex) -> log(result, ex))  // side-effect, doesn't transf
         a: `<ul>
 <li><strong>S</strong> – Single Responsibility: one class = one reason to change.</li>
 <li><strong>O</strong> – Open/Closed: open for extension, closed for modification (use interfaces/abstract).</li>
-<li><strong>L</strong> – Liskov Substitution: subclass must be substitutable for parent without breaking behavior.</li>
-<li><strong>I</strong> – Interface Segregation: many specific interfaces &gt; one fat interface.</li>
-<li><strong>D</strong> – Dependency Inversion: depend on abstractions, not concretions (DI / IoC).</li>
+<li><strong>L</strong> – Liskov Substitution: Objects of a subclass should be replaceable with objects of the superclass without breaking the program.</li>
+<li><strong>I</strong> – Interface Segregation: A class should not be forced to implement methods it does not use.</li>
+<li><strong>D</strong> – Dependency Inversion: depend on abstractions, High-level modules should not depend directly on low-level modules.</li>
 </ul>
 <pre>// S — split responsibilities: ❌ ReportService{build,format,email,save}
 class ReportBuilder { Report build(Data d) {...} }
