@@ -12,7 +12,8 @@ export const topics: PvTopic[] = [
       {
         q: 'What are the four pillars of OOP in Java?',
         difficulty: 'easy',
-        a: `<ul>
+        a: `<div class="interview-answer"><p>The four are encapsulation, abstraction, inheritance, and polymorphism — but as a senior I care less about reciting them than how I apply them. Encapsulation is about protecting invariants, not just adding getters. Abstraction means programming to interfaces. For reuse I favour <strong>composition over inheritance</strong>, because inheritance is a strong, encapsulation-breaking coupling. And polymorphism is what actually lets me write open/closed code. I'd also flag that Java isn't purely OO — primitives and statics aren't objects.</p></div>
+<ul>
 <li><strong>Encapsulation</strong> – bundling data + methods; using access modifiers (<code>private</code>, <code>protected</code>, <code>public</code>, package-private). Achieve via getters/setters, immutable objects.</li>
 <li><strong>Abstraction</strong> – hiding complexity via abstract classes / interfaces. Only expose "what" not "how".</li>
 <li><strong>Inheritance</strong> – reusing code through <code>extends</code> / <code>implements</code>. Java supports single class inheritance, multiple interface inheritance.</li>
@@ -29,7 +30,8 @@ export const topics: PvTopic[] = [
       {
         q: 'Explain the difference between Abstract class and Interface (Java 8+).',
         difficulty: 'medium',
-        a: `<ul>
+        a: `<div class="interview-answer"><p>I choose based on "is-a with shared state" versus "can-do capability." An abstract class gives me constructors, instance fields, and a single-inheritance identity; an interface is a contract a class can mix in many of, plus default and static methods since Java 8 and private helpers since Java 9. My rule of thumb: reach for an interface first for flexibility, and only use an abstract class when there's genuinely shared state or a template-method skeleton I want to enforce.</p></div>
+<ul>
 <li><strong>Abstract class</strong>: can have constructors, instance fields, any access modifier. A class can extend only one.</li>
 <li><strong>Interface</strong>: all fields are <code>public static final</code>. Since Java 8 can have <code>default</code> and <code>static</code> methods. A class can implement many.</li>
 <li><strong>When to use</strong>: interface for capability contracts ("can do"), abstract class for shared state ("is a").</li>
@@ -55,7 +57,8 @@ public abstract class Employee implements Payable {
       {
         q: 'What is the difference between == and .equals() in Java?',
         difficulty: 'tricky',
-        a: `<ul>
+        a: `<div class="interview-answer"><p><code>==</code> is reference identity for objects and value comparison for primitives; <code>equals()</code> is logical equality that you override. The senior nuance is the contracts — equals must be reflexive, symmetric, transitive, and consistent, and you <em>must</em> override hashCode alongside it or you break HashMap and HashSet. I'd also call out the Integer cache from -128 to 127, which is exactly why you never use <code>==</code> on boxed types — always <code>.equals()</code>.</p></div>
+<ul>
 <li><code>==</code> compares <strong>references</strong> (memory addresses) for objects, and <strong>values</strong> for primitives.</li>
 <li><code>.equals()</code> compares <strong>logical equality</strong> (content). Must be overridden in custom classes.</li>
 </ul>
@@ -88,7 +91,8 @@ x == y  // FALSE — outside cache, different objects!</pre>
       {
         q: 'What is the difference between String, StringBuilder, and StringBuffer?',
         difficulty: 'medium',
-        a: `<ul>
+        a: `<div class="interview-answer"><p>String is immutable, StringBuilder is mutable and not synchronized, StringBuffer is the synchronized — and now largely obsolete — variant. The practical point I'd make: single-line concatenation already compiles down to StringBuilder, so the only real bug is building strings with <code>+</code> inside a loop, which is O(n²). I reach for StringBuilder in loops and almost never for StringBuffer — if I truly needed thread safety I'd use a local variable per thread or explicit locking.</p></div>
+<ul>
 <li><strong>String</strong>: immutable. Every modification creates a new object.</li>
 <li><strong>StringBuilder</strong>: mutable, <strong>not thread-safe</strong>, faster.</li>
 <li><strong>StringBuffer</strong>: mutable, <strong>thread-safe</strong> (synchronized), slower.</li>
@@ -109,7 +113,8 @@ String msg = "user=" + id + " status=" + status;   // no loop → fine</pre>
       {
         q: 'Explain Java Memory Model: Stack vs Heap and JMM happens-before.',
         difficulty: 'hard',
-        a: `<ul>
+        a: `<div class="interview-answer"><p>Stack holds method frames, locals, and references and is per-thread; heap holds objects, is shared, and is GC-managed; class metadata lives in Metaspace since Java 8. The part that actually matters for correctness is <strong>happens-before</strong> — cross-thread visibility isn't guaranteed unless you establish it through volatile, locks, thread start/join, or final-field publication. Without it the compiler and CPU are free to reorder, so a flag written by one thread may never be observed by another.</p></div>
+<ul>
 <li><strong>Stack</strong>: stores method frames, local variables, references. Each thread has its own stack. LIFO. Default size ~512KB-1MB (<code>-Xss</code>).</li>
 <li><strong>Heap</strong>: stores objects and class-level variables. Shared across all threads. Managed by GC.</li>
 <li><strong>Metaspace</strong> (Java 8+): replaces PermGen; stores class metadata, loaded by classloaders. Grows dynamically (limit with <code>-XX:MaxMetaspaceSize</code>).</li>
@@ -149,7 +154,8 @@ private volatile boolean ready;
       {
         q: 'What are the different types of Garbage Collectors in Java?',
         difficulty: 'hard',
-        a: `<ul>
+        a: `<div class="interview-answer"><p>I'd frame it by the tradeoff each one makes. Serial is single-threaded for tiny heaps; Parallel maximizes throughput and was the Java 8 default; G1 is the modern default — region-based and targeting a pause-time goal; ZGC and Shenandoah are concurrent collectors for sub-millisecond pauses on large heaps. In production I default to G1, set <code>-Xms</code> equal to <code>-Xmx</code> to avoid resize pauses, give it a pause goal, and always enable GC logging so I can actually diagnose. I only move to ZGC when pause time is the SLA.</p></div>
+<ul>
 <li><strong>Serial GC</strong> (<code>-XX:+UseSerialGC</code>) – single thread, stop-the-world. Good for small apps / containers with 1 CPU.</li>
 <li><strong>Parallel GC</strong> (<code>-XX:+UseParallelGC</code>) – multiple GC threads. Default in Java 8. Optimizes throughput.</li>
 <li><strong>G1 GC</strong> (<code>-XX:+UseG1GC</code>) – divides heap into regions (~2048). Default since Java 9. Low-latency for large heaps (4GB+). Targets pause time goals (<code>-XX:MaxGCPauseMillis=200</code>).</li>
@@ -178,7 +184,8 @@ Generational Hypothesis: Most objects die young.
       {
         q: 'Explain HashMap internal working. What happens on collision?',
         difficulty: 'hard',
-        a: `<ol>
+        a: `<div class="interview-answer"><p>A HashMap spreads the hashCode, masks it to a bucket, and on collision chains entries in that bucket. Java 8 added treeification — once a bucket passes 8 entries and the table is at least 64, it becomes a red-black tree, so worst case is O(log n) instead of O(n). Load factor 0.75 triggers a resize that doubles capacity. The senior gotchas: capacity is a power of two so masking replaces modulo; you must override hashCode with equals; and a key mutated after insertion becomes an unreachable ghost entry.</p></div>
+<ol>
 <li><code>hashCode()</code> is further hashed: <code>hash = h ^ (h >>> 16)</code> (spread high bits) → bucket index via <code>(n-1) & hash</code>.</li>
 <li>If bucket empty → new Node(hash, key, value, null).</li>
 <li>If collision → stored as <strong>linked list</strong> (chaining) at that bucket.</li>
@@ -205,7 +212,8 @@ Generational Hypothesis: Most objects die young.
       {
         q: 'What is the difference between HashMap, LinkedHashMap, TreeMap, and ConcurrentHashMap?',
         difficulty: 'medium',
-        a: `<p>All four implement <code>Map</code> but differ in <strong>ordering</strong>, <strong>performance</strong>, and <strong>thread-safety</strong>.</p>
+        a: `<div class="interview-answer"><p>They all implement Map but differ on ordering, complexity, and thread-safety. HashMap is my default — O(1) and unordered. LinkedHashMap keeps insertion or access order and is the natural base for an LRU cache. TreeMap keeps keys sorted with O(log n) and gives navigation like floor/ceiling and range queries. ConcurrentHashMap is the concurrent one — lock-free reads with per-bucket locking, no nulls. One trap I'd mention: TreeMap decides equality by the comparator, not equals, so a comparator that returns 0 collapses two keys into one.</p></div>
+<p>All four implement <code>Map</code> but differ in <strong>ordering</strong>, <strong>performance</strong>, and <strong>thread-safety</strong>.</p>
 <ul>
 <li><strong>HashMap</strong> — a hash table. O(1) average get/put, <strong>no ordering</strong> guarantee (iteration order may change on resize). Allows <strong>one null key</strong> and multiple null values. Not thread-safe. The default choice.</li>
 <li><strong>LinkedHashMap</strong> — HashMap plus a doubly-linked list threaded through the entries, so it preserves <strong>insertion order</strong> (or <strong>access order</strong> when built with <code>accessOrder=true</code>). Slightly more memory. The natural base for an <strong>LRU cache</strong>.</li>
@@ -235,7 +243,8 @@ new LinkedHashMap&lt;K,V&gt;(16, 0.75f, true) {
       {
         q: 'Explain Java Streams. What is the difference between intermediate and terminal operations?',
         difficulty: 'medium',
-        a: `<p>A stream pipeline has three parts: a <strong>source</strong> (collection, array, generator) → zero or more <strong>intermediate</strong> operations → exactly one <strong>terminal</strong> operation.</p>
+        a: `<div class="interview-answer"><p>Intermediate ops like map and filter return a new stream and are lazy; nothing runs until a terminal op like collect or findFirst pulls data through. Laziness buys two things: fusion, so filter-then-map is a single pass rather than two, and short-circuiting, so findFirst or limit can stop early — they even work on infinite streams. Two points I always add: with no terminal op nothing executes at all, and a stream is single-use, so reusing one after a terminal op throws IllegalStateException.</p></div>
+<p>A stream pipeline has three parts: a <strong>source</strong> (collection, array, generator) → zero or more <strong>intermediate</strong> operations → exactly one <strong>terminal</strong> operation.</p>
 <ul>
 <li><strong>Intermediate</strong> — return a new <code>Stream</code> (so they chain) and are <strong>lazy</strong>: they don't run until a terminal op is attached. Examples: <code>filter()</code>, <code>map()</code>, <code>flatMap()</code>, <code>sorted()</code>, <code>distinct()</code>, <code>limit()</code>, <code>peek()</code>.</li>
 <li><strong>Terminal</strong> — produce a result or side effect and <strong>trigger execution</strong> of the whole pipeline. Afterwards the stream is consumed and cannot be reused. Examples: <code>collect()</code>, <code>reduce()</code>, <code>forEach()</code>, <code>count()</code>, <code>findFirst()</code>, <code>anyMatch()</code>, <code>toList()</code>.</li>
@@ -263,7 +272,8 @@ Stream.iterate(1, n -> n + 1)      // infinite stream
       {
         q: 'What is Optional in Java? Why use it?',
         difficulty: 'medium',
-        a: `<p><code>Optional&lt;T&gt;</code> is a container that holds either a non-null value or nothing. Its purpose is to make "a value might be absent" <strong>explicit in the type signature</strong>, forcing callers to handle the empty case instead of being surprised by a <code>NullPointerException</code>.</p>
+        a: `<div class="interview-answer"><p>Optional makes "a value might be absent" explicit in the type, so callers can't silently ignore it the way they do with a bare null. I use it as a <strong>return type only</strong> — never for fields, parameters, or collection elements. I consume it with map, filter, orElseGet, or orElseThrow rather than isPresent/get, which is just a null check with more ceremony. Two rules I'd stress: prefer orElseGet over orElse when the default is expensive, and never return null from a method declared to return Optional.</p></div>
+<p><code>Optional&lt;T&gt;</code> is a container that holds either a non-null value or nothing. Its purpose is to make "a value might be absent" <strong>explicit in the type signature</strong>, forcing callers to handle the empty case instead of being surprised by a <code>NullPointerException</code>.</p>
 <pre>// Creating:
 Optional.of(value)          // value MUST be non-null, else NPE
 Optional.ofNullable(value)  // null → becomes an empty Optional
@@ -295,7 +305,8 @@ String city = Optional.ofNullable(user)
       {
         q: 'Explain the volatile keyword in Java.',
         difficulty: 'hard',
-        a: `<ul>
+        a: `<div class="interview-answer"><p>volatile guarantees visibility and ordering but <strong>not atomicity</strong>. It forces reads and writes through main memory and inserts memory barriers, establishing happens-before between a write and a later read. Classic uses are a status flag with one writer and many readers, and the reference in a double-checked-locking singleton — without volatile another thread can see a non-null but partially constructed object because of reordering. The trap: it doesn't make <code>i++</code> safe, because that's read-modify-write — for that I use AtomicInteger.</p></div>
+<ul>
 <li><code>volatile</code> ensures a variable is <strong>read from and written to main memory</strong>, not CPU cache.</li>
 <li>Guarantees <strong>visibility</strong> across threads but NOT atomicity.</li>
 <li>Prevents <strong>instruction reordering</strong> (acts as a memory barrier/fence).</li>
@@ -335,7 +346,8 @@ public static Singleton getInstance() {
       {
         q: 'What are the differences between synchronized, ReentrantLock, and ReadWriteLock?',
         difficulty: 'hard',
-        a: `<p>All three provide mutual exclusion; they differ in how much control and flexibility you get.</p>
+        a: `<div class="interview-answer"><p>All three give mutual exclusion; they differ in control. synchronized is simplest and auto-releases even on exception, so it can't leak — that's my default. ReentrantLock trades that safety for features: tryLock with timeout, interruptible acquisition, fairness, and condition variables — always unlocked in a finally block. ReadWriteLock lets many readers in but keeps writers exclusive, good for read-heavy caches, though for read-mostly data I'd reach for StampedLock's optimistic read, which is usually faster.</p></div>
+<p>All three provide mutual exclusion; they differ in how much control and flexibility you get.</p>
 <ul>
 <li><strong><code>synchronized</code></strong> — the built-in intrinsic lock (a keyword). Acquired on entering a block/method and <strong>released automatically</strong> on exit, even if an exception is thrown. Simple and leak-proof, but: no timeout, can't be interrupted while waiting, always unfair, and there's no "try and give up".</li>
 <li><strong><code>ReentrantLock</code></strong> — an explicit <code>Lock</code> object. You call <code>lock()</code>/<code>unlock()</code> yourself (always in <code>try/finally</code>). Adds <code>tryLock()</code>, <code>tryLock(timeout)</code>, <code>lockInterruptibly()</code>, optional <strong>fairness</strong>, and multiple condition variables. "Reentrant" = the same thread may acquire it repeatedly (just like <code>synchronized</code>).</li>
@@ -370,7 +382,8 @@ rw.writeLock().lock();  try { cache.put(key, val);   } finally { rw.writeLock().
       {
         q: 'What is the difference between CompletableFuture and Future?',
         difficulty: 'hard',
-        a: `<ul>
+        a: `<div class="interview-answer"><p>Future is basically a blocking get with no composition. CompletableFuture is the real async API — you chain with thenApply/thenCompose, combine with allOf/anyOf, and handle errors with exceptionally/handle, all without blocking. The senior points: thenCompose is the flatMap that avoids nested futures; the default executor is the shared ForkJoinPool common pool, so for I/O I always pass my own executor to avoid starving it; and if you never join and don't attach an exception handler, failures are silently swallowed.</p></div>
+<ul>
 <li><strong>Future</strong>: blocking <code>get()</code>, no chaining, no combining, no exception handling callbacks.</li>
 <li><strong>CompletableFuture</strong>: non-blocking, supports chaining (<code>thenApply</code>, <code>thenCompose</code>), combining (<code>allOf</code>, <code>anyOf</code>), exception handling (<code>exceptionally</code>, <code>handle</code>).</li>
 </ul>
@@ -407,7 +420,8 @@ cf.whenComplete((result, ex) -> log(result, ex))  // side-effect, doesn't transf
       {
         q: 'Explain SOLID principles with Java examples.',
         difficulty: 'hard',
-        a: `<ul>
+        a: `<div class="interview-answer"><p>SOLID is five design heuristics about managing change: single responsibility, open/closed, Liskov substitution, interface segregation, and dependency inversion. I treat them as guidance, not law — the through-line is "depend on abstractions and isolate the reasons a class changes." In a Spring app they fall out naturally: one service per domain (S), new strategies added as new classes rather than edits (O), thin role interfaces (I), and constructor-injected interfaces (D). I'm also wary of over-applying them into a maze of tiny abstractions.</p></div>
+<ul>
 <li><strong>S</strong> – Single Responsibility: one class = one reason to change.</li>
 <li><strong>O</strong> – Open/Closed: open for extension, closed for modification (use interfaces/abstract).</li>
 <li><strong>L</strong> – Liskov Substitution: Objects of a subclass should be replaceable with objects of the superclass without breaking the program.</li>
@@ -442,7 +456,8 @@ class OrderService {
       {
         q: "What happens when you type 'new Object()' in Java? (Object creation lifecycle)",
         difficulty: 'tricky',
-        a: `<p>Executing <code>new Object()</code> compiles to two bytecodes — <code>new</code> (allocate) followed by <code>invokespecial</code> (run the constructor) — and triggers several ordered phases:</p>
+        a: `<div class="interview-answer"><p><code>new</code> is two bytecodes — allocate, then invokespecial for the constructor — and it triggers an ordered sequence: class loading and static init once, heap allocation, fields zeroed to their defaults, the super constructor all the way up to Object, then instance initializers and field assignments in source order, then the constructor body, then the reference is returned. The two senior traps: fields hold defaults before initializers run, so calling an <em>overridable</em> method from a constructor sees an uninitialized subclass; and static init runs once, lazily, on first use — not per object.</p></div>
+<p>Executing <code>new Object()</code> compiles to two bytecodes — <code>new</code> (allocate) followed by <code>invokespecial</code> (run the constructor) — and triggers several ordered phases:</p>
 <ol>
 <li><strong>Loading &amp; initialization</strong> — if the class isn't loaded, the ClassLoader loads it, then it's linked (verify → prepare → resolve) and initialized: static blocks and static field assignments run <strong>once</strong>, parent-first.</li>
 <li><strong>Heap allocation</strong> — memory for the instance is reserved on the heap.</li>
@@ -470,7 +485,8 @@ class Child extends Parent {
       {
         q: 'What is the difference between Checked and Unchecked Exceptions?',
         difficulty: 'easy',
-        a: `<ul>
+        a: `<div class="interview-answer"><p>Checked exceptions extend Exception and the compiler forces you to catch or declare them; unchecked extend RuntimeException and don't; Errors are JVM-level problems you shouldn't catch. My stance as a senior is that checked exceptions don't compose with lambdas and streams and tend to leak implementation details up the stack, so at module boundaries I wrap them in unchecked exceptions while preserving the cause chain — which is exactly the approach Spring and Hibernate take with DataAccessException.</p></div>
+<ul>
 <li><strong>Checked</strong> (compile-time): must be caught or declared. <code>IOException</code>, <code>SQLException</code>. Extends <code>Exception</code>.</li>
 <li><strong>Unchecked</strong> (runtime): don't need to be declared. <code>NullPointerException</code>, <code>ArrayIndexOutOfBoundsException</code>. Extends <code>RuntimeException</code>.</li>
 <li><strong>Error</strong>: serious JVM problems. <code>OutOfMemoryError</code>, <code>StackOverflowError</code>. Should not be caught.</li>
@@ -494,7 +510,8 @@ try (var reader = Files.newBufferedReader(path)) {   // try-with-resources
       {
         q: 'Explain the Java ClassLoader hierarchy and how class loading works.',
         difficulty: 'hard',
-        a: `<p>Class loaders bring <code>.class</code> bytecode into the JVM on demand. They form a <strong>parent-child hierarchy</strong> and follow the <strong>parent-delegation model</strong>.</p>
+        a: `<div class="interview-answer"><p>There are three loaders — Bootstrap for core JDK classes, Platform, and Application for your classpath — and they follow <strong>parent-delegation</strong>: a loader asks its parent before ever loading a class itself. That buys two things: security, since you can't shadow java.lang.String, and type identity, since a class's runtime identity is its name plus its defining loader. That's why app servers isolate each WAR with a separate loader, and why SPI, JDBC, and JNDI deliberately break delegation via the thread-context classloader.</p></div>
+<p>Class loaders bring <code>.class</code> bytecode into the JVM on demand. They form a <strong>parent-child hierarchy</strong> and follow the <strong>parent-delegation model</strong>.</p>
 <ol>
 <li><strong>Bootstrap ClassLoader</strong> — loads the core JDK classes (<code>java.lang.*</code> etc., from <code>rt.jar</code> / the base module). Written in native code; appears as <code>null</code> from <code>getClassLoader()</code>.</li>
 <li><strong>Platform ClassLoader</strong> (called Extension ClassLoader before Java 9) — loads platform/extension modules.</li>
@@ -528,7 +545,8 @@ class MyLoader extends ClassLoader {
       {
         q: 'What are functional interfaces and lambda expressions?',
         difficulty: 'medium',
-        a: `<p>These two features are two halves of the same idea: a <strong>lambda expression</strong> is a concise way to supply the implementation of a <strong>functional interface</strong>. You can't have a lambda without a functional interface as its target type.</p>
+        a: `<div class="interview-answer"><p>A functional interface has exactly one abstract method, and a lambda is just a concise implementation of one — the compiler infers <em>which</em> interface from the target type. I lean on the standard ones in java.util.function — Predicate, Function, Consumer, Supplier — rather than writing my own, and I use method references when the body is a single call. The key differences from an anonymous class: <code>this</code> refers to the enclosing instance, captured variables must be effectively final, and a lambda compiles to invokedynamic with no extra .class file.</p></div>
+<p>These two features are two halves of the same idea: a <strong>lambda expression</strong> is a concise way to supply the implementation of a <strong>functional interface</strong>. You can't have a lambda without a functional interface as its target type.</p>
 
 <p><strong>1. Functional interface</strong> — an interface with exactly <strong>one abstract method</strong> (SAM = Single Abstract Method). The <code>@FunctionalInterface</code> annotation is optional but recommended: it makes the compiler reject the interface if a second abstract method sneaks in. <code>default</code>, <code>static</code>, and <code>private</code> methods don't count against the "one abstract method" rule.</p>
 <pre>@FunctionalInterface
@@ -586,7 +604,8 @@ Function&lt;Integer,Integer&gt; scale = n -> n * factor;  // ✅ captures factor
       {
         q: 'What is the difference between fail-fast and fail-safe iterators?',
         difficulty: 'tricky',
-        a: `<ul>
+        a: `<div class="interview-answer"><p>Fail-fast iterators — on ArrayList or HashMap — throw ConcurrentModificationException if the collection is structurally modified during iteration, detected best-effort through a modCount counter. Fail-safe iterators — on CopyOnWriteArrayList or ConcurrentHashMap — iterate over a snapshot, so they never throw but may not reflect the most recent writes. The practical takeaway: to remove while iterating, use the iterator's own remove() or removeIf(), never the collection's remove().</p></div>
+<ul>
 <li><strong>Fail-fast</strong>: throws <code>ConcurrentModificationException</code> if collection modified during iteration. E.g., <code>ArrayList</code>, <code>HashMap</code> iterators.</li>
 <li><strong>Fail-safe</strong>: works on a <strong>clone/snapshot</strong>, doesn't throw. E.g., <code>CopyOnWriteArrayList</code>, <code>ConcurrentHashMap</code> iterators.</li>
 </ul>
@@ -605,7 +624,8 @@ for (var it = list.iterator(); it.hasNext(); ) {
       {
         q: 'Explain Spring Boot dependency injection and IoC container.',
         difficulty: 'medium',
-        a: `<p><strong>IoC (Inversion of Control)</strong> is the principle: instead of your objects creating their own dependencies with <code>new</code>, the framework creates and wires them for you. You "invert" control of object construction and lifecycle to the container. <strong>Dependency Injection (DI)</strong> is the concrete technique that implements IoC — the container <em>injects</em> a class's collaborators from the outside rather than the class fetching them itself.</p>
+        a: `<div class="interview-answer"><p>Inversion of control means the container, not my code, creates and wires objects; dependency injection is how it does that. I always use <strong>constructor injection</strong> — it lets fields be final, guarantees required dependencies are present, fails fast at startup on a missing or circular dependency, and makes the class testable with a plain <code>new</code> and mocks. I avoid field injection because it hides dependencies and can't be final. And a circular dependency blowing up at startup is a feature, not a bug — it's telling me to fix the design.</p></div>
+<p><strong>IoC (Inversion of Control)</strong> is the principle: instead of your objects creating their own dependencies with <code>new</code>, the framework creates and wires them for you. You "invert" control of object construction and lifecycle to the container. <strong>Dependency Injection (DI)</strong> is the concrete technique that implements IoC — the container <em>injects</em> a class's collaborators from the outside rather than the class fetching them itself.</p>
 
 <p><strong>The IoC container</strong> (<code>ApplicationContext</code>) scans for beans (classes marked <code>@Component</code>, <code>@Service</code>, <code>@Repository</code>, or produced by <code>@Bean</code> methods), builds a dependency graph, then instantiates and wires them in the correct order — as singletons by default.</p>
 
@@ -654,7 +674,8 @@ public class OrderService {
       {
         q: 'What is the difference between @Component, @Service, @Repository, and @Controller?',
         difficulty: 'easy',
-        a: `<p>All four are <strong>stereotype annotations</strong> — they mark a class as a Spring-managed bean so component scanning registers it. <code>@Service</code>, <code>@Repository</code>, and <code>@Controller</code> are <strong>specializations of <code>@Component</code></strong>. Most are functionally identical; the differences are about <strong>semantics</strong> (which layer the class belongs to) plus a couple that add real behavior.</p>
+        a: `<div class="interview-answer"><p>They're all stereotype annotations — specializations of @Component, so component scanning registers them as beans. Mostly they're semantic markers that document the layer, but two add real behaviour: @Repository enables persistence-exception translation into Spring's DataAccessException hierarchy, and @Controller/@RestController wire methods as Spring MVC request handlers, with @RestController adding @ResponseBody so returns serialize straight to JSON. So I pick the specific one for readability and the free behaviour, rather than @Component everywhere.</p></div>
+<p>All four are <strong>stereotype annotations</strong> — they mark a class as a Spring-managed bean so component scanning registers it. <code>@Service</code>, <code>@Repository</code>, and <code>@Controller</code> are <strong>specializations of <code>@Component</code></strong>. Most are functionally identical; the differences are about <strong>semantics</strong> (which layer the class belongs to) plus a couple that add real behavior.</p>
 <pre>@Component   // generic bean — use when none of the others fit (utilities, helpers)
 public class RetryHelper { ... }
 
@@ -680,7 +701,8 @@ public class OrderApiController { ... }</pre>
       {
         q: 'What is the difference between @Transactional propagation levels?',
         difficulty: 'hard',
-        a: `<ul>
+        a: `<div class="interview-answer"><p>Propagation controls what happens when a transactional method is called with or without an existing transaction. REQUIRED — the default — joins the caller's transaction or starts one. REQUIRES_NEW suspends the outer one and runs independently, which I use for things like audit logs that must commit even if the business transaction rolls back. NESTED uses a savepoint. The classic gotcha I'd raise: @Transactional works through a proxy, so self-invocation within the same bean bypasses it entirely — you have to call it through an injected reference or another bean.</p></div>
+<ul>
 <li><strong>REQUIRED</strong> (default): join existing TX or create new.</li>
 <li><strong>REQUIRES_NEW</strong>: always create new TX, suspend current.</li>
 <li><strong>NESTED</strong>: create savepoint within existing TX.</li>
@@ -714,7 +736,8 @@ public class AuditService {
       {
         q: 'What are design patterns commonly asked in Java interviews?',
         difficulty: 'hard',
-        a: `<p>Interviewers group patterns into <strong>Creational</strong> (object creation), <strong>Structural</strong> (composition), and <strong>Behavioral</strong> (communication). Know the <em>problem each one solves</em> and a real Java/Spring example — not just the definition.</p>
+        a: `<div class="interview-answer"><p>I'd group them into creational, structural, and behavioural, but what matters is knowing the <em>problem each one solves</em> and a real JDK or Spring example, not the textbook definition. The ones that come up constantly: Builder for complex construction, Factory to hide <code>new</code>, Singleton done right as an enum, Strategy for pluggable behaviour, Observer for events, Decorator (java.io streams), and Proxy — which is exactly how Spring AOP and transactions work. I'd also add that many "patterns" are now just language features, like Iterator or lambdas replacing Strategy.</p></div>
+<p>Interviewers group patterns into <strong>Creational</strong> (object creation), <strong>Structural</strong> (composition), and <strong>Behavioral</strong> (communication). Know the <em>problem each one solves</em> and a real Java/Spring example — not just the definition.</p>
 <p><strong>Creational:</strong></p>
 <ul>
 <li><strong>Singleton</strong> — exactly one instance, globally accessible. Prefer an <code>enum</code> (thread-safe and serialization-safe) or double-checked locking with <code>volatile</code>. <em>JDK: <code>Runtime.getRuntime()</code>; Spring: singleton-scoped beans.</em></li>
@@ -756,7 +779,8 @@ User u = User.builder().name("John").age(30).email("j@x.com").build();</pre>
       {
         q: 'What is the difference between final, finally, and finalize in Java?',
         difficulty: 'easy',
-        a: `<p>Three completely different things that just sound similar:</p>
+        a: `<div class="interview-answer"><p>They only sound alike. <code>final</code> is a modifier for immutability — a final variable can't be reassigned, a final method can't be overridden, a final class can't be extended. <code>finally</code> is the try block that always runs for cleanup. <code>finalize()</code> is the old GC callback — unreliable and deprecated since Java 9, so I use try-with-resources or Cleaner instead. The one nuance worth stating: finally runs even when try returns, but not if the JVM exits via System.exit or crashes.</p></div>
+<p>Three completely different things that just sound similar:</p>
 <ul>
 <li><strong>final</strong> – a keyword to make things <em>unchangeable</em>:
   <ul>
@@ -791,7 +815,8 @@ protected void finalize() throws Throwable {
       {
         q: 'What is the difference between method overloading and method overriding?',
         difficulty: 'easy',
-        a: `<ul>
+        a: `<div class="interview-answer"><p>Overloading is same name, different parameters, resolved by the compiler at compile time — that's static polymorphism. Overriding is a subclass replacing a parent method with the same signature, resolved at runtime by the actual object type — that's dynamic dispatch, and it's what real polymorphism relies on. The distinction I always make explicit: overload resolution uses the <em>declared</em> type, overriding uses the <em>runtime</em> type. And you can't override a static method — that's method hiding, resolved statically.</p></div>
+<ul>
 <li><strong>Overloading</strong> (compile-time polymorphism): Same method name, <strong>different parameters</strong> in the same class.</li>
 <li><strong>Overriding</strong> (runtime polymorphism): Same method name and parameters in a <strong>subclass</strong>, replacing the parent's behavior.</li>
 </ul>
@@ -824,7 +849,8 @@ a.speak();  // "Woof!" — runtime decides which version to call</pre>
       {
         q: "What is the difference between 'this' and 'super' in Java?",
         difficulty: 'easy',
-        a: `<ul>
+        a: `<div class="interview-answer"><p><code>this</code> is a reference to the current object — I use it to disambiguate a field from a parameter, or to chain to another constructor with <code>this(...)</code>. <code>super</code> refers to the parent — I use it to call a parent method I've overridden, or to invoke the parent constructor with <code>super(...)</code>. The key rule: a call to <code>this(...)</code> or <code>super(...)</code> must be the first statement in a constructor, and if you write neither, the compiler inserts an implicit no-arg <code>super()</code>.</p></div>
+<ul>
 <li><strong>this</strong> – refers to the <strong>current object</strong>. Used to access current class members or call current class constructors.</li>
 <li><strong>super</strong> – refers to the <strong>parent class</strong>. Used to access parent class members or call parent constructors.</li>
 </ul>
@@ -856,7 +882,8 @@ new Dog("Rex", "Labrador").eat();
       {
         q: 'What is the difference between ArrayList and LinkedList?',
         difficulty: 'medium',
-        a: `<p>Both implement <code>List</code> interface but have very different internals:</p>
+        a: `<div class="interview-answer"><p>ArrayList is backed by a dynamic array — O(1) random access but O(n) inserts in the middle because of shifting. LinkedList is a doubly-linked list — O(1) insert/remove if you already hold the node, but O(n) to reach it. Honestly, I use ArrayList about 99% of the time: even for queue-like access its cache locality makes it faster in practice, and for front insertions I'd reach for ArrayDeque, not LinkedList. LinkedList almost never wins on a real benchmark.</p></div>
+<p>Both implement <code>List</code> interface but have very different internals:</p>
 <ul>
 <li><strong>ArrayList</strong>: Backed by a dynamic <strong>array</strong>. Fast random access, slow insertion in the middle.</li>
 <li><strong>LinkedList</strong>: Backed by a <strong>doubly-linked list</strong>. Fast insertion/deletion anywhere, slow random access.</li>
@@ -882,7 +909,8 @@ LinkedList internally:
       {
         q: 'What is the Java Collections Framework hierarchy?',
         difficulty: 'medium',
-        a: `<p>The Java Collections Framework is a unified architecture for representing and manipulating collections.</p>
+        a: `<div class="interview-answer"><p>Everything hangs off <code>Iterable</code> → <code>Collection</code>, which splits into List (ordered, indexed), Set (unique), and Queue/Deque (ends). Map is a separate hierarchy because it holds key-value pairs, not single elements. The way I actually reason about it in interviews is by requirement: need order and index → ArrayList; uniqueness → HashSet; sorted → TreeSet/TreeMap; FIFO/LIFO → ArrayDeque; key-value → HashMap. Knowing the tree matters less than picking the right implementation for the access pattern.</p></div>
+<p>The Java Collections Framework is a unified architecture for representing and manipulating collections.</p>
 <pre>                     Iterable
                         |
                     Collection
@@ -918,7 +946,8 @@ Queue&lt;String&gt; queue = new ArrayDeque&lt;&gt;();</pre>
       {
         q: 'What are Generics in Java and why are they useful?',
         difficulty: 'medium',
-        a: `<p><strong>Generics</strong> allow you to write classes/methods that work with <strong>any type</strong> while providing <strong>compile-time type safety</strong> — no casting, no ClassCastException.</p>
+        a: `<div class="interview-answer"><p>Generics give compile-time type safety and let me write reusable code without casting — the compiler catches a wrong type instead of a ClassCastException blowing up at runtime. As a senior I'd immediately bring up two things: bounded type parameters (<code>&lt;T extends Number&gt;</code>) and wildcards, using the PECS rule — Producer Extends, Consumer Super. And I'd note that generics are <strong>erased</strong> at runtime, which is why you can't do <code>new T()</code>, <code>instanceof T</code>, or overload on <code>List&lt;String&gt;</code> versus <code>List&lt;Integer&gt;</code>.</p></div>
+<p><strong>Generics</strong> allow you to write classes/methods that work with <strong>any type</strong> while providing <strong>compile-time type safety</strong> — no casting, no ClassCastException.</p>
 <pre>// WITHOUT generics (old way — dangerous!)
 List list = new ArrayList();
 list.add("hello");
@@ -959,7 +988,8 @@ String val = box.get();  // no cast needed
       {
         q: 'What is the difference between Process and Thread in Java?',
         difficulty: 'medium',
-        a: `<ul>
+        a: `<div class="interview-answer"><p>A process is an isolated program with its own memory space; a thread is a unit of execution inside a process. Threads share the process heap but each has its own stack — which is exactly why they're cheap to create and communicate easily, but also why you get race conditions and need synchronization. Processes are isolated and must talk via IPC or sockets. In modern Java I'd add that Java 21's virtual threads make threads cheap enough to spawn millions, shifting the old "reuse threads via a pool" calculus.</p></div>
+<ul>
 <li><strong>Process</strong>: An independent program with its <strong>own memory space</strong>. Processes don't share memory.</li>
 <li><strong>Thread</strong>: A lightweight unit of execution <strong>within a process</strong>. Threads share the same memory (heap) but have their own stack.</li>
 </ul>
@@ -992,7 +1022,8 @@ pool.submit(() -> System.out.println("Running in thread pool!"));</pre>
       {
         q: 'What is a deadlock in Java and how do you prevent it?',
         difficulty: 'hard',
-        a: `<p>A <strong>deadlock</strong> occurs when two or more threads are <strong>waiting for each other</strong> to release locks, and none can proceed. They're stuck forever.</p>
+        a: `<div class="interview-answer"><p>A deadlock is when threads wait on each other's locks in a cycle and none can proceed. It needs four conditions simultaneously — mutual exclusion, hold-and-wait, no preemption, and circular wait — and my prevention almost always targets the last one with <strong>consistent lock ordering</strong>: every thread acquires locks in the same global order. Beyond that I use <code>tryLock</code> with a timeout to fail fast, and prefer lock-free structures like ConcurrentHashMap and the Atomic classes so I'm not hand-managing locks at all. To diagnose one in prod, I take a thread dump with jstack.</p></div>
+<p>A <strong>deadlock</strong> occurs when two or more threads are <strong>waiting for each other</strong> to release locks, and none can proceed. They're stuck forever.</p>
 <p><strong>Analogy:</strong> Two people in a narrow hallway. Person A says "you move first", Person B says "no, you move first". Neither moves — deadlock!</p>
 <pre>// Deadlock example:
 Thread 1:
@@ -1034,7 +1065,8 @@ if (lock.tryLock(1, TimeUnit.SECONDS)) {
       {
         q: 'What is the Java ExecutorService and its thread pool types?',
         difficulty: 'medium',
-        a: `<p><strong>ExecutorService</strong> manages a pool of threads and executes tasks asynchronously without manually creating threads.</p>
+        a: `<div class="interview-answer"><p>ExecutorService decouples task submission from thread management so I'm not calling <code>new Thread()</code> everywhere. The factory methods give fixed, cached, single, and scheduled pools — but as a senior I'd flag that I rarely use <code>Executors</code> in production because those defaults use unbounded queues that can hide back-pressure and OOM you. I construct a <code>ThreadPoolExecutor</code> directly with a bounded queue and an explicit rejection policy, size it by workload (roughly CPU cores for CPU-bound, higher for I/O-bound), and always shut it down cleanly.</p></div>
+<p><strong>ExecutorService</strong> manages a pool of threads and executes tasks asynchronously without manually creating threads.</p>
 <p><strong>Analogy:</strong> A call center with agents (threads). Calls (tasks) come in and are assigned to available agents. If all agents are busy, calls wait in a queue. You don't hire a new agent for every call.</p>
 <pre>// Thread pool types:
 ExecutorService pool;
@@ -1070,7 +1102,8 @@ pool.awaitTermination(5, TimeUnit.SECONDS);</pre>
       {
         q: 'What are Java records (Java 14+)?',
         difficulty: 'easy',
-        a: `<p><strong>Records</strong> are immutable data carriers that auto-generate constructors, getters, <code>equals()</code>, <code>hashCode()</code>, and <code>toString()</code>.</p>
+        a: `<div class="interview-answer"><p>A record is a transparent, immutable data carrier — one line gives you the fields, canonical constructor, accessors, and value-based equals, hashCode, and toString. I use them for DTOs, value objects, and API responses where I previously leaned on Lombok. Senior nuances: records are implicitly final with final fields; you can add validation or normalization in the compact constructor; and they pair beautifully with sealed types and pattern matching to model closed algebraic data types. The one caveat is they're not a fit when you need mutability or inheritance.</p></div>
+<p><strong>Records</strong> are immutable data carriers that auto-generate constructors, getters, <code>equals()</code>, <code>hashCode()</code>, and <code>toString()</code>.</p>
 <p><strong>Problem:</strong> Simple data classes in Java require tons of boilerplate.</p>
 <pre>// OLD way — 30+ lines for a simple data class!
 public class Person {
@@ -1113,7 +1146,8 @@ public record Person(String name, int age) {
       {
         q: 'What are sealed classes in Java (Java 17)?',
         difficulty: 'medium',
-        a: `<p><strong>Sealed classes</strong> restrict which classes can extend them. You explicitly list the allowed subclasses.</p>
+        a: `<div class="interview-answer"><p>Sealed classes let me control exactly which types can extend a class or interface via the <code>permits</code> clause, so the hierarchy is closed and known at compile time. Each permitted subtype must declare itself final, sealed, or non-sealed. The real payoff is with pattern-matching switches: because the compiler knows the complete set of subtypes, it can verify the switch is <strong>exhaustive</strong> and I don't need a default branch. That combination — sealed plus records plus switch patterns — is Java's way of doing algebraic data types and modelling a closed domain safely.</p></div>
+<p><strong>Sealed classes</strong> restrict which classes can extend them. You explicitly list the allowed subclasses.</p>
 <p><strong>Analogy:</strong> A VIP club with a guest list. Only people on the list can enter. No random person can walk in.</p>
 <pre>// Only Circle, Rectangle, and Triangle can extend Shape
 public sealed class Shape permits Circle, Rectangle, Triangle { }
@@ -1149,7 +1183,8 @@ public non-sealed class Triangle extends Shape { // 'non-sealed' — anyone can 
       {
         q: 'What is the difference between var, explicit types, and when to use each?',
         difficulty: 'easy',
-        a: `<p>Since Java 10, <code>var</code> infers the type from the right side. The type is still <strong>static</strong> — it's just compiler convenience.</p>
+        a: `<div class="interview-answer"><p><code>var</code> is compile-time type inference for local variables — the type is still fully static, it's just written once by the compiler instead of by me. It's not dynamic typing like JavaScript. I use it when the type is obvious from the right-hand side, especially to cut noise on long generics, and I avoid it when the initializer hides the type, like <code>var x = getResult()</code>, because it hurts readability. It's local-only — not allowed on fields, parameters, or return types.</p></div>
+<p>Since Java 10, <code>var</code> infers the type from the right side. The type is still <strong>static</strong> — it's just compiler convenience.</p>
 <pre>// Explicit type (old way):
 String name = "John";
 Map&lt;String, List&lt;Integer&gt;&gt; map = new HashMap&lt;String, List&lt;Integer&gt;&gt;();
@@ -1179,7 +1214,8 @@ x = 123;  // COMPILE ERROR — x is String, not Object</pre>
       {
         q: "What is the 'try-with-resources' statement?",
         difficulty: 'easy',
-        a: `<p><strong>Try-with-resources</strong> (Java 7+) automatically closes resources (streams, connections, etc.) when the block exits — no need for manual <code>finally</code> cleanup.</p>
+        a: `<div class="interview-answer"><p>Try-with-resources automatically closes anything implementing AutoCloseable when the block exits, in reverse order of declaration, whether it exits normally or via exception. It replaces the fragile try-finally-with-null-check pattern. The senior detail I'd add is <strong>suppressed exceptions</strong>: if the body throws and close() also throws, the close exception is attached to the primary one via getSuppressed() rather than masking it — which is the classic bug the old manual finally block caused.</p></div>
+<p><strong>Try-with-resources</strong> (Java 7+) automatically closes resources (streams, connections, etc.) when the block exits — no need for manual <code>finally</code> cleanup.</p>
 <pre>// OLD way — verbose and error-prone!
 BufferedReader reader = null;
 try {
@@ -1221,7 +1257,8 @@ class MyResource implements AutoCloseable {
       {
         q: 'What is the difference between throw and throws in Java?',
         difficulty: 'easy',
-        a: `<ul>
+        a: `<div class="interview-answer"><p>Simple one: <code>throw</code> is the statement that actually raises an exception instance at runtime; <code>throws</code> is the clause in a method signature that declares which checked exceptions a method may propagate, so callers know to handle them. Only checked exceptions must be declared. As a senior I'd add the design point: I don't over-declare <code>throws</code> — leaking low-level checked exceptions up the call stack couples callers to implementation details, so at boundaries I translate them into meaningful unchecked or domain exceptions.</p></div>
+<ul>
 <li><strong>throw</strong> – actually <em>throws</em> an exception object. Used inside a method body.</li>
 <li><strong>throws</strong> – <em>declares</em> that a method might throw an exception. Used in the method signature.</li>
 </ul>
@@ -1255,7 +1292,8 @@ try {
       {
         q: 'What is the difference between HashMap and ConcurrentHashMap?',
         difficulty: 'hard',
-        a: `<ul>
+        a: `<div class="interview-answer"><p>HashMap isn't thread-safe — concurrent writes can corrupt it and historically even spin into an infinite loop on resize. ConcurrentHashMap is safe without locking the whole map: Java 8 uses CAS plus per-bucket synchronization, so threads writing different buckets run in parallel, which is far faster than Hashtable or Collections.synchronizedMap that lock everything. It disallows null keys and values, precisely so a null can't be ambiguous between "absent" and "mapped to null" under concurrency. And I'd stress: for compound actions I use the atomic methods like <code>compute</code>, <code>merge</code>, and <code>putIfAbsent</code>, since individually-safe calls aren't safe when combined.</p></div>
+<ul>
 <li><strong>HashMap</strong>: Not thread-safe. Fast for single-threaded use. Allows one <code>null</code> key.</li>
 <li><strong>ConcurrentHashMap</strong>: Thread-safe without locking the entire map. No <code>null</code> keys or values.</li>
 </ul>
@@ -1288,7 +1326,8 @@ cmap.merge("key", 1, Integer::sum);   // atomic merge</pre>
       {
         q: 'Explain the Java 8 Stream API: map, filter, reduce, collect.',
         difficulty: 'medium',
-        a: `<p><strong>Streams</strong> let you process collections in a functional, declarative style — like a pipeline of operations.</p>
+        a: `<div class="interview-answer"><p>These are the four workhorses. <code>filter</code> keeps elements matching a predicate; <code>map</code> transforms each element; <code>reduce</code> folds the stream into a single value with an associative operation; <code>collect</code> accumulates into a container via a Collector, like toList or groupingBy. The mental model I'd give: map/filter are lazy and build the pipeline, and collect or reduce is the terminal op that actually runs it. For real aggregation I lean on <code>Collectors.groupingBy</code> and <code>toMap</code>, and I prefer <code>collect</code> to a hand-rolled <code>reduce</code> when I'm building a mutable container.</p></div>
+<p><strong>Streams</strong> let you process collections in a functional, declarative style — like a pipeline of operations.</p>
 <p><strong>Analogy:</strong> An assembly line in a factory. Raw materials (data) flow through stations (operations): filter bad items, transform them, and pack the result.</p>
 <pre>List&lt;String&gt; names = List.of("Alice", "Bob", "Charlie", "Anna", "BigBob");
 
@@ -1329,7 +1368,8 @@ Map&lt;String, Integer&gt; nameLengths = names.stream()
       {
         q: 'What is the difference between Comparable and Comparator? (with detailed examples)',
         difficulty: 'medium',
-        a: `<ul>
+        a: `<div class="interview-answer"><p>Comparable defines a type's single natural ordering via <code>compareTo</code>, implemented inside the class — think Integer or String. Comparator is an external, pluggable ordering, so you can have many, and since Java 8 I almost always build them fluently with <code>Comparator.comparing(...).thenComparing(...).reversed()</code>. Two things I'd flag: keep compareTo consistent with equals to avoid surprising behaviour in sorted sets and maps, and always compare with <code>Integer.compare</code> rather than subtraction, which can overflow.</p></div>
+<ul>
 <li><strong>Comparable</strong>: Defines the <strong>natural ordering</strong> of a class. Implemented <em>inside</em> the class. One way to sort.</li>
 <li><strong>Comparator</strong>: Defines <strong>custom ordering</strong>. Implemented <em>outside</em> the class. Multiple ways to sort.</li>
 </ul>
@@ -1365,7 +1405,8 @@ employees.sort(byNameThenSalary); // sort by name, then salary</pre>
       {
         q: 'What is reflection in Java and when should you use it?',
         difficulty: 'hard',
-        a: `<p><strong>Reflection</strong> allows you to inspect and modify classes, methods, fields, and constructors at <strong>runtime</strong> — even private ones.</p>
+        a: `<div class="interview-answer"><p>Reflection lets you inspect and manipulate classes, methods, and fields at runtime — including private ones via setAccessible. It's the machinery behind frameworks: Spring DI, Hibernate mapping, Jackson serialization, and JUnit discovery all rely on it. My stance is that it belongs in frameworks, not business logic — it's slow, bypasses compile-time safety, breaks encapsulation, and the module system now restricts it. Where I need dynamic dispatch in my own code, I'd prefer MethodHandles or, better, a plain interface and polymorphism.</p></div>
+<p><strong>Reflection</strong> allows you to inspect and modify classes, methods, fields, and constructors at <strong>runtime</strong> — even private ones.</p>
 <p><strong>Analogy:</strong> Normally you use a TV remote as designed (public API). Reflection is like opening the TV case and directly manipulating the circuit board — powerful but dangerous.</p>
 <pre>// Get class information at runtime
 Class&lt;?&gt; clazz = Class.forName("com.example.User");
@@ -1402,7 +1443,8 @@ Object result = method.invoke(user, "arg1");</pre>
       {
         q: 'What is the difference between JDK, JRE, and JVM?',
         difficulty: 'easy',
-        a: `<ul>
+        a: `<div class="interview-answer"><p>Nested from the inside out: the JVM is the engine that executes bytecode and is the platform-specific piece; the JRE is the JVM plus the standard libraries needed to run an app; and the JDK is the JRE plus development tools like javac, jar, and the debugger. So I develop with the JDK, and historically shipped only a JRE — though since Java 11 there's no standalone JRE and I'd package a trimmed runtime with jlink instead. This layering is exactly what delivers "write once, run anywhere" — compile to bytecode once, run on any JVM.</p></div>
+<ul>
 <li><strong>JVM</strong> (Java Virtual Machine) – The engine that <em>runs</em> bytecode. Platform-specific (different JVM for Windows, Mac, Linux).</li>
 <li><strong>JRE</strong> (Java Runtime Environment) – JVM + standard libraries needed to <em>run</em> Java programs.</li>
 <li><strong>JDK</strong> (Java Development Kit) – JRE + development tools (compiler, debugger, etc.) needed to <em>develop</em> Java programs.</li>
@@ -1431,7 +1473,8 @@ Flow:
       {
         q: 'What is the difference between shallow copy and deep copy in Java?',
         difficulty: 'medium',
-        a: `<ul>
+        a: `<div class="interview-answer"><p>A shallow copy duplicates the top-level object but shares the references it holds, so mutating a nested object shows up in both copies. A deep copy recursively clones the nested objects too, giving full independence. In practice I avoid Cloneable and <code>clone()</code> entirely — Effective Java flags it as broken — and instead use a copy constructor, a static factory, or serialization/Jackson for a deep copy. The cleanest defence, though, is making the nested objects <strong>immutable</strong>, at which point sharing references is perfectly safe and copying is free.</p></div>
+<ul>
 <li><strong>Shallow copy</strong>: Copies the object but <strong>shares references</strong> to inner objects. Changes to inner objects affect both.</li>
 <li><strong>Deep copy</strong>: Copies everything — the object AND all inner objects. Fully independent.</li>
 </ul>
@@ -1472,7 +1515,8 @@ System.out.println(p1.address.city); // "LA" ✅ — deep copy is independent</p
       {
         q: 'What are Virtual Threads in Java 21 and how do they differ from platform threads?',
         difficulty: 'hard',
-        a: `<p><strong>Virtual threads</strong> (Project Loom) are lightweight threads managed by the JVM, not the OS. You can create millions of them without running out of memory.</p>
+        a: `<div class="interview-answer"><p>Virtual threads, from Project Loom, are lightweight threads scheduled by the JVM onto a small pool of OS carrier threads. When a virtual thread blocks on I/O it unmounts from its carrier instead of parking an OS thread, so I can have millions of them and write plain, blocking, sequential code that scales like reactive code — without the complexity of reactive. The senior caveats: don't pool them, create one per task; and avoid <code>synchronized</code> on blocking paths because it <em>pins</em> the carrier thread — use ReentrantLock instead. They're a win for I/O-bound work, not CPU-bound.</p></div>
+<p><strong>Virtual threads</strong> (Project Loom) are lightweight threads managed by the JVM, not the OS. You can create millions of them without running out of memory.</p>
 <pre>// Platform thread (traditional): 1 thread = ~1MB stack, managed by OS
 Thread platformThread = new Thread(() -> {
     // Each thread is expensive — limited to ~thousands
@@ -1503,7 +1547,8 @@ try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
       {
         q: 'What are switch expressions, pattern matching, and text blocks in modern Java?',
         difficulty: 'medium',
-        a: `<p><strong>Switch expressions (Java 14+):</strong></p>
+        a: `<div class="interview-answer"><p>These are the features that modernised everyday Java. Switch <em>expressions</em> return a value with arrow labels and no fall-through, so no more accidental missing-break bugs. Pattern matching — <code>instanceof</code> patterns, then record deconstruction and type patterns in switch — removes the cast-after-check boilerplate and, combined with sealed types, gives compiler-checked exhaustiveness. Text blocks are triple-quoted multi-line string literals that keep JSON and SQL readable. Together they push Java toward concise, declarative, data-oriented code, and I reach for them by default on Java 17+.</p></div>
+<p><strong>Switch expressions (Java 14+):</strong></p>
 <pre>// Old switch statement:
 String result;
 switch (day) {
@@ -1563,7 +1608,8 @@ String json = """
       {
         q: 'How do you create an immutable class in Java?',
         difficulty: 'medium',
-        a: `<p>An <strong>immutable class</strong> is a class whose instances cannot be modified after creation. They are inherently thread-safe.</p>
+        a: `<div class="interview-answer"><p>The recipe is: make the class final, all fields private and final, no setters, initialise everything in the constructor, and — the part people forget — take <strong>defensive copies</strong> of any mutable inputs on the way in and return copies or unmodifiable views on the way out, so callers can't reach in and mutate shared state. The payoff is that the object is inherently thread-safe, cacheable, and safe to use as a map key. In modern Java I'd just use a record when it's a plain data carrier, since it gives me most of this for free.</p></div>
+<p>An <strong>immutable class</strong> is a class whose instances cannot be modified after creation. They are inherently thread-safe.</p>
 <pre>// Rules for immutability:
 public final class Money {                    // 1. final class — can't be extended
     private final BigDecimal amount;          // 2. final fields
@@ -1597,7 +1643,8 @@ public record Point(int x, int y) {}
       {
         q: 'What is ThreadLocal in Java and what are its pitfalls?',
         difficulty: 'hard',
-        a: `<p><strong>ThreadLocal</strong> gives each thread its own copy of a variable — no synchronization needed.</p>
+        a: `<div class="interview-answer"><p>ThreadLocal gives each thread its own copy of a value, which is how frameworks carry per-request context — Spring's SecurityContextHolder and request-scoped state, or a non-thread-safe SimpleDateFormat. The big pitfall in server code is thread pools: the thread is reused, so if you don't <code>remove()</code> in a finally block, stale state leaks into the next request — both a memory leak and a correctness/security bug. I'd also note it doesn't fit virtual threads well; Java 21's ScopedValue is the modern, immutable replacement.</p></div>
+<p><strong>ThreadLocal</strong> gives each thread its own copy of a variable — no synchronization needed.</p>
 <pre>// Each thread gets its own SimpleDateFormat (not thread-safe!)
 private static final ThreadLocal&lt;SimpleDateFormat&gt; dateFormat =
     ThreadLocal.withInitial(() -> new SimpleDateFormat("yyyy-MM-dd"));
@@ -1645,7 +1692,8 @@ pool.submit(() -> {
       {
         q: 'What is the diamond problem with Java default methods?',
         difficulty: 'tricky',
-        a: `<p>When a class implements two interfaces with the same default method, Java has a <strong>diamond problem</strong> — which implementation wins?</p>
+        a: `<div class="interview-answer"><p>Default methods reintroduced a limited diamond: if a class inherits the same default method from two unrelated interfaces, it won't compile — Java forces you to resolve it. The resolution rules are: a concrete class method always wins over any interface default, a more specific sub-interface wins over its parent, and if there's a genuine tie you must override and can delegate explicitly with <code>Interface.super.method()</code>. Java sidesteps the classic C++ diamond entirely by allowing only single class inheritance — interfaces carry behaviour but no state.</p></div>
+<p>When a class implements two interfaces with the same default method, Java has a <strong>diamond problem</strong> — which implementation wins?</p>
 <pre>interface Flyable {
     default String move() { return "Flying"; }
 }
@@ -1687,7 +1735,8 @@ class Duck extends Animal implements Flyable {
       {
         q: 'What is the String pool and when does String.intern() matter?',
         difficulty: 'tricky',
-        a: `<p>Java maintains a <strong>String pool</strong> (in the heap since Java 7) to reuse common String objects and save memory.</p>
+        a: `<div class="interview-answer"><p>The String pool is a JVM cache of unique string literals — it lives on the heap since Java 7 — so equal literals share one object, which is why <code>"a" == "a"</code> is true but <code>new String("a") == "a"</code> is false. <code>intern()</code> forces a string into the pool and returns the canonical instance. I almost never call it in modern code: it's a niche memory optimisation for huge numbers of duplicated runtime strings, and it can actually hurt because interned strings live a long time. The real takeaway is simply to compare strings with equals, never <code>==</code>.</p></div>
+<p>Java maintains a <strong>String pool</strong> (in the heap since Java 7) to reuse common String objects and save memory.</p>
 <pre>// String literals go to the pool automatically:
 String s1 = "hello";      // goes to pool
 String s2 = "hello";      // reuses same pool object
@@ -1719,7 +1768,8 @@ System.out.println(c == "hello");  // false (runtime concat = new object)</pre>
       {
         q: 'What are the pitfalls of parallel streams in Java?',
         difficulty: 'hard',
-        a: `<p>Parallel streams use the <strong>common ForkJoinPool</strong> (shared across the entire application) and can cause serious problems if misused.</p>
+        a: `<div class="interview-answer"><p>My honest answer is I reach for parallel streams rarely and carefully. They all share one JVM-wide ForkJoinPool common pool, so a blocking or I/O task in a parallel stream can starve every other parallel stream in the app. They only pay off with a large dataset, a genuinely CPU-bound and cheaply-splittable operation, and a source that splits evenly — arrays and ArrayList, not LinkedList. And the operations must be stateless and associative; a shared mutable accumulator gives wrong results. For I/O-bound fan-out I'd use an executor or virtual threads, not parallel streams, and I'd always measure before assuming they're faster.</p></div>
+<p>Parallel streams use the <strong>common ForkJoinPool</strong> (shared across the entire application) and can cause serious problems if misused.</p>
 <pre>// Basic parallel stream:
 List&lt;Integer&gt; nums = IntStream.rangeClosed(1, 1000).boxed().toList();
 int sum = nums.parallelStream()
@@ -1766,7 +1816,8 @@ List.of(1, 2, 3).parallelStream()...  // Overhead > benefit for small lists</pre
       {
         q: 'What are Weak, Soft, and Phantom References in Java?',
         difficulty: 'hard',
-        a: `<p>Java provides 4 types of references with different GC behaviors, used for caching and resource management.</p>
+        a: `<div class="interview-answer"><p>They're a spectrum of "how hard should GC try to keep this?" A strong reference — the default — pins the object. A soft reference is kept until the JVM is under memory pressure, which makes it a natural fit for a memory-sensitive cache. A weak reference is collected at the next GC once nothing strong points to it — that's what WeakHashMap and canonicalizing caches use. A phantom reference is never followed and only tells you an object has been finalized, so it's the modern, safe replacement for finalizers, used for native-resource cleanup via a ReferenceQueue and Cleaner. In practice I mostly use weak/soft for caches and let a real cache library like Caffeine handle it.</p></div>
+<p>Java provides 4 types of references with different GC behaviors, used for caching and resource management.</p>
 <pre>// 1. Strong Reference (default) — object NEVER collected while reachable
 String s = new String("hello");  // strong ref — GC won't touch it
 
@@ -1805,7 +1856,8 @@ WeakReference&lt;Object&gt; ref = new WeakReference&lt;&gt;(obj, queue);
       {
         q: 'What are common causes of memory leaks in Java and how do you detect them?',
         difficulty: 'hard',
-        a: `<p>Even with GC, Java can have memory leaks — objects that are technically reachable but no longer needed.</p>
+        a: `<div class="interview-answer"><p>In Java a "leak" isn't unreachable memory — it's objects that stay <em>reachable</em> but are no longer needed, so GC can't collect them. The usual suspects: static or long-lived collections that only ever grow, unremoved listeners and callbacks, ThreadLocals not cleared in a pooled thread, unclosed resources, and classloader leaks on redeploy. To diagnose, I watch for a heap that climbs and never recovers after Full GC, then capture a heap dump with jmap and analyse dominators in Eclipse MAT to find what's holding the retained set — plus GC logs and a profiler like async-profiler to confirm.</p></div>
+<p>Even with GC, Java can have memory leaks — objects that are technically reachable but no longer needed.</p>
 <p><strong>Common causes:</strong></p>
 <pre>// 1. Static collections that grow forever
 private static final List&lt;Event&gt; eventLog = new ArrayList&lt;&gt;();
@@ -1867,7 +1919,8 @@ key.setId(2);  // hashCode changes! Entry unreachable but not GC'd
       {
         q: 'What is the difference between JDK Dynamic Proxy and CGLIB Proxy?',
         difficulty: 'hard',
-        a: `<p>Both create proxy objects at runtime — essential for understanding Spring AOP, @Transactional, lazy loading.</p>
+        a: `<div class="interview-answer"><p>Both generate proxies at runtime to add behaviour like transactions or AOP advice. JDK dynamic proxies are built into the JDK but require the target to implement an <strong>interface</strong> — they proxy the interface. CGLIB proxies by <strong>subclassing</strong> the target with bytecode generation, so they work on concrete classes but can't proxy final classes or final methods. Spring picks JDK proxies when there's an interface and CGLIB otherwise, and Spring Boot actually defaults to CGLIB. The senior consequence I'd raise: because both are proxy-based, <strong>self-invocation</strong> inside the same bean bypasses the proxy, so <code>@Transactional</code> or <code>@Cacheable</code> on a method called via <code>this</code> silently does nothing.</p></div>
+<p>Both create proxy objects at runtime — essential for understanding Spring AOP, @Transactional, lazy loading.</p>
 <pre>// JDK Dynamic Proxy — INTERFACE-based
 // Target MUST implement an interface
 public interface UserService {
@@ -1930,7 +1983,8 @@ public class OrderService {
       {
         q: 'What are the common Java serialization pitfalls and alternatives?',
         difficulty: 'hard',
-        a: `<p>Java serialization (<code>Serializable</code>) converts objects to byte streams. It has many pitfalls.</p>
+        a: `<div class="interview-answer"><p>My headline is that I avoid built-in Java serialization in new code. It's a security minefield — deserializing untrusted bytes has caused countless remote-code-execution CVEs via gadget chains — and it's brittle: the serialVersionUID couples your wire format to class internals, transient and custom readObject handling are easy to get wrong, and it doesn't cross languages. So I use an explicit, schema-based format instead: JSON via Jackson for services, or Protobuf/Avro when I need compactness and schema evolution. If I'm ever forced to use native serialization, I lock it down with a deserialization filter.</p></div>
+<p>Java serialization (<code>Serializable</code>) converts objects to byte streams. It has many pitfalls.</p>
 <pre>// Basic serialization:
 public class User implements Serializable {
     private static final long serialVersionUID = 1L; // Version control
@@ -1988,7 +2042,8 @@ private void readObject(ObjectInputStream in) throws InvalidObjectException {
       {
         q: 'Explain Java NIO vs IO. What is the Reactor pattern?',
         difficulty: 'hard',
-        a: `<p>Java IO is <strong>blocking and stream-based</strong>. Java NIO is <strong>non-blocking and buffer/channel-based</strong>.</p>
+        a: `<div class="interview-answer"><p>Classic java.io is blocking and stream-oriented — one thread per connection, which doesn't scale to tens of thousands of sockets. NIO is buffer-and-channel based and non-blocking: a single thread uses a <strong>Selector</strong> to watch many channels and reacts only to the ones that are ready. That readiness-driven event loop is the <strong>Reactor pattern</strong>, and it's what Netty and the whole reactive stack are built on. The honest modern caveat I'd give: with Java 21 virtual threads, simple blocking-style code now scales like NIO, so I'd reach for the reactor complexity only when I genuinely need it.</p></div>
+<p>Java IO is <strong>blocking and stream-based</strong>. Java NIO is <strong>non-blocking and buffer/channel-based</strong>.</p>
 <pre>// Traditional IO (java.io) — blocking, one-thread-per-connection:
 ServerSocket server = new ServerSocket(8080);
 while (true) {
@@ -2042,7 +2097,8 @@ Each thread has its own Selector (event loop)</pre>
       {
         q: 'How do you create custom annotations and how does annotation processing work?',
         difficulty: 'hard',
-        a: `<p>Annotations are metadata attached to code. You can create custom annotations and process them at compile-time or runtime.</p>
+        a: `<div class="interview-answer"><p>A custom annotation is just metadata — I declare it with <code>@interface</code> and configure it with two meta-annotations that matter most: <code>@Target</code> for where it can go and <code>@Retention</code> for how long it survives. Retention is the key decision: SOURCE for compile-time-only markers, and RUNTIME when something needs to read it via reflection, like Spring or a validator. There are two processing styles — runtime reflection, which is flexible but has a cost, and compile-time annotation processors (the APT / Pluggable Annotation API) that generate code with zero runtime overhead, which is how Lombok, MapStruct, and Dagger work.</p></div>
+<p>Annotations are metadata attached to code. You can create custom annotations and process them at compile-time or runtime.</p>
 <pre>// Define custom annotation:
 @Target({ElementType.METHOD, ElementType.TYPE})  // where it can be used
 @Retention(RetentionPolicy.RUNTIME)              // when it's available
@@ -2100,7 +2156,8 @@ public class BuilderProcessor extends AbstractProcessor {
       {
         q: 'What are advanced Enum patterns in Java?',
         difficulty: 'medium',
-        a: `<p>Java enums are far more powerful than simple constants — they're full classes that can have fields, methods, and implement interfaces.</p>
+        a: `<div class="interview-answer"><p>The point I'd lead with is that a Java enum is a full class, not just a named int — each constant is a singleton instance, so it can hold fields, define methods, and implement interfaces. That unlocks real patterns: <strong>enum-as-strategy</strong>, where each constant overrides behaviour with a constant-specific body; a type-safe state machine; and the cleanest singleton there is, because the JVM guarantees one instance and it's serialization-safe by construction (Effective Java Item 3). Enums can't extend a class since they already extend Enum, but implementing an interface covers most of what you'd want.</p></div>
+<p>Java enums are far more powerful than simple constants — they're full classes that can have fields, methods, and implement interfaces.</p>
 <pre>// Strategy pattern with enum:
 public enum Operation {
     ADD("+")      { public double apply(double a, double b) { return a + b; } },
@@ -2164,7 +2221,8 @@ EnumMap&lt;Day, String&gt; schedule = new EnumMap&lt;&gt;(Day.class);      // ar
       {
         q: 'Explain Spring AOP: how it works internally and common use cases.',
         difficulty: 'hard',
-        a: `<p><strong>AOP (Aspect-Oriented Programming)</strong> separates cross-cutting concerns (logging, security, transactions) from business logic.</p>
+        a: `<div class="interview-answer"><p>AOP factors out cross-cutting concerns — transactions, security, logging, caching, metrics — into aspects, so they don't get scattered and duplicated across every method. The vocabulary is join point, pointcut, advice, and aspect. The crucial part for a senior is <em>how Spring implements it</em>: proxy-based AOP, JDK dynamic proxies for interfaces and CGLIB subclasses otherwise, weaving the advice around the bean. Two consequences fall straight out of that proxy model — it only intercepts calls that go <em>through</em> the proxy, so self-invocation within a bean is not advised, and it only works on Spring-managed beans. If I needed to advise private methods or plain objects, I'd use full AspectJ weaving instead.</p></div>
+<p><strong>AOP (Aspect-Oriented Programming)</strong> separates cross-cutting concerns (logging, security, transactions) from business logic.</p>
 <pre>// Key AOP terminology:
 // Aspect    — the cross-cutting concern module (e.g., LoggingAspect)
 // Advice    — the action (before, after, around)
@@ -2237,7 +2295,8 @@ bean(orderService)                         // all methods on specific bean</pre>
       {
         q: 'How does Spring Boot auto-configuration work under the hood?',
         difficulty: 'hard',
-        a: `<p>Spring Boot auto-configuration automatically configures beans based on classpath dependencies, properties, and existing beans.</p>
+        a: `<div class="interview-answer"><p>Auto-configuration is Spring Boot saying "sensible defaults based on what's on your classpath, but always yield to the developer." Mechanically: <code>@EnableAutoConfiguration</code> loads a list of auto-config classes from <code>META-INF/spring/...AutoConfiguration.imports</code>, and each is gated by <code>@Conditional</code> annotations — <code>@ConditionalOnClass</code>, <code>@ConditionalOnMissingBean</code>, <code>@ConditionalOnProperty</code>. So H2 on the classpath configures an in-memory datasource, but the moment I define my own bean, <code>@ConditionalOnMissingBean</code> makes mine win. To debug why something did or didn't configure, I run with <code>--debug</code> and read the conditions evaluation report.</p></div>
+<p>Spring Boot auto-configuration automatically configures beans based on classpath dependencies, properties, and existing beans.</p>
 <pre>// @SpringBootApplication combines:
 @SpringBootConfiguration  // = @Configuration
 @EnableAutoConfiguration  // triggers auto-configuration
@@ -2300,7 +2359,8 @@ spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSou
       {
         q: 'What is the N+1 problem in JPA/Hibernate and how do you solve it?',
         difficulty: 'hard',
-        a: `<p>The <strong>N+1 problem</strong>: fetching N entities results in 1 query for the parent + N queries for each child relationship. Devastating for performance.</p>
+        a: `<div class="interview-answer"><p>N+1 is when loading a list of N parents lazily fires one extra query per parent to fetch its association — one query becomes N+1, and it silently kills performance under load. The fix depends on the shape: a <code>JOIN FETCH</code> or an <code>@EntityGraph</code> to load the association in one query, or batch fetching with <code>@BatchSize</code> / <code>hibernate.default_batch_fetch_size</code> to collapse the N into a few IN-queries. Crucially I'd say EAGER is <em>not</em> the fix — it just hides the problem everywhere and causes cartesian products. My default is LAZY plus an explicit fetch per use case, or a DTO projection, and I keep show-sql on in dev to catch it early.</p></div>
+<p>The <strong>N+1 problem</strong>: fetching N entities results in 1 query for the parent + N queries for each child relationship. Devastating for performance.</p>
 <pre>// Entity setup:
 @Entity
 public class Author {
@@ -2362,7 +2422,8 @@ List&lt;AuthorDTO&gt; findAuthorBookDTOs();
       {
         q: 'What is the Java Module System (JPMS) introduced in Java 9?',
         difficulty: 'medium',
-        a: `<p>The <strong>Java Platform Module System</strong> (Project Jigsaw) adds strong encapsulation and explicit dependencies between modules.</p>
+        a: `<div class="interview-answer"><p>JPMS, from Project Jigsaw in Java 9, adds a layer above packages: a module declares in <code>module-info.java</code> what it <code>requires</code> and what packages it <code>exports</code>, giving strong encapsulation and reliable configuration — split packages and missing dependencies are caught at startup rather than as runtime ClassNotFoundErrors. It also let the JDK itself be modularised, so I can build a minimal runtime with jlink. Honestly, most enterprise apps still run on the classpath as the unnamed module, so where JPMS actually shows up for me day-to-day is understanding <code>--add-opens</code> flags when a framework needs deep reflection into a closed module.</p></div>
+<p>The <strong>Java Platform Module System</strong> (Project Jigsaw) adds strong encapsulation and explicit dependencies between modules.</p>
 <pre>// module-info.java (placed at root of source tree):
 module com.example.myapp {
     requires java.sql;                    // dependency on java.sql module
@@ -2410,7 +2471,8 @@ sun.misc.Unsafe.getUnsafe();  // worked in Java 8
       {
         q: 'What are common concurrency utilities in java.util.concurrent?',
         difficulty: 'hard',
-        a: `<p>The <code>java.util.concurrent</code> package provides high-level concurrency tools beyond basic synchronized/wait/notify.</p>
+        a: `<div class="interview-answer"><p>The theme I'd lead with is: prefer these high-level utilities over hand-rolled wait/notify and raw locks. The ones I actually reach for: the Atomic classes for lock-free counters and flags via CAS; ConcurrentHashMap for shared maps; the Executor framework for task submission; CountDownLatch and CyclicBarrier for coordinating startup or phases; Semaphore to bound concurrency like a connection pool; and the blocking queues to build producer-consumer pipelines with built-in back-pressure. CompletableFuture sits on top for composing async work. The point is these are correct, tested, and expressive — I only drop to explicit locks when none of them fit.</p></div>
+<p>The <code>java.util.concurrent</code> package provides high-level concurrency tools beyond basic synchronized/wait/notify.</p>
 <pre>// 1. CountDownLatch — wait for N events to complete
 CountDownLatch latch = new CountDownLatch(3);  // count = 3
 // Worker threads:
@@ -2475,7 +2537,8 @@ adder.increment(); adder.sum();</pre>
       {
         q: 'Explain Spring Boot exception handling: @ControllerAdvice and error responses.',
         difficulty: 'medium',
-        a: `<p>Spring Boot provides layered exception handling for clean error responses without try-catch in every controller.</p>
+        a: `<div class="interview-answer"><p>My approach is centralized, not try-catch in every controller. I use a <code>@RestControllerAdvice</code> class with <code>@ExceptionHandler</code> methods that map each exception type to a proper HTTP status and a consistent error-body shape — and since Spring 6 I lean on the RFC 7807 ProblemDetail format for that body. The principles I'd stress: translate domain and validation exceptions to meaningful 4xx codes, never leak stack traces or internals to clients, log the full detail server-side with a correlation id, and let genuinely unexpected errors fall through to a 500. It keeps controllers clean and error responses uniform across the whole API.</p></div>
+<p>Spring Boot provides layered exception handling for clean error responses without try-catch in every controller.</p>
 <pre>// Global exception handler:
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -2555,7 +2618,8 @@ spring.mvc.problemdetails.enabled=true
       {
         q: 'What is the difference between Spring MVC request processing lifecycle?',
         difficulty: 'medium',
-        a: `<p>Understanding the full request lifecycle helps debug issues and implement custom interceptors/filters.</p>
+        a: `<div class="interview-answer"><p>Everything funnels through the front controller, the <strong>DispatcherServlet</strong>. It consults a HandlerMapping to find the right controller method, invokes it through a HandlerAdapter, and HandlerMethodArgumentResolvers bind and validate the request into method parameters. The return value goes to a ViewResolver for MVC or, for REST, an HttpMessageConverter — Jackson — serializes it straight to the body. Around that sit Filters at the servlet level and HandlerInterceptors at the Spring level, and any exception is routed to the HandlerExceptionResolver, which is what @ControllerAdvice plugs into. Knowing this pipeline is exactly what lets me place cross-cutting logic — auth, logging, tracing — at the right layer.</p></div>
+<p>Understanding the full request lifecycle helps debug issues and implement custom interceptors/filters.</p>
 <pre>// Full request processing pipeline:
 
 Client Request
@@ -2624,7 +2688,8 @@ public class WebConfig implements WebMvcConfigurer {
       {
         q: 'What are the key differences between Spring Framework 5/6 and common migration issues?',
         difficulty: 'hard',
-        a: `<p>Understanding Spring evolution is crucial for senior developers working on migrations and architecture decisions.</p>
+        a: `<div class="interview-answer"><p>The big jump is Spring 6 / Boot 3, and I'd frame it around the migration pain. It requires <strong>Java 17</strong> as a baseline, and the one that breaks everything mechanically is the move from <code>javax.*</code> to <code>jakarta.*</code> namespaces, so every servlet, JPA, and validation import changes. It brought first-class observability via Micrometer, the RFC 7807 ProblemDetail, and native-image support through Spring's AOT engine and GraalVM. So a real migration is: get to Java 17, do the jakarta rename, bump all libraries to Jakarta-compatible versions, and replace deprecated security config. It's more of a coordinated dependency and namespace upgrade than a code rewrite.</p></div>
+<p>Understanding Spring evolution is crucial for senior developers working on migrations and architecture decisions.</p>
 <p><strong>Spring 5 → Spring 6 / Spring Boot 2 → Boot 3 major changes:</strong></p>
 <ul>
 <li><strong>Jakarta EE</strong>: <code>javax.*</code> → <code>jakarta.*</code> (biggest migration pain point!)</li>
@@ -2686,7 +2751,8 @@ public Mono&lt;User&gt; getUser(@PathVariable Long id) {
       {
         q: 'What are microservice design patterns: Circuit Breaker, Saga, and CQRS?',
         difficulty: 'hard',
-        a: `<p>Essential patterns for distributed systems — frequently asked in senior/architect interviews.</p>
+        a: `<div class="interview-answer"><p>These three each solve a different distributed-systems problem. <strong>Circuit Breaker</strong> — Resilience4j — stops cascading failure: after too many failures to a dependency it trips open and fails fast instead of piling up threads, then half-opens to test recovery. <strong>Saga</strong> handles data consistency across services without a distributed transaction — a sequence of local transactions with compensating actions to undo, either choreographed via events or orchestrated by a coordinator. <strong>CQRS</strong> splits the write model from read models so each scales and is shaped independently, often paired with event sourcing. The senior caveat I'd add is that all three add real operational complexity, so I only introduce them when the specific problem — cascading failure, cross-service consistency, or divergent read/write load — actually exists.</p></div>
+<p>Essential patterns for distributed systems — frequently asked in senior/architect interviews.</p>
 <p><strong>1. Circuit Breaker (Resilience4j / Netflix Hystrix):</strong></p>
 <pre>// Problem: Service B is down. Service A keeps calling → cascading failure.
 // Solution: Circuit Breaker monitors failures and "trips" to prevent calls.
@@ -2767,7 +2833,8 @@ Command Side (Write):              Query Side (Read):
       {
         q: 'What is the difference between optimistic and pessimistic locking in JPA/databases?',
         difficulty: 'hard',
-        a: `<p>Concurrency control strategies for preventing lost updates when multiple transactions modify the same data.</p>
+        a: `<div class="interview-answer"><p>Both prevent lost updates, but they bet differently on contention. <strong>Optimistic locking</strong> takes no lock — it keeps a <code>@Version</code> column and, on update, checks the version hasn't changed; if it has, it throws OptimisticLockException and the caller retries. That's my default for web apps because conflicts are rare and it doesn't hold database locks across a user think-time. <strong>Pessimistic locking</strong> takes an actual DB row lock (<code>SELECT ... FOR UPDATE</code>) up front, so others block — I use it only for genuinely hot rows like inventory or account balances where retries would thrash. Rule of thumb: optimistic for low contention, pessimistic for high contention on short transactions.</p></div>
+<p>Concurrency control strategies for preventing lost updates when multiple transactions modify the same data.</p>
 <pre>// OPTIMISTIC LOCKING — "hope for the best, detect conflicts"
 // Uses a version column. No DB locks held during read.
 @Entity
@@ -2821,7 +2888,8 @@ Optional&lt;Product&gt; findByIdForUpdate(@Param("id") Long id);
       {
         q: 'What are Java best practices for writing production-quality code?',
         difficulty: 'medium',
-        a: `<p>Senior developers are expected to write code that is maintainable, performant, and production-ready.</p>
+        a: `<div class="interview-answer"><p>I'd boil it down to a few habits rather than a checklist. Favour immutability and small, single-responsibility classes; program to interfaces and inject dependencies so code is testable. Fail fast — validate inputs, use Objects.requireNonNull, and return Optional instead of null. Handle exceptions meaningfully, never swallow them, and always use try-with-resources. Make code observable with structured logging, metrics, and correlation ids. Lean on the standard library and battle-tested libraries instead of rolling your own concurrency or date math. And back it with tests, static analysis, and code review — most of "production quality" is really about being explicit, defensive, and boring in the good way.</p></div>
+<p>Senior developers are expected to write code that is maintainable, performant, and production-ready.</p>
 <p><strong>Effective Java key items (Joshua Bloch):</strong></p>
 <pre>// 1. Use static factory methods instead of constructors
 public static Optional&lt;User&gt; of(String name) { }  // descriptive name, can return subtypes
@@ -2886,7 +2954,8 @@ public class InsufficientFundsException extends RuntimeException { }
       {
         q: 'What are the key Java 17 to 21 features that matter for production?',
         difficulty: 'medium',
-        a: `<p>Modern Java features that are actively used in production (beyond the basics covered earlier).</p>
+        a: `<div class="interview-answer"><p>17 and 21 are the LTS releases that actually matter for teams. From 17 I lean on records, sealed classes, and pattern matching for <code>instanceof</code> and switch — together they give concise, exhaustive, data-oriented modelling — plus text blocks for readable SQL and JSON. The headline of 21 is <strong>virtual threads</strong>, which make high-throughput I/O code simple and blocking again, along with record patterns and pattern matching in switch going final, and sequenced collections. So if a team is modernising, my advice is get onto Java 21 LTS, adopt records and pattern matching broadly, and reach for virtual threads on I/O-bound services.</p></div>
+<p>Modern Java features that are actively used in production (beyond the basics covered earlier).</p>
 <p><strong>Java 17 (LTS) features:</strong></p>
 <pre>// Sealed classes (covered separately)
 // Pattern matching for instanceof (covered separately)
@@ -2958,7 +3027,8 @@ try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
       {
         q: 'What breaks when you violate the equals/hashCode contract? (mutable HashMap keys)',
         difficulty: 'tricky',
-        a: `<p>Two classic production bugs, both silent:</p>
+        a: `<div class="interview-answer"><p>The contract is: if two objects are equal they must return the same hashCode. Break it and hash-based collections quietly misbehave — you <code>put</code> a key and later can't <code>get</code> it because the lookup hashes to a different bucket. The nastier, more senior version is a <strong>mutable key</strong>: if you insert an object into a HashMap and then mutate a field that hashCode depends on, its bucket no longer matches, so the entry becomes an unreachable ghost — you can't find it, remove it, and it leaks. That's exactly why map keys should be immutable, and why I favour records or explicitly immutable value objects as keys.</p></div>
+<p>Two classic production bugs, both silent:</p>
 <pre>// Bug 1: equals overridden, hashCode NOT overridden
 class Point {
     int x, y;
@@ -2988,7 +3058,8 @@ map.containsKey(p);              // false — yet map.size() == 1
       {
         q: 'How do you troubleshoot a production JVM: high CPU, OutOfMemoryError, hangs?',
         difficulty: 'hard',
-        a: `<p><strong>High CPU</strong> — find the hot thread, then the hot code:</p>
+        a: `<div class="interview-answer"><p>I work it as a triage, matching the tool to the symptom. <strong>High CPU</strong>: find the hot OS thread with <code>top -H</code>, convert its id to hex, take a <code>jstack</code> thread dump, and find that thread — usually it's a tight loop or excessive GC, which GC logs confirm. <strong>OutOfMemoryError</strong>: I run with <code>-XX:+HeapDumpOnOutOfMemoryError</code>, then open the dump in Eclipse MAT and look at the dominator tree for what's retaining memory. <strong>Hang</strong>: take two or three thread dumps a few seconds apart — threads BLOCKED on each other's locks is a deadlock, everything parked on one lock is contention. The throughline is: capture evidence — thread dump, heap dump, GC log — before I theorize, and I make sure those flags are already enabled in prod.</p></div>
+<p><strong>High CPU</strong> — find the hot thread, then the hot code:</p>
 <pre>top -H -p &lt;pid&gt;                   # 1. which THREAD burns CPU (Linux: thread id)
 printf '%x\\n' &lt;tid&gt;              # 2. thread id → hex
 jstack &lt;pid&gt; | grep -A20 nid=0x&lt;hex&gt;   # 3. its stack trace in the thread dump
@@ -3017,7 +3088,8 @@ jcmd &lt;pid&gt; Thread.print           # same, jcmd is the modern entry point
       {
         q: 'What is the output? Integer a = 127, b = 127; a == b — Integer caching and autoboxing traps',
         difficulty: 'tricky',
-        a: `<p>The most famous Java trick question. <code>Integer.valueOf()</code> caches values from <strong>-128 to 127</strong>, so small boxed integers are the SAME object.</p>
+        a: `<div class="interview-answer"><p>127 == 127 is true and 128 == 128 is false, and the reason is autoboxing plus the Integer cache. <code>Integer a = 127</code> compiles to <code>Integer.valueOf(127)</code>, and valueOf caches boxed values from -128 to 127, so both variables point at the same cached object — <code>==</code> is true. At 128 you're outside the cache, so valueOf allocates two distinct objects and <code>==</code> compares references, which is false. The lesson, and the only thing I'd actually rely on: never use <code>==</code> on boxed types, always <code>.equals()</code> — the whole trap disappears.</p></div>
+<p>The most famous Java trick question. <code>Integer.valueOf()</code> caches values from <strong>-128 to 127</strong>, so small boxed integers are the SAME object.</p>
 <pre>Integer a = 127, b = 127;
 a == b;                    // true  — both from IntegerCache (same object)
 
@@ -3040,7 +3112,8 @@ Integer r = true ? i : 0;         // NullPointerException!
       {
         q: 'Is Java pass-by-value or pass-by-reference? Prove it.',
         difficulty: 'tricky',
-        a: `<p>Java is <strong>ALWAYS pass-by-value</strong>. For objects, the value passed is a <strong>copy of the reference</strong> — not the object, and not a true "reference" in the C++ sense.</p>
+        a: `<div class="interview-answer"><p>Java is always pass-by-value — no exceptions. The subtlety is what the value <em>is</em>: for objects, the value is a copy of the reference, not the object. So inside a method I can mutate the object the reference points to and the caller sees it, because both references point at the same heap object — but if I <em>reassign</em> the parameter to a new object, the caller's reference is untouched. The clean proof: a <code>swap(a, b)</code> method can never swap the caller's variables, whereas <code>list.add(x)</code> is visible outside. Mutation propagates; reassignment doesn't.</p></div>
+<p>Java is <strong>ALWAYS pass-by-value</strong>. For objects, the value passed is a <strong>copy of the reference</strong> — not the object, and not a true "reference" in the C++ sense.</p>
 <pre>class Person { String name; Person(String n) { name = n; } }
 
 void change(Person p) {
@@ -3062,7 +3135,8 @@ void swap(Person a, Person b) {
       {
         q: 'Can finally override a return value or swallow an exception? What is the output?',
         difficulty: 'tricky',
-        a: `<pre>// 1. return in finally OVERRIDES the try's return — and swallows exceptions!
+        a: `<div class="interview-answer"><p>Yes, and that's exactly why you should never do it. A <code>return</code> inside <code>finally</code> overrides whatever the <code>try</code> or <code>catch</code> was about to return, and worse, it <strong>silently swallows any in-flight exception</strong> — the exception just vanishes and the caller gets a normal return. Same trap with a <code>throw</code> in finally. Mutating a local in finally doesn't change an already-evaluated return value, but returning outright does. So my rule is simple: <code>finally</code> is for cleanup only — no return, no throw — and I let try-with-resources handle resource closing so I never write these blocks by hand.</p></div>
+<pre>// 1. return in finally OVERRIDES the try's return — and swallows exceptions!
 int test1() {
   try {
     throw new RuntimeException("lost forever");
@@ -3099,7 +3173,8 @@ System.exit(0);             // JVM terminates — finally skipped
       {
         q: 'What is type erasure? Why can you not overload List<String> vs List<Integer>?',
         difficulty: 'tricky',
-        a: `<p>Generics exist only at <strong>compile time</strong>. The compiler erases them to raw types (bounds or <code>Object</code>) for backward compatibility with pre-Java-5 bytecode.</p>
+        a: `<div class="interview-answer"><p>Type erasure means generics are a compile-time-only feature: the compiler checks types and inserts casts, then <em>erases</em> the type parameters to their bound or Object, so at runtime there's just a raw <code>List</code> — this was done for backward compatibility with pre-Java-5 bytecode. That's why you can't overload on <code>List&lt;String&gt;</code> versus <code>List&lt;Integer&gt;</code>: after erasure both methods have the identical signature <code>List</code>, so it won't even compile. The same erasure explains why you can't do <code>new T()</code>, <code>instanceof List&lt;String&gt;</code>, or create a <code>List&lt;String&gt;[]</code> array — the runtime type simply isn't there.</p></div>
+<p>Generics exist only at <strong>compile time</strong>. The compiler erases them to raw types (bounds or <code>Object</code>) for backward compatibility with pre-Java-5 bytecode.</p>
 <pre>// ❌ Compile error: both erase to print(List) — same signature!
 void print(List&lt;String&gt; list) { }
 void print(List&lt;Integer&gt; list) { }
@@ -3123,7 +3198,8 @@ List&lt;Object&gt; list = new ArrayList&lt;String&gt;(); // ❌ COMPILE error �
       {
         q: 'What is the class initialization order? (static blocks, instance blocks, constructors — tricky output)',
         difficulty: 'tricky',
-        a: `<pre>class Parent {
+        a: `<div class="interview-answer"><p>I keep two rules in my head. First, static initialization runs once when the class is first loaded, parent before child — static fields and static blocks in source order. Then per instance: the superclass is fully built first, and within a class the instance initializer blocks and field initializers run in source order <em>before</em> the constructor body. So the overall sequence for <code>new Child()</code> is: parent statics, child statics (once ever), then parent instance-init and parent constructor, then child instance-init and child constructor. The classic gotcha this exposes is calling an <strong>overridable method from a constructor</strong> — the subclass override runs while the subclass's own fields are still at their defaults.</p></div>
+<pre>class Parent {
   static { System.out.println("1. Parent static block"); }
   { System.out.println("3. Parent instance block"); }
   Parent() { System.out.println("4. Parent constructor"); }
@@ -3155,7 +3231,8 @@ new Child(); // NullPointerException — child fields not yet assigned</pre>
       {
         q: 'Why should you never use double for money? BigDecimal pitfalls.',
         difficulty: 'tricky',
-        a: `<pre>System.out.println(0.1 + 0.2);        // 0.30000000000000004 (IEEE-754 binary!)
+        a: `<div class="interview-answer"><p>Because <code>double</code> is IEEE-754 binary floating point, and values like 0.1 can't be represented exactly in binary — so <code>0.1 + 0.2</code> gives 0.30000000000000004, and those rounding errors accumulate into real money being wrong. For currency I use <code>BigDecimal</code>, and specifically I construct it from a <strong>String</strong>, not a double — <code>new BigDecimal("0.1")</code>, never <code>new BigDecimal(0.1)</code>, which just copies the same binary error in. I also set an explicit scale and RoundingMode on divisions, since BigDecimal throws on a non-terminating result otherwise. The rule I'd state flatly: never use float or double for money.</p></div>
+<pre>System.out.println(0.1 + 0.2);        // 0.30000000000000004 (IEEE-754 binary!)
 System.out.println(1.03 - 0.42);      // 0.6100000000000001
 
 // Trap 1: the double constructor inherits the binary error
@@ -3178,7 +3255,8 @@ new BigDecimal("1").divide(new BigDecimal("3"), 2, RoundingMode.HALF_UP); // 0.3
       {
         q: 'What is the output? Overload resolution with null, widening, boxing, and varargs',
         difficulty: 'tricky',
-        a: `<pre>// 1. null picks the MOST SPECIFIC overload
+        a: `<div class="interview-answer"><p>The key is that overload resolution happens at <strong>compile time</strong> off the static types, and the compiler tries three phases in order, only widening to a later phase if no method matches: first exact match and primitive <em>widening</em> (int→long), then <em>boxing/unboxing</em>, and only last <em>varargs</em>. So a plain <code>int</code> prefers a <code>long</code> overload over an <code>Integer</code> overload over an <code>Object...</code> one. A bare <code>null</code> matches any reference type and binds to the <strong>most specific</strong> one — and if two reference types are unrelated, it's an ambiguity compile error you resolve with a cast. My real-world takeaway: overloads that differ only by these subtle distinctions are a code smell, so I rename or cast explicitly rather than lean on the resolution rules.</p></div>
+<pre>// 1. null picks the MOST SPECIFIC overload
 void m(Object o) { System.out.println("Object"); }
 void m(String s) { System.out.println("String"); }
 m(null);                    // "String" — String is more specific than Object
@@ -3201,7 +3279,8 @@ g(x);                       // "long" — primitive WIDENING beats boxing!
       {
         q: 'Can you override a static method in Java? (method hiding vs overriding)',
         difficulty: 'tricky',
-        a: `<p>No. A static method with the same signature in a subclass <strong>hides</strong> the parent's method — it does not override it. The difference is <em>which type decides</em>:</p>
+        a: `<div class="interview-answer"><p>No — you can't override a static method, you <strong>hide</strong> it. The distinction is which type decides: instance-method overriding is resolved at runtime by the object's actual type (dynamic dispatch), but a static method is resolved at compile time by the <em>declared</em> type of the reference. So with <code>Parent p = new Child()</code>, <code>p.staticMethod()</code> calls Parent's version regardless of the object, whereas an overridden instance method would call Child's. That's exactly why calling a static method through an instance reference is misleading and I always invoke statics through the class name.</p></div>
+<p>No. A static method with the same signature in a subclass <strong>hides</strong> the parent's method — it does not override it. The difference is <em>which type decides</em>:</p>
 <pre>class A {
   static void staticM()  { System.out.println("A.static"); }
   void instanceM()       { System.out.println("A.instance"); }

@@ -11,7 +11,8 @@ export const topics: PvTopic[] = [
       {
         q: 'What is TypeScript? Why use it over JavaScript?',
         difficulty: 'easy',
-        a: `<ul>
+        a: `<div class="interview-answer"><p>TypeScript is JavaScript with a static type layer that compiles away to plain JS. The real value isn't just catching TypeErrors, it's the tooling and the documentation: autocomplete, safe refactors across a big codebase, and types as an always-accurate contract between teams. The cost is a build step and a learning curve, so for a throwaway script it's overkill, but for anything a team maintains it pays for itself fast. My mental model is that types are compile-time only and never exist at runtime, so I still validate anything crossing a trust boundary like an API response.</p></div>
+<ul>
 <li>TypeScript is a <strong>typed superset</strong> of JavaScript that compiles to plain JS.</li>
 <li>Adds: static types, interfaces, enums, generics, access modifiers, decorators.</li>
 </ul>
@@ -33,7 +34,8 @@ greet(42); // Error: Argument of type 'number' is not assignable to 'string'</pr
       {
         q: 'Explain the difference between interface and type alias in TypeScript.',
         difficulty: 'medium',
-        a: `<pre>// Interface: extendable, mergeable
+        a: `<div class="interview-answer"><p>My default is <code>interface</code> for object and class shapes and <code>type</code> for everything else. The two big differences: interfaces support declaration merging and are the natural fit for class contracts, while type aliases can express unions, intersections, tuples, and mapped types that interfaces simply can't. In practice they're roughly interchangeable for plain objects, so I don't agonize over it, I just stay consistent. One gotcha worth naming: because interfaces merge, a public library API declared as an interface can be augmented by consumers, which is either a feature or a footgun depending on intent.</p></div>
+<pre>// Interface: extendable, mergeable
 interface User {
   id: number;
   name: string;
@@ -61,7 +63,8 @@ type Readonly&lt;T&gt; = { readonly [P in keyof T]: T[P] };  // mapped type</pre
       {
         q: 'What are Generics in TypeScript? Give practical examples.',
         difficulty: 'hard',
-        a: `<p>Generics let you write reusable components that work with <strong>any type</strong> while preserving type safety. Think of a type parameter <code>&lt;T&gt;</code> as a <em>type variable</em>: the caller (or the compiler, via inference) fills it in, and that same <code>T</code> flows through the whole signature so inputs and outputs stay linked.</p>
+        a: `<div class="interview-answer"><p>Generics let me write one reusable component that works across many types while keeping the link between inputs and outputs, so a function taking <code>T[]</code> returns <code>T</code>, not <code>any</code>. That's the whole point: <code>any</code> throws the type away and stops checking, whereas a generic preserves the real type through the signature. I lean on inference rather than passing type arguments explicitly, and I use constraints like <code>K extends keyof T</code> when the body needs to touch members safely. My rule of thumb: if a type parameter appears only once in a signature, it probably shouldn't be generic at all.</p></div>
+<p>Generics let you write reusable components that work with <strong>any type</strong> while preserving type safety. Think of a type parameter <code>&lt;T&gt;</code> as a <em>type variable</em>: the caller (or the compiler, via inference) fills it in, and that same <code>T</code> flows through the whole signature so inputs and outputs stay linked.</p>
 <p><strong>Why not just use <code>any</code>?</strong> <code>any</code> throws the type away — a <code>getFirst</code> that returns <code>any</code> would let you call <code>.toUpperCase()</code> on a number with no warning. A generic returns the <em>actual</em> element type, so the compiler keeps checking what you do with the result. Generics are the line between "works with many types" and "gives up on types".</p>
 <pre>// Generic function
 function getFirst&lt;T&gt;(arr: T[]): T | undefined {
@@ -97,7 +100,8 @@ class DataStore&lt;T&gt; {
       {
         q: 'Explain union types, intersection types, and type narrowing.',
         difficulty: 'medium',
-        a: `<p>These three features work together: unions and intersections <em>build</em> composite types, and narrowing is how you safely <em>use</em> a union afterwards.</p>
+        a: `<div class="interview-answer"><p>Unions and intersections build composite types, and narrowing is how you safely use a union afterward. A union is "either A or B," so until you narrow you can only touch members common to both; an intersection is "A and B at once," used to compose shapes. Narrowing refines the union inside a branch via <code>typeof</code>, <code>instanceof</code>, <code>in</code>, or a discriminant tag. In real code I almost always reach for a discriminated union with a shared <code>kind</code> field plus an <code>assertNever</code> default, so the compiler checks every case exhaustively and a new variant becomes a compile error instead of a silent bug.</p></div>
+<p>These three features work together: unions and intersections <em>build</em> composite types, and narrowing is how you safely <em>use</em> a union afterwards.</p>
 <ul>
 <li><strong>Union (<code>A | B</code>)</strong> — the value is <em>either</em> A or B. Until you narrow, you may only touch members common to <strong>both</strong>. Read <code>|</code> as "or".</li>
 <li><strong>Intersection (<code>A &amp; B</code>)</strong> — the value has <em>all</em> members of A <strong>and</strong> B at once. Used to compose/mix shapes. Read <code>&amp;</code> as "and".</li>
@@ -137,7 +141,8 @@ function process(value: string | number) {
       {
         q: "What is 'any' vs 'unknown' vs 'never' in TypeScript?",
         difficulty: 'tricky',
-        a: `<ul>
+        a: `<div class="interview-answer"><p>These are the three edges of the type system. <code>any</code> opts out of checking entirely and quietly infects everything it touches, so I treat it as a code smell. <code>unknown</code> is the safe version, the top type: you must narrow it before you can do anything, which is exactly what you want for <code>JSON.parse</code> or external input. <code>never</code> is the bottom type, a value that can't exist, and its killer use is exhaustiveness checking, an <code>assertNever</code> in a switch default that fails to compile the day someone adds a new union member.</p></div>
+<ul>
 <li><strong>any</strong>: opts out of type checking entirely. Can do anything. <strong>Avoid.</strong></li>
 <li><strong>unknown</strong>: type-safe alternative to any. Must narrow before use.</li>
 <li><strong>never</strong>: represents values that never occur (unreachable code, functions that throw).</li>
@@ -167,7 +172,8 @@ function paint(c: Color) {
       {
         q: 'Explain TypeScript utility types: Partial, Required, Pick, Omit, Record, Readonly.',
         difficulty: 'hard',
-        a: `<p>Utility types are built-in <strong>generic type transformers</strong>. Rather than hand-writing a second interface every time you need a variation of a shape — a "create" DTO without the <code>id</code>, an "update" DTO where everything is optional — you <strong>derive</strong> it from one source type. When the base changes, every derived type updates automatically. This is the DRY principle applied to types, and it eliminates the classic bug where a field is renamed in one interface but a stale duplicate lingers.</p>
+        a: `<div class="interview-answer"><p>Utility types are generic transformers that let me derive one shape from another instead of hand-writing parallel interfaces. The everyday wins are <code>Omit</code> for a create DTO without the <code>id</code>, <code>Partial</code> for a patch payload, <code>Pick</code> for a preview, and <code>Record</code> for dictionaries. The value is a single source of truth: rename a field on the base type and every derived type updates, which kills the classic stale-duplicate bug. The gotcha I always flag is that <code>Partial</code> and <code>Readonly</code> are shallow, only one level deep, so nested objects need a recursive <code>DeepPartial</code>.</p></div>
+<p>Utility types are built-in <strong>generic type transformers</strong>. Rather than hand-writing a second interface every time you need a variation of a shape — a "create" DTO without the <code>id</code>, an "update" DTO where everything is optional — you <strong>derive</strong> it from one source type. When the base changes, every derived type updates automatically. This is the DRY principle applied to types, and it eliminates the classic bug where a field is renamed in one interface but a stale duplicate lingers.</p>
 <table>
 <tr><th>Utility</th><th>Effect</th><th>Typical use</th></tr>
 <tr><td><code>Partial&lt;T&gt;</code></td><td>all props optional</td><td>update / patch payloads</td></tr>
@@ -216,7 +222,8 @@ type UserForm = Partial&lt;Omit&lt;User, 'id'&gt;&gt; & Pick&lt;User, 'name'&gt;
       {
         q: 'What are mapped types and conditional types?',
         difficulty: 'hard',
-        a: `<pre>// Mapped type: transform properties
+        a: `<div class="interview-answer"><p>Mapped types transform every property of a shape, conditional types are a type-level <code>if</code> with <code>T extends U ? X : Y</code>, and <code>infer</code> pulls a type out of a pattern. Together they're the engine behind almost every serious library type, <code>ReturnType</code>, <code>Awaited</code>, and the inference in React and Prisma all lean on them. The senior nuance is distribution: a naked type parameter distributes over unions, which is powerful but bites you when testing for <code>never</code>. I reach for these to compute types from a source of truth, but I keep them readable, because deeply nested conditionals get unmaintainable fast.</p></div>
+<pre>// Mapped type: transform properties
 type Nullable&lt;T&gt; = { [K in keyof T]: T[K] | null };
 type ReadonlyUser = { readonly [K in keyof User]: User[K] };
 
@@ -241,7 +248,8 @@ type EventName = \`on\${ Capitalize&lt;'click' | 'focus' | 'blur'&gt; }\`;
       {
         q: 'What are type guards and how to create custom ones?',
         difficulty: 'medium',
-        a: `<p>A <strong>type guard</strong> is any expression that lets the compiler <em>narrow</em> a broad type to a more specific one within a scope. TypeScript understands several guards automatically (<code>typeof</code>, <code>instanceof</code>, <code>in</code>), but for your own domain logic you write a <strong>custom guard</strong> whose return type is a <em>type predicate</em> — <code>pet is Fish</code>. That predicate is the signal that tells the compiler "if this returns <code>true</code>, treat the argument as a Fish from here on".</p>
+        a: `<div class="interview-answer"><p>A type guard is anything that narrows a broad type to a specific one within a scope. TypeScript understands <code>typeof</code>, <code>instanceof</code>, and <code>in</code> automatically; for domain logic I write a custom guard whose return type is a predicate like <code>pet is Fish</code>. The critical gotcha is that the return type must be the predicate, not plain <code>boolean</code>, or the compiler runs your check but refuses to narrow. And a predicate is an unchecked promise: if the runtime logic is wrong, TS trusts you anyway, so for anything from the network I'd rather use a schema validator like Zod that generates the guard for me.</p></div>
+<p>A <strong>type guard</strong> is any expression that lets the compiler <em>narrow</em> a broad type to a more specific one within a scope. TypeScript understands several guards automatically (<code>typeof</code>, <code>instanceof</code>, <code>in</code>), but for your own domain logic you write a <strong>custom guard</strong> whose return type is a <em>type predicate</em> — <code>pet is Fish</code>. That predicate is the signal that tells the compiler "if this returns <code>true</code>, treat the argument as a Fish from here on".</p>
 <pre>// Built-in type guards
 typeof value === 'string'        // primitive check
 value instanceof Date             // class check
@@ -277,7 +285,8 @@ function demo(val: unknown) {
       {
         q: "Explain 'as const', const assertions, and literal types.",
         difficulty: 'tricky',
-        a: `<p>By default TypeScript <strong>widens</strong> literal values to their general type, because it assumes most values are meant to change: a mutable object property or array element is inferred as <code>string</code> / <code>string[]</code> rather than the exact literal you wrote. <code>as const</code> is a <strong>const assertion</strong> that tells the compiler the opposite — "this value is fully immutable, keep the most specific type possible." It does three things at once: narrows every literal to its exact value, marks every property <code>readonly</code>, and turns arrays into <code>readonly</code> tuples.</p>
+        a: `<div class="interview-answer"><p>By default TypeScript widens literals because it assumes values will change, so a property is inferred as <code>string</code> rather than the exact literal you wrote. <code>as const</code> flips that: it makes the value deeply <code>readonly</code>, narrows every literal to its exact type, and turns arrays into <code>readonly</code> tuples. My main use is as an enum alternative, an <code>as const</code> object plus <code>typeof OBJ[keyof typeof OBJ]</code> gives you real runtime values and a precise literal union with zero generated code. The one gotcha is that the result is deeply <code>readonly</code>, so you can't pass it where a mutable array is expected without copying it first.</p></div>
+<p>By default TypeScript <strong>widens</strong> literal values to their general type, because it assumes most values are meant to change: a mutable object property or array element is inferred as <code>string</code> / <code>string[]</code> rather than the exact literal you wrote. <code>as const</code> is a <strong>const assertion</strong> that tells the compiler the opposite — "this value is fully immutable, keep the most specific type possible." It does three things at once: narrows every literal to its exact value, marks every property <code>readonly</code>, and turns arrays into <code>readonly</code> tuples.</p>
 <pre>// Without as const: types are widened
 const config = {
   endpoint: 'https://api.example.com',  // type: string
@@ -310,7 +319,8 @@ request('/users', 'PATCH');   // Error!</pre>
       {
         q: 'What are enums in TypeScript? What are the alternatives?',
         difficulty: 'medium',
-        a: `<pre>// Numeric enum
+        a: `<div class="interview-answer"><p>Enums are one of the few TS features that emit runtime code, and I mostly avoid them. Numeric enums generate a reverse mapping that bloats the object and, before TS 5.0, accepted any number at all. <code>const enum</code> inlines at the call site and breaks single-file transpilers like Babel and esbuild. So my default is a union of string literals for the simple case, or an <code>as const</code> object when I need both the runtime values and the derived type. Same ergonomics, plain JavaScript semantics, and it tree-shakes.</p></div>
+<pre>// Numeric enum
 enum Direction {
   Up = 0,     // default starts at 0
   Down = 1,
@@ -342,7 +352,8 @@ type Status = typeof STATUS[keyof typeof STATUS];</pre>
       {
         q: 'What are declaration files (.d.ts) and how do they work?',
         difficulty: 'hard',
-        a: `<p>Declaration files provide <strong>type information</strong> for JavaScript libraries that don't have built-in types.</p>
+        a: `<div class="interview-answer"><p>A <code>.d.ts</code> file is pure type information with no implementation, it's how you describe the shape of JavaScript that has no types of its own. Most of the time I never write one, I just install <code>@types/whatever</code> from DefinitelyTyped. I reach for a hand-written declaration when a library ships no types at all, or to augment globals like adding a property to <code>Window</code>. The quick escape hatch when a package has no types and I just need to unblock the build is a one-line <code>declare module 'libname'</code>, which makes its exports <code>any</code>.</p></div>
+<p>Declaration files provide <strong>type information</strong> for JavaScript libraries that don't have built-in types.</p>
 <pre>// lodash.d.ts (example)
 declare module 'lodash' {
   export function chunk&lt;T&gt;(array: T[], size: number): T[][];
@@ -369,7 +380,8 @@ window.myApp.version;  // typed!</pre>
       {
         q: 'Explain TypeScript strict mode options and tsconfig.json key settings.',
         difficulty: 'hard',
-        a: `<pre>// tsconfig.json
+        a: `<div class="interview-answer"><p>The single most important setting is <code>strict: true</code>, and I turn it on for every new project, it bundles checks like <code>strictNullChecks</code> and <code>noImplicitAny</code> that catch the majority of real bugs. Retrofitting it onto a legacy codebase is the painful case, and there I'll enable checks one at a time. Beyond strict I care about <code>target</code> and <code>lib</code> matching the runtime, <code>moduleResolution</code> set to bundler for modern setups, and <code>skipLibCheck</code> to keep builds fast. I'd also push for <code>noUncheckedIndexedAccess</code>, which strict surprisingly does not include.</p></div>
+<pre>// tsconfig.json
 {
   "compilerOptions": {
     "target": "ES2022",              // output JS version
@@ -399,7 +411,8 @@ window.myApp.version;  // typed!</pre>
       {
         q: 'What are decorators in TypeScript?',
         difficulty: 'hard',
-        a: `<p>Decorators are functions that modify classes, methods, properties, or parameters. Stage 3 proposal (native in TS 5.0+).</p>
+        a: `<div class="interview-answer"><p>Decorators are functions that annotate and modify classes, methods, or properties, and they're the backbone of NestJS, Angular, and TypeORM. The thing to get straight in an interview is that there are two flavors: the legacy <code>experimentalDecorators</code> version those frameworks still use, and the Stage 3 standard decorators native in TS 5.0, and they are not the same shape. So the first thing I ask is which one the codebase is on, because the signatures differ. I like them for cross-cutting concerns like logging or route metadata, but they add magic, so I keep the logic inside them simple.</p></div>
+<p>Decorators are functions that modify classes, methods, properties, or parameters. Stage 3 proposal (native in TS 5.0+).</p>
 <pre>// Class decorator (NestJS / Angular style)
 @Controller('/users')
 class UserController {
@@ -433,7 +446,8 @@ class Calculator {
       {
         q: 'How to handle null/undefined safely in TypeScript?',
         difficulty: 'medium',
-        a: `<pre>// strictNullChecks: null and undefined are distinct types
+        a: `<div class="interview-answer"><p>With <code>strictNullChecks</code> on, <code>null</code> and <code>undefined</code> are their own types and can't sneak into a <code>string</code>, which is where most "cannot read property of undefined" crashes come from. My toolkit is optional chaining <code>?.</code> and nullish coalescing <code>??</code>, and I'm careful that <code>??</code> only falls back on null or undefined, unlike <code>||</code>, which also swallows empty string and zero. The thing I push back on in review is the non-null assertion <code>!</code>, it silently defeats the whole point, so I'd rather narrow with a guard or handle the null case explicitly.</p></div>
+<pre>// strictNullChecks: null and undefined are distinct types
 let name: string = null;     // Error!
 let name: string | null = null;  // OK
 
@@ -465,7 +479,8 @@ function greet(name: string, title?: string): string {
       {
         q: "What is the difference between 'type assertion' and 'type casting'?",
         difficulty: 'tricky',
-        a: `<p>TypeScript has <strong>type assertions</strong> (not casting). They don't change the runtime value — only tell the compiler "trust me".</p>
+        a: `<div class="interview-answer"><p>First the terminology: TypeScript has type assertions, not casts, because nothing changes at runtime, you're just telling the compiler to trust you. That makes <code>as</code> dangerous, if you're wrong you get a runtime crash with no warning, and a double assertion through <code>unknown</code> bypasses every check. So I treat <code>as</code> as a last resort. My preferred alternatives are a real type guard when I need runtime safety, and <code>satisfies</code> when I just want to validate a literal against a type without widening it.</p></div>
+<p>TypeScript has <strong>type assertions</strong> (not casting). They don't change the runtime value — only tell the compiler "trust me".</p>
 <pre>// Type assertion (angle bracket or 'as')
 const input = document.getElementById('name') as HTMLInputElement;
 // or: const input = &lt;HTMLInputElement&gt;document.getElementById('name');
@@ -493,7 +508,8 @@ const palette = {
       {
         q: 'What is the difference between extends and implements in TypeScript?',
         difficulty: 'medium',
-        a: `<ul>
+        a: `<div class="interview-answer"><p><code>extends</code> is inheritance, you get the implementation, or in generics it constrains a type parameter; <code>implements</code> is a promise to satisfy a contract, and you must provide every member yourself. A class can extend only one class but implement many interfaces, which is TypeScript's answer to single inheritance. In practice I favor <code>implements</code> against small interfaces for flexibility, and reserve <code>extends</code> for genuine shared implementation. Worth noting that <code>implements</code> gives you no code at all, it's purely a compile-time check that the shape matches.</p></div>
+<ul>
 <li><strong>extends</strong>: inherit from a class (get implementation) or constrain generics.</li>
 <li><strong>implements</strong>: promise to follow a contract (interface). Must provide all members.</li>
 </ul>
@@ -531,7 +547,8 @@ getLength(42);       // Error: number has no .length</pre>`,
       {
         q: 'What is the satisfies operator in TypeScript (4.9+)?',
         difficulty: 'tricky',
-        a: `<p><code>satisfies</code> validates that an expression matches a type WITHOUT widening it. You get both type safety AND precise inference.</p>
+        a: `<div class="interview-answer"><p><code>satisfies</code> validates that a value matches a type without widening it, so you get the type checking of an annotation plus the precise inferred type. The classic case is a config or palette object: annotate it as a <code>Record</code> and you lose the specific per-key types; use <code>satisfies</code> and TS still knows <code>red</code> is a number array and <code>green</code> is a string, while also catching typo'd keys. It's the fix for the old habit of putting <code>as</code> on object literals, which just lies to the compiler. My rule now is to reach for <code>satisfies</code> before I ever reach for <code>as</code>.</p></div>
+<p><code>satisfies</code> validates that an expression matches a type WITHOUT widening it. You get both type safety AND precise inference.</p>
 <pre>// Problem with 'as': loses precision
 type Color = 'red' | 'green' | 'blue';
 type Palette = Record&lt;Color, string | number[]&gt;;
@@ -564,7 +581,8 @@ const bad = {
       {
         q: 'What is the difference between void, undefined, and never as return types?',
         difficulty: 'tricky',
-        a: `<pre>// void: function doesn't return a meaningful value
+        a: `<div class="interview-answer"><p><code>void</code> means the caller shouldn't rely on a return value, <code>undefined</code> means it literally returns undefined, and <code>never</code> means it never returns at all, it throws or loops forever. The interview trap is <code>void</code> in a callback: a <code>() =&gt; void</code> type will happily accept a function that returns something, the return is just ignored, which is exactly why <code>Array.forEach</code> accepts a callback even when that function returns a value. <code>never</code> is the useful one for exhaustiveness. So I read <code>void</code> as "return value discarded," not "must return nothing."</p></div>
+<pre>// void: function doesn't return a meaningful value
 function log(msg: string): void {
   console.log(msg);
   // can return undefined implicitly or explicitly
@@ -593,7 +611,8 @@ const cb: VoidCallback = () => 42;  // OK! void ignores return value
       {
         q: 'What are template literal types in TypeScript?',
         difficulty: 'hard',
-        a: `<p>Template literal types apply JavaScript's backtick-string interpolation <strong>at the type level</strong>: you build new string-literal types by embedding other string-literal types inside a template. When you interpolate a union, TypeScript produces the <strong>cross-product</strong> of every combination — so two 2-member unions expand into four literal types.</p>
+        a: `<div class="interview-answer"><p>Template literal types are string interpolation at the type level: you build string-literal types by embedding other literal types, and crossing unions produces the full cross-product. They matter because so many API strings carry structure, event handler names, CSS values, route params, prefixed keys, and this lets the compiler validate and even parse them instead of treating them as plain <code>string</code>. Combined with <code>infer</code> you can extract data out of a string type, which is how libraries type-check route paths. The caution is combinatorial explosion, cross a few big unions and you blow past TS's complexity limit.</p></div>
+<p>Template literal types apply JavaScript's backtick-string interpolation <strong>at the type level</strong>: you build new string-literal types by embedding other string-literal types inside a template. When you interpolate a union, TypeScript produces the <strong>cross-product</strong> of every combination — so two 2-member unions expand into four literal types.</p>
 <p><strong>Why they matter</strong>: real APIs are full of strings whose <em>structure</em> carries meaning — event handler names, CSS values, route params, prefixed keys. Together with the intrinsic helpers (<code>Uppercase</code>, <code>Lowercase</code>, <code>Capitalize</code>, <code>Uncapitalize</code>) and <code>infer</code> for pattern-matching, template literal types let the compiler validate and even <em>parse</em> those strings, catching typos that a plain <code>string</code> type would wave through.</p>
 <pre>// Basic template literal types
 type Color = 'red' | 'blue';
@@ -626,7 +645,8 @@ type Result = ExtractId&lt;'user_123'&gt;;  // "123"</pre>
       {
         q: 'Explain TypeScript module augmentation and declaration merging.',
         difficulty: 'hard',
-        a: `<pre>// Declaration merging: same interface name = merged
+        a: `<div class="interview-answer"><p>Declaration merging is the rule that two interfaces with the same name combine into one, and module augmentation applies that to third-party or global types, like adding a <code>user</code> property to Express's <code>Request</code> so it's typed across all middleware. The key fact for an interview is that this only works with <code>interface</code> and <code>namespace</code>, never with <code>type</code> aliases, which is one of the main reasons to prefer <code>interface</code> for anything meant to be extensible. It's powerful but implicit, so I keep augmentations in a clearly named <code>.d.ts</code> so the next person can find where a mystery property came from.</p></div>
+<pre>// Declaration merging: same interface name = merged
 interface User {
   id: number;
   name: string;
@@ -664,7 +684,8 @@ enum Status { Inactive = 'INACTIVE' } // merged!
       {
         q: 'Why does an inline object literal fail type checking when the same object assigned to a variable passes? (Excess property checks)',
         difficulty: 'tricky',
-        a: `<p>TypeScript is <strong>structurally typed</strong>: an object with <strong>more</strong> properties than the target type is normally assignable ("at least these properties"). But <strong>fresh object literals</strong> — literals passed directly to a parameter or annotated variable — get an extra lint-like pass called the <strong>excess property check</strong>: any property not declared in the target type is an error. Once the literal is assigned to a variable, it loses "freshness" and only plain structural compatibility applies.</p>
+        a: `<div class="interview-answer"><p>This one surprises people: TypeScript is structural, so an object with extra properties is normally assignable, but a fresh object literal passed directly gets an extra excess-property check that flags unknown keys, mostly to catch typos in optional properties. The moment you assign that literal to a variable first, it loses freshness and the check no longer fires, so the same object passes or fails depending on whether it went through a variable. The practical fix to keep the safety on a variable is <code>satisfies</code>, which re-runs full checking without widening.</p></div>
+<p>TypeScript is <strong>structurally typed</strong>: an object with <strong>more</strong> properties than the target type is normally assignable ("at least these properties"). But <strong>fresh object literals</strong> — literals passed directly to a parameter or annotated variable — get an extra lint-like pass called the <strong>excess property check</strong>: any property not declared in the target type is an error. Once the literal is assigned to a variable, it loses "freshness" and only plain structural compatibility applies.</p>
 <pre>interface Options {
   title: string;
   width?: number;
@@ -689,7 +710,8 @@ interface Loose { title: string; [key: string]: unknown; }  // index signature a
       {
         q: 'TypeScript is structurally typed — what problems does that cause, and how do branded types simulate nominal typing?',
         difficulty: 'hard',
-        a: `<p>In a <strong>structural</strong> type system, compatibility is decided by <strong>shape</strong>, not by the name of the declaration. Two unrelated interfaces with identical members are fully interchangeable — unlike Java/C# where the class name (nominal typing) matters.</p>
+        a: `<div class="interview-answer"><p>Structural typing means compatibility is about shape, not the declared name, so two interfaces with identical members are interchangeable, unlike nominal Java or C#. That bites hardest with domain IDs: if <code>userId</code> and <code>orderId</code> are both <code>string</code>, swapping them compiles fine and corrupts data. The fix is a branded type, intersect <code>string</code> with a phantom <code>readonly __brand</code> property that never exists at runtime, and funnel creation through a factory. Zero runtime cost, purely compile-time provenance, and Zod exposes the same idea with <code>.brand</code>. I reach for it whenever identity, not just shape, is what matters.</p></div>
+<p>In a <strong>structural</strong> type system, compatibility is decided by <strong>shape</strong>, not by the name of the declaration. Two unrelated interfaces with identical members are fully interchangeable — unlike Java/C# where the class name (nominal typing) matters.</p>
 <pre>interface UserId { value: string; }
 interface ProductId { value: string; }
 
@@ -724,7 +746,8 @@ getUser(toUserId('u-1')); // OK — and it is still just a string at runtime</pr
       {
         q: 'What are distributive conditional types? Why does Exclude work, and when do you need [T] extends [U]?',
         difficulty: 'tricky',
-        a: `<p>A conditional type <code>T extends U ? X : Y</code> is <strong>distributive</strong> when <code>T</code> is a <strong>naked type parameter</strong>: applied to a union, it runs once per member and unions the results. This single rule is what makes <code>Exclude</code>, <code>Extract</code>, and <code>NonNullable</code> possible.</p>
+        a: `<div class="interview-answer"><p>A conditional type distributes when the checked type is a naked type parameter, applied to a union it runs once per member and unions the results. That single rule is the engine behind <code>Exclude</code>, <code>Extract</code>, and <code>NonNullable</code>. The gotcha everyone hits is <code>never</code>, it's the empty union, so distributing over it produces nothing, which is why a naive <code>IsNever</code> check returns <code>never</code> instead of <code>true</code>. The fix is to wrap both sides in a tuple, <code>[T] extends [U]</code>, which turns distribution off, and that's also how you keep a union together as a single array type.</p></div>
+<p>A conditional type <code>T extends U ? X : Y</code> is <strong>distributive</strong> when <code>T</code> is a <strong>naked type parameter</strong>: applied to a union, it runs once per member and unions the results. This single rule is what makes <code>Exclude</code>, <code>Extract</code>, and <code>NonNullable</code> possible.</p>
 <pre>// Exclude, from scratch — one line, all the magic is distribution
 type MyExclude&lt;T, U&gt; = T extends U ? never : T;
 
@@ -754,7 +777,8 @@ type Y = IsNeverFixed&lt;never&gt;;  // true — tuple wrapper blocks distributi
       {
         q: 'Implement Partial, Pick, and Readonly from scratch, and explain "as" key remapping in mapped types.',
         difficulty: 'hard',
-        a: `<p>Every built-in utility type is a one-line <strong>mapped type</strong> — knowing how to write them shows you understand <code>keyof</code>, indexed access, and modifiers rather than memorizing an API.</p>
+        a: `<div class="interview-answer"><p>Every built-in utility is a one-line mapped type, and being able to write them shows you actually understand <code>keyof</code>, indexed access, and the <code>+</code>/<code>-</code> modifiers rather than memorizing an API. <code>Partial</code> adds <code>?</code>, <code>Required</code> uses <code>-?</code> to strip it, and <code>Mutable</code> uses <code>-readonly</code>. The powerful newer piece is key remapping with <code>as</code>: you can rename keys, build a getters interface, or filter properties by remapping unwanted keys to <code>never</code>. This is exactly how Prisma and tRPC compute types from a single source of truth. I'd also mention homomorphic mapped types preserve the original <code>?</code> and <code>readonly</code> modifiers.</p></div>
+<p>Every built-in utility type is a one-line <strong>mapped type</strong> — knowing how to write them shows you understand <code>keyof</code>, indexed access, and modifiers rather than memorizing an API.</p>
 <pre>// The standard library, reimplemented:
 type MyPartial&lt;T&gt;  = { [K in keyof T]?: T[K] };            // add ? modifier
 type MyRequired&lt;T&gt; = { [K in keyof T]-?: T[K] };           // -? REMOVES optionality
@@ -787,7 +811,8 @@ type MyOmit&lt;T, K extends PropertyKey&gt; = MyPick&lt;T, Exclude&lt;keyof T, K
       {
         q: 'What are the pitfalls of numeric enums and const enums that make senior engineers avoid them?',
         difficulty: 'tricky',
-        a: `<p>Enums are one of TypeScript's few features that generate runtime code with surprising semantics — three concrete traps come up in real codebases:</p>
+        a: `<div class="interview-answer"><p>Three concrete traps make me avoid enums. Numeric enums emit a reverse mapping, so <code>Object.keys</code> gives you double the entries and the bundle carries dead weight. Before TS 5.0 a numeric enum accepted literally any number, a real soundness hole for anything coming from JSON. And <code>const enum</code> inlines at the call site, which needs whole-program info, so it breaks single-file transpilers like Babel, esbuild, and swc, and it couples library consumers to your compiler settings. My alternatives are string-literal unions or an <code>as const</code> object, same ergonomics, plain JS semantics, and tree-shakeable.</p></div>
+<p>Enums are one of TypeScript's few features that generate runtime code with surprising semantics — three concrete traps come up in real codebases:</p>
 <p><strong>1. Numeric enums get reverse mappings</strong> — the compiled object maps both ways, which bloats bundles and breaks <code>Object.keys</code> assumptions:</p>
 <pre>enum Level { Low, High }
 // Compiles to:
@@ -813,7 +838,8 @@ type Status2 = typeof STATUS[keyof typeof STATUS];  // value object + derived ty
       {
         q: 'Where is TypeScript deliberately unsound? Explain method bivariance and array covariance.',
         difficulty: 'tricky',
-        a: `<p>TypeScript trades soundness for ergonomics in a few documented places — a program can typecheck and still crash with a type error at runtime. Seniors are expected to know the holes so <code>strict</code> mode isn't mistaken for a proof.</p>
+        a: `<div class="interview-answer"><p>TypeScript deliberately trades soundness for ergonomics, so strict mode is not a proof, and a senior should know the holes. Two big ones: method-shorthand parameters stay bivariant even under <code>strictFunctionTypes</code>, only function-property syntax gets checked strictly, so a callback typed the loose way can receive the wrong event and crash. And arrays are covariant, a <code>Dog[]</code> is assignable to an <code>Animal[]</code> even though you could then push a <code>Cat</code> and blow up at runtime. The mitigations: use function-property syntax for callbacks, accept <code>readonly T[]</code> for inputs, and validate at trust boundaries, because <code>any</code> and <code>JSON.parse</code> hand you <code>any</code>.</p></div>
+<p>TypeScript trades soundness for ergonomics in a few documented places — a program can typecheck and still crash with a type error at runtime. Seniors are expected to know the holes so <code>strict</code> mode isn't mistaken for a proof.</p>
 <p><strong>1. Method parameter bivariance.</strong> Sound function subtyping requires parameters to be <strong>contravariant</strong> (a handler must accept at least what the interface promises). <code>strictFunctionTypes</code> enforces this — but <strong>only for function-property syntax, not method shorthand</strong>:</p>
 <pre>interface EventBusStrict {
   handle: (e: MouseEvent) => void;   // property syntax → checked strictly

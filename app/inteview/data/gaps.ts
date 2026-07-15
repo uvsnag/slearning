@@ -12,7 +12,8 @@ export const topics: PvTopic[] = [
       {
         q: 'What is Next.js and how is it different from Create React App?',
         difficulty: 'easy',
-        a: `<ul>
+        a: `<div class="interview-answer"><p>The honest one-liner is that Next.js is a full-stack React framework while CRA was just a client-side bundler that the React team has now officially deprecated. What Next.js buys you is server rendering, file-based routing, route handlers, and image and bundle optimization out of the box, which is why it dominates production React. The real reason I reach for it is SEO and time-to-first-byte: CRA ships an empty HTML shell that hurts crawlers and LCP. The tradeoff is more concepts and a server runtime to operate, so for a purely internal SPA a plain Vite build can still be the simpler call.</p></div>
+<ul>
 <li><strong>CRA</strong>: client-side only SPA. No SSR, no routing built-in, no API routes.</li>
 <li><strong>Next.js</strong>: full-stack React framework with SSR, SSG, ISR, API routes, file-based routing, middleware, and built-in optimizations.</li>
 </ul>
@@ -29,7 +30,8 @@ export const topics: PvTopic[] = [
       {
         q: 'Explain the difference between App Router and Pages Router in Next.js.',
         difficulty: 'medium',
-        a: `<pre>// Pages Router (legacy, still supported):
+        a: `<div class="interview-answer"><p>App Router is the direction of travel: it's Server-Components-first, supports nested layouts that don't re-render on navigation, and gives you <code>loading.tsx</code> and <code>error.tsx</code> for free Suspense and error boundaries. Pages Router is still supported but frozen for new features, and it's built around <code>getServerSideProps</code> and <code>getStaticProps</code>. The big mental shift is that in App Router your rendering strategy comes from how you fetch data, not from which magic export you use. I start new projects on App Router, but I don't rush to migrate a working Pages app without a concrete win.</p></div>
+<pre>// Pages Router (legacy, still supported):
 pages/
   index.js         → /
   about.js         → /about
@@ -58,7 +60,8 @@ app/
       {
         q: 'What are the rendering strategies in Next.js? SSR, SSG, ISR, CSR.',
         difficulty: 'hard',
-        a: `<ul>
+        a: `<div class="interview-answer"><p>There are four: SSG at build time for the fastest and cheapest pages, SSR per request for personalized or real-time content, ISR which is SSG plus a revalidate window to get freshness without paying per request, and CSR for highly interactive client-only views. My default is static unless proven dynamic, because static scales for free on a CDN. The senior gotcha in the App Router is that you pick the strategy through your <code>fetch</code> cache options and route segment config, not by exporting a named function like in Pages Router.</p></div>
+<ul>
 <li><strong>SSR (Server-Side Rendering)</strong>: HTML generated on every request. Dynamic, but slower. Good for personalized/real-time pages.</li>
 <li><strong>SSG (Static Site Generation)</strong>: HTML generated at build time. Fastest. Good for blogs, docs, marketing pages.</li>
 <li><strong>ISR (Incremental Static Regeneration)</strong>: SSG + revalidation after a time period. Best of both worlds.</li>
@@ -98,7 +101,8 @@ function Page() {
       {
         q: "What is the difference between 'use client' and 'use server' in Next.js?",
         difficulty: 'medium',
-        a: `<ul>
+        a: `<div class="interview-answer"><p><code>'use client'</code> marks a component that ships to and runs in the browser so it can use hooks, events, and browser APIs, while <code>'use server'</code> marks a function as a Server Action that runs on the server and can touch the DB or secrets directly. They're not opposites: everything is a Server Component by default, and you only add <code>'use client'</code> at the leaves that actually need interactivity, to keep the client bundle small. The trap juniors hit is slapping <code>'use client'</code> at the top of the tree, which drags everything below it onto the client.</p></div>
+<ul>
 <li><code>'use client'</code>: marks a component as a <strong>Client Component</strong>. Runs in the browser. Can use hooks, event handlers, browser APIs.</li>
 <li><code>'use server'</code>: marks a function as a <strong>Server Action</strong>. Runs on the server. Can access DB, file system, secrets directly.</li>
 </ul>
@@ -136,7 +140,8 @@ function Form() {
       {
         q: 'How does Next.js handle routing? Explain dynamic routes, catch-all, and parallel routes.',
         difficulty: 'medium',
-        a: `<pre>// File-based routing (App Router):
+        a: `<div class="interview-answer"><p>Routing is file-based: a folder with a <code>page.tsx</code> is a route, <code>[id]</code> is a dynamic segment, <code>[...slug]</code> is catch-all, and <code>[[...slug]]</code> is optional catch-all. Beyond that I lean on route groups in parentheses to organize files without touching the URL, and parallel routes with the at-sign slot syntax for things like modals or split dashboards rendered in the same layout. For dynamic pages I pair them with <code>generateStaticParams</code> to pre-render known paths at build. The piece people forget is intercepting routes, which power the open-in-a-modal-but-deep-linkable pattern.</p></div>
+<pre>// File-based routing (App Router):
 app/
   page.tsx              → /
   about/page.tsx        → /about
@@ -177,7 +182,8 @@ export async function generateStaticParams() {
       {
         q: 'What is Next.js Middleware? Give practical examples.',
         difficulty: 'hard',
-        a: `<p>Middleware runs <strong>before</strong> every request, at the edge. Use it for authentication, redirects, A/B testing, and geolocation.</p>
+        a: `<div class="interview-answer"><p>Middleware runs at the edge before every matched request, so it's the right place for cheap cross-cutting concerns: auth redirects, locale and geo routing, A/B bucketing, and setting headers. The hard rule I enforce is keep it lightweight: it runs in the edge runtime with limited APIs, so no DB calls or heavy crypto in there or you tax every single request. I always scope it with a <code>matcher</code> to skip static assets and API routes. For real authorization I still re-check inside the handler; middleware is a fast gate, not the source of truth.</p></div>
+<p>Middleware runs <strong>before</strong> every request, at the edge. Use it for authentication, redirects, A/B testing, and geolocation.</p>
 <pre>// middleware.ts (root of project)
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -215,7 +221,8 @@ export const config = {
       {
         q: 'How does static export work in Next.js? What are the limitations?',
         difficulty: 'medium',
-        a: `<p>Static export generates a fully static site (HTML/CSS/JS) that can be hosted anywhere (GitHub Pages, S3, Nginx).</p>
+        a: `<div class="interview-answer"><p><code>output: 'export'</code> emits a pure static HTML, CSS, and JS bundle you can drop on S3, GitHub Pages, or Nginx with no Node server. The price is you lose everything server-side: no SSR, no ISR, no route handlers, no middleware, and no image optimization unless you set <code>unoptimized</code>. Dynamic routes have to be enumerated at build with <code>generateStaticParams</code>. I choose it for docs sites, portfolios, and fully client-driven apps, and the moment I need real per-request logic I move back to a hosted runtime.</p></div>
+<p>Static export generates a fully static site (HTML/CSS/JS) that can be hosted anywhere (GitHub Pages, S3, Nginx).</p>
 <pre>// next.config.ts
 const nextConfig = {
   output: 'export',      // enable static export
@@ -241,7 +248,8 @@ const nextConfig = {
       {
         q: 'What is next/image and why should you use it?',
         difficulty: 'easy',
-        a: `<pre>import Image from 'next/image';
+        a: `<div class="interview-answer"><p><code>next/image</code> is basically free performance: it auto-serves WebP and AVIF, resizes per device, lazy-loads by default, and reserves space to prevent layout shift, which directly protects LCP and CLS. The two knobs I always set are <code>priority</code> on the above-the-fold hero so it preloads, and correct <code>width</code>/<code>height</code> or <code>fill</code> plus <code>sizes</code> so it doesn't over-fetch. The catch is it needs an optimization server, so under static export you fall back to <code>unoptimized</code>. There's basically no reason to use a raw <code>&lt;img&gt;</code> in Next for content images.</p></div>
+<pre>import Image from 'next/image';
 
 // Automatic optimization
 &lt;Image
@@ -274,7 +282,8 @@ const nextConfig = {
       {
         q: 'You see "Text content does not match server-rendered HTML" in the console. What causes hydration mismatches and how do you fix them?',
         difficulty: 'tricky',
-        a: `<p>Hydration mismatch means the HTML React rendered on the server differs from what it renders on the client during the first render. React expects them to be <strong>identical</strong> — when they diverge, React logs a warning and may throw away the server HTML and re-render from scratch (slow, can flash wrong content).</p>
+        a: `<div class="interview-answer"><p>It means the HTML React produced on the server didn't match what the client produced on its first render, so React throws away the server markup and re-renders, which is slow and can flash wrong content. The usual culprits are non-deterministic values like <code>Date.now()</code> or <code>Math.random()</code>, locale and timezone formatting, and reading browser-only APIs like <code>localStorage</code> during render. My fix is to render those values after mount in a <code>useEffect</code> so the first render is identical on both sides, and only reach for <code>suppressHydrationWarning</code> on genuinely unavoidable single nodes like a timestamp. If a whole widget is browser-dependent, I disable SSR for it with a dynamic import.</p></div>
+<p>Hydration mismatch means the HTML React rendered on the server differs from what it renders on the client during the first render. React expects them to be <strong>identical</strong> — when they diverge, React logs a warning and may throw away the server HTML and re-render from scratch (slow, can flash wrong content).</p>
 <p><strong>Common causes:</strong></p>
 <ul>
 <li><strong>Non-deterministic values during render</strong>: <code>Date.now()</code>, <code>Math.random()</code>, <code>toLocaleString()</code> (server locale/timezone differs from the user's browser).</li>
@@ -311,7 +320,8 @@ const Map = dynamic(() => import('./Map'), { ssr: false });</pre>
       {
         q: 'Why can you not pass a function or class instance as a prop from a Server Component to a Client Component?',
         difficulty: 'tricky',
-        a: `<p>Server and Client Components run in <strong>different environments at different times</strong>. The server renders to a serialized payload (the RSC payload) that is sent over the network; props crossing the boundary must survive serialization. Functions capture closures over server scope (DB handles, secrets) — there is no way to ship that to a browser. Class instances lose their prototype: a <code>Date</code> arriving as a string, a custom class arriving as a plain object.</p>
+        a: `<div class="interview-answer"><p>You can't because the RSC boundary is a network serialization boundary: the server renders to a payload that gets shipped to the browser, and a function would have to carry its server closure (DB handles, secrets) which can't and shouldn't travel. Class instances lose their prototype too, so a <code>Date</code> arrives as a string. The one sanctioned exception is a Server Action, which isn't serialized as code but as an opaque ID the client POSTs back to. When I need server content inside interactive UI, I use children composition, passing already-rendered server subtrees as <code>children</code> into a client shell.</p></div>
+<p>Server and Client Components run in <strong>different environments at different times</strong>. The server renders to a serialized payload (the RSC payload) that is sent over the network; props crossing the boundary must survive serialization. Functions capture closures over server scope (DB handles, secrets) — there is no way to ship that to a browser. Class instances lose their prototype: a <code>Date</code> arriving as a string, a custom class arriving as a plain object.</p>
 <pre>// BROKEN — build/runtime error:
 // "Functions cannot be passed directly to Client Components"
 export default async function Page() {
@@ -347,7 +357,8 @@ function Collapsible({ children }) {          // client interactivity
       {
         q: 'Your Next.js page shows stale data in production but works fine in dev. Explain the App Router caching layers and how to control them.',
         difficulty: 'tricky',
-        a: `<p>The App Router has <strong>four distinct caches</strong>, and confusing them is the #1 source of "why is my data stale" bugs. Dev mostly bypasses them, so the bug only appears in <code>next build &amp;&amp; next start</code> or production.</p>
+        a: `<div class="interview-answer"><p>This smells like caching, and the reason it only shows in prod is that <code>next dev</code> bypasses most caches. The App Router has four layers to keep straight: per-render request memoization, the cross-request Data Cache, the Full Route Cache of rendered static routes, and the client-side Router Cache. A page of only cacheable fetches gets statically rendered at build and will happily serve stale data until something revalidates it. I control it with <code>cache: 'no-store'</code> or <code>revalidate</code> per fetch, route segment config, and <code>revalidateTag</code>/<code>revalidatePath</code> after mutations, and I always test with <code>next build</code> rather than dev. Also worth flagging: Next 15 flipped fetch to uncached by default.</p></div>
+<p>The App Router has <strong>four distinct caches</strong>, and confusing them is the #1 source of "why is my data stale" bugs. Dev mostly bypasses them, so the bug only appears in <code>next build &amp;&amp; next start</code> or production.</p>
 <table><tr><th>Cache</th><th>Where</th><th>What</th><th>Duration</th></tr>
 <tr><td>Request memoization</td><td>Server</td><td>Identical fetch() calls within ONE render pass</td><td>Single request</td></tr>
 <tr><td>Data Cache</td><td>Server</td><td>fetch() responses across requests/deploys</td><td>Until revalidated</td></tr>
@@ -381,7 +392,8 @@ export async function updateProduct(data: FormData) {
       {
         q: 'What are Server Actions, and why is "the button is hidden for non-admins" not a security model for them?',
         difficulty: 'hard',
-        a: `<p>Server Actions are async functions marked <code>'use server'</code> that clients invoke via an automatically-created HTTP POST endpoint. They give you mutations without hand-writing API routes, plus <strong>progressive enhancement</strong>: a <code>&lt;form action={serverAction}&gt;</code> works even before JavaScript hydrates.</p>
+        a: `<div class="interview-answer"><p>Server Actions are <code>'use server'</code> functions the client invokes through an auto-generated HTTP POST, giving you mutations without hand-rolling API routes plus progressive enhancement in forms. The critical point is that every action compiles to a public endpoint with a stable ID, so hiding the button in the UI does nothing because anyone can replay the POST with curl. I treat every action like a public API route: authenticate, authorize, and validate input with something like zod inside the action body. On the client I wire up <code>useFormStatus</code> and <code>useActionState</code> for pending and error states.</p></div>
+<p>Server Actions are async functions marked <code>'use server'</code> that clients invoke via an automatically-created HTTP POST endpoint. They give you mutations without hand-writing API routes, plus <strong>progressive enhancement</strong>: a <code>&lt;form action={serverAction}&gt;</code> works even before JavaScript hydrates.</p>
 <pre>// actions.ts
 'use server';
 import { revalidatePath } from 'next/cache';
@@ -424,7 +436,8 @@ function PostRow({ id }) {
       {
         q: 'How does streaming SSR with Suspense work in the App Router, and what do loading.tsx and error.tsx actually do?',
         difficulty: 'hard',
-        a: `<p>Classic SSR is all-or-nothing: the server must finish <strong>every</strong> data fetch before sending byte one. Streaming SSR sends the shell immediately and <strong>streams in slow parts later</strong> over the same response, using <code>&lt;Suspense&gt;</code> boundaries as the seams.</p>
+        a: `<div class="interview-answer"><p>Classic SSR blocks until every fetch resolves before sending a byte; streaming SSR flushes the shell immediately and streams slow subtrees in later, using <code>&lt;Suspense&gt;</code> boundaries as the seams. <code>loading.tsx</code> is just sugar for one big Suspense around the whole segment, and <code>error.tsx</code> is a per-segment error boundary with a <code>reset()</code> so one crashing widget doesn't take down the page. I prefer fine-grained Suspense at each async component over a single whole-page spinner. The honest caveat is streaming improves perceived speed and TTFB but not total time; the slow query is still slow, you just show something sooner.</p></div>
+<p>Classic SSR is all-or-nothing: the server must finish <strong>every</strong> data fetch before sending byte one. Streaming SSR sends the shell immediately and <strong>streams in slow parts later</strong> over the same response, using <code>&lt;Suspense&gt;</code> boundaries as the seams.</p>
 <pre>// app/dashboard/page.tsx
 import { Suspense } from 'react';
 
@@ -477,7 +490,8 @@ export default function Error({ error, reset }) {
       {
         q: 'What are Core Web Vitals? Explain LCP, FID, CLS.',
         difficulty: 'medium',
-        a: `<p><strong>Core Web Vitals</strong> are Google's metrics for measuring real-world user experience:</p>
+        a: `<div class="interview-answer"><p>Core Web Vitals are Google's three field metrics for real user experience: LCP for loading (largest element painted, target under 2.5s), INP which replaced FID for responsiveness (target under 200ms), and CLS for visual stability (target under 0.1). I care about these specifically because they feed search ranking and they're measured on real users, not my laptop. The quick wins are preloading the LCP image, always setting image dimensions or aspect-ratio to kill layout shift, and breaking up long JS tasks to protect responsiveness. The subtlety people miss is that these are p75 field numbers from CrUX, so a green Lighthouse run doesn't guarantee you pass.</p></div>
+<p><strong>Core Web Vitals</strong> are Google's metrics for measuring real-world user experience:</p>
 <ul>
 <li><strong>LCP (Largest Contentful Paint)</strong>: Time until the largest visible element renders. Target: &lt;2.5s. Affected by: server response time, CSS/JS blocking, image load time.</li>
 <li><strong>FID (First Input Delay) → INP (Interaction to Next Paint)</strong>: Time from user interaction to browser response. Target: &lt;200ms. Affected by: heavy JavaScript, long tasks on main thread.</li>
@@ -499,7 +513,8 @@ export default function Error({ error, reset }) {
       {
         q: 'What techniques do you use to optimize web application performance?',
         difficulty: 'hard',
-        a: `<pre>Frontend optimization checklist:
+        a: `<div class="interview-answer"><p>My rule is measure first: pull a Lighthouse run and a Performance trace and find the actual bottleneck before touching anything. Then I work the usual levers: shrink the JS bundle with code splitting and tree shaking, optimize images with modern formats and lazy loading, remove render-blocking CSS and JS, cache aggressively with proper headers plus a CDN, and cut wasteful React re-renders with memoization and list virtualization. On the network side, compression, HTTP/2, and prefetching the next route help. The senior discipline is resisting the urge to micro-optimize things that aren't on the critical path, because most wins come from a handful of big rocks.</p></div>
+<pre>Frontend optimization checklist:
 
 1. REDUCE BUNDLE SIZE
    → Code splitting (React.lazy, dynamic import)
@@ -539,7 +554,8 @@ export default function Error({ error, reset }) {
       {
         q: 'What is list virtualization and when should you use it?',
         difficulty: 'medium',
-        a: `<p><strong>Virtualization</strong> renders only the visible items in a long list, instead of all items at once.</p>
+        a: `<div class="interview-answer"><p>Virtualization renders only the rows currently in the viewport plus a small buffer instead of every item, so a 10,000-row list becomes a dozen DOM nodes. That collapses render time, memory, and layout cost dramatically. I reach for it once a list or table pushes past roughly a hundred rows, using <code>react-window</code> or <code>@tanstack/react-virtual</code>. The gotchas are variable row heights, which need measurement, and that it complicates find-on-page and accessibility since off-screen rows aren't in the DOM, so I wouldn't virtualize a list that's only twenty items.</p></div>
+<p><strong>Virtualization</strong> renders only the visible items in a long list, instead of all items at once.</p>
 <pre>// Problem: 10,000 items → 10,000 DOM nodes → slow, high memory
 function BadList({ items }) {
   return items.map(item => &lt;div key={item.id}&gt;{item.name}&lt;/div&gt;);
@@ -575,7 +591,8 @@ function VirtualList({ items }) {
       {
         q: 'INP replaced FID as a Core Web Vital in March 2024. What does INP measure, why was FID insufficient, and how do you fix a bad INP score?',
         difficulty: 'tricky',
-        a: `<p><strong>INP (Interaction to Next Paint)</strong> measures the latency of interactions across the <strong>whole page lifetime</strong> and reports (roughly) the worst one. Target: &lt;200ms. Each interaction's latency has three parts:</p>
+        a: `<div class="interview-answer"><p>INP measures the latency of interactions across the whole page lifetime and reports roughly the worst one, broken into input delay, processing time, and presentation delay, with a target under 200ms. It replaced FID because FID only measured the delay of the very first input and ignored your handler cost and the paint, so sites aced FID and still felt janky on every click. The fix is to paint feedback immediately, then yield to the main thread and chunk the heavy work, or in React keep the urgent update fast and wrap the expensive one in <code>startTransition</code>. And since INP is a field metric, I debug it from RUM at p75 by device class, not on my fast machine.</p></div>
+<p><strong>INP (Interaction to Next Paint)</strong> measures the latency of interactions across the <strong>whole page lifetime</strong> and reports (roughly) the worst one. Target: &lt;200ms. Each interaction's latency has three parts:</p>
 <ol>
 <li><strong>Input delay</strong> — main thread busy, handler can't even start (all FID measured).</li>
 <li><strong>Processing time</strong> — your event handlers actually running.</li>
@@ -614,7 +631,8 @@ onChange={e => {
       {
         q: 'Your LCP is 4.5s. Walk me through diagnosing and fixing it.',
         difficulty: 'hard',
-        a: `<p>Never guess — decompose LCP into its <strong>four sub-parts</strong> (DevTools Performance panel and web-vitals attribution give these):</p>
+        a: `<div class="interview-answer"><p>I never guess; I decompose LCP into its four sub-parts: TTFB, resource load delay, resource load time, and render delay, which the Performance panel or web-vitals attribution gives you. Then I fix in order of leverage: TTFB first because it delays everything, then make the LCP image discoverable early with a preload and <code>fetchpriority='high'</code>, then shrink it with AVIF or WebP and a right-sized srcset, then unblock render. The classic self-inflicted wounds are lazy-loading the hero, hiding it as a CSS background so it's found late, or rendering it in client JS. If a preload made no difference, I check the actual waterfall rather than trusting the checklist.</p></div>
+<p>Never guess — decompose LCP into its <strong>four sub-parts</strong> (DevTools Performance panel and web-vitals attribution give these):</p>
 <table><tr><th>Sub-part</th><th>What it is</th><th>Typical fix</th></tr>
 <tr><td>TTFB</td><td>First byte of the HTML</td><td>CDN, server/DB tuning, cache the HTML</td></tr>
 <tr><td>Resource load delay</td><td>Gap before the LCP image even STARTS loading</td><td>Preload; don't hide the URL in CSS/JS</td></tr>
@@ -647,7 +665,8 @@ onChange={e => {
       {
         q: 'How do you reduce JavaScript bundle size? Explain code splitting, tree shaking requirements, and the barrel-file trap.',
         difficulty: 'hard',
-        a: `<p>JS is the most expensive byte type: it's downloaded, parsed, compiled, and executed on the main thread — directly hurting INP and TTI. Three levers:</p>
+        a: `<div class="interview-answer"><p>JS is the most expensive byte because it's parsed, compiled, and executed on the main thread, so I attack it three ways. Split by route and feature so users only download what they use, keep dependencies as ESM with <code>sideEffects</code> declared so tree shaking can actually eliminate dead code, and avoid the barrel-file trap where importing from a big <code>index.ts</code> drags the whole graph into the parse path. A concrete example is importing all of <code>lodash</code> versus <code>lodash-es</code>. And I always verify with a bundle analyzer instead of guessing, because that's how you catch duplicated deps or an accidental full SDK.</p></div>
+<p>JS is the most expensive byte type: it's downloaded, parsed, compiled, and executed on the main thread — directly hurting INP and TTI. Three levers:</p>
 <p><strong>1. Route/feature-based code splitting</strong> — ship code when it's needed:</p>
 <pre>// Load the chart library only when the modal opens:
 const Chart = React.lazy(() => import('./HeavyChart')); // own chunk
@@ -686,7 +705,8 @@ import { Button } from '@/components/Button'; // import directly instead
       {
         q: 'How do web fonts hurt performance, and what does a correct font-loading setup look like? (FOIT, FOUT, CLS)',
         difficulty: 'hard',
-        a: `<p>Web fonts hit two vitals at once: text render (<strong>FOIT</strong> — invisible text while the font loads) and layout stability (<strong>CLS</strong> — the swap to the real font changes line breaks and shifts the page).</p>
+        a: `<div class="interview-answer"><p>Fonts hurt two vitals at once: they cause FOIT where text is invisible for up to three seconds, and they cause CLS when the swap to the real font reflows the layout. My correct setup is self-hosted WOFF2 with <code>font-display: swap</code> so text is always visible, a preload on the one critical font file with <code>crossorigin</code>, and a metric-matched fallback using <code>size-adjust</code> and <code>ascent-override</code> so the swap shifts nothing. That's exactly what <code>next/font</code> automates, including self-hosting Google fonts. Honestly, for app UIs I often question whether a brand font is worth it at all versus a zero-cost system font stack.</p></div>
+<p>Web fonts hit two vitals at once: text render (<strong>FOIT</strong> — invisible text while the font loads) and layout stability (<strong>CLS</strong> — the swap to the real font changes line breaks and shifts the page).</p>
 <ul>
 <li><strong>FOIT</strong> (flash of invisible text): default browser behavior blocks text up to ~3s waiting for the font. Worst option — content is unreadable.</li>
 <li><strong>FOUT</strong> (flash of unstyled text): show a fallback immediately, swap when ready. Readable, but the swap shifts layout if the fonts have different metrics.</li>
@@ -721,7 +741,8 @@ body { font-family: 'Inter', 'Inter-fallback', sans-serif; }
       {
         q: 'Design an HTTP caching strategy for a SPA. Why did your last deploy break for users with the app "already open in a tab"?',
         difficulty: 'tricky',
-        a: `<p>The core rule: <strong>immutable, content-hashed assets get cached forever; the HTML that names them is never trusted stale.</strong></p>
+        a: `<div class="interview-answer"><p>The core rule is that content-hashed assets are immutable so cache them for a year with <code>immutable</code>, but the HTML entry point that names them is never trusted stale, so <code>no-cache</code> plus an ETag so it revalidates cheaply. The classic broken deploy happens when someone puts a long <code>max-age</code> on <code>index.html</code>: you ship new hashed chunks, delete the old ones, and users on cached HTML 404 on a missing script and see a white screen. The same thing hits a stale open tab lazy-loading a deleted chunk. I mitigate by keeping the previous deploy's assets around for a grace period and recovering from a <code>ChunkLoadError</code> with a reload.</p></div>
+<p>The core rule: <strong>immutable, content-hashed assets get cached forever; the HTML that names them is never trusted stale.</strong></p>
 <pre># Hashed assets — the hash changes when content changes, so cache forever:
 /assets/app.3f9c1a.js
 Cache-Control: public, max-age=31536000, immutable
@@ -754,7 +775,8 @@ import(/* webpackChunkName: "settings" */ './Settings')
       {
         q: 'Your Lighthouse score is 98 but users complain the site is slow. Explain lab vs field data and how you would close the gap.',
         difficulty: 'tricky',
-        a: `<p>The two data types answer different questions, and confusing them is how teams "pass CI" while losing users:</p>
+        a: `<div class="interview-answer"><p>They answer different questions, and that's the whole gap. Lighthouse is a lab test: one synthetic cold load of a logged-out landing page on a simulated device, high variance, and it can't even measure real INP. Field data like CrUX and RUM is your actual users at p75 over 28 days across real devices, networks, cache states, and heavy pages like search. So a 98 lab score with slow users usually means your real users are on mid-tier Android on a page Lighthouse never tested. I close the gap by instrumenting RUM with the web-vitals library, segmenting p75 by page and device to find what to fix, and keeping Lighthouse as a CI budget to prevent regressions. And Google ranks on field data, so the lab score is irrelevant to SEO.</p></div>
+<p>The two data types answer different questions, and confusing them is how teams "pass CI" while losing users:</p>
 <table><tr><th></th><th>Lab (Lighthouse, WebPageTest)</th><th>Field (CrUX, RUM)</th></tr>
 <tr><td>Who</td><td>A synthetic run, one simulated device</td><td>Your real users, real devices/networks</td></tr>
 <tr><td>When</td><td>Cold load, no interaction (so: no real INP)</td><td>Whole sessions, all pages</td></tr>

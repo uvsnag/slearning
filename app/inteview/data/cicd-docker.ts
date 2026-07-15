@@ -11,7 +11,8 @@ export const topics: PvTopic[] = [
       {
         q: 'What is CI/CD? Explain the difference between Continuous Integration, Delivery, and Deployment.',
         difficulty: 'easy',
-        a: `<ul>
+        a: `<div class="interview-answer"><p>The three are a progression, and the line people miss is between the last two. CI is about integrating small changes constantly so every commit triggers an automated build and test — the point is catching integration bugs in minutes, not at a big-bang merge. Continuous Delivery means the artifact is always production-ready and shipping is a one-click business decision. Continuous Deployment removes even that click — every green commit goes to prod automatically. Most teams should nail CI first; jumping straight to full Continuous Deployment without strong tests, feature flags, and fast rollback is how you page yourself at 2am.</p></div>
+<ul>
 <li><strong>Continuous Integration (CI)</strong>: developers merge code frequently → automated build + test on every commit. Catch issues early.</li>
 <li><strong>Continuous Delivery</strong>: code is always in a deployable state. Deployment to production is <strong>manual</strong> (one-click).</li>
 <li><strong>Continuous Deployment</strong>: every change that passes all stages is <strong>automatically</strong> deployed to production. No manual gate.</li>
@@ -24,7 +25,8 @@ export const topics: PvTopic[] = [
       {
         q: 'Describe a typical CI/CD pipeline with stages.',
         difficulty: 'medium',
-        a: `<ol>
+        a: `<div class="interview-answer"><p>I describe it as a funnel that gets more expensive and more production-like as you move down, so cheap checks gate the costly ones. Source triggers a build that produces one immutable artifact, then unit and integration tests, then security scanning, then a staging deploy for acceptance tests, then production via a safe rollout like canary or blue-green, with health checks and a rollback plan on standby. The principle underneath is build once, deploy many — the exact artifact that passed staging is what ships to prod. And every stage should fail fast: there's no point running E2E if lint or unit tests are already red.</p></div>
+<ol>
 <li><strong>Source</strong>: code push / PR triggers pipeline.</li>
 <li><strong>Build</strong>: compile, resolve dependencies, create artifact.</li>
 <li><strong>Test</strong>: unit tests → integration tests → E2E tests.</li>
@@ -60,7 +62,8 @@ jobs:
       {
         q: 'What are Blue-Green, Canary, and Rolling deployment strategies?',
         difficulty: 'hard',
-        a: `<ul>
+        a: `<div class="interview-answer"><p>These are three points on a spectrum of how much risk and infrastructure you trade. Blue-green runs two full environments and flips the load balancer — instant rollback, but you're paying for double capacity. Canary shifts a small slice of real traffic to the new version and watches metrics before ramping up, the safest option for large-scale services but it demands good observability. Rolling is the Kubernetes default — replace instances a few at a time with no extra infra, at the cost of running mixed versions briefly, which is exactly why your schema changes have to stay backward-compatible. My default is rolling for stateless services and canary once traffic justifies the observability investment.</p></div>
+<ul>
 <li><strong>Blue-Green</strong>: two identical environments. Switch traffic from blue (old) to green (new). Instant rollback by switching back.</li>
 <li><strong>Canary</strong>: route a small % of traffic to new version. Gradually increase if healthy. Best for large-scale services.</li>
 <li><strong>Rolling</strong>: update instances one by one. No extra infrastructure needed. Risk: mixed versions during deploy.</li>
@@ -84,7 +87,8 @@ kubectl rollout undo deploy/api                          # rollback</pre>
       {
         q: 'Explain GitFlow vs Trunk-Based Development.',
         difficulty: 'medium',
-        a: `<ul>
+        a: `<div class="interview-answer"><p>For CI/CD I strongly favor trunk-based development. GitFlow's long-lived develop, release, and feature branches were designed for scheduled, versioned releases, but those branches drift and turn into painful big-bang merges — the opposite of continuous integration. Trunk-based means everyone commits to main behind short-lived branches that merge within a day, with unfinished work hidden behind feature flags. Small frequent merges mean fewer conflicts and faster feedback. GitFlow still earns its place for shipped software with multiple supported versions, but for a web service delivered continuously it fights you.</p></div>
+<ul>
 <li><strong>GitFlow</strong>: long-lived branches (develop, feature, release, hotfix). Good for scheduled releases. Complex.</li>
 <li><strong>Trunk-Based</strong>: everyone commits to main/trunk. Short-lived feature branches (&lt;1 day). Feature flags for incomplete code.</li>
 </ul>
@@ -103,7 +107,8 @@ feature     ╲●╱  ╲●╱             (&lt; 1 day, tiny PRs)
       {
         q: 'What are GitHub Actions? Explain workflow, job, step.',
         difficulty: 'medium',
-        a: `<ul>
+        a: `<div class="interview-answer"><p>The hierarchy is workflow contains jobs contains steps. A workflow is a YAML file in <code>.github/workflows</code> triggered by events like push or pull_request; a job runs on its own fresh runner VM; a step is a single action or shell command. The gotcha people hit is that jobs run in parallel on separate machines by default — so they share nothing unless you wire up <code>needs</code> for ordering and artifacts to pass files between them. I'd also mention pinning third-party actions to a commit SHA rather than a moving tag, for supply-chain safety.</p></div>
+<ul>
 <li><strong>Workflow</strong>: YAML file in <code>.github/workflows/</code>. Triggered by events (push, PR, schedule).</li>
 <li><strong>Job</strong>: runs on a runner (VM). Jobs run in parallel by default; use <code>needs</code> for dependencies.</li>
 <li><strong>Step</strong>: individual task within a job. Can be an action or a shell command.</li>
@@ -122,7 +127,8 @@ jobs:
       {
         q: 'How do you handle secrets and environment variables in CI/CD?',
         difficulty: 'medium',
-        a: `<ul>
+        a: `<div class="interview-answer"><p>Rule one: secrets never live in the repo — not in code, not in committed .env files. I inject them at runtime from the platform's secret store, referenced as masked variables, and scope them per environment so a staging job can't read prod credentials. For cloud deploys the real upgrade is OIDC: the pipeline exchanges a short-lived token for cloud access, so there's no long-lived key stored anywhere to leak or rotate. And whatever you use, rotate regularly and keep an audit trail — a leaked static token is one of the most common breach vectors.</p></div>
+<ul>
 <li><strong>Never</strong> commit secrets to code. Use pipeline secret management.</li>
 <li><strong>GitHub</strong>: Settings → Secrets → accessed via <code>\${{ secrets.API_KEY }}</code>.</li>
 <li><strong>Jenkins</strong>: Credentials plugin + <code>withCredentials</code> block.</li>
@@ -148,7 +154,8 @@ jobs:
       {
         q: 'What is Infrastructure as Code (IaC)? How does it relate to CI/CD?',
         difficulty: 'medium',
-        a: `<p><strong>IaC</strong>: manage infrastructure through code/config files, versioned in Git.</p>
+        a: `<div class="interview-answer"><p>Infrastructure as Code means your servers, networks, and policies are declared in version-controlled files instead of clicked into a console. The payoff is that infra changes go through the same PR review, history, and CI as application code — reproducible, auditable, and no snowflake environments. The standard flow is <code>terraform plan</code> on the PR so reviewers see the exact diff, then <code>terraform apply</code> on merge. The thing juniors underestimate is state — Terraform's state file is the source of truth for what exists, so it must be remote and locked, or two concurrent applies corrupt each other.</p></div>
+<p><strong>IaC</strong>: manage infrastructure through code/config files, versioned in Git.</p>
 <ul>
 <li><strong>Terraform</strong>: cloud-agnostic, declarative (HCL). Plan → Apply.</li>
 <li><strong>AWS CloudFormation</strong>: AWS-specific, YAML/JSON templates.</li>
@@ -172,7 +179,8 @@ terraform apply   # on merge to main: change is applied
       {
         q: 'How do you implement rollback strategies in CI/CD?',
         difficulty: 'hard',
-        a: `<ul>
+        a: `<div class="interview-answer"><p>My philosophy is that rollback should be boring and fast — ideally faster than debugging forward under pressure. The cleanest options are redeploying the previous immutable artifact, flipping traffic back in a blue-green setup, or in GitOps just reverting the commit and letting the controller reconcile. Feature flags are the fastest of all because you disable a feature without any deploy. The hard part is always the database: migrations must be backward-compatible using the expand-contract pattern, because you usually can't un-run a migration safely, and a rollback that breaks the schema is worse than the original bug.</p></div>
+<ul>
 <li><strong>Artifact-based rollback</strong>: redeploy previous known-good artifact. Fast.</li>
 <li><strong>Blue-green switch</strong>: route traffic back to old environment.</li>
 <li><strong>Feature flags</strong>: disable the feature without deploying.</li>
@@ -193,7 +201,8 @@ docker service update --image registry/myapi:1.4.2 api</pre>
       {
         q: 'What is the difference between Jenkins, GitLab CI, and GitHub Actions?',
         difficulty: 'medium',
-        a: `<ul>
+        a: `<div class="interview-answer"><p>All three do the same core job; the real differentiator is hosting and ecosystem fit. Jenkins is self-hosted and infinitely flexible via plugins, but you own the maintenance, upgrades, and security patching — a lot of operational weight. GitLab CI and GitHub Actions are managed and config-as-code in your repo, so there's near-zero infra to run; GitLab shines as an all-in-one SCM-plus-CI-plus-registry, and Actions has the biggest marketplace and is the natural choice if you're already on GitHub. I'd pick based on where your code already lives and whether you have a platform team willing to babysit Jenkins.</p></div>
+<ul>
 <li><strong>Jenkins</strong>: self-hosted, plugin-based, Jenkinsfile (Groovy). Maximum flexibility, high maintenance.</li>
 <li><strong>GitLab CI</strong>: built into GitLab. <code>.gitlab-ci.yml</code>. Great for all-in-one (SCM + CI + registry + deploy).</li>
 <li><strong>GitHub Actions</strong>: built into GitHub. YAML workflows. Huge marketplace. Best for open-source.</li>
@@ -223,7 +232,8 @@ jobs:
       {
         q: 'What are pipeline artifacts and caching? How to speed up CI?',
         difficulty: 'medium',
-        a: `<ul>
+        a: `<div class="interview-answer"><p>These solve two different problems. Artifacts pass build outputs forward between jobs — you build the jar once and hand it downstream rather than rebuilding it. Caching persists things like <code>node_modules</code> or the Maven repo between runs so you don't re-download the internet every time. Beyond that, the biggest CI speedups are parallelizing and sharding test suites, and in a monorepo only building what actually changed. The subtle bug is a bad cache key — key it on your lockfile hash so the cache invalidates exactly when dependencies change, not on a stale key that quietly serves you wrong deps.</p></div>
+<ul>
 <li><strong>Artifacts</strong>: build outputs passed between jobs/stages (JARs, binaries, reports).</li>
 <li><strong>Caching</strong>: persist dependencies between runs (<code>node_modules</code>, <code>.m2</code>, <code>.gradle</code>).</li>
 </ul>
@@ -251,7 +261,8 @@ jobs:
       {
         q: 'What is GitOps? How does it work?',
         difficulty: 'hard',
-        a: `<p><strong>GitOps</strong>: Git is the single source of truth for infrastructure AND application deployment.</p>
+        a: `<div class="interview-answer"><p>GitOps makes Git the single source of truth for what's running, not just for code. You declare desired state — Kubernetes manifests, Helm charts — in a repo, and a controller like ArgoCD or Flux continuously reconciles the cluster to match it. Nobody runs <code>kubectl apply</code> by hand; changes go through PRs, so you get a full audit trail, trivial rollback via <code>git revert</code>, and self-healing when someone drifts the cluster manually. The mental shift is from push to pull: CI builds the image, a PR bumps the tag in the config repo, and the cluster pulls itself into line.</p></div>
+<p><strong>GitOps</strong>: Git is the single source of truth for infrastructure AND application deployment.</p>
 <ul>
 <li>Desired state is declared in Git (Kubernetes manifests, Helm charts).</li>
 <li>A controller (ArgoCD, Flux) watches the repo and reconciles cluster state.</li>
@@ -279,7 +290,8 @@ spec:
       {
         q: 'How do you test in a CI/CD pipeline? Explain the testing pyramid.',
         difficulty: 'medium',
-        a: `<p><strong>Testing pyramid</strong> (bottom to top):</p>
+        a: `<div class="interview-answer"><p>The pyramid is about spending your test budget where it pays off: lots of fast, isolated unit tests at the base, fewer integration tests in the middle, and a thin layer of slow, fragile E2E tests at the top. The anti-pattern is the inverted "ice cream cone" — mostly manual and E2E tests — which gives slow, flaky feedback that people learn to ignore. In the pipeline I run unit tests on every push for fast feedback, integration tests on merge, and reserve E2E for pre-prod so they don't block every commit. Roughly 70/20/10 is the rule of thumb, but the real goal is fast, trustworthy signal.</p></div>
+<p><strong>Testing pyramid</strong> (bottom to top):</p>
 <ol>
 <li><strong>Unit tests</strong> (most): fast, isolated, mock dependencies. Run on every commit.</li>
 <li><strong>Integration tests</strong>: test interactions between components, real DB/API calls.</li>
@@ -301,7 +313,8 @@ spec:
       {
         q: 'What are feature flags and how do they relate to CI/CD?',
         difficulty: 'medium',
-        a: `<p><strong>Feature flags</strong> (feature toggles) let you deploy code to production with new features <strong>turned off</strong>, then enable them without redeploying.</p>
+        a: `<div class="interview-answer"><p>Feature flags decouple deploy from release — you ship code to prod with the feature off, then turn it on independently, without another deploy. That's what makes trunk-based development and continuous deployment actually safe: incomplete work ships dark, and you can ramp a feature from 5% to 100%, run A/B tests, or hit a kill switch instantly under load. The tradeoff is that flags are technical debt — every flag is a branch in your code and a combinatorial test burden. So set expiry dates and delete them after launch, otherwise you end up with a codebase nobody can reason about.</p></div>
+<p><strong>Feature flags</strong> (feature toggles) let you deploy code to production with new features <strong>turned off</strong>, then enable them without redeploying.</p>
 <pre>// Simple feature flag:
 if (featureFlags.isEnabled("new-checkout")) {
     return newCheckoutFlow(cart);
@@ -326,7 +339,8 @@ if (featureFlags.isEnabled("new-checkout")) {
       {
         q: 'What is a monorepo vs polyrepo? How does it affect CI/CD?',
         difficulty: 'tricky',
-        a: `<table><tr><th>Aspect</th><th>Monorepo</th><th>Polyrepo</th></tr>
+        a: `<div class="interview-answer"><p>The core tension is coordination versus isolation. A monorepo gives you atomic cross-project changes and trivial code sharing in one PR, but your CI has to be smart about building only what changed or every commit rebuilds the world. Polyrepos give each service a dead-simple independent pipeline, at the cost of dependency-version hell and multi-repo PR choreography for anything spanning services. The deciding factor is coupling: if projects share a lot of code and change together, a monorepo with affected-only build tooling like Nx or Bazel wins; if they're truly independent, polyrepos keep things simple.</p></div>
+<table><tr><th>Aspect</th><th>Monorepo</th><th>Polyrepo</th></tr>
 <tr><td>Structure</td><td>All projects in one repository</td><td>Each project has its own repo</td></tr>
 <tr><td>CI/CD</td><td>Must detect which projects changed → build only those</td><td>Each repo has simple, independent pipeline</td></tr>
 <tr><td>Code sharing</td><td>Easy (same repo)</td><td>Need package manager or Git submodules</td></tr>
@@ -347,7 +361,8 @@ on:
       {
         q: 'What does "build once, deploy many" mean? How do you version and promote artifacts across environments?',
         difficulty: 'hard',
-        a: `<p><strong>Build once, deploy many</strong>: build ONE immutable artifact per commit and promote that exact artifact through environments (dev → staging → prod). Never rebuild per environment — a rebuild can differ (newer dependencies, different flags) from what you actually tested.</p>
+        a: `<div class="interview-answer"><p>This is one of the most important CI/CD principles: you build exactly one immutable artifact per commit and promote that same artifact through dev, staging, and prod — never rebuild per environment. The moment you rebuild for prod, you might pull a newer dependency or flip a different flag, and now staging validated something that isn't what shipped. Config is the only thing that varies, injected at deploy time via env vars or ConfigMaps, never baked in. And tag with a version plus git SHA, never a moving tag like <code>latest</code>, so the digest you tested is provably the digest you ran.</p></div>
+<p><strong>Build once, deploy many</strong>: build ONE immutable artifact per commit and promote that exact artifact through environments (dev → staging → prod). Never rebuild per environment — a rebuild can differ (newer dependencies, different flags) from what you actually tested.</p>
 <ul>
 <li><strong>Immutable artifact</strong>: JAR / Docker image built once in CI, stored in a registry.</li>
 <li><strong>Version tags</strong>: semantic version + git SHA, e.g. <code>myapi:1.5.0-a1b2c3d</code>. Never deploy a movable tag like <code>latest</code>.</li>
@@ -370,7 +385,8 @@ SPRING_PROFILES_ACTIVE=staging | prod</pre>
       {
         q: 'How do you deploy database schema changes with zero downtime?',
         difficulty: 'hard',
-        a: `<p>Use the <strong>expand–contract</strong> (parallel change) pattern: every migration must stay compatible with the version currently running, because old and new code run side by side during a rolling deploy.</p>
+        a: `<div class="interview-answer"><p>The key insight is that during a rolling deploy, old and new code run against the same database simultaneously — so every migration must be backward-compatible with the version still running. That's the expand-contract pattern: first expand by adding the new column as nullable, then have the new code dual-write and backfill in batches, switch reads over once verified, and only contract by dropping the old column in a much later release after the old code is gone. What breaks this is renaming or dropping a column in use, adding NOT NULL without a default, or a long table-locking ALTER at peak. The rule I state is: version N and N+1 must both work against the same schema — that's what makes both rolling deploys and rollbacks safe.</p></div>
+<p>Use the <strong>expand–contract</strong> (parallel change) pattern: every migration must stay compatible with the version currently running, because old and new code run side by side during a rolling deploy.</p>
 <ol>
 <li><strong>Expand</strong>: add the new column/table (nullable or with a default). Old code simply ignores it.</li>
 <li><strong>Migrate</strong>: new code writes to both old + new; backfill existing rows in small batches.</li>
@@ -394,7 +410,8 @@ ALTER TABLE users DROP COLUMN name;</pre>
       {
         q: 'How do you secure a CI/CD pipeline? (supply-chain security)',
         difficulty: 'hard',
-        a: `<ul>
+        a: `<div class="interview-answer"><p>The framing I lead with is that the pipeline IS production infrastructure — SolarWinds, Codecov, and xz all attacked the build, not the app — so it deserves the same rigor. Concretely: least privilege with short-lived OIDC tokens instead of stored cloud keys, protected branches so nothing reaches main without review and green checks, and pinning everything — lockfiles committed and third-party actions pinned to a commit SHA, because a tag can be silently re-pointed by an attacker. Then scan dependencies, images, and source, and sign artifacts with something like cosign plus an SBOM so prod only runs what CI actually built. And isolate runners — the classic <code>pull_request_target</code> foot-gun leaks secrets to untrusted PR code.</p></div>
+<ul>
 <li><strong>Least privilege</strong>: pipeline tokens scoped per job; short-lived <strong>OIDC</strong> tokens to cloud providers instead of stored keys.</li>
 <li><strong>Protected branches</strong>: required reviews + green checks before merge; nobody pushes to main directly.</li>
 <li><strong>Pin dependencies</strong>: lockfiles committed; pin third-party CI actions to a commit SHA, not a tag.</li>
@@ -413,7 +430,8 @@ cosign verify registry/myapi:1.5.0 \\
       {
         q: 'What are DORA metrics? How do you measure whether your CI/CD is good?',
         difficulty: 'medium',
-        a: `<p>Four industry-standard metrics (Google's DevOps Research & Assessment) that measure software delivery performance:</p>
+        a: `<div class="interview-answer"><p>DORA is four metrics that correlate with elite software delivery: deployment frequency and lead time for changes measure speed, while change failure rate and time to restore measure stability. The insight that makes it a good answer is that speed and stability move together — teams that deploy small batches frequently also recover faster, because a small change is easy to reason about and roll back. So trading one for the other is a smell; when someone says "we slowed down to be safer," the DORA data says that usually backfires. In practice you improve all four the same way: smaller PRs, trunk-based development, strong automated tests, and fast rollback behind flags.</p></div>
+<p>Four industry-standard metrics (Google's DevOps Research & Assessment) that measure software delivery performance:</p>
 <table><tr><th>Metric</th><th>Meaning</th><th>Elite performers</th></tr>
 <tr><td>Deployment frequency</td><td>How often you ship to production</td><td>On demand (multiple per day)</td></tr>
 <tr><td>Lead time for changes</td><td>Commit → running in production</td><td>&lt; 1 hour</td></tr>
@@ -428,7 +446,8 @@ cosign verify registry/myapi:1.5.0 \\
       {
         q: 'What makes a good CI pipeline? How do you order stages and deal with flaky tests?',
         difficulty: 'tricky',
-        a: `<p>A good pipeline optimizes for <strong>trustworthy feedback time</strong>: the cheapest, most-likely-to-fail checks run first (fail fast), expensive checks run later and in parallel. A slow or flaky pipeline is worse than none — developers start batching changes and ignoring red builds, which quietly kills the whole point of CI.</p>
+        a: `<div class="interview-answer"><p>A good pipeline optimizes for trustworthy feedback under about ten minutes: cheap, likely-to-fail checks first — lint, typecheck, unit — then expensive integration and E2E later and in parallel. The reason time matters is behavioral: a slow or flaky pipeline trains developers to batch changes and ignore red builds, which quietly destroys the point of CI. Flaky tests are the silent killer — I detect them by pass-on-retry, then quarantine them out of the blocking path with a fix-by ticket, rather than a blanket retry-three-times that just hides real race conditions. And red main is a stop-the-line event: revert or fix forward immediately, nobody merges onto a broken trunk.</p></div>
+<p>A good pipeline optimizes for <strong>trustworthy feedback time</strong>: the cheapest, most-likely-to-fail checks run first (fail fast), expensive checks run later and in parallel. A slow or flaky pipeline is worse than none — developers start batching changes and ignoring red builds, which quietly kills the whole point of CI.</p>
 <ul>
 <li><strong>Fail-fast ordering</strong>: lint/format → compile/typecheck → unit tests → build artifact → integration tests → E2E. Never make someone wait 20 minutes to learn about a lint error.</li>
 <li><strong>Parallelize</strong>: shard test suites across runners; run independent jobs concurrently.</li>
@@ -473,7 +492,8 @@ jobs:
       {
         q: 'What is Docker? How is it different from a Virtual Machine?',
         difficulty: 'easy',
-        a: `<p><strong>Docker</strong> packages an app with its dependencies into a container that runs as an isolated process on the host. The key idea is <strong>where the isolation happens</strong>:</p>
+        a: `<div class="interview-answer"><p>The one-liner is that containers share the host kernel while VMs each run their own. Docker isolation is OS-level — Linux namespaces control what a process can see and cgroups control what it can use — so a container is really just a confined process, which is why images are MBs and startup is milliseconds. A VM virtualizes hardware and boots a full guest OS per instance: stronger isolation but GBs and seconds to boot. The gotcha I always flag: because the kernel is shared, a Linux container needs a Linux kernel, so on Windows or Mac "Docker" quietly runs a Linux VM underneath — and that shared-kernel model is why untrusted multi-tenant workloads still lean on real VMs or micro-VMs like Firecracker.</p></div>
+<p><strong>Docker</strong> packages an app with its dependencies into a container that runs as an isolated process on the host. The key idea is <strong>where the isolation happens</strong>:</p>
 <ul>
 <li><strong>Docker (OS-level virtualization)</strong>: containers <strong>share the host's kernel</strong>; isolation comes from Linux <strong>namespaces</strong> (what a process can see — its own PIDs, network, filesystem) and <strong>cgroups</strong> (what it can use — CPU, memory). There is no guest OS to boot, so a container is really just a confined process — hence MB-sized images and millisecond startup.</li>
 <li><strong>VM (hardware-level virtualization)</strong>: a hypervisor emulates hardware and each VM runs a <strong>full guest OS with its own kernel</strong>. That gives stronger isolation but costs GBs of disk and RAM and takes seconds-to-minutes to boot.</li>
@@ -491,7 +511,8 @@ jobs:
       {
         q: 'Explain Docker architecture: Engine, Daemon, CLI, Images, Containers, Registry.',
         difficulty: 'medium',
-        a: `<ul>
+        a: `<div class="interview-answer"><p>Docker is a client-server system, and it's worth knowing the layers because they explain a lot of behavior. The CLI talks over a REST API to the daemon, dockerd, which manages images, networks, and volumes and delegates the actual container lifecycle to containerd, which in turn uses runc to spawn the process with namespaces and cgroups. An image is a read-only stack of layers built from a Dockerfile; a container is a running instance with a thin writable layer on top; a registry like Docker Hub or ECR stores and distributes images. The key takeaway is that dockerd is a privileged daemon running as root — which is exactly why rootless Docker and daemonless tools like Podman exist.</p></div>
+<ul>
 <li><strong>Docker Engine</strong>: client-server app (CLI + daemon + containerd).</li>
 <li><strong>Docker Daemon</strong> (<code>dockerd</code>): background process managing containers, images, networks, volumes.</li>
 <li><strong>Docker CLI</strong>: command-line client talks to daemon via REST API.</li>
@@ -511,7 +532,8 @@ jobs:
       {
         q: 'What is a Dockerfile? Explain key instructions.',
         difficulty: 'medium',
-        a: `<pre>FROM node:20-alpine          # base image
+        a: `<div class="interview-answer"><p>A Dockerfile is the declarative recipe for building an image, and the instructions matter less than understanding which ones create layers and how ordering affects caching. FROM sets the base, RUN executes build commands and each creates a layer, COPY brings files in, and CMD or ENTRYPOINT defines what runs. Two things I always call out: prefer COPY over ADD unless you specifically need tar extraction, because ADD's magic is a footgun; and copy your dependency manifest and install before copying source, so the expensive install layer stays cached when only code changes. And run as a non-root USER — the default is root, which you don't want in production.</p></div>
+<pre>FROM node:20-alpine          # base image
 WORKDIR /app                  # set working directory
 COPY package*.json ./         # copy dependency files
 RUN npm ci --production       # install dependencies
@@ -529,7 +551,8 @@ CMD ["node", "server.js"]     # default command</pre>
       {
         q: 'How do Docker layers work? How to optimize image size?',
         difficulty: 'hard',
-        a: `<p>An image is a <strong>stack of read-only layers</strong>. Each instruction that changes the filesystem (<code>FROM</code>, <code>RUN</code>, <code>COPY</code>, <code>ADD</code>) adds one layer on top; a union filesystem (overlayfs) merges them into what looks like a single filesystem. When you run a container, Docker adds a thin <strong>writable layer</strong> on top using <strong>copy-on-write</strong>: reads come from the shared read-only layers, and the first write to a file copies it up into the container's own layer.</p>
+        a: `<div class="interview-answer"><p>The mental model is that an image is a stack of cached, shared, read-only layers and a container adds a copy-on-write writable layer on top. Two consequences drive all optimization: layers are shared across images so a common base is stored and pulled once, and any change busts the cache for that layer and everything below it. So order your Dockerfile least-changed to most-changed — base, OS packages, dependency manifests, install, then source — so a code edit only rebuilds the cheap final layers. The biggest single win is multi-stage builds: compile with a full toolchain, then COPY --from only the artifact into a slim runtime so build tools never ship. And clean up within the same RUN — deleting files in a later layer doesn't shrink the image, the earlier layer still holds them.</p></div>
+<p>An image is a <strong>stack of read-only layers</strong>. Each instruction that changes the filesystem (<code>FROM</code>, <code>RUN</code>, <code>COPY</code>, <code>ADD</code>) adds one layer on top; a union filesystem (overlayfs) merges them into what looks like a single filesystem. When you run a container, Docker adds a thin <strong>writable layer</strong> on top using <strong>copy-on-write</strong>: reads come from the shared read-only layers, and the first write to a file copies it up into the container's own layer.</p>
 <p>Two consequences that drive everything:</p>
 <ul>
 <li><strong>Layers are shared and cached</strong>. If ten images share the same <code>node:20-alpine</code> base, that base is stored once on disk and pulled once. During a build, a layer is reused from cache only if its instruction <em>and</em> its inputs are unchanged.</li>
@@ -562,7 +585,8 @@ CMD ["node", "dist/server.js"]</pre>
       {
         q: 'What is the difference between CMD and ENTRYPOINT?',
         difficulty: 'tricky',
-        a: `<ul>
+        a: `<div class="interview-answer"><p>CMD sets a default that's easily overridden by arguments to <code>docker run</code>, while ENTRYPOINT fixes the executable and appends any run arguments to it. The idiomatic pattern is ENTRYPOINT for the actual binary and CMD for its default flags, so users can override the flags without accidentally replacing the whole command. The subtle trap is shell form versus exec form: writing them without the JSON-array brackets runs through <code>/bin/sh</code>, which becomes PID 1 and swallows signals — so your container ignores SIGTERM and gets hard-killed on stop. Always use the exec form with the bracket syntax.</p></div>
+<ul>
 <li><strong>CMD</strong>: default command. Can be <strong>overridden</strong> by <code>docker run &lt;image&gt; &lt;command&gt;</code>.</li>
 <li><strong>ENTRYPOINT</strong>: fixed executable. Args from <code>docker run</code> are appended.</li>
 </ul>
@@ -577,7 +601,8 @@ docker run myapp bash             # python app.py bash (!) </pre>
       {
         q: 'Explain Docker networking: bridge, host, none, overlay.',
         difficulty: 'hard',
-        a: `<p>Docker networking is built on Linux network namespaces — each driver is a different trade-off between <strong>isolation</strong>, <strong>performance</strong>, and <strong>reach</strong> (single host vs cluster).</p>
+        a: `<div class="interview-answer"><p>Each driver is a different trade-off between isolation, performance, and reach. Bridge is the single-host default: each container gets a private IP on a virtual bridge and you publish ports with <code>-p</code>, which adds a NAT rule. The interview gotcha is that on the default bridge containers can only reach each other by IP — you need a user-defined bridge to get automatic DNS by container name, which is exactly why Compose creates one for you. Host skips the bridge and NAT entirely for raw performance but gives up isolation and can collide with host ports; none is total isolation with just loopback; and overlay is the multi-host answer for Swarm or clustered setups where containers span machines.</p></div>
+<p>Docker networking is built on Linux network namespaces — each driver is a different trade-off between <strong>isolation</strong>, <strong>performance</strong>, and <strong>reach</strong> (single host vs cluster).</p>
 <ul>
 <li><strong>bridge</strong> (default on a single host): each container gets its own network namespace and a private IP on a virtual bridge (<code>docker0</code>). Containers are isolated from the host; to expose one you publish a port (<code>-p 8080:80</code>), which adds a NAT rule. <em>Key nuance</em>: on the <strong>default</strong> bridge, containers can only reach each other by IP; on a <strong>user-defined</strong> bridge (<code>docker network create</code>) Docker runs an embedded DNS server so they resolve each other by <strong>container name</strong>. That is why Compose puts every service on a user-defined network.</li>
 <li><strong>host</strong>: the container shares the host's network namespace directly — no virtual bridge, no NAT, no port mapping (the container binds host ports as-is). Fastest (no NAT overhead) but there is <strong>no network isolation</strong> and ports can collide with the host's. Use only for latency-sensitive or high-throughput workloads. (Linux only; behaves differently on Docker Desktop.)</li>
@@ -597,7 +622,8 @@ docker run --network none   batch-job  # fully offline</pre>
       {
         q: 'What are Docker volumes? Named volume vs bind mount vs tmpfs.',
         difficulty: 'medium',
-        a: `<p><strong>Why volumes exist</strong>: a container's writable layer is <strong>ephemeral</strong> — it's discarded when the container is removed, and copy-on-write to it is slow for heavy I/O like a database. Volumes bypass the writable layer to give you <strong>persistent, fast storage that outlives the container</strong>. Docker offers three mount types:</p>
+        a: `<div class="interview-answer"><p>Volumes exist because a container's writable layer is ephemeral and slow for heavy I/O — it dies with the container. Named volumes are Docker-managed storage that outlives containers and is portable, so that's my choice for production data like databases. Bind mounts map a specific host directory in, which is perfect for development hot-reload but couples you to the host path and leaks UID/GID permission issues — a classic "permission denied" source. Tmpfs is in-memory only, great for secrets or scratch you never want on disk. The syntax gotcha: with <code>-v</code> the leading slash decides — <code>name:/path</code> is a named volume, <code>/host:/path</code> is a bind mount.</p></div>
+<p><strong>Why volumes exist</strong>: a container's writable layer is <strong>ephemeral</strong> — it's discarded when the container is removed, and copy-on-write to it is slow for heavy I/O like a database. Volumes bypass the writable layer to give you <strong>persistent, fast storage that outlives the container</strong>. Docker offers three mount types:</p>
 <ul>
 <li><strong>Named volume</strong>: storage fully managed by Docker (under <code>/var/lib/docker/volumes/</code>). The container doesn't care where it physically lives. This is the right choice for <strong>production data</strong> (databases, uploads): it's portable, backable-up (<code>docker volume</code> commands), and decoupled from the host's directory layout.</li>
 <li><strong>Bind mount</strong>: maps a <strong>specific host directory</strong> into the container. Great for <strong>development</strong> — mount your source so code changes hot-reload without rebuilding. Trade-offs: it couples the container to the host's exact path, and file ownership/permissions (UID/GID) leak between host and container, which is a common source of "permission denied" bugs.</li>
@@ -616,7 +642,8 @@ docker run --tmpfs /tmp myapp</pre>
       {
         q: 'What is Docker Compose? Explain key sections.',
         difficulty: 'medium',
-        a: `<p>Docker Compose defines and runs <strong>multi-container</strong> applications in a single YAML file.</p>
+        a: `<div class="interview-answer"><p>Compose defines a multi-container app in one YAML file so a whole stack comes up with a single command — it's mainly a local-dev and small-deployment tool, not a production orchestrator. You declare services, their build or image, ports, environment, volumes, and networks; Compose puts everything on a user-defined network so services resolve each other by name. The thing people get wrong is startup ordering: <code>depends_on</code> alone only waits for the container to start, not to be ready, so you need <code>condition: service_healthy</code> tied to a real healthcheck, otherwise your app races the database and crashes on boot.</p></div>
+<p>Docker Compose defines and runs <strong>multi-container</strong> applications in a single YAML file.</p>
 <pre>version: '3.8'
 services:
   api:
@@ -640,7 +667,8 @@ volumes:
       {
         q: 'What is the difference between Docker Swarm and Kubernetes?',
         difficulty: 'hard',
-        a: `<p>Both are <strong>container orchestrators</strong> — they schedule containers across a cluster of machines, keep the desired number running, handle networking between them, and roll out updates. The difference is one of <strong>power vs simplicity</strong>.</p>
+        a: `<div class="interview-answer"><p>Both orchestrate containers across a cluster — scheduling, keeping desired replicas running, networking, rollouts — so it's a power-versus-simplicity call. Swarm is built into Docker, so a cluster is two commands away and you already know the tooling, but it's capped: no real autoscaling, a thin ecosystem, and the community has clearly moved on. Kubernetes is the industry standard with declarative reconciliation, autoscaling, self-healing, and a massive ecosystem, at the cost of genuine operational complexity. My honest answer to "which?" is Swarm if you're tiny and want to ship today, but expect to standardize on managed Kubernetes — EKS, GKE, AKS — as you grow, because that's where the market and tooling are.</p></div>
+<p>Both are <strong>container orchestrators</strong> — they schedule containers across a cluster of machines, keep the desired number running, handle networking between them, and roll out updates. The difference is one of <strong>power vs simplicity</strong>.</p>
 <ul>
 <li><strong>Docker Swarm</strong>: orchestration built straight into the Docker engine. You already know the tooling (<code>docker service</code>, Compose-style files) and a cluster is two commands away. The cost is a ceiling: no built-in autoscaling, a thinner ecosystem, and momentum that has clearly moved elsewhere.</li>
 <li><strong>Kubernetes (K8s)</strong>: the industry-standard control plane. Declarative desired-state reconciliation, horizontal autoscaling (HPA), self-healing, rich rollout strategies, a huge ecosystem (Helm, operators, service mesh, every cloud offers a managed version). The cost is real operational complexity — more moving parts (API server, etcd, scheduler, controllers) and a steep learning curve.</li>
@@ -659,7 +687,8 @@ volumes:
       {
         q: 'How does Docker image caching work in CI/CD?',
         difficulty: 'hard',
-        a: `<p>Docker caches each layer. If a layer's instruction + context haven't changed, the cache is used.</p>
+        a: `<div class="interview-answer"><p>Layer caching is easy locally but the trap in CI is that each run starts on a fresh runner with no cache, so naive builds rebuild everything every time. The fixes are external caches: a BuildKit registry cache with <code>cache-from</code> and <code>cache-to</code> to pull previous layers, or cache mounts for package directories so downloads persist. Then the ordering discipline still applies — dependencies before source so code changes only rebuild the tail. The mistake I see most is teams wondering why CI is slow when they never wired up <code>cache-from</code> at all, so every build is stone cold.</p></div>
+<p>Docker caches each layer. If a layer's instruction + context haven't changed, the cache is used.</p>
 <p><strong>In CI (no local cache)</strong>:</p>
 <ul>
 <li><strong>BuildKit cache mount</strong>: <code>--mount=type=cache,target=/root/.npm</code></li>
@@ -671,7 +700,8 @@ volumes:
       {
         q: 'What is a Docker health check and how to implement it?',
         difficulty: 'medium',
-        a: `<p>Health checks let Docker know if a container is functioning properly.</p>
+        a: `<div class="interview-answer"><p>A health check is a command Docker runs periodically to decide if the container is actually functional, not just running — the process being up doesn't mean it's serving. You define it in the Dockerfile or Compose with an interval, timeout, retries, and a <code>start_period</code> grace window for slow boots, and the container moves through starting, healthy, and unhealthy. Orchestrators consume this: Compose can gate startup order on it and Swarm reschedules unhealthy containers. The nuance for Kubernetes is that it ignores Docker's HEALTHCHECK and uses its own liveness and readiness probes instead — and conflating those two probes is a common mistake.</p></div>
+<p>Health checks let Docker know if a container is functioning properly.</p>
 <pre># In Dockerfile
 HEALTHCHECK --interval=30s --timeout=3s --retries=3 \\
   CMD curl -f http://localhost:3000/health || exit 1
@@ -688,7 +718,8 @@ healthcheck:
       {
         q: 'What are multi-stage Docker builds and why are they important?',
         difficulty: 'hard',
-        a: `<p><strong>Multi-stage builds</strong> let you use multiple FROM instructions in one Dockerfile. Each stage can use a different base image. Only the final stage becomes the output image.</p>
+        a: `<div class="interview-answer"><p>Multi-stage builds let you use several FROM stages in one Dockerfile and ship only the last one. The point is separating build-time from runtime: you compile in a heavy stage with the full toolchain, then COPY --from just the artifact into a slim runtime image. That does three things at once — dramatically smaller images so pulls are faster, a smaller attack surface because compilers and build tools never ship to prod, and better caching since dependencies layer separately from source. It's essentially non-negotiable for production images; a Java build drops from an 800MB builder to a ~200MB JRE image, and a Node SPA can land at 25MB on nginx.</p></div>
+<p><strong>Multi-stage builds</strong> let you use multiple FROM instructions in one Dockerfile. Each stage can use a different base image. Only the final stage becomes the output image.</p>
 <pre># Stage 1: Build (has all build tools — large image)
 FROM maven:3.9-eclipse-temurin-21 AS builder
 WORKDIR /app
@@ -724,7 +755,8 @@ COPY --from=builder /app/dist /usr/share/nginx/html
       {
         q: 'What are Docker security best practices?',
         difficulty: 'hard',
-        a: `<ol>
+        a: `<div class="interview-answer"><p>My headline is don't run as root and don't bake in secrets. Add a non-root USER, because the default is root and a container escape then owns the host. Never embed secrets — they persist in image layers even after you delete them, so use build secrets or runtime injection. Then pin versions and ideally digests rather than <code>latest</code> for reproducibility, use minimal bases like distroless to shrink the attack surface, scan images with something like Trivy, and use a <code>.dockerignore</code> so you don't leak <code>.git</code> or <code>.env</code> into the build context. At runtime, drop capabilities, go read-only where you can, and set memory and CPU limits.</p></div>
+<ol>
 <li><strong>Don't run as root</strong>: Use <code>USER</code> instruction to run as non-root user</li>
 <li><strong>Use minimal base images</strong>: Alpine, distroless, or scratch</li>
 <li><strong>Scan images</strong>: Trivy, Snyk, or Docker Scout for vulnerabilities</li>
@@ -761,7 +793,8 @@ Dockerfile
       {
         q: 'What happens step by step when you run `docker run -d -p 8080:80 nginx`?',
         difficulty: 'medium',
-        a: `<ol>
+        a: `<div class="interview-answer"><p>Walking it through shows you understand the plumbing. The CLI sends the request over the REST API to the daemon, which checks for <code>nginx:latest</code> locally and pulls the layers if missing. It creates the container with the image layers read-only and a fresh writable layer on top, sets up a network namespace on the default bridge with its own IP, and for <code>-p 8080:80</code> adds an iptables NAT rule forwarding host 8080 to container 80. Then containerd and runc start nginx as PID 1 inside its namespaces with cgroup limits, and <code>-d</code> detaches so you just get the container ID back. The thing to land: the container lives exactly as long as PID 1 — that process exits and the container stops, there's no init inside by default.</p></div>
+<ol>
 <li>CLI sends the request to the Docker daemon over the REST API.</li>
 <li>Daemon looks for <code>nginx:latest</code> locally; if missing, <strong>pulls the layers</strong> from the registry (each layer cached for future use).</li>
 <li>Creates the container: image layers stay <strong>read-only</strong>, a fresh <strong>writable layer</strong> goes on top.</li>
@@ -781,7 +814,8 @@ curl localhost:8080          # host → NAT → container:80
       {
         q: 'How do you debug a container that keeps crashing or misbehaving?',
         difficulty: 'hard',
-        a: `<pre># 1. Why did it die? Exit code + OOM flag
+        a: `<div class="interview-answer"><p>My debug order is exit code, then logs, then get a shell. <code>docker ps -a</code> shows the exit code and <code>docker inspect</code> shows the OOMKilled flag — and knowing the codes is the senior signal: 137 is SIGKILL, almost always an OOM kill against the memory limit; 143 is SIGTERM; 139 is a segfault. Logs survive the crash, so read them next. If it's running I exec in with a shell; if it won't even start I override the entrypoint with sh to look around, or on distroless attach an ephemeral debug container. The crash-loop mindset is that a container only lives as long as PID 1, so the question is always why that process keeps exiting.</p></div>
+<pre># 1. Why did it die? Exit code + OOM flag
 docker ps -a                                   # STATUS: Exited (137) 2 min ago
 docker inspect &lt;id&gt; \\
   --format '{{.State.ExitCode}} OOM={{.State.OOMKilled}}'
@@ -816,7 +850,8 @@ docker cp &lt;id&gt;:/app/logs ./logs</pre>
       {
         q: 'How do you properly dockerize a Java / Spring Boot application?',
         difficulty: 'hard',
-        a: `<ul>
+        a: `<div class="interview-answer"><p>The key moves are a multi-stage build shipping only a JRE not a JDK, Spring Boot's layered jar so the big dependency layers stay cached and only your thin application layer rebuilds per commit, and a container-aware JVM. That last one is the big one: size the heap with <code>-XX:MaxRAMPercentage</code> so it reads the cgroup limit, never a hardcoded <code>-Xmx</code> equal to the container limit — that guarantees an eventual exit-137 OOM kill because the kernel counts total RSS, not just heap. Then the usual hygiene: a non-root user, an Actuator health check, and handling SIGTERM for graceful shutdown. The MaxRAMPercentage miss is the single most common Java-in-Docker production incident.</p></div>
+<ul>
 <li><strong>JRE, not JDK</strong>, in the final image — multi-stage build.</li>
 <li><strong>Layered JAR</strong>: Spring Boot's layertools separates dependencies from your classes, so the big dependency layers stay cached and only the small app layer rebuilds on each commit.</li>
 <li><strong>Container-aware JVM</strong>: size the heap with <code>-XX:MaxRAMPercentage</code> (reads the cgroup limit) instead of a hardcoded <code>-Xmx</code>.</li>
@@ -851,7 +886,8 @@ ENTRYPOINT ["java", "org.springframework.boot.loader.launch.JarLauncher"]</pre>
       {
         q: "Why does my app ignore SIGTERM and take 10 seconds to stop? Explain the PID 1 problem.",
         difficulty: 'tricky',
-        a: `<p><code>docker stop</code> sends <strong>SIGTERM to PID 1</strong>, waits (default 10s), then SIGKILLs. Two classic reasons your app never sees the SIGTERM:</p>
+        a: `<div class="interview-answer"><p><code>docker stop</code> sends SIGTERM to PID 1, waits ten seconds, then SIGKILLs — so if your app takes the full ten seconds and drops requests, it never actually received the SIGTERM. Two usual causes: shell-form CMD runs your app under <code>/bin/sh</code>, so the shell is PID 1 and doesn't forward signals; and even as PID 1 the kernel installs no default handlers, so you must explicitly handle SIGTERM. The fixes are exec-form CMD with the JSON-array brackets so your process is PID 1, an actual SIGTERM handler that drains in-flight requests, and tini or <code>--init</code> if you spawn children, because PID 1 also has to reap zombies. The same mechanics carry to Kubernetes, just with a longer default grace period and a preStop hook to dodge the endpoint-removal race.</p></div>
+<p><code>docker stop</code> sends <strong>SIGTERM to PID 1</strong>, waits (default 10s), then SIGKILLs. Two classic reasons your app never sees the SIGTERM:</p>
 <ol>
 <li><strong>Shell form vs exec form</strong>: <code>CMD npm start</code> actually runs <code>/bin/sh -c "npm start"</code> — the <strong>shell</strong> is PID 1, and it does NOT forward signals to its child. Your app is killed cold after the timeout, dropping in-flight requests. The exec form <code>CMD ["node", "server.js"]</code> makes your process PID 1 so it receives signals directly. (Same trap applies to ENTRYPOINT — and <code>npm start</code> itself also swallows signals.)</li>
 <li><strong>PID 1 is special</strong>: the kernel installs no default signal handlers for PID 1. If your process doesn't explicitly handle SIGTERM, the signal is simply ignored.</li>
@@ -879,7 +915,8 @@ process.on('SIGTERM', async () => {
       {
         q: 'Why does my JVM or Node app get OOMKilled (exit 137) even though I set memory flags?',
         difficulty: 'tricky',
-        a: `<p>Exit 137 = SIGKILL from the kernel OOM killer: the container exceeded its <strong>cgroup memory limit</strong>. The trap is that <strong>the heap is only part of process memory</strong>:</p>
+        a: `<div class="interview-answer"><p>Exit 137 is the kernel OOM killer — the container blew past its cgroup memory limit — and the trap is that heap is only part of process memory. For the JVM the total is heap plus Metaspace plus thread stacks plus code cache plus direct buffers, so setting <code>-Xmx</code> equal to the limit guarantees a kill under load as threads and buffers grow. The rule is heap at about 75% of the limit via <code>MaxRAMPercentage</code>, leaving headroom. Two gotchas: an older JDK on a cgroup v2 host doesn't see the container limit and sizes a giant heap off the host's memory; and Node's V8 isn't cgroup-aware at all, so you must cap it with <code>--max-old-space-size</code>. And in Kubernetes it's the limit, not the request, that sets the ceiling that triggers the kill.</p></div>
+<p>Exit 137 = SIGKILL from the kernel OOM killer: the container exceeded its <strong>cgroup memory limit</strong>. The trap is that <strong>the heap is only part of process memory</strong>:</p>
 <ul>
 <li><strong>JVM total ≈</strong> heap (<code>-Xmx</code>) + Metaspace + thread stacks (~1MB × thread count) + code cache + direct/NIO buffers + native libs. Setting <code>-Xmx</code> equal to the container limit therefore <em>guarantees</em> an eventual OOM kill — the kernel counts total RSS, not heap.</li>
 <li><strong>Rule of thumb</strong>: heap ≤ ~75% of the limit. Use <code>-XX:MaxRAMPercentage=75.0</code> — it reads the cgroup limit at startup, so resizing the pod's memory needs no image change.</li>
@@ -907,7 +944,8 @@ docker inspect &lt;id&gt; --format '{{.State.OOMKilled}}'   # true</pre>
       {
         q: 'Alpine vs distroless vs slim — how do you choose a production base image?',
         difficulty: 'hard',
-        a: `<p>The choice is a trade-off between size, attack surface, <strong>libc compatibility</strong>, and debuggability:</p>
+        a: `<div class="interview-answer"><p>My default is slim or distroless, and I only reach for Alpine after verifying compatibility. The reason is libc: Alpine uses musl, not glibc, so glibc-compiled native modules can crash or force slow source rebuilds, plus it has subtle DNS-resolver differences and a slower allocator that hurts the JVM. Slim is the safe glibc default with most cruft removed; distroless goes further with no shell or package manager for a minimal attack surface, at the cost of being harder to debug — you use ephemeral debug containers instead of exec. And whatever you pick, never ship a floating tag like <code>latest</code> — pin the version and ideally the digest, because a tag can be re-pushed but a digest can't, so that's what makes builds reproducible and tamper-proof.</p></div>
+<p>The choice is a trade-off between size, attack surface, <strong>libc compatibility</strong>, and debuggability:</p>
 <table><tr><th>Base</th><th>Size</th><th>libc</th><th>Trade-off</th></tr>
 <tr><td>node:20 / debian</td><td>~1GB</td><td>glibc</td><td>Everything works; huge attack surface, slow pulls</td></tr>
 <tr><td>*-slim</td><td>~200MB</td><td>glibc</td><td>Good default: full compatibility, most packages removed</td></tr>

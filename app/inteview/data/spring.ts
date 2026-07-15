@@ -11,7 +11,8 @@ export const topics: PvTopic[] = [
       {
         q: 'What is Spring Boot and how is it different from Spring Framework?',
         difficulty: 'easy',
-        a: `<p><strong>Spring Boot is not a replacement for the Spring Framework — it sits on top of it.</strong> The Framework provides the core (IoC container, AOP, MVC, Data, Security); Boot adds "convention over configuration" tooling so you spend almost no time on setup.</p>
+        a: `<div class="interview-answer"><p>Spring Boot isn't a different framework — it <em>is</em> Spring, with opinions bolted on so I stop writing plumbing. The Framework gives me the IoC container, MVC, Data and Security; Boot adds auto-configuration, curated starters, an embedded server so I ship a runnable JAR, and Actuator for production. The one-liner I'd give: "Boot is Spring plus convention-over-configuration." And the important nuance is that none of it locks me in — every auto-configured bean is a default I can override just by defining my own, because they're guarded by <code>@ConditionalOnMissingBean</code>.</p></div>
+<p><strong>Spring Boot is not a replacement for the Spring Framework — it sits on top of it.</strong> The Framework provides the core (IoC container, AOP, MVC, Data, Security); Boot adds "convention over configuration" tooling so you spend almost no time on setup.</p>
 <ul>
 <li><strong>Spring Framework</strong> — the foundational libraries. Powerful, but requires <strong>manual wiring</strong>: XML or Java <code>@Configuration</code>, an external servlet container, explicit <code>DispatcherServlet</code> setup, and hand-picked, version-matched dependencies.</li>
 <li><strong>Spring Boot</strong> — an opinionated layer over the Framework that adds four things:
@@ -36,7 +37,8 @@ public class App {
       {
         q: 'Explain @SpringBootApplication annotation. What does it combine?',
         difficulty: 'medium',
-        a: `<p><code>@SpringBootApplication</code> is a convenience annotation combining three:</p>
+        a: `<div class="interview-answer"><p>It's a meta-annotation that bundles the three you'd otherwise write by hand: <code>@Configuration</code> so the class is a bean source, <code>@EnableAutoConfiguration</code> to switch on classpath-driven auto-config, and <code>@ComponentScan</code> to pick up your stereotypes. The practical gotcha I always mention: component scanning starts from the annotated class's package downward, so if you park your main class in a weird package your beans silently won't be found. You can also narrow the auto-config with <code>exclude</code> when a starter configures something you don't want.</p></div>
+<p><code>@SpringBootApplication</code> is a convenience annotation combining three:</p>
 <ul>
 <li><code>@Configuration</code> – marks class as a configuration source (replaces XML).</li>
 <li><code>@EnableAutoConfiguration</code> – enables Spring Boot's auto-configuration based on classpath.</li>
@@ -51,7 +53,8 @@ public class App { }</pre>`,
       {
         q: 'What are Spring Boot Starters? Name the most commonly used ones.',
         difficulty: 'easy',
-        a: `<p>A <strong>starter</strong> is a dependency descriptor that bundles a curated, version-compatible set of libraries for one purpose. Instead of hand-picking a dozen JARs and matching their versions, you add one starter and get everything, correctly aligned.</p>
+        a: `<div class="interview-answer"><p>A starter is basically an empty POM that transitively pulls in a curated, version-aligned set of libraries for one job — so I add <code>spring-boot-starter-web</code> instead of hand-picking Spring MVC, Tomcat, Jackson and matching their versions. The versions come from the parent BOM, which is why starters carry no version number and why bumping Boot moves the whole set together coherently. The ones I reach for daily are <code>-web</code>, <code>-data-jpa</code>, <code>-security</code>, <code>-validation</code>, <code>-actuator</code> and <code>-test</code>. A nice senior detail is you can build your own company starter to package shared defaults the same way.</p></div>
+<p>A <strong>starter</strong> is a dependency descriptor that bundles a curated, version-compatible set of libraries for one purpose. Instead of hand-picking a dozen JARs and matching their versions, you add one starter and get everything, correctly aligned.</p>
 <pre>&lt;!-- One line pulls in Spring MVC + embedded Tomcat + Jackson + validation --&gt;
 &lt;dependency&gt;
     &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
@@ -73,7 +76,8 @@ public class App { }</pre>`,
       {
         q: 'How does Spring Boot auto-configuration work internally?',
         difficulty: 'hard',
-        a: `<ol>
+        a: `<div class="interview-answer"><p>Under the hood it's just conditional bean registration. <code>@EnableAutoConfiguration</code> drives an import selector that reads a list of auto-config classes from <code>META-INF</code> — <code>spring.factories</code> in Boot 2, the newer <code>AutoConfiguration.imports</code> file in Boot 3. Each of those classes is gated by <code>@Conditional</code> checks: <code>@ConditionalOnClass</code> for "is this library on the classpath," <code>@ConditionalOnMissingBean</code> for "did the user already define one," <code>@ConditionalOnProperty</code> for config flags. So it's classpath inspection plus back-off — see a JDBC driver, configure a DataSource, but step aside the moment I define my own. When it misbehaves I run with <code>--debug</code> and read the ConditionEvaluationReport to see exactly what matched and what backed off.</p></div>
+<ol>
 <li><code>@EnableAutoConfiguration</code> triggers <code>AutoConfigurationImportSelector</code>.</li>
 <li>It reads <code>META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports</code> (Boot 3) or <code>META-INF/spring.factories</code> (Boot 2).</li>
 <li>Each auto-config class is guarded by <code>@Conditional</code> annotations:</li>
@@ -95,7 +99,8 @@ public class DataSourceAutoConfiguration {
       {
         q: 'Explain Spring Boot Profiles. How to use them?',
         difficulty: 'medium',
-        a: `<p>Profiles let you keep <strong>environment-specific configuration and beans</strong> (dev, test, staging, prod) in one codebase and switch between them at launch — no rebuild.</p>
+        a: `<div class="interview-answer"><p>Profiles let me carry dev, staging and prod wiring in one build and pick the environment at launch — no rebuild. In practice that's layered config files where <code>application-{profile}.yml</code> overrides the shared <code>application.yml</code>, plus <code>@Profile</code>-scoped beans so, say, an embedded H2 in dev and a Hikari-backed Postgres in prod. I activate with <code>SPRING_PROFILES_ACTIVE</code>, which is the natural fit for containers. The judgment call I always flag: profiles are for <em>environment wiring</em>, not runtime feature flags — you can't flip one without a restart, and sprinkling <code>@Profile</code> through business logic makes behaviour impossible to follow. For runtime toggles use a real feature-flag mechanism.</p></div>
+<p>Profiles let you keep <strong>environment-specific configuration and beans</strong> (dev, test, staging, prod) in one codebase and switch between them at launch — no rebuild.</p>
 <p><strong>1. Profile-specific config files</strong> — <code>application-{profile}.yml</code> is layered <em>on top of</em> the base <code>application.yml</code>; the active profile's values override the shared defaults.</p>
 <pre># application.yml            (always loaded — shared defaults)
 spring:
@@ -131,7 +136,8 @@ spring:
       {
         q: 'What is Spring Boot Actuator? What endpoints does it expose?',
         difficulty: 'medium',
-        a: `<p>Actuator provides production-ready features for monitoring and managing your application.</p>
+        a: `<div class="interview-answer"><p>Actuator is the out-of-the-box operational surface — health, metrics, env, beans, loggers — that turns an app into something you can actually run in production. The two I lean on most are <code>/health</code> for readiness and liveness probes in Kubernetes and <code>/metrics</code> (or <code>/prometheus</code>) wired into Prometheus and Grafana. The senior point is exposure and security: by default only health is exposed over HTTP, and you should keep it that way — <code>/env</code> and <code>/beans</code> leak internals, so expose only what you need and put the endpoints behind auth or on a separate management port.</p></div>
+<p>Actuator provides production-ready features for monitoring and managing your application.</p>
 <ul>
 <li><code>/actuator/health</code> – application health status (UP/DOWN)</li>
 <li><code>/actuator/info</code> – application info (build version, git commit)</li>
@@ -154,7 +160,8 @@ management:
       {
         q: 'How does Spring Boot handle exception handling in REST APIs?',
         difficulty: 'medium',
-        a: `<p>Centralize error handling with <code>@RestControllerAdvice</code> so controllers stay free of try/catch. A class annotated with it applies its <code>@ExceptionHandler</code> methods <strong>globally, across every controller</strong>; each method maps one exception type to an HTTP response.</p>
+        a: `<div class="interview-answer"><p>I centralize it in one <code>@RestControllerAdvice</code> class so controllers never carry try/catch — each <code>@ExceptionHandler</code> maps an exception type to an HTTP response, globally. Spring resolves the most specific handler first, so <code>ResourceNotFoundException</code> wins over a catch-all <code>Exception</code>. On Boot 3 I return a <code>ProblemDetail</code> (RFC 7807) for a standardized body. Two things I'm strict about: never leak a stack trace to the client — log server-side, return a safe message — and remember advice only catches exceptions thrown <em>inside</em> Spring MVC, so anything from a Filter escapes it. That "why isn't my handler firing" question is usually a Filter-thrown exception or a more specific handler taking priority.</p></div>
+<p>Centralize error handling with <code>@RestControllerAdvice</code> so controllers stay free of try/catch. A class annotated with it applies its <code>@ExceptionHandler</code> methods <strong>globally, across every controller</strong>; each method maps one exception type to an HTTP response.</p>
 <pre>@RestControllerAdvice          // = @ControllerAdvice + @ResponseBody (returns JSON)
 public class GlobalExceptionHandler {
 
@@ -196,7 +203,8 @@ public class GlobalExceptionHandler {
       {
         q: 'What are @RequestMapping, @GetMapping, @PostMapping, @PathVariable, @RequestParam, @RequestBody?',
         difficulty: 'easy',
-        a: `<pre>@RestController
+        a: `<div class="interview-answer"><p>These are the request-mapping vocabulary: <code>@RequestMapping</code> at the class level sets the base path, and <code>@GetMapping</code>/<code>@PostMapping</code> and friends are just method-level shortcuts for it per HTTP verb. The three binding annotations are the part people confuse: <code>@PathVariable</code> pulls a value out of the URL path, <code>@RequestParam</code> reads the query string or form field, and <code>@RequestBody</code> deserializes the JSON body via Jackson. The senior habit is pairing <code>@RequestBody</code> with <code>@Valid</code> so malformed payloads fail at the edge with a clean 400 rather than blowing up deeper in the service.</p></div>
+<pre>@RestController
 @RequestMapping("/api/users")       // base path
 public class UserController {
 
@@ -223,7 +231,8 @@ public class UserController {
       {
         q: 'Explain Spring Security filter chain and authentication flow.',
         difficulty: 'hard',
-        a: `<ol>
+        a: `<div class="interview-answer"><p>Spring Security is fundamentally a chain of servlet filters sitting in front of your app. A request hits the filter chain, an authentication filter extracts credentials — form login, or a JWT filter I slot in before <code>UsernamePasswordAuthenticationFilter</code> — and hands them to the <code>AuthenticationManager</code>, which delegates to a provider that loads the user via <code>UserDetailsService</code> and verifies the password through a <code>PasswordEncoder</code> like BCrypt. On success the <code>Authentication</code> lands in the <code>SecurityContextHolder</code> for the rest of the request. For a REST API I run it <code>STATELESS</code>, disable CSRF because there's no session cookie, and authorize per path. The real-world anchor is that JWT filter placement and the stateless config.</p></div>
+<ol>
 <li>Request enters the <strong>Security Filter Chain</strong> (managed by <code>DelegatingFilterProxy</code>).</li>
 <li><code>UsernamePasswordAuthenticationFilter</code> (or JWT filter) extracts credentials.</li>
 <li><code>AuthenticationManager</code> delegates to <code>AuthenticationProvider</code>.</li>
@@ -252,7 +261,8 @@ public class SecurityConfig {
       {
         q: 'What is the difference between @Bean and @Component?',
         difficulty: 'medium',
-        a: `<p>Both register a bean in the container; the difference is <strong>where the annotation goes and who instantiates the object</strong>.</p>
+        a: `<div class="interview-answer"><p>Both put a bean in the container; the difference is who constructs the object. <code>@Component</code> is a class-level marker Spring finds by scanning and instantiates via its constructor — I use it for my own classes. <code>@Bean</code> is a method inside a <code>@Configuration</code> where <em>I</em> write the construction code, which is exactly what I need for a third-party type I can't annotate or when I want custom wiring — timeouts on a client, a chosen implementation, lifecycle hooks. My rule of thumb: own the class, use <code>@Component</code>; don't own it or need real setup logic, use <code>@Bean</code>.</p></div>
+<p>Both register a bean in the container; the difference is <strong>where the annotation goes and who instantiates the object</strong>.</p>
 <ul>
 <li><strong>@Component</strong> (and its stereotypes <code>@Service</code>/<code>@Repository</code>/<code>@Controller</code>) — a <strong>class-level</strong> marker. Spring discovers it by <strong>component scanning</strong> and instantiates it via its constructor. Use it for <strong>your own</strong> classes that you can annotate.</li>
 <li><strong>@Bean</strong> — a <strong>method-level</strong> annotation inside a <code>@Configuration</code> class. <strong>You</strong> write the method body that builds and returns the object; Spring calls the method and manages the result. Use it when you <strong>can't annotate the class</strong> (a third-party type) or need <strong>custom construction logic</strong>.</li>
@@ -283,7 +293,8 @@ public class AppConfig {
       {
         q: 'Explain Spring Boot configuration properties binding with @ConfigurationProperties.',
         difficulty: 'medium',
-        a: `<pre># application.yml
+        a: `<div class="interview-answer"><p><code>@ConfigurationProperties</code> binds a whole tree of properties onto a typed object, which I strongly prefer over scattering <code>@Value</code> everywhere. The wins are that it's type-safe, refactorable, supports relaxed binding so <code>app.mail-host</code> and <code>app.mailHost</code> both work, and — the one people forget — you can hang <code>@Validated</code> with JSR-380 constraints on it so a bad config fails loudly at startup instead of surfacing as a null deep in production. <code>@Value</code> is fine for a one-off value; a cohesive group of settings belongs in a properties class.</p></div>
+<pre># application.yml
 app:
   mail:
     host: smtp.example.com
@@ -308,7 +319,8 @@ public class MailService {
       {
         q: 'How to handle Bean lifecycle in Spring Boot?',
         difficulty: 'hard',
-        a: `<p>Bean lifecycle hooks:</p>
+        a: `<div class="interview-answer"><p>The order I keep in my head is constructor, then dependency injection, then <code>@PostConstruct</code> once everything's wired, and <code>@PreDestroy</code> on shutdown. I default to <code>@PostConstruct</code>/<code>@PreDestroy</code> because they're framework-agnostic annotations rather than coupling my bean to Spring's <code>InitializingBean</code>/<code>DisposableBean</code> interfaces. The trap worth naming: constructor runs <em>before</em> injection, so touching an injected field in the constructor gives you a null — which is one more reason I favour constructor injection, since then the dependency is simply an argument and the problem can't exist.</p></div>
+<p>Bean lifecycle hooks:</p>
 <ul>
 <li><strong>Constructor</strong> → <strong>@Autowired</strong> injection → <strong>@PostConstruct</strong> → bean ready</li>
 <li>On shutdown: <strong>@PreDestroy</strong> → bean destroyed</li>
@@ -339,7 +351,8 @@ public class MyBean implements InitializingBean, DisposableBean {
       {
         q: 'What is Spring AOP? Explain common use cases.',
         difficulty: 'hard',
-        a: `<p><strong>AOP (Aspect-Oriented Programming)</strong>: separates cross-cutting concerns from business logic.</p>
+        a: `<div class="interview-answer"><p>AOP lets me pull cross-cutting concerns — logging, security, transactions, caching, retries — out of the business code and into aspects that wrap method calls via advice like <code>@Around</code>. In fact most of the annotations people use daily are AOP under the covers: <code>@Transactional</code>, <code>@Cacheable</code>, <code>@Async</code>, <code>@PreAuthorize</code>. The critical caveat for a senior is the mechanism: Spring AOP is proxy-based — a JDK dynamic proxy for interfaces, CGLIB for classes — which means self-invocation, calling an advised method via <code>this</code>, bypasses the proxy and silently skips the advice. That single fact explains a whole family of "my annotation did nothing" bugs.</p></div>
+<p><strong>AOP (Aspect-Oriented Programming)</strong>: separates cross-cutting concerns from business logic.</p>
 <pre>@Aspect
 @Component
 public class LoggingAspect {
@@ -367,7 +380,8 @@ public class LoggingAspect {
       {
         q: 'Explain @Transactional in depth. What are common pitfalls?',
         difficulty: 'hard',
-        a: `<p><code>@Transactional</code> wraps a method in a database transaction: begin before, commit on normal return, roll back on failure. It's implemented by a <strong>proxy</strong> around the bean — the source of most gotchas.</p>
+        a: `<div class="interview-answer"><p><code>@Transactional</code> wraps a method so the transaction begins before it, commits on normal return, and rolls back on failure — and it's implemented by a proxy, which is the source of every gotcha. Two things trip people up. First, by default it only rolls back on unchecked exceptions; a checked exception <em>commits</em> unless you set <code>rollbackFor = Exception.class</code> — that's the classic silent data-integrity bug. Second, self-invocation and private/final methods bypass the proxy so the annotation is silently ignored. On propagation I remember it as REQUIRED joins the caller's transaction, REQUIRES_NEW runs an independent one, NESTED is a savepoint. And I keep transactions short — never hold one open across an HTTP call or you exhaust the connection pool.</p></div>
+<p><code>@Transactional</code> wraps a method in a database transaction: begin before, commit on normal return, roll back on failure. It's implemented by a <strong>proxy</strong> around the bean — the source of most gotchas.</p>
 <pre>@Service
 public class OrderService {
     @Transactional(
@@ -404,7 +418,8 @@ public class OrderService {
       {
         q: 'How to implement pagination and sorting in Spring Boot?',
         difficulty: 'medium',
-        a: `<pre>// Repository
+        a: `<div class="interview-answer"><p>Spring Data makes this almost free: a repository method that takes a <code>Pageable</code> returns a <code>Page</code>, and Spring runs both the slice query and the count query, giving me content plus total elements and pages. In the controller I bind <code>page</code>, <code>size</code> and <code>sort</code> params into a <code>PageRequest</code>. The senior caveat is performance at scale: offset pagination gets slower the deeper you go because the database still walks and discards all the skipped rows, and it's unstable if data shifts between pages. For large or infinite-scroll datasets I switch to keyset (seek) pagination — <code>WHERE id &gt; :lastId ORDER BY id</code> — which stays constant-time.</p></div>
+<pre>// Repository
 public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
     Page&lt;User&gt; findByStatus(String status, Pageable pageable);
 }
@@ -427,7 +442,8 @@ public Page&lt;User&gt; getUsers(
       {
         q: 'What is Spring WebFlux? How is it different from Spring MVC?',
         difficulty: 'hard',
-        a: `<ul>
+        a: `<div class="interview-answer"><p>MVC is the classic blocking, thread-per-request model on the Servlet API; WebFlux is asynchronous and non-blocking, built on an event loop with Netty, and you return <code>Mono</code> and <code>Flux</code> instead of plain objects. The reason to pick WebFlux is high-concurrency I/O-bound work — tens of thousands of connections, streaming, an API gateway fanning out to many services — where you don't want a thread parked per request. But it's all-or-nothing: one blocking JDBC call poisons the event loop, so the whole stack has to be reactive. My honest take today is that Java 21 virtual threads give you most of MVC's simplicity with WebFlux-like scalability for I/O, so I only reach for WebFlux when I genuinely need backpressure or streaming semantics.</p></div>
+<ul>
 <li><strong>Spring MVC</strong>: synchronous, blocking, thread-per-request. Uses Servlet API (Tomcat).</li>
 <li><strong>Spring WebFlux</strong>: asynchronous, non-blocking, reactive (event loop). Uses Netty. Returns <code>Mono&lt;T&gt;</code> and <code>Flux&lt;T&gt;</code>.</li>
 </ul>
@@ -447,7 +463,8 @@ public Mono&lt;User&gt; getUser(@PathVariable Long id) {
       {
         q: 'How does Spring Boot testing work? Explain @SpringBootTest, @WebMvcTest, @DataJpaTest.',
         difficulty: 'hard',
-        a: `<ul>
+        a: `<div class="interview-answer"><p>The trick is matching the test annotation to the layer so you're not booting the whole app for everything. <code>@SpringBootTest</code> loads the full context — a true integration test, so slow, use it sparingly. <code>@WebMvcTest</code> is a slice: just the web layer with MockMvc, and I mock the service beneath it, so it's fast and focused on controller behaviour, serialization and status codes. <code>@DataJpaTest</code> is a slice for repositories with an embedded or Testcontainers database and a rollback per test. My philosophy is a test pyramid — mostly plain unit tests and slice tests, a thin layer of full <code>@SpringBootTest</code> integration tests, ideally with Testcontainers so I'm testing against real Postgres rather than H2.</p></div>
+<ul>
 <li><code>@SpringBootTest</code>: loads full application context. Integration test. Slow.</li>
 <li><code>@WebMvcTest(Controller.class)</code>: loads only web layer. Mock services. Fast.</li>
 <li><code>@DataJpaTest</code>: loads JPA components + embedded DB. Tests repositories.</li>
@@ -484,7 +501,8 @@ class UserRepositoryTest {
       {
         q: 'How do @Cacheable, @CacheEvict, and @CachePut work in Spring Boot?',
         difficulty: 'medium',
-        a: `<p>Spring Boot provides declarative caching with annotations backed by various cache providers (Caffeine, Redis, EhCache).</p>
+        a: `<div class="interview-answer"><p>These are declarative caching via AOP once you switch on <code>@EnableCaching</code>. <code>@Cacheable</code> checks the cache first and only runs the method on a miss; <code>@CachePut</code> always runs and refreshes the entry — good for updates; <code>@CacheEvict</code> removes entries and is what you put on writes to avoid stale data. The interview point is that cache invalidation is the hard part, so I'm deliberate about evicting on every mutation and about setting a TTL as a safety net. Being proxy-based, they share the self-invocation trap. And in a multi-instance deployment an in-JVM cache like Caffeine goes stale across nodes — that's when I move to Redis so all instances share one cache.</p></div>
+<p>Spring Boot provides declarative caching with annotations backed by various cache providers (Caffeine, Redis, EhCache).</p>
 <pre>@EnableCaching  // Enable in main class or config
 
 @Service
@@ -531,7 +549,8 @@ spring:
       {
         q: 'How does @Scheduled work in Spring Boot? What are cron expressions?',
         difficulty: 'medium',
-        a: `<pre>@EnableScheduling  // Required in config class
+        a: `<div class="interview-answer"><p><code>@Scheduled</code> after <code>@EnableScheduling</code> gives me three modes: <code>fixedRate</code> fires on a clock interval, <code>fixedDelay</code> waits a gap after the previous run <em>finishes</em>, and <code>cron</code> for calendar schedules — Spring's cron has a leading seconds field, so six fields, which people miss. The gotcha I always raise is that the default scheduler is single-threaded, so a long or overlapping task blocks the others; <code>fixedRate</code> in particular can pile up if a run outlasts the interval. The bigger one for real systems: in a clustered deployment every instance fires the same job, so I use ShedLock or a proper distributed scheduler like Quartz to guarantee a single execution.</p></div>
+<pre>@EnableScheduling  // Required in config class
 
 @Component
 public class ScheduledTasks {
@@ -570,7 +589,8 @@ public class ScheduledTasks {
       {
         q: 'How does @Async work in Spring Boot?',
         difficulty: 'medium',
-        a: `<pre>@EnableAsync  // Required in config
+        a: `<div class="interview-answer"><p><code>@Async</code> makes a method run on a separate thread and return immediately — either void for fire-and-forget or a <code>CompletableFuture</code> when I need the result. It's proxy-based like <code>@Transactional</code>, so the same self-invocation trap applies: calling it from within the same class runs synchronously. Two things I insist on. First, never use the default executor — it's an unbounded <code>SimpleAsyncTaskExecutor</code> that spawns a thread per call and will happily OOM you; always configure a bounded <code>ThreadPoolTaskExecutor</code> with a sensible queue and rejection policy. Second, exceptions from void async methods vanish, so I register an <code>AsyncUncaughtExceptionHandler</code> to actually see failures.</p></div>
+<pre>@EnableAsync  // Required in config
 
 @Service
 public class NotificationService {
@@ -626,7 +646,8 @@ public void sendEmail(...) { ... }</pre>
       {
         q: 'What are the major changes in Spring Boot 3 / Spring 6?',
         difficulty: 'medium',
-        a: `<ul>
+        a: `<div class="interview-answer"><p>The headline is the platform jump: Java 17 baseline and Jakarta EE 10, which means the <code>javax.*</code> to <code>jakarta.*</code> package rename — that's the single biggest migration pain and I'd automate it with OpenRewrite rather than hand-editing imports. Beyond that: built-in GraalVM native image support for millisecond startup and low memory, a unified Micrometer Observation API for metrics and tracing, RFC 7807 ProblemDetail as the standard error format, and declarative HTTP interface clients as a native alternative to Feign. In real migrations the long pole isn't Boot itself — it's third-party libraries that haven't moved to jakarta yet.</p></div>
+<ul>
 <li><strong>Java 17 baseline</strong>: minimum Java 17 required (was Java 8/11)</li>
 <li><strong>Jakarta EE 10</strong>: package names changed from <code>javax.*</code> to <code>jakarta.*</code></li>
 <li><strong>Native compilation</strong>: GraalVM native image support built-in (fast startup, low memory)</li>
@@ -668,7 +689,8 @@ ProblemDetail handleNotFound(UserNotFoundException ex) {
       {
         q: 'What are Spring bean scopes? Is a singleton bean thread-safe?',
         difficulty: 'hard',
-        a: `<ul>
+        a: `<div class="interview-answer"><p>The scopes are singleton by default — one instance per context shared everywhere — prototype for a fresh instance on every request, and the web scopes request, session and application. The question that actually matters is the follow-up: "is a singleton thread-safe?" No. Spring guarantees one instance, not synchronization. Singletons are safe in practice only because well-written beans are <strong>stateless</strong> — final dependencies, no mutable fields. Put a mutable counter in a singleton service and you've got a race under load. If I need per-request state I use a method-local, an atomic/concurrent structure, or a request-scoped bean — not a field on the singleton.</p></div>
+<ul>
 <li><strong>singleton</strong> (default): ONE instance per ApplicationContext, shared by all threads.</li>
 <li><strong>prototype</strong>: new instance every time the bean is requested (Spring does NOT manage its destruction).</li>
 <li><strong>request / session / application</strong>: web scopes — one instance per HTTP request / session / ServletContext.</li>
@@ -694,7 +716,8 @@ provider.getObject().generate();</pre>
       {
         q: 'How does Spring resolve circular dependencies? Why does constructor injection break them?',
         difficulty: 'hard',
-        a: `<p><strong>Circular dependency</strong>: A needs B, B needs A.</p>
+        a: `<div class="interview-answer"><p>Spring can resolve a cycle for field or setter injection using its three-level cache — it creates the raw A, exposes an early reference, injects it into B, then finishes A. With constructor injection it can't, because neither bean can even be instantiated without a finished copy of the other, so you get a <code>BeanCurrentlyInCreationException</code> at startup — and since Boot 2.6 circular refs are rejected by default anyway. I treat that failure as a feature, not a nuisance: a cycle is a design smell. So rather than reach for <code>@Lazy</code> or <code>allow-circular-references</code>, I refactor — extract the shared logic into a third bean, or invert one direction with an application event.</p></div>
+<p><strong>Circular dependency</strong>: A needs B, B needs A.</p>
 <pre>@Service class OrderService  { @Autowired CustomerService customers; }
 @Service class CustomerService { @Autowired OrderService orders; }   // cycle!</pre>
 <ul>
@@ -715,7 +738,8 @@ spring.main.allow-circular-references=true
       {
         q: 'Constructor vs field vs setter injection — why is field injection discouraged?',
         difficulty: 'medium',
-        a: `<pre>// ❌ Field injection — convenient but problematic
+        a: `<div class="interview-answer"><p>Constructor injection is my default, and it's what the Spring team recommends too. It lets me make dependencies <code>final</code> so the bean is immutable and can never exist half-initialized, it makes the class trivially unit-testable with plain <code>new</code> and no container, and it fails fast at startup if something's missing. Field injection is discouraged for the mirror-image reasons: you can't make the field final, you need reflection or Spring just to test it, and — the subtle one — it hides design smells, because a constructor with eight parameters screams "split this class" while eight <code>@Autowired</code> fields only whisper it. Setter injection I reserve for genuinely optional dependencies, which is rare.</p></div>
+<pre>// ❌ Field injection — convenient but problematic
 @Service
 public class OrderService {
     @Autowired private PaymentClient payment;      // hidden dependency
@@ -743,7 +767,8 @@ public class OrderService {
       {
         q: 'Filter vs Interceptor vs AOP — where does each run and when do you use which?',
         difficulty: 'hard',
-        a: `<pre>Request
+        a: `<div class="interview-answer"><p>They're three concentric rings and I pick by how much context I need. A servlet Filter runs at the container level before Spring even sees the request, so it works on raw request/response bytes — that's where CORS, compression and Spring Security itself live. A HandlerInterceptor runs inside DispatcherServlet, so it knows which controller will handle the request — good for rate limiting, locale, per-controller auditing. AOP wraps the actual bean method call, so it sees method arguments and return values — that's your <code>@Transactional</code>, <code>@Cacheable</code>, timing of service methods. My decision rule: raw bytes or not-Spring-specific security to a Filter, needs the handler to an Interceptor, business/service concern to AOP.</p></div>
+<pre>Request
   → Servlet Filter (jakarta.servlet)        — before Spring, sees raw request
     → DispatcherServlet
       → HandlerInterceptor.preHandle()      — knows WHICH controller will run
@@ -775,7 +800,8 @@ public class TimingInterceptor implements HandlerInterceptor {
       {
         q: 'How does validation work in Spring Boot? @Valid vs @Validated, custom validators.',
         difficulty: 'medium',
-        a: `<pre>// 1. Constraints on the DTO (Jakarta Bean Validation)
+        a: `<div class="interview-answer"><p>I validate at the edge — annotate the DTO with Jakarta constraints like <code>@NotBlank</code>, <code>@Email</code>, <code>@Min</code> and let it fail before anything reaches the business layer. <code>@Valid</code> on a controller parameter triggers it and cascades into nested objects, producing a <code>MethodArgumentNotValidException</code> that I turn into a clean 400 with field-level detail in the advice. The <code>@Valid</code> versus <code>@Validated</code> distinction: <code>@Valid</code> is the standard Jakarta one for cascading; <code>@Validated</code> is Spring's, and it adds validation groups plus lets me validate method parameters on a service bean, not just controllers. For anything the built-in constraints can't express I write a custom annotation plus a <code>ConstraintValidator</code>, and I keep each validator checking one thing and treating null as <code>@NotNull</code>'s job so they compose.</p></div>
+<pre>// 1. Constraints on the DTO (Jakarta Bean Validation)
 public record CreateUserRequest(
     @NotBlank @Size(max = 50)       String name,
     @Email @NotNull                 String email,
@@ -816,7 +842,8 @@ public class PhoneValidator implements ConstraintValidator&lt;Phone, String&gt; 
       {
         q: 'What are Spring application events? When do you use @TransactionalEventListener?',
         difficulty: 'hard',
-        a: `<p>Events decouple side effects from the main flow: the publisher doesn't know (or wait for) the listeners.</p>
+        a: `<div class="interview-answer"><p>Application events let me decouple side effects from the main flow — the publisher fires an event and doesn't know or care who listens, which is also a clean way to break a would-be circular dependency between services. The key reason to reach for <code>@TransactionalEventListener</code> with <code>AFTER_COMMIT</code> is correctness: a plain <code>@EventListener</code> runs <em>inside</em> the transaction, so if you send a confirmation email there and the transaction later rolls back, the customer got a confirmation for an order that doesn't exist. AFTER_COMMIT fires only on a successful commit. The boundary I'm always honest about: these are in-JVM, at-most-once events lost on a crash — the moment I need real delivery guarantees I move to the outbox pattern plus a message broker.</p></div>
+<p>Events decouple side effects from the main flow: the publisher doesn't know (or wait for) the listeners.</p>
 <pre>// 1. Event (plain record) + publisher
 public record OrderPlacedEvent(Long orderId, String email) {}
 
@@ -854,7 +881,8 @@ public class WelcomeMailListener {
       {
         q: 'RestTemplate vs WebClient vs RestClient vs FeignClient — which HTTP client to use?',
         difficulty: 'medium',
-        a: `<table><tr><th></th><th>RestTemplate</th><th>WebClient</th><th>RestClient (Boot 3.2+)</th><th>OpenFeign</th></tr>
+        a: `<div class="interview-answer"><p>My default for new blocking code is <code>RestClient</code>, the fluent client Spring introduced in Boot 3.2 — it has WebClient's nice API without dragging in the reactive stack. <code>RestTemplate</code> is in maintenance mode, so I don't start new code on it. <code>WebClient</code> I use only when I'm genuinely reactive or need streaming and high fan-out. <code>FeignClient</code> is the declarative interface style and it earns its place when the platform already runs Spring Cloud, because it comes with service discovery and load balancing. One thing I do regardless of client: set explicit connect and read timeouts and wrap calls with retries and a circuit breaker via Resilience4j — an unbounded call to a flaky dependency is how one service takes down the whole fleet.</p></div>
+<table><tr><th></th><th>RestTemplate</th><th>WebClient</th><th>RestClient (Boot 3.2+)</th><th>OpenFeign</th></tr>
 <tr><td>Style</td><td>Blocking, template methods</td><td>Reactive (Mono/Flux)</td><td>Blocking, fluent API</td><td>Declarative interface</td></tr>
 <tr><td>Status</td><td>Maintenance mode</td><td>Active</td><td>Active — the modern default</td><td>Active (Spring Cloud)</td></tr>
 <tr><td>Needs WebFlux dep</td><td>No</td><td>Yes</td><td>No</td><td>No</td></tr></table>
@@ -882,7 +910,8 @@ interface UserApi {
       {
         q: 'Why does @Transactional silently do nothing on self-invocation (this.method()) or on private/final methods?',
         difficulty: 'tricky',
-        a: `<p>Because <code>@Transactional</code> is implemented by a <strong>proxy</strong>, not by the method itself. Spring wraps your bean in a proxy object; callers get the proxy injected, and the proxy opens/commits the transaction <em>around</em> the call before delegating to your real object (the "target").</p>
+        a: `<div class="interview-answer"><p>Because the transaction lives on the proxy, not on your object. Spring wraps the bean in a proxy — CGLIB subclass or JDK interface proxy — and it's that proxy that opens and commits the transaction before delegating to your real target. When you call <code>this.method()</code>, <code>this</code> is the raw target, not the proxy, so the interception never happens and the method just runs with no transaction — and crucially no error, which is why it survives code review. Same reason private methods (can't be overridden at all) and final methods (CGLIB can't subclass them) are silently ignored. My preferred fix is to move the method to a separate bean so the call crosses a proxy boundary. And the one sentence that answers this whole family — <code>@Async</code>, <code>@Cacheable</code>, <code>@Retryable</code> too — is "it only works when the call goes through the proxy."</p></div>
+<p>Because <code>@Transactional</code> is implemented by a <strong>proxy</strong>, not by the method itself. Spring wraps your bean in a proxy object; callers get the proxy injected, and the proxy opens/commits the transaction <em>around</em> the call before delegating to your real object (the "target").</p>
 <pre>@Service
 public class ReportService {
 
@@ -913,7 +942,8 @@ public class ReportService {
       {
         q: 'A prototype-scoped bean is injected into a singleton. How many instances are created, and how do you get true prototype behavior?',
         difficulty: 'tricky',
-        a: `<p><strong>One.</strong> Injection happens exactly once — when the singleton is created at startup. The container asks for a prototype at that moment, gets a fresh instance, stores the reference in the singleton's field... and never asks again. The "new instance per use" semantics are silently lost.</p>
+        a: `<div class="interview-answer"><p>Exactly one. Scope is resolved at <em>injection</em> time, not call time — the singleton is built once at startup, asks the container for the prototype once, stores that reference, and never asks again. So the "new instance per use" semantics are silently lost and any state on that prototype leaks across requests. The fix is to inject a <em>way to get</em> a fresh instance rather than the instance itself: my go-to is <code>ObjectProvider</code> and calling <code>getObject()</code> per use; alternatives are a <code>@Lookup</code> method or a scoped proxy — which is incidentally the same mechanism that lets request- and session-scoped beans work inside singletons. Bonus trap interviewers love: Spring doesn't manage a prototype's destruction, so <code>@PreDestroy</code> never fires on one.</p></div>
+<p><strong>One.</strong> Injection happens exactly once — when the singleton is created at startup. The container asks for a prototype at that moment, gets a fresh instance, stores the reference in the singleton's field... and never asks again. The "new instance per use" semantics are silently lost.</p>
 <pre>@Component @Scope("prototype")
 public class PdfBuilder { private final StringBuilder buf = new StringBuilder(); }
 
@@ -947,7 +977,8 @@ public class PdfBuilder { ... }</pre>
       {
         q: 'Output prediction: a bean has Aware interfaces, a BeanPostProcessor, @PostConstruct, InitializingBean, init-method, and @PreDestroy. What is the exact order printed?',
         difficulty: 'tricky',
-        a: `<pre>@Component
+        a: `<div class="interview-answer"><p>The order is constructor, dependency injection, then the Aware callbacks, then <code>BeanPostProcessor.postProcessBeforeInitialization</code>, then <code>@PostConstruct</code>, then <code>afterPropertiesSet()</code>, then the custom init-method, then <code>postProcessAfterInitialization</code>; on shutdown it's <code>@PreDestroy</code>, <code>destroy()</code>, custom destroy-method. The single insight that makes this worth memorizing is <em>where proxies appear</em>: AOP proxies for <code>@Transactional</code> and <code>@Async</code> are created in <code>postProcessAfterInitialization</code>, the very last init step — so anything running earlier, including <code>@PostConstruct</code>, sees the raw un-proxied bean, which is exactly why calling a <code>@Transactional</code> method from <code>@PostConstruct</code> runs with no transaction. And the constructor running before injection is why an <code>@Autowired</code> field is null inside it.</p></div>
+<pre>@Component
 public class LifecycleBean implements BeanNameAware, InitializingBean, DisposableBean {
     public LifecycleBean()                { System.out.println("1. constructor"); }
     @Autowired void inject(Dep d)         { System.out.println("2. dependency injection"); }
@@ -978,7 +1009,8 @@ public class MyBpp implements BeanPostProcessor {
       {
         q: 'Calling one @Bean method from another inside a @Configuration class — how many instances are created? What does proxyBeanMethods = false change?',
         difficulty: 'tricky',
-        a: `<pre>@Configuration                       // "full" mode (default)
+        a: `<div class="interview-answer"><p>In default "full" <code>@Configuration</code> mode, one instance — even though the code looks like a plain <code>new</code> called twice. Spring subclasses the config class with CGLIB and overrides every <code>@Bean</code> method to first check the container, so a call to <code>objectMapper()</code> returns the existing singleton instead of re-running the body. That's also why <code>@Bean</code> methods can't be private or final. Set <code>proxyBeanMethods = false</code> — "lite" mode — and there's no CGLIB subclass, so those inter-bean calls become real Java calls that create duplicate, unmanaged objects. That's the dangerous part: a second connection pool or scheduler created silently. Lite mode exists for faster startup and GraalVM native images, and Boot's own auto-configs all use it — the discipline is to always pass dependencies as <code>@Bean</code> method parameters so the mode never matters.</p></div>
+<pre>@Configuration                       // "full" mode (default)
 public class AppConfig {
     @Bean
     public ObjectMapper objectMapper() { return new ObjectMapper(); }
@@ -1014,7 +1046,8 @@ public class AppConfig {
       {
         q: '"My @Autowired field is null" — what are the causes and how do you debug it?',
         difficulty: 'tricky',
-        a: `<p>Spring only injects into objects <strong>it created</strong>. A null @Autowired field almost always means the object holding the field never went through the container.</p>
+        a: `<div class="interview-answer"><p>The one-line diagnosis is: Spring only injects into objects <em>it</em> created, so a null <code>@Autowired</code> field almost always means the object holding it never went through the container. The number-one cause is <code>new</code>-ing a bean yourself instead of injecting it. Others: the field is <code>static</code> (injection targets instances, not classes); you touched the field in the constructor, which runs before injection; the class isn't actually a bean or sits outside the scanned package tree; or it was created by another framework — a JPA entity, a Jackson-deserialized DTO, a plain servlet Filter. My debugging question is always "who instantiated this — me or Spring?" And the reason I push constructor injection is that it turns every one of these silent nulls into a loud startup failure instead.</p></div>
+<p>Spring only injects into objects <strong>it created</strong>. A null @Autowired field almost always means the object holding the field never went through the container.</p>
 <pre>// Cause 1 — the #1 culprit: 'new' instead of injection
 UserService svc = new UserService();   // ❌ Spring never saw this object
 svc.process();                          // → NPE on svc's @Autowired fields

@@ -11,7 +11,8 @@ export const topics: PvTopic[] = [
       {
         q: 'What is Zustand and how does it compare to Redux and Context API?',
         difficulty: 'easy',
-        a: `<p><strong>Zustand</strong> is a small, fast, unopinionated state management library for React. It uses a hook-based API with no boilerplate.</p>
+        a: `<div class="interview-answer"><p>Zustand is a tiny hook-based store — about 1KB, no provider, no reducers, no boilerplate. Against Redux it drops the action/reducer ceremony while keeping selective subscriptions; against Context it fixes Context's real flaw, where every consumer re-renders on any value change no matter how narrow their interest. I reach for it as my default for client and UI state. The gotcha I'd flag is that it is not a server-state tool — don't cache API responses in it, that's TanStack Query's job. And strictly speaking Context isn't state management at all, it's dependency injection.</p></div>
+<p><strong>Zustand</strong> is a small, fast, unopinionated state management library for React. It uses a hook-based API with no boilerplate.</p>
 <table><tr><th>Aspect</th><th>Zustand</th><th>Redux Toolkit</th><th>Context API</th></tr>
 <tr><td>Boilerplate</td><td>Minimal</td><td>Medium (slices, store)</td><td>Low</td></tr>
 <tr><td>Bundle size</td><td>~1KB</td><td>~10KB</td><td>0 (built-in)</td></tr>
@@ -40,7 +41,8 @@ function Counter() {
       {
         q: 'How does Zustand handle selectors and prevent unnecessary re-renders?',
         difficulty: 'medium',
-        a: `<p>Zustand uses <strong>selectors</strong> to subscribe to specific parts of the store. Components only re-render when their selected state changes.</p>
+        a: `<div class="interview-answer"><p>Components subscribe through a selector and only re-render when that selected slice changes by reference equality. The classic gotcha is returning a fresh object or array from your selector on every call — that defeats the whole mechanism because the reference is always new, which is exactly what <code>useShallow</code> in v5 (or the old <code>shallow</code> comparator) is for. My habit is to select the narrowest slice possible, and to pull actions out in their own selector separate from the values so an action reference never forces a render.</p></div>
+<p>Zustand uses <strong>selectors</strong> to subscribe to specific parts of the store. Components only re-render when their selected state changes.</p>
 <pre>const useStore = create((set) => ({
   user: { name: 'John', age: 30 },
   theme: 'dark',
@@ -80,7 +82,8 @@ const { name, age } = useStore(
       {
         q: 'How to handle async actions in Zustand?',
         difficulty: 'medium',
-        a: `<p>Zustand handles async naturally — just use <code>async/await</code> inside actions. No thunks or middleware needed.</p>
+        a: `<div class="interview-answer"><p>There's nothing special to it — you just write an <code>async</code> function in the store and call <code>set</code> when the promise resolves; no thunks, no middleware. Use <code>get()</code> to read current state at call time rather than closing over a stale value. The real judgment call is that this is exactly where people wrongly stuff server state: if you're fetching API data that needs caching, dedup and retries, reach for TanStack Query instead and keep Zustand async for genuinely client-owned flows.</p></div>
+<p>Zustand handles async naturally — just use <code>async/await</code> inside actions. No thunks or middleware needed.</p>
 <pre>const useStore = create((set, get) => ({
   users: [],
   loading: false,
@@ -121,7 +124,8 @@ function UserList() {
       {
         q: 'What are Zustand middleware? Explain persist, devtools, and immer.',
         difficulty: 'hard',
-        a: `<p>Zustand middleware wraps the store to add features like persistence, DevTools, and immutable updates.</p>
+        a: `<div class="interview-answer"><p>Middleware are just store wrappers you compose by nesting: <code>persist</code> for localStorage, <code>devtools</code> for Redux DevTools time-travel, and <code>immer</code> so you can write mutable-looking updates on deeply nested state. Order matters — I keep <code>devtools</code> outermost so it observes everything the inner middleware do. The gotcha I always call out is <code>persist</code>: always use <code>partialize</code> so you don't accidentally persist auth tokens or transient UI flags into localStorage.</p></div>
+<p>Zustand middleware wraps the store to add features like persistence, DevTools, and immutable updates.</p>
 <pre>import { create } from 'zustand';
 import { persist, devtools } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
@@ -164,7 +168,8 @@ const logMiddleware = (config) => (set, get, api) =>
       {
         q: 'How to structure a large Zustand store? Slices pattern.',
         difficulty: 'hard',
-        a: `<p>For large apps, split the store into <strong>slices</strong> — separate files that each manage a domain, then combine them.</p>
+        a: `<div class="interview-answer"><p>You split the store into slice-creator functions, each owning one domain, then spread them into a single <code>create</code> call, with cross-slice reads going through <code>get()</code>. My rule of thumb is to reach for slices once you pass roughly ten fields — but if the domains are truly independent, I'd prefer separate stores over one mega-store rather than coupling them. The TypeScript gotcha is typing the combined store as the intersection of each slice's return type so you keep full inference.</p></div>
+<p>For large apps, split the store into <strong>slices</strong> — separate files that each manage a domain, then combine them.</p>
 <pre>// slices/authSlice.ts
 export const createAuthSlice = (set, get) => ({
   user: null,
@@ -206,7 +211,8 @@ const useCartStore = create(createCartSlice);</pre>
       {
         q: 'How does Zustand work outside of React components?',
         difficulty: 'medium',
-        a: `<p>Zustand stores can be used outside React — in utility functions, API interceptors, or tests.</p>
+        a: `<div class="interview-answer"><p>The store is just a vanilla object — <code>getState</code>, <code>setState</code> and <code>subscribe</code> all work with zero React involved, which is why it shines in axios interceptors, plain event handlers and tests. The thing to remember outside React is to always read with <code>getState()</code> at call time rather than a value captured earlier, and that <code>subscribe</code> returns an unsubscribe function you must actually call or you leak listeners. That decoupling from React is one of Zustand's underrated strengths versus Context.</p></div>
+<p>Zustand stores can be used outside React — in utility functions, API interceptors, or tests.</p>
 <pre>const useStore = create((set) => ({
   token: null,
   setToken: (token) => set({ token }),
@@ -240,7 +246,8 @@ useStore.destroy();</pre>
       {
         q: 'What are common Zustand anti-patterns and pitfalls?',
         difficulty: 'tricky',
-        a: `<pre>// ❌ Anti-pattern 1: No selector — subscribes to entire store
+        a: `<div class="interview-answer"><p>The big ones I watch for: no selector so you subscribe to the whole store and re-render on everything; returning fresh objects from a selector without <code>shallow</code>; mutating state in place without <code>immer</code> so no re-render fires; and parking derived state in the store where it silently drifts out of sync. The cardinal sin, though, is putting server state in Zustand — caching, dedup and retries belong in TanStack Query. My guidance is to keep the store minimal and compute derived values in selectors instead of storing them.</p></div>
+<pre>// ❌ Anti-pattern 1: No selector — subscribes to entire store
 const store = useStore(); // re-renders on ANY state change
 // ✅ Fix: always use a selector
 const count = useStore((s) => s.count);
@@ -273,7 +280,8 @@ const total = useStore((s) => s.items.reduce((sum, i) => sum + i.price, 0));
       {
         q: 'Zustand vs Redux Toolkit vs Jotai vs Recoil — when to use which?',
         difficulty: 'hard',
-        a: `<table><tr><th>Library</th><th>Model</th><th>Best For</th><th>Size</th></tr>
+        a: `<div class="interview-answer"><p>Zustand is my pragmatic default — single store, flux-like, tiny. I'd pick Redux Toolkit when I genuinely need strict patterns, action logging, time-travel debugging, or the team's already fluent in Redux. Jotai is the pick for fine-grained atomic reactivity when you have many small independent pieces of state. Recoil I'd actively avoid now — it's effectively abandoned. The real judgment is that most apps are best served by Zustand for client state plus TanStack Query for server state, and honestly you may not need a global client store at all.</p></div>
+<table><tr><th>Library</th><th>Model</th><th>Best For</th><th>Size</th></tr>
 <tr><td><strong>Zustand</strong></td><td>Single store, flux-like</td><td>Simple-medium apps, replaces Redux</td><td>~1KB</td></tr>
 <tr><td><strong>Redux Toolkit</strong></td><td>Single store, actions/reducers</td><td>Large apps, complex state logic, devtools</td><td>~10KB</td></tr>
 <tr><td><strong>Jotai</strong></td><td>Atomic (bottom-up)</td><td>Fine-grained reactivity, many independent pieces</td><td>~3KB</td></tr>
@@ -292,7 +300,8 @@ const total = useStore((s) => s.items.reduce((sum, i) => sum + i.price, 0));
       {
         q: 'What are the pitfalls of using Zustand with Next.js / SSR, and how do you fix them?',
         difficulty: 'tricky',
-        a: `<p>Two classic senior-level traps: <strong>module-level stores leak state between requests on the server</strong>, and <strong>persist middleware causes hydration mismatches</strong>.</p>
+        a: `<div class="interview-answer"><p>Two traps. First, a module-level store on the server is a per-process singleton shared across every request, so one user's state leaks into another user's render — a data-leakage bug, not just stale UI. Second, <code>persist</code> reads localStorage during the first render, so the server HTML and client render disagree and you get a hydration mismatch. The fix for both: create one store per request behind a Context provider, holding the store in a <code>useRef</code>, and defer <code>persist</code> rehydration to after mount with <code>skipHydration</code>. The subtlety interviewers probe is why Context is fine here — it carries the store reference, which never changes, not the state, so selective subscriptions still work.</p></div>
+<p>Two classic senior-level traps: <strong>module-level stores leak state between requests on the server</strong>, and <strong>persist middleware causes hydration mismatches</strong>.</p>
 <p><strong>Pitfall 1 — the server singleton.</strong> On the client, a module-level store is one instance per browser tab — fine. On the server, the module is evaluated once per Node process, so <strong>every incoming request (every user!) shares the same store instance</strong> during SSR.</p>
 <pre>// ❌ BAD in Next.js: module-level store used during SSR
 export const useUserStore = create((set) => ({
@@ -355,7 +364,8 @@ function CartBadge() {
       {
         q: 'What are transient updates in Zustand? How do you consume high-frequency state without re-rendering?',
         difficulty: 'tricky',
-        a: `<p><strong>Transient updates</strong> mean reacting to state changes <em>without</em> triggering a React re-render. This matters for high-frequency data — mouse position, canvas animation, websocket price ticks — where re-rendering 20–60 times per second kills performance.</p>
+        a: `<div class="interview-answer"><p>Transient updates mean reacting to state changes without triggering a React re-render — you use <code>store.subscribe</code> to push high-frequency values like mouse position, price ticks or animation frames straight into a ref or the DOM node, and <code>subscribeWithSelector</code> lets you watch just one slice. The related gotcha is the stale closure: inside callbacks read via <code>getState()</code> at call time, never a hook-selected value frozen at the render that created the handler. I keep the DOM-poking scoped to leaf nodes — anything that affects layout or logic still goes through normal renders.</p></div>
+<p><strong>Transient updates</strong> mean reacting to state changes <em>without</em> triggering a React re-render. This matters for high-frequency data — mouse position, canvas animation, websocket price ticks — where re-rendering 20–60 times per second kills performance.</p>
 <pre>// Problem: a websocket pushes prices 20x/second.
 // useStore((s) => s.price) re-renders this component on EVERY tick.
 
@@ -408,7 +418,8 @@ const onSave = useCallback(() => {
       {
         q: 'What is TanStack Query (React Query)? Why use it instead of useEffect + fetch?',
         difficulty: 'easy',
-        a: `<p><strong>TanStack Query</strong> is a server state management library for fetching, caching, synchronizing, and updating server data in React.</p>
+        a: `<div class="interview-answer"><p>I describe it as a server-state cache, not a data-fetching library — you hand it a key and a fetcher and it gives you caching, deduplication, background refetch, retries and stale-while-revalidate for free. The <code>useEffect</code>+<code>fetch</code> version reinvents all of that by hand and badly, and almost always ships with race-condition and cleanup bugs. The mental anchor is that server state is fundamentally different from client state. The gotcha to avoid is mirroring the query cache into Zustand or Redux — the cache IS your source of truth for server data, so don't copy it out.</p></div>
+<p><strong>TanStack Query</strong> is a server state management library for fetching, caching, synchronizing, and updating server data in React.</p>
 <pre>// ❌ Without TanStack Query (manual approach)
 function Users() {
   const [users, setUsers] = useState([]);
@@ -450,7 +461,8 @@ function Users() {
       {
         q: 'Explain queryKey, queryFn, and how caching works in TanStack Query.',
         difficulty: 'medium',
-        a: `<p>Every query is identified by its <strong>queryKey</strong>. The cache stores data by key.</p>
+        a: `<div class="interview-answer"><p>The queryKey is the cache identity: same key means same cache entry, and any input the <code>queryFn</code> reads must be in the key or you'll serve stale data for the wrong parameters. The two knobs everyone confuses are <code>staleTime</code> — how long data is considered fresh before a background refetch — and <code>gcTime</code>, how long unused data lingers in memory after the last observer unmounts. The gotcha is that the default <code>staleTime</code> is zero, so out of the box it refetches very aggressively; for stable data I bump it up.</p></div>
+<p>Every query is identified by its <strong>queryKey</strong>. The cache stores data by key.</p>
 <pre>// Simple key
 useQuery({ queryKey: ['users'], queryFn: fetchUsers });
 
@@ -486,7 +498,8 @@ useQuery({
       {
         q: 'What is useMutation in TanStack Query? How to handle create/update/delete?',
         difficulty: 'medium',
-        a: `<p><code>useMutation</code> handles data modification (POST, PUT, DELETE) with callbacks for success, error, and cache invalidation.</p>
+        a: `<div class="interview-answer"><p><code>useMutation</code> is for writes — it gives you <code>isPending</code>/<code>isError</code> state plus <code>onSuccess</code>, <code>onError</code> and <code>onSettled</code> lifecycle hooks. The standard flow is: call <code>mutate</code>, then <code>invalidateQueries</code> in <code>onSuccess</code> to resync the affected lists with the server. The key gotcha is that mutations don't touch the cache automatically — you either invalidate the relevant queries or write the response in yourself with <code>setQueryData</code>. When I want the UI to feel instant I layer optimistic updates on top.</p></div>
+<p><code>useMutation</code> handles data modification (POST, PUT, DELETE) with callbacks for success, error, and cache invalidation.</p>
 <pre>import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 function CreateUser() {
@@ -527,7 +540,8 @@ function CreateUser() {
       {
         q: 'What are optimistic updates in TanStack Query?',
         difficulty: 'hard',
-        a: `<p><strong>Optimistic updates</strong> update the UI immediately (before the server responds), then roll back if the mutation fails.</p>
+        a: `<div class="interview-answer"><p>You update the cache before the server responds so the UI feels instant, then roll back if it fails. The pattern lives in the mutation callbacks: in <code>onMutate</code> you <code>cancelQueries</code>, snapshot the previous value, <code>setQueryData</code> optimistically, and return the snapshot as context; <code>onError</code> restores that snapshot; <code>onSettled</code> invalidates to reconcile with the server's real answer. The gotcha people miss is that the <code>cancelQueries</code> step is not optional — an in-flight background refetch landing late would clobber your optimistic write.</p></div>
+<p><strong>Optimistic updates</strong> update the UI immediately (before the server responds), then roll back if the mutation fails.</p>
 <pre>const mutation = useMutation({
   mutationFn: updateTodo,
 
@@ -564,7 +578,8 @@ function CreateUser() {
       {
         q: 'How to implement pagination and infinite scroll with TanStack Query?',
         difficulty: 'hard',
-        a: `<pre>// 1. Standard pagination
+        a: `<div class="interview-answer"><p>For classic paged lists I use <code>placeholderData: keepPreviousData</code> so the page doesn't blank out while the next page loads — you get the old data dimmed instead of a spinner. For feeds I reach for <code>useInfiniteQuery</code>, which manages the cursor and accumulates pages via <code>getNextPageParam</code>. The gotcha is putting the page or cursor in the queryKey so each page caches independently, and disabling the Next button while <code>isPlaceholderData</code> is true so users can't skip ahead before the data actually arrives.</p></div>
+<pre>// 1. Standard pagination
 function UserList() {
   const [page, setPage] = useState(1);
 
@@ -621,7 +636,8 @@ function InfiniteUsers() {
       {
         q: 'What is TanStack Query DevTools and how to debug queries?',
         difficulty: 'medium',
-        a: `<pre>// Install: npm install @tanstack/react-query-devtools
+        a: `<div class="interview-answer"><p>The DevTools panel is the fastest way to see what the cache is actually doing — every query's state as fresh, stale, fetching or inactive, the cached data for each key, and buttons to manually invalidate or refetch. Most of the "bugs" it surfaces turn out to be config: a <code>staleTime</code> of zero causing constant refetches, an unstable <code>queryFn</code> or key triggering loops, or a <code>gcTime</code> that's too short dropping data early. It only ships in development builds, so there's no production bundle cost.</p></div>
+<pre>// Install: npm install @tanstack/react-query-devtools
 
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
@@ -652,7 +668,8 @@ function App() {
       {
         q: 'How to configure a global QueryClient and default options?',
         difficulty: 'medium',
-        a: `<pre>import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+        a: `<div class="interview-answer"><p>You create one <code>QueryClient</code> at the app root and set sensible <code>defaultOptions</code> — I'd go with something like a five-minute <code>staleTime</code>, a couple of retries, and refetch on focus and reconnect — then override per-query where a specific case needs it. Cross-cutting concerns like a 401-redirect-to-login handler go on the query cache's <code>onError</code>. The gotcha is never recreating the client on every render — hold it in module scope or a <code>useRef</code>/<code>useState</code>, otherwise you wipe the whole cache each render. And in SSR or Next it must be one client per request.</p></div>
+<pre>import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -699,7 +716,8 @@ function App() {
       {
         q: 'How does TanStack Query handle dependent queries and parallel queries?',
         difficulty: 'hard',
-        a: `<pre>// 1. Parallel queries (independent — fetch simultaneously)
+        a: `<div class="interview-answer"><p>Independent queries just run in parallel — you declare multiple <code>useQuery</code> hooks and they all fire at once. Dependent queries chain through <code>enabled</code>: the second query stays off until the first one's data exists. When the number of parallel queries is dynamic, that's what <code>useQueries</code> is for. The gotchas: <code>enabled: false</code> leaves a query in a pending/idle state, so guard your loading UI accordingly, and remember that chaining dependent queries serializes your latency into a waterfall — if that matters, push for a single endpoint that returns both.</p></div>
+<pre>// 1. Parallel queries (independent — fetch simultaneously)
 function Dashboard() {
   const usersQuery = useQuery({ queryKey: ['users'], queryFn: fetchUsers });
   const ordersQuery = useQuery({ queryKey: ['orders'], queryFn: fetchOrders });
@@ -740,7 +758,8 @@ function UsersList({ userIds }) {
       {
         q: 'What is TanStack Form? How does it compare to React Hook Form?',
         difficulty: 'medium',
-        a: `<p><strong>TanStack Form</strong> is a headless, type-safe form library with built-in validation, supporting React, Vue, Angular, and Solid.</p>
+        a: `<div class="interview-answer"><p>TanStack Form is headless and multi-framework, and its real selling point is end-to-end type safety — field names and values are fully typed all the way through. React Hook Form is React-only but far more mature, with a bigger ecosystem, and it usually pairs with Zod through a resolver for validation. My honest take: for most React apps today I still reach for RHF plus Zod on maturity grounds, and I'd pick TanStack Form when I specifically value the stronger typing or need cross-framework consistency. Both are performant and lean uncontrolled, so it's not a performance decision.</p></div>
+<p><strong>TanStack Form</strong> is a headless, type-safe form library with built-in validation, supporting React, Vue, Angular, and Solid.</p>
 <pre>import { useForm } from '@tanstack/react-form';
 
 function SignupForm() {
@@ -796,7 +815,8 @@ function SignupForm() {
       {
         q: 'What is the difference between server state and client state? How does TanStack Query fit?',
         difficulty: 'tricky',
-        a: `<p>Understanding this distinction is key to choosing the right tool.</p>
+        a: `<div class="interview-answer"><p>Server state lives on a remote source — it's shared with other users, asynchronous, and can go stale under you because someone else changed it. Client state is local, synchronous, and you fully own it. That one distinction dictates the tool: TanStack Query for server state, Zustand or <code>useState</code> for client state. The classic architecture mistake is fetching into a Zustand store, which reinvents caching, dedup and retry badly. Keep server data in the query cache and don't mirror it into a client store — a copy is just a second source of truth waiting to drift.</p></div>
+<p>Understanding this distinction is key to choosing the right tool.</p>
 <table><tr><th>Aspect</th><th>Server State</th><th>Client State</th></tr>
 <tr><td>Source of truth</td><td>Remote server / DB</td><td>Browser / memory</td></tr>
 <tr><td>Shared</td><td>Yes (other users see it)</td><td>No (local to this user)</td></tr>
@@ -828,7 +848,8 @@ const useUIStore = create((set) => ({
       {
         q: 'Why are query keys like dependency arrays? Explain the stale-data bug and the query key factory pattern.',
         difficulty: 'tricky',
-        a: `<p>The mental model interviewers probe: <strong>a queryKey is to a queryFn what a dependency array is to useEffect</strong>. Every value the queryFn reads must appear in the key — the key IS the cache identity and the refetch trigger.</p>
+        a: `<div class="interview-answer"><p>The mental model is that a queryKey is to a <code>queryFn</code> what a dependency array is to <code>useEffect</code> — every input the fetcher reads must be in the key, or you'll serve a cached response for the wrong inputs with no error at all. At scale hand-written keys drift apart, so I centralize them in a query key factory as the single source of truth, then lean on prefix-based fuzzy invalidation, where invalidating <code>['todos']</code> busts every todo query underneath it. Two gotchas: keys hash deterministically so object property order doesn't matter, but array order does; and changing the state that feeds the key is the idiomatic way to refetch, not calling <code>refetch()</code>.</p></div>
+<p>The mental model interviewers probe: <strong>a queryKey is to a queryFn what a dependency array is to useEffect</strong>. Every value the queryFn reads must appear in the key — the key IS the cache identity and the refetch trigger.</p>
 <pre>// ❌ THE BUG: filter used by queryFn but missing from the key
 function Todos({ status }) {
   return useQuery({
@@ -872,7 +893,8 @@ queryClient.invalidateQueries({ queryKey: todoKeys.detail(5), exact: true });</p
       {
         q: 'invalidateQueries vs refetch vs setQueryData — when do you use each?',
         difficulty: 'hard',
-        a: `<p>Three ways to "update" a query, with very different semantics — mixing them up causes either wasted network calls or stale UIs.</p>
+        a: `<div class="interview-answer"><p><code>invalidateQueries</code> marks matching queries stale and refetches the active ones lazily — that's my default after a mutation when I don't know the new value. <code>refetch()</code> re-runs one specific query immediately, ignoring <code>staleTime</code>, which I reserve for an explicit user action like a Reload button. <code>setQueryData</code> writes a known value straight into the cache with no network at all — for a mutation response or an optimistic update. The failure modes: <code>refetch()</code> everywhere hammers the API and ignores the cache, while <code>setQueryData</code> alone lets list and aggregate queries drift, so I back it with an <code>invalidateQueries</code> in <code>onSettled</code> as a consistency net.</p></div>
+<p>Three ways to "update" a query, with very different semantics — mixing them up causes either wasted network calls or stale UIs.</p>
 <table><tr><th>Method</th><th>What it does</th><th>Use when</th></tr>
 <tr><td><code>invalidateQueries</code></td><td>Marks matching queries stale; refetches <strong>active</strong> (mounted) ones now, inactive ones on next mount</td><td>"The server changed, I don't know the new value" — after most mutations</td></tr>
 <tr><td><code>refetch()</code></td><td>Re-runs <strong>this one query</strong> immediately, ignoring staleTime</td><td>Explicit user action: a "Reload" button</td></tr>
@@ -916,7 +938,8 @@ const mutation = useMutation({
       {
         q: 'How does TanStack Query prevent race conditions? Explain request cancellation with AbortSignal.',
         difficulty: 'tricky',
-        a: `<p>The classic race: <strong>search-as-you-type</strong>. The user types "re" (request A), then "react" (request B). B resolves first, then the slow A lands and overwrites the UI with results for "re" — an out-of-order response bug that plain <code>useEffect + fetch + setState</code> code has by default.</p>
+        a: `<div class="interview-answer"><p>Query keys make out-of-order responses harmless: a late response only ever lands in its own key's cache, so in search-as-you-type a slow response for an old term can't overwrite the results the component is currently subscribed to. That's correctness for free compared to raw <code>useEffect</code>+<code>fetch</code>, where a stale response happily overwrites your state. To also stop wasting bandwidth, forward the <code>AbortSignal</code> the <code>queryFn</code> receives, which upgrades it from "ignore stale responses" to actually cancelling the superseded requests. The same mechanism is why optimistic updates begin with <code>cancelQueries</code> — a late background refetch would otherwise clobber the optimistic write.</p></div>
+<p>The classic race: <strong>search-as-you-type</strong>. The user types "re" (request A), then "react" (request B). B resolves first, then the slow A lands and overwrites the UI with results for "re" — an out-of-order response bug that plain <code>useEffect + fetch + setState</code> code has by default.</p>
 <pre>// TanStack Query is race-safe PER KEY: each keystroke produces a new
 // queryKey, and only data belonging to the CURRENT key is rendered.
 // A late response for ['search', 're'] can never overwrite

