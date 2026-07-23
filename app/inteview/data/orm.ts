@@ -11,7 +11,7 @@ export const topics: PvTopic[] = [
       {
         q: 'What is MyBatis? How is it different from JPA/Hibernate?',
         difficulty: 'easy',
-        a: `<div class="interview-answer"><p>The one-liner I give is that MyBatis is a SQL mapper and JPA is a full ORM. With MyBatis I own the SQL and it just maps result sets to objects; with Hibernate the framework generates SQL from my entity mappings and manages a persistence context. My rule of thumb: reach for MyBatis when the SQL is the hard part — complex reporting, legacy schemas, DBA-tuned queries — and JPA when the domain model is the hard part and I want dirty checking and caching for free. In Korean enterprise and fintech shops MyBatis is still the default because teams want every query visible and reviewable. The tradeoff is boilerplate — MyBatis makes you hand-write the CRUD that JPA gives you automatically.</p></div>
+        a: `<div class="interview-answer"><p>MyBatis is a SQL mapper, and JPA is a full ORM. With MyBatis the developer writes the SQL and MyBatis maps the results to objects. With Hibernate the framework builds the SQL from entity mappings and manages a persistence context. MyBatis fits well when the SQL is complex or the schema is old, while JPA fits well when the domain model is the main focus.</p></div>
 <ul>
 <li><strong>MyBatis</strong>: SQL mapper framework. You write SQL, MyBatis maps results to objects. Full SQL control.</li>
 <li><strong>JPA/Hibernate</strong>: ORM framework. Generates SQL from entity mappings. Less control, more abstraction.</li>
@@ -28,7 +28,7 @@ export const topics: PvTopic[] = [
       {
         q: 'What is the difference between #{} and ${} in MyBatis?',
         difficulty: 'tricky',
-        a: `<div class="interview-answer"><p>This is really a security question in disguise. <code>#{}</code> binds a value as a PreparedStatement parameter — it compiles to a <code>?</code> and is safe from SQL injection. The dollar-sign form does raw string substitution straight into the SQL text, so it is a live SQL-injection hole. I only use dollar-substitution for things that cannot be bound — a dynamic table or column name, or a sort direction — and even then only against a whitelist, never raw user input. If I see it wrapping a request parameter in a code review, that is an immediate block.</p></div>
+        a: `<div class="interview-answer"><p>This is mainly a security topic. <code>#{}</code> binds a value as a PreparedStatement parameter, so it is safe from SQL injection. The dollar-sign form puts the value straight into the SQL text, which can allow SQL injection. It should only be used for things that cannot be bound, such as a table or column name, and only against a fixed whitelist.</p></div>
 <ul>
 <li><strong>#{param}</strong>: creates a <strong>PreparedStatement parameter</strong> (?). <strong>Safe from SQL injection</strong>. Value is type-safe and quoted.</li>
 <li><strong>\${param}</strong>: direct <strong>string substitution</strong>. <strong>VULNERABLE to SQL injection!</strong> Used only for dynamic table/column names.</li>
@@ -49,7 +49,7 @@ export const topics: PvTopic[] = [
       {
         q: 'Explain MyBatis XML Mapper structure. Show a complete example.',
         difficulty: 'medium',
-        a: `<div class="interview-answer"><p>The mental model is that a mapper XML is the SQL implementation of an interface, tied to it by the <code>namespace</code> matching the mapper interface's fully-qualified name and each statement id matching a method name. The key pieces are a <code>resultMap</code> to map columns to properties, plus the CRUD statement tags. Two things I always check: turn on <code>map-underscore-to-camel-case</code> so you do not need a resultMap for every simple query, and use <code>useGeneratedKeys</code> with <code>keyProperty</code> on inserts so the generated PK flows back into your object. The gotcha juniors hit is a mismatch between the namespace and the interface package — MyBatis then throws a binding exception at startup.</p></div>
+        a: `<div class="interview-answer"><p>A mapper XML file holds the SQL for a mapper interface. The <code>namespace</code> must match the interface full name, and each statement id must match a method name. A <code>resultMap</code> maps columns to object properties, and the CRUD tags hold the queries. Turning on <code>map-underscore-to-camel-case</code> and using <code>useGeneratedKeys</code> for inserts are common good practices.</p></div>
 <pre>&lt;?xml version="1.0" encoding="UTF-8" ?&gt;
 &lt;!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd"&gt;
@@ -86,7 +86,7 @@ export const topics: PvTopic[] = [
       {
         q: 'How to write dynamic SQL in MyBatis? Explain &lt;if&gt;, &lt;choose&gt;, &lt;where&gt;, &lt;foreach&gt;.',
         difficulty: 'hard',
-        a: `<div class="interview-answer"><p>MyBatis dynamic SQL is basically a templating language over your query, and these tags exist to stop you doing fragile string concatenation. <code>&lt;if&gt;</code> conditionally includes a fragment; <code>&lt;where&gt;</code> is the important one because it strips the leading AND/OR so you do not end up with <code>WHERE AND</code>; <code>&lt;choose&gt;</code> is your switch/case; and <code>&lt;foreach&gt;</code> builds IN-lists and batch inserts. The classic bug is a trailing AND — <code>&lt;where&gt;</code> only trims leading connectives, so for full control I reach for <code>&lt;trim&gt;</code>. And I keep the genuinely complex conditionals in XML rather than annotations, because they stay readable there.</p></div>
+        a: `<div class="interview-answer"><p>MyBatis dynamic SQL adds tags that build the query safely instead of joining strings by hand. <code>&lt;if&gt;</code> includes a part only when a condition is true, and <code>&lt;where&gt;</code> removes a leading AND or OR so the clause stays valid. <code>&lt;choose&gt;</code> works like a switch, and <code>&lt;foreach&gt;</code> builds IN lists and batch inserts. Note that <code>&lt;where&gt;</code> only trims leading connectors, so a trailing AND still needs <code>&lt;trim&gt;</code>.</p></div>
 <pre>&lt;select id="search" resultMap="userMap"&gt;
   SELECT * FROM users
   &lt;where&gt;
@@ -126,7 +126,7 @@ export const topics: PvTopic[] = [
       {
         q: 'How to handle one-to-many and many-to-one relationships in MyBatis?',
         difficulty: 'hard',
-        a: `<div class="interview-answer"><p>The two tags to know are <code>&lt;collection&gt;</code> for one-to-many and <code>&lt;association&gt;</code> for many-to-one or one-to-one — collection gives you a list, association a single nested object. My default is to do one JOIN and let a nested resultMap assemble the graph, using the <code>&lt;id&gt;</code> element so MyBatis can dedupe parent rows correctly. The alternative is a nested select per row, which reads cleanly but is the N+1 trap. So the real answer is: use JOIN plus a nested resultMap for data you always need, and a nested select only for children you rarely touch.</p></div>
+        a: `<div class="interview-answer"><p>MyBatis uses <code>&lt;collection&gt;</code> for one-to-many and <code>&lt;association&gt;</code> for many-to-one or one-to-one. A collection maps a list, and an association maps a single nested object. The common approach is one JOIN with a nested resultMap, using the <code>&lt;id&gt;</code> element so parent rows are grouped correctly. A nested select per row is also possible but can cause the N+1 problem.</p></div>
 <pre>&lt;!-- One-to-Many: Order has many Items --&gt;
 &lt;resultMap id="orderWithItems" type="Order"&gt;
   &lt;id column="order_id" property="orderId"/&gt;
@@ -158,7 +158,7 @@ export const topics: PvTopic[] = [
       {
         q: 'What is MyBatis annotation-based mapping vs XML?',
         difficulty: 'medium',
-        a: `<div class="interview-answer"><p>My rule is simple: annotations for trivial CRUD, XML for anything with dynamic SQL, joins, or result mapping. <code>@Select</code> and <code>@Insert</code> on the interface keep short queries right next to the code, but the moment you need <code>&lt;if&gt;</code> or a real resultMap, cramming it into annotations with <code>@SelectProvider</code> gets ugly fast. Most teams standardize on XML for consistency and because it keeps SQL out of the Java and reviewable by DBAs. Mixing both is fine — a mapper can have some annotated methods and some in XML.</p></div>
+        a: `<div class="interview-answer"><p>Annotations like <code>@Select</code> and <code>@Insert</code> work well for short and simple queries placed next to the code. XML is better for dynamic SQL, joins, and result mapping because it stays readable and keeps SQL out of the Java code. Many teams standardize on XML for consistency. A single mapper can mix both styles.</p></div>
 <pre>// Annotation-based (simple queries)
 @Mapper
 public interface UserMapper {
@@ -189,7 +189,7 @@ public interface UserMapper {
       {
         q: 'How does MyBatis caching work? Explain first-level and second-level cache.',
         difficulty: 'hard',
-        a: `<div class="interview-answer"><p>There are two levels. The first-level cache is per <code>SqlSession</code>, always on, and just guarantees the same query in the same session does not hit the DB twice — it is cleared on commit or close. The second-level cache is per mapper namespace, shared across sessions, and off by default. Honestly, in production I usually leave L2 off: it is an in-heap per-JVM cache, so with multiple app instances behind a load balancer you get stale reads, and it invalidates per namespace not per table, so a query that JOINs across mappers goes stale. I would rather cache explicitly at the service layer with Redis where I control invalidation.</p></div>
+        a: `<div class="interview-answer"><p>MyBatis has two cache levels. The first-level cache is per <code>SqlSession</code>, always on, and it is cleared on commit or close. The second-level cache is per mapper namespace, shared across sessions, and off by default. The second-level cache lives in heap per JVM, so with several app instances it can return stale data, and many teams cache at the service layer instead.</p></div>
 <ul>
 <li><strong>First-level cache</strong> (session/local): enabled by default. Scoped to <code>SqlSession</code>. Same query in same session returns cached result. Cleared on <code>commit()</code>, <code>rollback()</code>, or <code>close()</code>.</li>
 <li><strong>Second-level cache</strong> (mapper): disabled by default. Scoped to mapper namespace. Shared across sessions.</li>
@@ -211,7 +211,7 @@ public interface UserMapper {
       {
         q: 'What is MyBatis-Plus? How does it extend MyBatis?',
         difficulty: 'medium',
-        a: `<div class="interview-answer"><p>MyBatis-Plus is a productivity layer that gives you back the CRUD that plain MyBatis makes you hand-write. You extend <code>BaseMapper</code> and get selectById, insert, updateById and so on for free, plus a <code>QueryWrapper</code> for building conditions fluently, a pagination plugin, optimistic locking, and soft delete. It is hugely popular in the Chinese ecosystem. The thing I watch for is that <code>QueryWrapper</code> takes raw column-name strings, so it is easy to lose type safety and to leak dynamic column names — so for anything non-trivial I still drop to XML.</p></div>
+        a: `<div class="interview-answer"><p>MyBatis-Plus adds features on top of MyBatis to remove repetitive CRUD code. A mapper extends <code>BaseMapper</code> and gets methods like selectById, insert, and updateById for free. It also provides <code>QueryWrapper</code> for building conditions, plus pagination, optimistic locking, and soft delete. Since <code>QueryWrapper</code> uses raw column-name strings, complex cases are still better in XML.</p></div>
 <p><strong>MyBatis-Plus</strong> is an enhancement on MyBatis that eliminates boilerplate CRUD code.</p>
 <pre>// Just extend BaseMapper — no XML needed for basic CRUD
 @Mapper
@@ -236,7 +236,7 @@ Page&lt;User&gt; page = userMapper.selectPage(
       {
         q: 'How to handle batch operations in MyBatis?',
         difficulty: 'hard',
-        a: `<div class="interview-answer"><p>Two approaches, and knowing when each breaks is the point. The <code>&lt;foreach&gt;</code> multi-row INSERT is simplest, but it builds one giant SQL string, so you hit packet-size or statement-length limits, and it is a single round trip. For real volume I use <code>ExecutorType.BATCH</code>, which uses JDBC addBatch/executeBatch under the hood, and I flush every few hundred rows to keep memory bounded. The gotcha: batch mode does not return generated keys reliably and does not give you per-row affected counts until flush, so mixing it with reads in the same session surprises people.</p></div>
+        a: `<div class="interview-answer"><p>There are two main ways to do batch work. The <code>&lt;foreach&gt;</code> multi-row insert is simple but builds one large SQL string, so it can hit size limits. <code>ExecutorType.BATCH</code> uses JDBC addBatch and executeBatch and works better for large volumes, and flushing every few hundred rows keeps memory low. Batch mode does not return generated keys reliably.</p></div>
 <pre>&lt;!-- Method 1: foreach in XML --&gt;
 &lt;insert id="batchInsert"&gt;
   INSERT INTO users (user_name, email) VALUES
@@ -262,7 +262,7 @@ try (SqlSession session = sqlSessionFactory.openSession(ExecutorType.BATCH)) {
       {
         q: 'How to configure MyBatis with Spring Boot?',
         difficulty: 'medium',
-        a: `<div class="interview-answer"><p>With the <code>mybatis-spring-boot-starter</code> it is mostly YAML: point <code>mapper-locations</code> at your XML, set <code>type-aliases-package</code> for short class names, and — the one everyone forgets — turn on <code>map-underscore-to-camel-case</code> so <code>user_name</code> maps to <code>userName</code> without a resultMap. Then either <code>@MapperScan</code> on a config class or <code>@Mapper</code> on each interface so Spring registers the proxies. That underscore-to-camel flag alone kills most of your resultMap boilerplate.</p></div>
+        a: `<div class="interview-answer"><p>With the mybatis-spring-boot-starter, most setup is done in YAML. Set <code>mapper-locations</code> for the XML files, <code>type-aliases-package</code> for short class names, and turn on <code>map-underscore-to-camel-case</code> so columns like user_name map to userName. Then use <code>@MapperScan</code> or <code>@Mapper</code> so Spring registers the mapper interfaces.</p></div>
 <pre># application.yml
 mybatis:
   mapper-locations: classpath:mapper/*.xml         # XML mapper location
@@ -286,7 +286,7 @@ public interface UserMapper { }</pre>
       {
         q: 'How do you solve the N+1 problem in MyBatis?',
         difficulty: 'hard',
-        a: `<div class="interview-answer"><p>MyBatis never hides SQL, so N+1 here is a mapping choice, not a surprise. It happens when you use a nested <code>select</code> mapping — one query for the parents, then one extra query per parent to load its children. The fix is the same idea as in JPA: do a JOIN and assemble with a nested resultMap so it is one round trip, and make sure the <code>&lt;id&gt;</code> element is present or MyBatis cannot dedupe parents. I reserve <code>fetchType=lazy</code> nested selects for children I rarely access; if I loop over every parent and touch the collection, I am right back to N+1.</p></div>
+        a: `<div class="interview-answer"><p>In MyBatis the N+1 problem comes from a mapping choice, not a hidden query. It happens with a nested select mapping, where one query loads the parents and one extra query runs for each parent. The fix is a JOIN with a nested resultMap so it runs in one query, and the <code>&lt;id&gt;</code> element must be present so parents are grouped. A lazy nested select is fine only for children that are rarely accessed.</p></div>
 <p>MyBatis has its own N+1 trap: a <strong>nested select</strong> mapping fires one extra query per parent row. There are two mapping styles, and choosing the wrong one is the classic mistake.</p>
 <pre>&lt;!-- STYLE 1: Nested SELECT — causes N+1 if eager! --&gt;
 &lt;resultMap id="orderMap" type="Order"&gt;
@@ -322,7 +322,7 @@ public interface UserMapper { }</pre>
       {
         q: 'Why is the MyBatis second-level cache dangerous in production with multiple app instances?',
         difficulty: 'tricky',
-        a: `<div class="interview-answer"><p>The danger is that the default cache is in-heap and per-JVM. Run two instances behind a load balancer and each has its own copy: an update on instance B flushes only B's cache, so A serves stale data until its flush interval expires. Worse, invalidation is per-namespace not per-table, so if OrderMapper caches a query that joins users, a write through UserMapper will not flush it — silent dirty reads. And any writer outside MyBatis bypasses it entirely. So in a clustered deployment I disable L2 and cache at the service layer with Redis or Caffeine, where invalidation is under my control.</p></div>
+        a: `<div class="interview-answer"><p>The default second-level cache lives in heap and is separate in each JVM. With two instances behind a load balancer, an update on one instance does not clear the other, so stale data can be served. Invalidation is also per namespace, not per table, so a write through one mapper may not clear a cached JOIN in another mapper. In clustered setups it is safer to disable it and cache at the service layer with Redis or Caffeine.</p></div>
 <p>The default <code>&lt;cache/&gt;</code> is an <strong>in-heap, per-JVM</strong> cache scoped to a mapper namespace. Two failure modes make it dangerous:</p>
 <p><strong>1. Multiple app instances → stale data.</strong> Each instance has its own cache; invalidation on write happens only locally.</p>
 <pre>&lt;!-- UserMapper.xml on instance A and instance B --&gt;
@@ -349,7 +349,7 @@ public interface UserMapper { }</pre>
       {
         q: 'How do you stream a huge result set in MyBatis without OutOfMemoryError?',
         difficulty: 'hard',
-        a: `<div class="interview-answer"><p>The trap is that a normal mapper returning a <code>List</code> materializes every row before it returns, and on top of that the JDBC driver often buffers the whole result set client-side — MySQL does by default. So you need both a streaming consumer, a <code>Cursor</code> or a <code>ResultHandler</code>, and a driver-level fetch size that actually streams. The MySQL gotcha everyone forgets is that it ignores normal fetch sizes — you set <code>fetchSize = Integer.MIN_VALUE</code> or add <code>useCursorFetch=true</code>. And the cursor needs the session open, so the method must be <code>@Transactional</code>, or you get a closed-session error.</p></div>
+        a: `<div class="interview-answer"><p>A normal mapper that returns a <code>List</code> loads every row into memory before returning, and the JDBC driver often buffers the whole result set as well. Streaming needs both a streaming consumer, such as a <code>Cursor</code> or <code>ResultHandler</code>, and a driver fetch size that really streams. MySQL ignores normal fetch sizes, so it needs fetchSize set to Integer.MIN_VALUE or useCursorFetch in the URL. The method must be transactional so the session stays open while the cursor is read.</p></div>
 <p>A normal mapper method returning <code>List&lt;T&gt;</code> materializes <strong>every row in memory</strong> before returning — 10M rows means OOM. Two problems must be solved: MyBatis buffering the list, and the <strong>JDBC driver</strong> buffering the whole ResultSet client-side (MySQL does this by default!).</p>
 <pre>// Option 1: Cursor&lt;T&gt; — lazy iteration over an open ResultSet
 @Select("SELECT * FROM events ORDER BY id")
@@ -380,7 +380,7 @@ eventMapper.scanAll(ctx -> process(ctx.getResultObject()));</pre>
       {
         q: 'What is the OGNL "0 equals empty string" trap in MyBatis dynamic SQL?',
         difficulty: 'tricky',
-        a: `<div class="interview-answer"><p>This is a subtle one that bites everyone: the <code>status != null and status != ''</code> guard people copy-paste for strings silently breaks for numbers. In OGNL, comparing a number to an empty string coerces the empty string to <code>0.0</code>, so 0 equals empty-string is true — meaning your <code>&lt;if&gt;</code> gets skipped when status is 0, the predicate vanishes, and the query quietly returns all rows. The rule: the not-empty-string check is for Strings only; numeric params get a null-check and nothing more. The related gotcha is single-quote char literals in a <code>test</code> expression, which is why you swap the quote nesting.</p></div>
+        a: `<div class="interview-answer"><p>A common string guard like status not null and status not empty breaks for numbers. In OGNL, comparing a number to an empty string turns the empty string into 0.0, so 0 equals empty string is true, and the <code>&lt;if&gt;</code> is skipped when the value is 0. The filter then disappears and the query returns all rows. The rule is that the not-empty check is for Strings only, while numeric parameters need only a null check.</p></div>
 <p>The condition everyone copy-pastes for strings silently breaks for numbers. In OGNL, comparing a <code>Number</code> to <code>''</code> coerces the empty string to <code>0.0</code> — so <strong>0 == '' is true</strong>.</p>
 <pre>&lt;!-- Looks safe, works for String... --&gt;
 &lt;if test="status != null and status != ''"&gt;
@@ -422,7 +422,7 @@ eventMapper.scanAll(ctx -> process(ctx.getResultObject()));</pre>
       {
         q: 'What is JPA? What is the relationship between JPA and Hibernate?',
         difficulty: 'easy',
-        a: `<div class="interview-answer"><p>The clean way to say it: JPA is the specification, Hibernate is the implementation. JPA defines the annotations and the EntityManager API; Hibernate is the actual ORM engine behind it, and there are others like EclipseLink. The practical takeaway is to code to the <code>jakarta.persistence</code> interfaces so you stay portable — but I am honest that in real projects you inevitably reach for Hibernate-specific features like <code>@BatchSize</code> or its second-level cache. So I frame it as portable in theory, Hibernate in practice.</p></div>
+        a: `<div class="interview-answer"><p>JPA is a specification, and Hibernate is an implementation of it. JPA defines the annotations and the EntityManager API, while Hibernate is the ORM engine that does the work, and other implementations like EclipseLink also exist. Coding to the <code>jakarta.persistence</code> interfaces keeps the code portable. In real projects, some Hibernate-specific features such as <code>@BatchSize</code> are often used anyway.</p></div>
 <ul>
 <li><strong>JPA (Java Persistence API)</strong>: a <strong>specification</strong> (interface) that defines how Java objects map to relational database tables.</li>
 <li><strong>Hibernate</strong>: the most popular <strong>implementation</strong> of JPA. Provides the actual ORM engine.</li>
@@ -447,7 +447,7 @@ public class User {
       {
         q: 'Explain the JPA entity lifecycle and entity states.',
         difficulty: 'hard',
-        a: `<div class="interview-answer"><p>There are four states, and knowing them explains almost every JPA surprise. Transient is a plain <code>new</code> object with no DB identity; managed means it is in the persistence context, so Hibernate dirty-checks it and auto-flushes changes; detached is a once-managed object after the context closed, so mutations no longer persist; and removed is scheduled for delete. The key insight for juniors is that on a managed entity you do not call save — just mutate it and dirty checking writes the UPDATE. Most bugs, like LazyInitializationException, come from touching a detached entity as if it were still managed.</p></div>
+        a: `<div class="interview-answer"><p>A JPA entity can be in one of four states. Transient is a plain new object with no database row, and managed means it is in the persistence context where Hibernate tracks changes and writes them automatically. Detached is a once-managed object after the context closed, so changes are not saved, and removed is scheduled for deletion. On a managed entity there is no need to call save, because changing a field is enough.</p></div>
 <p>An entity can be in 4 states:</p>
 <ul>
 <li><strong>New/Transient</strong>: just created with <code>new</code>. Not managed. No DB row.</li>
@@ -467,7 +467,7 @@ em.remove(user);                   // → Removed (DELETE on flush)</pre>`,
       {
         q: 'What is the difference between FetchType.LAZY and FetchType.EAGER?',
         difficulty: 'medium',
-        a: `<div class="interview-answer"><p>EAGER loads the association with the parent; LAZY defers it behind a proxy until you touch it. My strong default is to make everything LAZY — including <code>@ManyToOne</code>, which is EAGER by default and quietly fires extra queries — and then fetch eagerly on demand with <code>JOIN FETCH</code> or an <code>@EntityGraph</code>. The reason is control: EAGER associations cause N+1 and load data you did not ask for on every query path, while LAZY forces you to declare, per use case, exactly what you need.</p></div>
+        a: `<div class="interview-answer"><p>EAGER loading fetches the related data together with the parent, while LAZY loading defers it behind a proxy until it is accessed. A common best practice is to make all relationships LAZY, including <code>@ManyToOne</code> which is EAGER by default. Then the needed data is fetched on demand with <code>JOIN FETCH</code> or an <code>@EntityGraph</code>. This gives more control and helps avoid loading unwanted data or causing N+1 queries.</p></div>
 <ul>
 <li><strong>EAGER</strong>: related entities loaded immediately (with the parent query). Can cause N+1 problem.</li>
 <li><strong>LAZY</strong>: related entities loaded only when accessed. Returns a <strong>proxy</strong>.</li>
@@ -486,7 +486,7 @@ public class Order {
       {
         q: 'What is the N+1 problem in JPA? How to solve it?',
         difficulty: 'hard',
-        a: `<div class="interview-answer"><p>N+1 is the number-one JPA performance bug: you load N parents with one query, then each lazy child access fires another query, so a list of 100 orders becomes 101 round trips. The fixes, in order: <code>JOIN FETCH</code> in JPQL or an <code>@EntityGraph</code> to load in a single query, and Hibernate's <code>@BatchSize</code> to at least collapse the N into batched IN-queries. The catch with JOIN FETCH is that fetching two collections at once causes a cartesian product, and pagination with a fetch join happens in memory — so for that case I prefer @BatchSize or two separate queries.</p></div>
+        a: `<div class="interview-answer"><p>The N+1 problem loads N parents with one query, then runs one more query for each lazy child access. The main fixes are <code>JOIN FETCH</code> or an <code>@EntityGraph</code> to load everything in one query, and Hibernate <code>@BatchSize</code> to group the child queries. Fetching two collections with JOIN FETCH causes a cartesian product, and pagination with a fetch join is done in memory. For those cases, @BatchSize or two separate queries is better.</p></div>
 <p><strong>Problem</strong>: Loading parent entities triggers N additional queries for lazy children.</p>
 <pre>List&lt;Order&gt; orders = orderRepo.findAll();  // 1 query
 for (Order o : orders) {
@@ -510,7 +510,7 @@ private List&lt;OrderItem&gt; items;
       {
         q: 'Explain the difference between @OneToOne, @OneToMany, @ManyToOne, @ManyToMany.',
         difficulty: 'medium',
-        a: `<div class="interview-answer"><p>The four annotations map cardinality, but the thing interviewers actually test is who owns the foreign key. The owning side is the one without <code>mappedBy</code> — for a bidirectional one-to-many that is the <code>@ManyToOne</code> child, which holds the FK column; <code>mappedBy</code> just says the other side owns this. Only the owning side's state produces SQL. For many-to-many I always map the join table explicitly with <code>@JoinTable</code>, and I prefer a <code>Set</code> over a <code>List</code> to avoid Hibernate's delete-and-reinsert behavior. And I add sync helper methods so both sides of a bidirectional link stay consistent.</p></div>
+        a: `<div class="interview-answer"><p>The four annotations map cardinality, but the key point is which side owns the foreign key. The owning side is the one without <code>mappedBy</code>; for a bidirectional one-to-many, that is the <code>@ManyToOne</code> child that holds the FK column. Only the owning side's state produces SQL. For many-to-many, mapping the join table with <code>@JoinTable</code> and using a <code>Set</code> is common, along with helper methods to keep both sides in sync.</p></div>
 <pre>// @OneToOne: User ↔ Profile
 @Entity
 public class User {
@@ -546,7 +546,7 @@ public class Student {
       {
         q: 'What is the Persistence Context and EntityManager?',
         difficulty: 'hard',
-        a: `<div class="interview-answer"><p>The EntityManager is your handle to JPA — persist, find, merge, remove — and the persistence context behind it is the first-level cache and unit of work. Its two guarantees are identity — <code>find</code> the same id twice in one context and you get the exact same instance, no second SELECT — and dirty checking, so mutations flush automatically. In Spring it is transaction-scoped by default, so it lives for one <code>@Transactional</code> method. Understanding this is what explains why changes persist without a save call, and why a lazy access outside the transaction blows up.</p></div>
+        a: `<div class="interview-answer"><p>The EntityManager is the main JPA interface for persist, find, merge, and remove. The persistence context behind it is the first-level cache and unit of work. It gives two guarantees: identity, so finding the same id twice returns the same instance with no second query, and dirty checking, so changes are flushed automatically. In Spring it is transaction-scoped by default, so it lives for one <code>@Transactional</code> method.</p></div>
 <ul>
 <li><strong>EntityManager</strong>: the main JPA interface for CRUD operations (<code>persist</code>, <code>find</code>, <code>merge</code>, <code>remove</code>, <code>createQuery</code>).</li>
 <li><strong>Persistence Context</strong>: first-level cache. Stores managed entities. Ensures only ONE instance per entity identity per context.</li>
@@ -566,7 +566,7 @@ em.flush();  // SQL: UPDATE (dirty checking detected change)</pre>
       {
         q: 'What is the difference between JPQL, Criteria API, and Native queries?',
         difficulty: 'medium',
-        a: `<div class="interview-answer"><p>Three tools for three jobs. JPQL is object-oriented SQL over entity names — readable, portable, my default. The Criteria API is programmatic and type-safe, which I only reach for when a query is genuinely dynamic with many optional filters, because it is verbose. Native SQL is the escape hatch for database-specific features, window functions, or hand-tuned performance — you trade portability for full power. In modern code I would add that for dynamic queries I often prefer Spring Data Specifications or QueryDSL over raw Criteria, and for reads I lean on DTO projections.</p></div>
+        a: `<div class="interview-answer"><p>There are three query options. JPQL is object-based and looks like SQL over entity names; it is readable, portable, and the most common. The Criteria API is programmatic and type-safe, useful for dynamic queries with many optional filters, but it is verbose. Native SQL uses raw database-specific SQL for special features or tuning, but it is not portable.</p></div>
 <pre>// JPQL: SQL-like, uses entity names (not table names)
 @Query("SELECT u FROM User u WHERE u.email = :email")
 User findByEmail(@Param("email") String email);
@@ -590,7 +590,7 @@ User findByEmailNative(String email);</pre>
       {
         q: 'Explain Hibernate first-level cache vs second-level cache.',
         difficulty: 'hard',
-        a: `<div class="interview-answer"><p>L1 is the persistence context — per session, always on, cannot be disabled, and guarantees one instance per id within a transaction. L2 is shared across sessions, optional, and needs a provider like EhCache or Caffeine. My honest take: L1 you get for free and rely on; L2 I am cautious about because it adds invalidation complexity, and in a clustered app it needs a distributed provider or you get stale data. There is also the query cache as a third layer, which caches query result ids and is easy to misconfigure. I usually cache read-mostly reference data in L2 and leave the rest.</p></div>
+        a: `<div class="interview-answer"><p>The first-level cache is the persistence context; it is per session, always on, and cannot be disabled. The second-level cache is shared across sessions, optional, and needs a provider such as EhCache or Caffeine. The second-level cache adds invalidation complexity and needs a distributed provider in a clustered app. There is also a query cache as a third layer, and L2 is usually best for read-mostly reference data.</p></div>
 <ul>
 <li><strong>First-level cache (L1)</strong>: built-in, per EntityManager/Session. Cannot be disabled. One entity instance per ID. Scoped to transaction.</li>
 <li><strong>Second-level cache (L2)</strong>: shared across sessions. Optional. Must configure provider (EhCache, Caffeine, Redis).</li>
@@ -618,7 +618,7 @@ spring:
       {
         q: 'What is Spring Data JPA? What methods does JpaRepository provide?',
         difficulty: 'medium',
-        a: `<div class="interview-answer"><p>Spring Data JPA removes the DAO boilerplate: you declare an interface extending <code>JpaRepository</code> and it generates the implementation. You get save/findById/findAll for free, derived queries from method names like <code>findByEmail</code>, and <code>@Query</code> for custom JPQL, plus <code>Pageable</code> for pagination. Two things I flag: derived-query method names get unreadable fast, so past two or three conditions I switch to <code>@Query</code> or a Specification; and any <code>@Modifying</code> bulk update bypasses the persistence context, so you must clear it or your L1 cache holds stale entities.</p></div>
+        a: `<div class="interview-answer"><p>Spring Data JPA removes DAO boilerplate by generating the implementation of a repository interface that extends <code>JpaRepository</code>. It provides save, findById, and findAll for free, derived queries from method names like <code>findByEmail</code>, and <code>@Query</code> for custom JPQL, plus <code>Pageable</code> for pagination. Long derived method names get hard to read, so custom queries are better past a few conditions. A <code>@Modifying</code> bulk update bypasses the persistence context, so it should be cleared to avoid stale entities.</p></div>
 <p>Spring Data JPA eliminates boilerplate by auto-implementing repository interfaces.</p>
 <pre>public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
     // Built-in: save, findById, findAll, count, deleteById, existsById...
@@ -643,7 +643,7 @@ spring:
       {
         q: 'What is Hibernate dirty checking? How does it work?',
         difficulty: 'hard',
-        a: `<div class="interview-answer"><p>Dirty checking is the magic where you load a managed entity, mutate it, and Hibernate writes the UPDATE at flush without any save call. It works by snapshotting the entity's original field values at load time and diffing against them at flush. It is convenient but has a real cost: on a big read Hibernate keeps snapshots and diffs every entity, which is wasted work. So for read paths I use <code>@Transactional(readOnly = true)</code>, which lets Hibernate skip the snapshot and dirty check. The other gotcha is that a partial update still writes the whole row unless you enable dynamic-update.</p></div>
+        a: `<div class="interview-answer"><p>Dirty checking lets a developer load a managed entity, change it, and have Hibernate write the UPDATE at flush without a save call. It works by taking a snapshot of the original field values at load time and comparing at flush. This has a cost, because on a large read Hibernate keeps and compares snapshots for every entity. Using <code>@Transactional(readOnly = true)</code> lets it skip that work.</p></div>
 <p>Hibernate automatically detects changes to managed entities and generates UPDATE statements on flush — without explicit save calls.</p>
 <pre>@Transactional
 public void updateUserName(Long id, String newName) {
@@ -664,7 +664,7 @@ public void updateUserName(Long id, String newName) {
       {
         q: 'What is the difference between CascadeType and orphanRemoval?',
         difficulty: 'tricky',
-        a: `<div class="interview-answer"><p>They sound similar but solve different problems. Cascade propagates lifecycle operations from parent to child — persist the order and its items get persisted too. orphanRemoval is specifically about removing a child from the parent's collection: with it, taking an item out of the list issues a DELETE; without it, Hibernate just nulls the foreign key and leaves an orphan row. So the classic combo for a true parent-owns-children aggregate is <code>cascade = ALL</code> plus <code>orphanRemoval = true</code>. The caution: only cascade REMOVE when the child genuinely cannot exist without the parent, or you will delete shared data.</p></div>
+        a: `<div class="interview-answer"><p>Cascade and orphanRemoval solve different problems. Cascade passes lifecycle operations from parent to child, so persisting the parent also persists the children. orphanRemoval deletes a child when it is removed from the parent's collection; without it, Hibernate only sets the foreign key to null and leaves the row. A true parent-owns-children setup often uses <code>cascade = ALL</code> with <code>orphanRemoval = true</code>. Cascade REMOVE should be used only when the child cannot exist without the parent.</p></div>
 <ul>
 <li><strong>CascadeType</strong>: propagate operations from parent to child.</li>
 <ul>
@@ -688,7 +688,7 @@ order.getItems().remove(item);  // → DELETE FROM order_items WHERE id = ?</pre
       {
         q: 'How to handle the LazyInitializationException?',
         difficulty: 'tricky',
-        a: `<div class="interview-answer"><p>This is the single most common JPA error, and it means you touched a lazy association after the persistence context closed — the proxy has no session to load from. The fixes in order of preference: fetch what you need up front with <code>JOIN FETCH</code> or an <code>@EntityGraph</code>, or return a DTO projection so there are no proxies at all. What I actively avoid is open-session-in-view — it fixes the exception by keeping the session open for the whole request, but it hides N+1 and leaks DB work into the view layer. I set <code>open-in-view=false</code> so the problem surfaces at development time.</p></div>
+        a: `<div class="interview-answer"><p>This error happens when a lazy association is accessed after the persistence context has closed, so the proxy has no session to load from. The preferred fixes are to fetch the needed data up front with <code>JOIN FETCH</code> or an <code>@EntityGraph</code>, or to return a DTO projection with no proxies. Open-session-in-view removes the error but hides N+1 and moves database work into the view layer. Setting open-in-view to false makes the problem visible during development.</p></div>
 <p><strong>Cause</strong>: accessing a LAZY-loaded relationship after the persistence context (session) is closed.</p>
 <pre>// This throws LazyInitializationException!
 User user = userRepo.findById(1L).get();  // TX ends here
@@ -706,7 +706,7 @@ user.getOrders().size();  // Session closed → BOOM!</pre>
       {
         q: 'What are JPA Specifications and how to build dynamic queries?',
         difficulty: 'hard',
-        a: `<div class="interview-answer"><p>Specifications are Spring Data's wrapper over the Criteria API for building dynamic, composable queries. Each spec is a lambda producing a Predicate, and you combine them with <code>and</code>/<code>or</code>, returning null to skip a filter that was not provided. I use them exactly for the search-screen problem — a bunch of optional filters where string-concatenating JPQL would be fragile and injection-prone. They are type-safe and reusable. The downside is the Criteria API underneath is verbose and hard to read for complex joins, so for heavy dynamic querying I would consider QueryDSL instead.</p></div>
+        a: `<div class="interview-answer"><p>Specifications are the Spring Data wrapper over the Criteria API for dynamic, composable queries. Each specification is a lambda that returns a Predicate, and they combine with and and or, returning null to skip a filter that was not given. They fit search screens with many optional filters, where building JPQL by string is fragile and unsafe. The Criteria API underneath is verbose, so QueryDSL may be better for heavy dynamic querying.</p></div>
 <pre>// Repository extends JpaSpecificationExecutor
 public interface UserRepository extends JpaRepository&lt;User, Long&gt;,
     JpaSpecificationExecutor&lt;User&gt; { }
@@ -739,7 +739,7 @@ Page&lt;User&gt; users = userRepo.findAll(
       {
         q: 'What is the difference between @GeneratedValue strategies (IDENTITY, SEQUENCE, TABLE, AUTO)?',
         difficulty: 'medium',
-        a: `<div class="interview-answer"><p>The one that matters in practice is IDENTITY versus SEQUENCE. IDENTITY uses an auto-increment column and the id only exists after the INSERT, which forces Hibernate to flush each insert immediately — so it kills JDBC batch inserts. SEQUENCE gets the id before the insert from a DB sequence, so Hibernate can batch, and with <code>allocationSize</code> it pre-allocates a block of ids to cut round trips. So on Postgres or Oracle I use SEQUENCE for anything write-heavy. MySQL historically only had IDENTITY, which is a real reason batch-insert performance suffers there. TABLE is portable but slow, and AUTO just delegates to the dialect.</p></div>
+        a: `<div class="interview-answer"><p>The main choice is IDENTITY versus SEQUENCE. IDENTITY uses an auto-increment column and gets the id only after the insert, which forces an immediate flush and breaks JDBC batch inserts. SEQUENCE gets the id before the insert from a database sequence, so inserts can batch, and <code>allocationSize</code> pre-allocates a block of ids. TABLE is portable but slow, and AUTO lets Hibernate choose based on the dialect.</p></div>
 <ul>
 <li><strong>IDENTITY</strong>: auto-increment column (MySQL). ID assigned after INSERT. <strong>Breaks batch inserts</strong> (Hibernate must flush immediately).</li>
 <li><strong>SEQUENCE</strong>: DB sequence (PostgreSQL, Oracle). ID assigned before INSERT. Supports batch inserts. <strong>Preferred for Hibernate</strong>.</li>
@@ -759,7 +759,7 @@ private Long id;
       {
         q: 'What are JPA entity inheritance strategies?',
         difficulty: 'hard',
-        a: `<div class="interview-answer"><p>Four strategies, and it is a real performance-versus-cleanliness tradeoff. SINGLE_TABLE — the default — puts the whole hierarchy in one table with a discriminator column: fastest, no joins, but subclass fields must be nullable so you lose NOT NULL constraints. JOINED normalizes into a table per class: clean schema, but every query joins. TABLE_PER_CLASS I avoid because polymorphic queries turn into UNION ALL. And @MappedSuperclass is not really inheritance in the DB — it just shares fields, with no polymorphic query. My default is SINGLE_TABLE, moving to JOINED only when the nullable-column and constraint situation gets genuinely messy.</p></div>
+        a: `<div class="interview-answer"><p>JPA has four inheritance strategies with a tradeoff between speed and clean schema. SINGLE_TABLE, the default, stores the whole hierarchy in one table with a discriminator column; it is fastest but subclass fields must be nullable. JOINED uses one table per class for a clean schema but joins on every query, and TABLE_PER_CLASS makes polymorphic queries use UNION ALL. @MappedSuperclass only shares fields and does not allow querying by parent type.</p></div>
 <p>JPA supports four strategies for mapping inheritance hierarchies to database tables:</p>
 <pre>@Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)  // Default
@@ -788,7 +788,7 @@ public class BankTransfer extends Payment {
       {
         q: 'What is optimistic locking with @Version in JPA?',
         difficulty: 'hard',
-        a: `<div class="interview-answer"><p>Optimistic locking with <code>@Version</code> prevents lost updates without holding a database lock. You add a version column; every UPDATE includes <code>WHERE version = ?</code> and bumps it, so if another transaction committed first, your update matches zero rows and Hibernate throws <code>OptimisticLockException</code>. It is the right default for web apps because conflicts are rare and you do not hold locks across user think-time. You handle the exception by reloading and retrying, or telling the user. When contention is genuinely high — seat booking, inventory decrement — I switch to pessimistic <code>SELECT FOR UPDATE</code>. And you never touch the version field by hand.</p></div>
+        a: `<div class="interview-answer"><p>Optimistic locking with <code>@Version</code> prevents lost updates without holding a database lock. A version column is added, and every UPDATE checks the version and increases it, so if another transaction committed first, the update matches no rows and Hibernate throws <code>OptimisticLockException</code>. It fits web apps where conflicts are rare, and it is handled by reloading and retrying. For high contention, pessimistic locking with SELECT FOR UPDATE is better, and the version field is never changed by hand.</p></div>
 <p><strong>Optimistic locking</strong> prevents lost updates when multiple transactions modify the same row concurrently — without holding database locks.</p>
 <pre>@Entity
 public class Product {
@@ -826,7 +826,7 @@ try {
       {
         q: 'What are DTO projections in JPA and why use them?',
         difficulty: 'medium',
-        a: `<div class="interview-answer"><p>A DTO projection means selecting only the columns you need instead of hydrating a full entity — and it is one of the highest-leverage JPA performance moves. Loading a whole entity pulls every column including blobs and can drag in lazy associations; a projection is a lean read-only view. Spring gives you interface projections, which are simplest, and constructor or record-based DTOs via <code>SELECT new</code> in JPQL. The big win beyond less data transfer is that projections have no managed proxies, so there is no LazyInitializationException and no dirty-checking overhead. My rule: never load a full entity just to render a list view.</p></div>
+        a: `<div class="interview-answer"><p>A DTO projection selects only the columns that are needed instead of loading a full entity. Loading a full entity pulls every column and can drag in lazy associations, while a projection is a lean read-only view. Spring supports interface projections and constructor or record DTOs through <code>SELECT new</code> in JPQL. Projections also have no managed proxies, so there is no LazyInitializationException and no dirty-checking cost.</p></div>
 <p>DTO projections let you select only the columns you need, avoiding loading entire entities (better performance).</p>
 <pre>// Problem: loading full entity when you only need name and email
 User user = userRepo.findById(1L);  // loads ALL columns including blob fields
@@ -862,7 +862,7 @@ repo.findByStatus("active", UserDto.class);</pre>
       {
         q: 'Why are equals() and hashCode() hard to implement correctly for JPA entities?',
         difficulty: 'tricky',
-        a: `<div class="interview-answer"><p>This trips up even senior devs because two entity quirks break IDE-generated equals/hashCode. First, the id is null before persist, so an id-based hashCode changes when you save — and an entity already sitting in a HashSet gets lost because its bucket moved. Second, Hibernate proxies are runtime subclasses, so <code>getClass()</code> comparisons fail for the same logical row. The robust pattern is a constant hashCode — usually <code>getClass().hashCode()</code> — with id-based equals using <code>instanceof</code> and the id getter, treating two transient entities as never equal. And never put Lombok's <code>@Data</code> on an entity — it drags in mutable fields and can trigger lazy loading inside equals.</p></div>
+        a: `<div class="interview-answer"><p>Two entity traits break IDE-generated equals and hashCode. The id is null before persist, so an id-based hashCode changes after saving, and an entity already in a HashSet becomes lost. Hibernate proxies are runtime subclasses, so <code>getClass()</code> comparisons fail for the same row. A safe pattern uses a constant hashCode with id-based equals using <code>instanceof</code> and the id getter, and Lombok <code>@Data</code> should not be placed on an entity.</p></div>
 <p>Two properties of entities break the standard IDE-generated implementations:</p>
 <ul>
 <li><strong>The id is null before persist</strong> — an id-based hashCode <em>changes</em> when the entity is saved, violating the contract that hashCode must be stable while the object is in a hash-based collection.</li>
@@ -898,7 +898,7 @@ public int hashCode() {
       {
         q: 'What is the difference between persist(), merge(), and Spring Data save()?',
         difficulty: 'tricky',
-        a: `<div class="interview-answer"><p>The trap is that these three behave differently. <code>persist</code> makes a transient entity managed and returns void — the argument itself becomes managed. <code>merge</code> is the sneaky one: it copies your detached object's state onto a managed copy and returns that copy, so your original argument stays detached — if you keep mutating the argument after merge, nothing persists. Spring Data's <code>save</code> is just a dispatcher: if the entity looks new it calls persist, otherwise merge. Two consequences: saving an entity with a pre-assigned id like a UUID looks not-new, so save does a merge with an extra SELECT — fix with <code>Persistable.isNew()</code> or a <code>@Version</code> field; and merge overwrites every column, so a stale detached object can silently revert concurrent changes unless @Version guards it.</p></div>
+        a: `<div class="interview-answer"><p>These three behave differently. <code>persist</code> makes a transient entity managed and returns void, so the argument itself becomes managed. <code>merge</code> copies the detached object's state onto a managed copy and returns that copy, so the original argument stays detached and later changes to it are not saved. Spring Data <code>save</code> calls persist for a new entity and merge otherwise. Saving an entity with a pre-assigned id causes a merge with an extra SELECT, and merge overwrites all columns, which can revert concurrent changes unless <code>@Version</code> is used.</p></div>
 <ul>
 <li><strong>persist(e)</strong>: makes a <em>transient</em> entity managed. Throws <code>EntityExistsException</code> for detached entities. Returns void — the argument itself becomes managed.</li>
 <li><strong>merge(e)</strong>: copies the state of a detached entity onto a managed copy (loading it first if needed) and <strong>returns that NEW managed instance</strong>. The argument stays detached!</li>
@@ -933,7 +933,7 @@ public &lt;S extends T&gt; S save(S entity) {
       {
         q: 'What is the difference between findById() and getReferenceById()?',
         difficulty: 'hard',
-        a: `<div class="interview-answer"><p><code>findById</code> runs a SELECT immediately and gives you a real, initialized entity or an empty Optional if the row is missing. <code>getReferenceById</code> returns a lazy proxy with no SQL at all — the DB is only hit when you touch a non-id field. The perfect use case for getReferenceById is wiring a foreign key: if I just need to set an order's customer, I grab a reference by id and set it, and the INSERT gets the FK with zero pointless SELECT. The catch is deferred failure — if the row does not exist, you only find out when you access a field, and it throws <code>EntityNotFoundException</code> possibly far from the call site, or a LazyInitializationException if the proxy escapes the transaction. So use it to wire FKs; use findById when you actually need the data or an existence check now.</p></div>
+        a: `<div class="interview-answer"><p><code>findById</code> runs a SELECT right away and returns a real entity or an empty Optional if the row is missing. <code>getReferenceById</code> returns a lazy proxy with no SQL, and the database is hit only when a non-id field is accessed. It is ideal for setting a foreign key, since the reference carries the id and the insert gets the FK without an extra SELECT. The risk is deferred failure, because a missing row only shows up later as <code>EntityNotFoundException</code>, so findById is better when the data or an existence check is needed now.</p></div>
 <ul>
 <li><strong>findById(id)</strong>: executes a <strong>SELECT immediately</strong>, returns <code>Optional.empty()</code> if the row does not exist. You get a real, initialized entity.</li>
 <li><strong>getReferenceById(id)</strong> (JPA <code>em.getReference()</code>): returns a <strong>lazy proxy without any SQL</strong>. The database is hit only when a non-id field is first accessed — and if the row is missing, <em>that access</em> throws <code>EntityNotFoundException</code> (possibly far from the call site, or even during serialization).</li>
@@ -967,7 +967,7 @@ ghost.getName();   // SELECT ... → row missing → EntityNotFoundException HER
       {
         q: 'Why do bidirectional JPA relationships need synchronization helper methods?',
         difficulty: 'hard',
-        a: `<div class="interview-answer"><p>In a bidirectional relationship only the owning side — the one without <code>mappedBy</code>, usually the <code>@ManyToOne</code> holding the FK — produces SQL. So if you only add a child to the parent's collection and do not set the child's back-reference, the foreign key is never written and you get a null FK or a constraint violation. And if you set only the owning side, the in-memory collection is stale within the same transaction, which breaks cascades and contains checks. That is why you write <code>addItem</code>/<code>removeItem</code> helpers that set both sides at once — so the object graph and the database tell the same story. It is also why entity equals and toString must not traverse both directions, or you get infinite recursion.</p></div>
+        a: `<div class="interview-answer"><p>In a bidirectional relationship, only the owning side, the one without <code>mappedBy</code> that holds the FK, produces SQL. Adding a child to the parent's collection without setting the child's back-reference means the foreign key is never written, causing a null FK or a constraint error. Setting only the owning side leaves the in-memory collection stale within the transaction. Helper methods like addItem and removeItem set both sides at once, and equals and toString must not follow both directions or they recurse forever.</p></div>
 <p>In a bidirectional association only the <strong>owning side</strong> (the one <em>without</em> <code>mappedBy</code>, usually the <code>@ManyToOne</code>) is written to the database. Setting just the inverse side updates the in-memory object graph but produces the wrong SQL — or none at all.</p>
 <pre>// Order (inverse side)          OrderItem (owning side — has the FK)
 @OneToMany(mappedBy = "order",   @ManyToOne(fetch = FetchType.LAZY)
