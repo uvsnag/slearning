@@ -3,7 +3,13 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import type { ChangeEvent, KeyboardEvent, Dispatch, SetStateAction } from 'react';
 import { GoogleGenAI } from '@google/genai';
 import { Configuration, OpenAIApi } from 'openai-edge';
-import { toggleCollapse, KEY_GEMINI_NM, KEY_GITHUB_NM, collapseElement } from '@/common/common.js';
+import {
+  toggleCollapse,
+  KEY_GEMINI_NM,
+  KEY_GITHUB_NM,
+  KEY_MAX_HISTORY_TURNS,
+  collapseElement,
+} from '@/common/common.js';
 import VoiceToText from '@/app/common/components/VoiceToText';
 import { useSpeechSynthesis } from '@/app/common/hooks/useSpeechSynthesis';
 import '@/slearning/multi-ai/style-ai.css';
@@ -34,6 +40,7 @@ interface ConversationTurn {
   question: string;
   response: string;
   modelName?: string;
+  timestamp?: number;
 }
 
 interface OpenAIMessage {
@@ -119,8 +126,14 @@ const CLICK_TO_SPEECH_IGNORE_WORDS: string[] = [
 const CLICK_TO_SPEECH_IGNORE_SET = new Set(
   CLICK_TO_SPEECH_IGNORE_WORDS.map((word) => word.toLowerCase()),
 );
-const MAX_HISTORY_TURNS = 15;
+const DEFAULT_MAX_HISTORY_TURNS = 20;
 const MAX_OPENAI_HISTORY_MESSAGES = 30;
+
+function getMaxHistoryTurns(): number {
+  if (typeof window === 'undefined') return DEFAULT_MAX_HISTORY_TURNS;
+  const parsed = Number(localStorage.getItem(KEY_MAX_HISTORY_TURNS));
+  return Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : DEFAULT_MAX_HISTORY_TURNS;
+}
 const GITHUB_INFERENCE_BASE_PATH = 'https://models.github.ai/inference';
 
 function parseKeys(raw: string | null): string[] {
@@ -533,8 +546,9 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
           });
         }
       }
-      addLog(buildResponseLogHtml(responseTxt, usedModelName), false);
-      appendConversationTurn(promVal, responseTxt, usedModelName);
+      const responseTimestamp = Date.now();
+      addLog(buildResponseLogHtml(responseTxt, usedModelName, responseTimestamp), false);
+      appendConversationTurn(promVal, responseTxt, usedModelName, responseTimestamp);
       const resStr = fomatRawResponse(responseTxt);
       setValue1(resStr?.split('<br/>')?.[0]);
       setValue2(resStr?.split('<br/>')?.[1]);
@@ -624,13 +638,22 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
     return `${formatMyQus(questionText)}${buildQuestionActionButtonsHtml(questionIndex)}<br/>`;
   }
 
-  function buildResponseModelInfoHtml(modelName?: string): string {
-    if (!modelName) {
+  function formatResponseTime(timestamp: number): string {
+    const date = new Date(timestamp);
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const time = `${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    const day = `${pad(date.getDate())}/${pad(date.getMonth() + 1)}/${date.getFullYear()}`;
+    return `${time} ${day}`;
+  }
+
+  function buildResponseModelInfoHtml(modelName?: string, timestamp?: number): string {
+    const modelText = modelName ? escapeHtml(modelName) : '';
+    const timeText = typeof timestamp === 'number' ? formatResponseTime(timestamp) : '';
+    if (!modelText && !timeText) {
       return '';
     }
-    return `<div class="ai-response-model" style="font-size:11px;opacity:0.75;margin-top:6px;"> ${escapeHtml(
-      modelName,
-    )}</div>`;
+    const parts = [modelText, timeText].filter(Boolean).join(' · ');
+    return `<div class="ai-response-model" style="font-size:11px;opacity:0.75;margin-top:6px;"> ${parts}</div>`;
   }
 
   function buildResponseActionButtonsHtml(responseIndex: number): string {
@@ -640,9 +663,13 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
     </div>`;
   }
 
-  function buildResponseLogHtml(rawResponse: string, modelName?: string): string {
+  function buildResponseLogHtml(
+    rawResponse: string,
+    modelName?: string,
+    timestamp?: number,
+  ): string {
     const responseIndex = responseStoreRef.current.push(rawResponse) - 1;
-    return `<div>${buildResponseHtml(rawResponse)}</div>${buildResponseModelInfoHtml(modelName)}${buildResponseActionButtonsHtml(responseIndex)}`;
+    return `<div>${buildResponseHtml(rawResponse)}</div>${buildResponseModelInfoHtml(modelName, timestamp)}${buildResponseActionButtonsHtml(responseIndex)}`;
   }
 
   const onClickSpeechWord = useCallback(
@@ -855,21 +882,29 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
             typeof (item as ConversationTurn).question === 'string' &&
             typeof (item as ConversationTurn).response === 'string' &&
             ((item as ConversationTurn).modelName === undefined ||
-              typeof (item as ConversationTurn).modelName === 'string'),
+              typeof (item as ConversationTurn).modelName === 'string') &&
+            ((item as ConversationTurn).timestamp === undefined ||
+              typeof (item as ConversationTurn).timestamp === 'number'),
           ),
         )
-        .slice(-MAX_HISTORY_TURNS);
+        .slice(-getMaxHistoryTurns());
     } catch {
       return [];
     }
   }
   function saveConversationHistory(turns: ConversationTurn[]): void {
-    localStorage.setItem(conversationHistoryKey, JSON.stringify(turns.slice(-MAX_HISTORY_TURNS)));
+    localStorage.setItem(conversationHistoryKey, JSON.stringify(turns.slice(-getMaxHistoryTurns())));
   }
-  function appendConversationTurn(question: string, response: string, modelName?: string): void {
-    const nextTurns = [...historyTurnsRef.current, { question, response, modelName }].slice(
-      -MAX_HISTORY_TURNS,
-    );
+  function appendConversationTurn(
+    question: string,
+    response: string,
+    modelName?: string,
+    timestamp?: number,
+  ): void {
+    const nextTurns = [
+      ...historyTurnsRef.current,
+      { question, response, modelName, timestamp },
+    ].slice(-getMaxHistoryTurns());
     historyTurnsRef.current = nextTurns;
     saveConversationHistory(nextTurns);
   }
@@ -885,7 +920,7 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
       logElement.appendChild(questionEntry);
 
       const responseEntry = document.createElement('div');
-      responseEntry.innerHTML = buildResponseLogHtml(turn.response, turn.modelName);
+      responseEntry.innerHTML = buildResponseLogHtml(turn.response, turn.modelName, turn.timestamp);
       logElement.appendChild(responseEntry);
     });
     logElement.scrollTop = logElement.scrollHeight;

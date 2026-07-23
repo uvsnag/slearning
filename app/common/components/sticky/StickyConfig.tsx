@@ -10,6 +10,7 @@ import {
   KEY_API_SHEET,
   KEY_DARK_MODE,
   KEY_SHOW_LOADING,
+  KEY_MAX_HISTORY_TURNS,
 } from '../../common';
 import { usePracticeContext } from '../../hooks/usePracticeStore';
 import {
@@ -91,6 +92,9 @@ const StickyConfig = forwardRef<StickyConfigHandle, StickyConfigProps>(
     const [showLoading, setShowLoading] = useState<string>(
       () => getStoredValue(KEY_SHOW_LOADING) ?? 'Y',
     );
+    const [maxHistoryTurns, setMaxHistoryTurns] = useState<string>(
+      () => getStoredValue(KEY_MAX_HISTORY_TURNS) ?? '20',
+    );
     const [storeList, setStoreList] = useState<SheetItem[]>(() => getStoreList());
     const [storeIndex, setStoreIndex] = useState<string>(
       () => getStoreList()[0]?.range ?? `${STORE_ALIAS}1`,
@@ -113,6 +117,12 @@ const StickyConfig = forwardRef<StickyConfigHandle, StickyConfigProps>(
     useEffect(() => {
       localStorage.setItem(KEY_SHOW_LOADING, showLoading);
     }, [showLoading]);
+    useEffect(() => {
+      const parsed = parseInt(maxHistoryTurns, 10);
+      if (Number.isFinite(parsed) && parsed > 0) {
+        localStorage.setItem(KEY_MAX_HISTORY_TURNS, String(parsed));
+      }
+    }, [maxHistoryTurns]);
     useEffect(() => {
       applyThemeClass(themeMode);
       localStorage.setItem(THEME_STORAGE_KEY, themeMode);
@@ -296,6 +306,19 @@ const StickyConfig = forwardRef<StickyConfigHandle, StickyConfigProps>(
                       Off
                     </label>
                   </div>
+                </label>
+                <label className="home-config-field">
+                  <span>Max History Turns</span>
+                  <input
+                    className="common-input"
+                    type="number"
+                    min="1"
+                    value={maxHistoryTurns}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                      setMaxHistoryTurns(e.target.value)
+                    }
+                    placeholder="20"
+                  />
                 </label>
               </div>
             </div>

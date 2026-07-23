@@ -249,6 +249,7 @@ export const KEY_API_SHEET = 'api-sheet-key';
 export const KEY_YT_CONTROLS = 'yt-controls';
 export const KEY_DARK_MODE = 'dark-mode';
 export const KEY_SHOW_LOADING = 'show-loading';
+export const KEY_MAX_HISTORY_TURNS = 'max-history-turns';
 
 export const COMMON_PROMPT = {
   TRANSLATE_EN_VI: 'dịch sang tiếng việt',
