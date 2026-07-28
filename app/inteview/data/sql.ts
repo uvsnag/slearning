@@ -641,7 +641,7 @@ SELECT * FROM orders WHERE customer_id = 42;
       {
         q: 'What are the most common causes of slow SQL queries?',
         difficulty: 'medium',
-        a: `<div class="interview-answer"><p><code>EXPLAIN</code> shows the plan the database chose with estimated costs, while <code>EXPLAIN ANALYZE</code> actually runs the query and shows real time and row counts. The most useful check is comparing estimated rows to actual rows; a large gap usually means the statistics are old, so running <code>ANALYZE</code> often fixes bad plans. Read the plan from the most indented node outward, and watch for full table scans on large tables and nested loops over large sets.</p></div>
+        a: `<div class="interview-answer"><p>Slow SQL queries usually come from a few common problems. Frequent causes are missing indexes on filtered or joined columns, <code>SELECT *</code> reading more data than needed, and wrapping an indexed column in a function so the index cannot be used. Other causes include the N+1 pattern, implicit type conversion, large <code>OFFSET</code> paging, correlated subqueries, lock contention, and old table statistics. The best approach is to read the query plan and fix the real cause instead of guessing.</p></div>
 <ul>
 <li><strong>Missing indexes</strong> on WHERE, JOIN, ORDER BY columns.</li>
 <li><strong>SELECT *</strong> instead of specific columns → more I/O, no covering index.</li>
@@ -667,7 +667,7 @@ WHERE created_at >= '2024-01-01'
       {
         q: 'When should you create an index? When should you NOT?',
         difficulty: 'medium',
-        a: `<div class="interview-answer"><p>Slow queries usually come from a few common problems. Frequent causes are missing indexes on filtered or joined columns, wrapping a column in a function so the index cannot be used, and <code>SELECT *</code> reading more data than needed. Other causes include the N+1 pattern, large <code>OFFSET</code> paging, correlated subqueries, and old table statistics. The best approach is to measure which queries take the most total time, read the plan, and fix the real cause instead of guessing.</p></div>
+        a: `<div class="interview-answer"><p>An index is worth creating when a column is used often in <code>WHERE</code>, <code>JOIN</code>, or <code>ORDER BY</code>, has many distinct values, and the table is large but returns only a small part of its rows. It is better to avoid indexing small tables, columns with few distinct values such as booleans, rarely queried columns, and write-heavy tables. Every index costs disk space and slows writes, so it is a trade-off rather than free. Measure usage before and after, and drop indexes that are never used.</p></div>
 <p><strong>Create index when</strong>:</p>
 <ul>
 <li>Column is in WHERE, JOIN, ORDER BY frequently.</li>
@@ -696,7 +696,7 @@ FROM pg_stat_user_indexes WHERE idx_scan = 0;</pre>
       {
         q: 'What are composite indexes? How does column order matter?',
         difficulty: 'hard',
-        a: `<div class="interview-answer"><p>Good candidates for an index are columns used often in <code>WHERE</code>, <code>JOIN</code>, or <code>ORDER BY</code>, with many distinct values, on large tables where queries return only a small part of the rows. It is better to avoid indexing small tables, columns with few distinct values such as booleans, rarely queried columns, and write-heavy tables. Every index costs disk space and slows writes, so it is a trade-off rather than free. Measure usage before and after, and drop indexes that are never used.</p></div>
+        a: `<div class="interview-answer"><p>A composite index covers several columns and follows the leftmost prefix rule. An index on <code>(a, b, c)</code> helps filters on <code>a</code>, on <code>a</code> and <code>b</code>, or on all three, but not on <code>b</code> alone. The design rule is to put equality columns first and a range condition last, because a range stops later columns from being used. Column order decides how useful the index is.</p></div>
 <p>A composite index covers <strong>multiple columns</strong>. Column order follows the <strong>leftmost prefix rule</strong>.</p>
 <pre>CREATE INDEX idx_dept_status_salary ON employees(department, status, salary);</pre>
 <p>This index supports:</p>
@@ -712,7 +712,7 @@ FROM pg_stat_user_indexes WHERE idx_scan = 0;</pre>
       {
         q: 'What is a covering index and index-only scan?',
         difficulty: 'hard',
-        a: `<div class="interview-answer"><p>A composite index covers several columns and follows the leftmost prefix rule. An index on <code>(a, b, c)</code> helps filters on <code>a</code>, on <code>a</code> and <code>b</code>, or on all three, but not on <code>b</code> alone. The design rule is to put equality columns first and a range or sort column last, because a range condition stops later columns from being used. Column order decides how useful the index is, and one well-ordered composite often beats several single-column indexes.</p></div>
+        a: `<div class="interview-answer"><p>A covering index holds every column a query needs, so the database can answer the query from the index alone without reading the table, which appears as an <code>Index Only Scan</code>. Filter and sort columns go in as key columns, while columns that are only returned can go in <code>INCLUDE</code> to keep the index smaller. The cost is a wider index that is slower to write, so it is best to cover only the few hot read queries. In PostgreSQL an index-only scan still checks the visibility map, so heavy recent updates can force table reads until <code>VACUUM</code> runs.</p></div>
 <p>A <strong>covering index</strong> contains <em>every</em> column a query needs — both the ones it filters/sorts on and the ones it returns. The database can then answer the query <strong>from the index alone</strong>, skipping the expensive hop back to the table (heap) for each row. The plan shows an <strong>Index Only Scan</strong>.</p>
 <pre>-- Query: filter on status, return name+email, ordered by name
 SELECT name, email FROM users WHERE status = 'active' ORDER BY name;
@@ -737,7 +737,7 @@ CREATE INDEX idx_b ON users(status, name) INCLUDE (email);</pre>
       {
         q: 'How to optimize pagination for large datasets?',
         difficulty: 'hard',
-        a: `<div class="interview-answer"><p>A covering index holds every column a query needs, so the database can answer the query from the index alone without reading the table, which appears as an <code>Index Only Scan</code>. Filter and sort columns go in as key columns, while columns that are only returned can go in <code>INCLUDE</code> to keep the index smaller. The cost is a wider index that is slower to write, so it is best to cover only the few hot read queries. In PostgreSQL an index-only scan still checks the visibility map, so heavy recent updates can force table reads until <code>VACUUM</code> runs.</p></div>
+        a: `<div class="interview-answer"><p><code>OFFSET</code> paging is slow because <code>OFFSET 1000000</code> still reads and skips a million rows. Keyset (cursor) paging uses a condition like <code>id &gt; last_seen_id</code> on an indexed column and stays fast no matter how deep the page is. A deferred join can help when <code>OFFSET</code> must be used. Keyset paging needs a stable, unique sort key and works well for APIs.</p></div>
 <p><strong>Problem</strong>: <code>OFFSET 1000000LIMIT 10</code> scans 1,000,010 rows.</p>
 <p><strong>Solutions</strong>:</p>
 <pre>-- 1. Keyset pagination (cursor-based) ← BEST
@@ -758,7 +758,7 @@ JOIN (
       {
         q: 'Explain the N+1 query problem and how to solve it.',
         difficulty: 'medium',
-        a: `<div class="interview-answer"><p><code>OFFSET</code> paging is slow because <code>OFFSET 1000000</code> still reads and skips a million rows. Keyset (cursor) paging uses a condition like <code>id &gt; last_seen_id</code> on an indexed column and stays fast no matter how deep the page is. A deferred join can help when <code>OFFSET</code> must be used. It is better to avoid <code>COUNT(*)</code> for totals and instead fetch one extra row to check whether a next page exists. Keyset paging needs a stable, unique sort key.</p></div>
+        a: `<div class="interview-answer"><p>The N+1 problem is one query for the parent rows plus one more query for each parent's children, which means many round trips. It is usually caused by an ORM loading related data one row at a time. The fix is to batch the work with a single <code>JOIN</code>, a <code>WHERE ... IN</code> over the collected parent ids, or the ORM's eager fetch such as <code>JOIN FETCH</code>. It often looks fine with small data and only fails in production.</p></div>
 <p><strong>Problem</strong>: 1 query to fetch parents + N queries to fetch each parent's children.</p>
 <pre>-- N+1 Problem:
 SELECT * FROM orders;                    -- 1 query
@@ -779,7 +779,7 @@ SELECT * FROM items WHERE order_id IN (1, 2, 3, ...);
       {
         q: 'How to optimize JOINs for better performance?',
         difficulty: 'hard',
-        a: `<div class="interview-answer"><p>The N+1 problem is one query for the parent rows plus one more query for each parent's children, which means many round trips. It is usually caused by an ORM loading related data lazily. The fix is to batch the work with a single <code>JOIN</code>, a <code>WHERE ... IN</code> over the collected parent ids, or the ORM's eager fetch such as <code>JOIN FETCH</code>. It often looks fine with small data and only fails in production, so it is best found by watching the query log or a trace.</p></div>
+        a: `<div class="interview-answer"><p>The biggest win is indexing both columns in the join condition. Filtering early so fewer rows are joined also helps, for example pre-filtering in a CTE before touching a large table. Joining on a function such as <code>UPPER</code> on both sides should be avoided because it blocks the index; a functional index or computed column is better. Selecting only the needed columns keeps covering plans possible and reduces I/O.</p></div>
 <ul>
 <li><strong>Index JOIN columns</strong>: both sides of the join condition should be indexed.</li>
 <li><strong>Use appropriate JOIN type</strong>: INNER JOIN is faster than LEFT JOIN (fewer rows).</li>
@@ -802,7 +802,7 @@ JOIN items i ON o.id = i.order_id;</pre>`,
       {
         q: 'What is query plan caching? How do parameterized queries help?',
         difficulty: 'hard',
-        a: `<div class="interview-answer"><p>The biggest win is indexing both columns in the join condition. Filtering early so fewer rows are joined also helps, for example pre-filtering in a CTE before touching a large table. Joining on a function such as <code>UPPER</code> on both sides should be avoided because it blocks the index; a functional index or computed column is better. Selecting only the needed columns keeps covering plans possible and reduces I/O.</p></div>
+        a: `<div class="interview-answer"><p>Query plan caching lets the database compile a plan once and reuse it instead of parsing the same query again. Parameterized (prepared) statements make this possible by keeping the query text fixed and passing values separately, which also prevents SQL injection. One downside is that a single reused generic plan can be good for one value and poor for another when the data is skewed. PostgreSQL can force a fresh plan per parameter with <code>plan_cache_mode</code>.</p></div>
 <ul>
 <li><strong>Prepared statements / parameterized queries</strong>: DB compiles the plan once and reuses it for different parameter values.</li>
 <li>Prevents <strong>SQL injection</strong> (security benefit).</li>
@@ -819,7 +819,7 @@ ps.setInt(1, userId);</pre>
       {
         q: 'What is table partitioning? When to use it?',
         difficulty: 'hard',
-        a: `<div class="interview-answer"><p>Prepared statements let the database compile a plan once and reuse it for different parameter values, which saves repeated parsing cost and also prevents SQL injection by keeping code separate from data. One downside is that a single reused generic plan can be good for one value and poor for another when the data is skewed. PostgreSQL can force a fresh plan per parameter with <code>plan_cache_mode</code>. SQL should never be built by joining strings together.</p></div>
+        a: `<div class="interview-answer"><p>Partitioning splits one large table into smaller physical pieces while it stays logically one table, usually by date range, and sometimes by list or hash. The benefits are partition pruning, where queries that filter on the partition key skip whole partitions, plus fast data removal by dropping a partition instead of a large <code>DELETE</code>. It only pays off on very large tables, around 10 million rows or more. The partition key must appear in the queries or pruning cannot happen.</p></div>
 <p>Partitioning splits a large table into smallerphysical pieces while keeping it logically one table.</p>
 <ul>
 <li><strong>Range partitioning</strong>: by date range (most common). E.g., monthly partitions.</li>
@@ -839,7 +839,7 @@ CREATE TABLE orders_2024_q1 PARTITION OF orders
       {
         q: 'How to optimize COUNT(*) on large tables?',
         difficulty: 'hard',
-        a: `<div class="interview-answer"><p>Partitioning splits one large table into smaller physical pieces, usually by date range, and sometimes by list or hash. The benefits are partition pruning, where queries that filter on the partition key skip whole partitions, plus fast data removal by dropping a partition instead of a large <code>DELETE</code>. It only pays off on very large tables, around 10 million rows or more, where queries filter on the partition key. The partition key must appear in the queries or pruning cannot happen.</p></div>
+        a: `<div class="interview-answer"><p><code>COUNT(*)</code> is slow on large tables in an MVCC database because visibility is per-transaction, so it must scan every row instead of reading a stored counter. The first question is whether an exact live total is really needed, since an estimate from <code>pg_class</code> is often good enough. A filtered count backed by an index is fast when the slice is small, and an exact fast count needs a summary table kept current by triggers. For paging, the total can be replaced with a check for whether a next page exists.</p></div>
 <p><strong>Why it's slow:</strong> in an MVCC database (PostgreSQL), a row's visibility depends on the querying transaction, so <code>COUNT(*)</code> can't read a single stored counter — it must scan every row (or at least a full index) to check which versions are visible. On tens of millions of rows that's seconds.</p>
 <pre>-- 1) Approximate total — instant, good enough for "≈ 12M results"
 SELECT reltuples::bigint AS estimate
@@ -865,7 +865,7 @@ SELECT * FROM orders WHERE id > :last ORDER BY id LIMIT :size + 1;
       {
         q: 'What are the differences between EXIST vs IN vs JOIN for subqueries?',
         difficulty: 'tricky',
-        a: `<div class="interview-answer"><p><code>COUNT(*)</code> is slow in an MVCC database because visibility is per-transaction, so it must scan every row instead of reading a stored counter. The first question is whether an exact live total is really needed, since an estimate from <code>pg_class</code> is often good enough. A filtered count backed by an index is fast when the slice is small, and an exact fast count needs a summary table kept current by triggers. For paging, the total can be replaced with a check for whether a next page exists.</p></div>
+        a: `<div class="interview-answer"><p><code>EXISTS</code> stops at the first match, so it works well when the subquery returns many rows. <code>IN</code> builds a list or hash and suits small value sets. <code>JOIN</code> is used when columns are needed from both tables, but a one-to-many join multiplies rows and needs <code>DISTINCT</code>. Modern optimizers often turn <code>IN</code> and <code>EXISTS</code> into the same plan, so the choice should be based on meaning, and <code>NOT EXISTS</code> is safer than <code>NOT IN</code> because of the NULL trap.</p></div>
 <pre>-- EXISTS: stops at first match (short-circuit). Best when subquery returns MANY rows.
 SELECT * FROM orders o
 WHERE EXISTS (SELECT 1 FROM items i WHERE i.order_id = o.id);
@@ -883,7 +883,7 @@ JOIN items i ON o.id = i.order_id;</pre>
       {
         q: 'How to identify and fix slow queries in production?',
         difficulty: 'hard',
-        a: `<div class="interview-answer"><p><code>EXISTS</code> stops at the first match, so it works well when the subquery returns many rows. <code>IN</code> builds a list or hash and suits small value sets. <code>JOIN</code> is used when columns are needed from both tables, but a one-to-many join multiplies rows and needs <code>DISTINCT</code>. Modern optimizers usually turn <code>IN</code> and <code>EXISTS</code> into the same plan, so the choice should be based on meaning and readability. <code>NOT EXISTS</code> is safer than <code>NOT IN</code> because of the NULL trap.</p></div>
+        a: `<div class="interview-answer"><p>This works best in three evidence-based steps. First, find the worst queries by turning on the slow query log and ranking by total time in <code>pg_stat_statements</code>, since a fast query run millions of times can hurt more than one slow query. Second, get the real plan for the top offenders with <code>EXPLAIN (ANALYZE, BUFFERS)</code> and look for full scans, bad estimates, and sorts spilling to disk. Third, fix the cheapest thing first, such as refreshing statistics, adding a missing index, and rewriting the query, and only then scale out with pooling or read replicas.</p></div>
 <p>Work in three phases: <strong>find</strong> the worst queries with data (not guesses), <strong>diagnose</strong> each with its plan, then <strong>fix and verify</strong>.</p>
 <p><strong>1. Find — turn on the slow query log and query the stats view:</strong></p>
 <pre>-- PostgreSQL: log any statement slower than 500ms
@@ -916,7 +916,7 @@ SET GLOBAL long_query_time = 0.5;
       {
         q: 'What is database connection pooling and why is it important?',
         difficulty: 'medium',
-        a: `<div class="interview-answer"><p>This works best in three evidence-based steps. First, find the worst queries by turning on the slow query log and ranking by total time in <code>pg_stat_statements</code>, since a fast query run millions of times can hurt more than one slow query. Second, get <code>EXPLAIN (ANALYZE, BUFFERS)</code> for the top offenders and look for full scans, bad estimates, and sorts spilling to disk. Third, fix the cheapest thing first, such as refreshing statistics, adding a missing index, and rewriting the query, and only then scale out with pooling or read replicas.</p></div>
+        a: `<div class="interview-answer"><p>Opening a database connection is expensive because of the handshake, authentication, and memory setup, so a connection pool keeps live connections ready and reuses them. This avoids the cost of creating a new connection for every request and greatly improves throughput. A common size guide is cores times two plus disk spindles, and a tool such as PgBouncer or HikariCP manages the pool. Too few connections makes clients wait, while too many strains the database with memory pressure and context switching.</p></div>
 <p>Creating a DB connection is expensive (TCP handshake, authentication, memory allocation). A <strong>connection pool</strong> maintains a cache of reusable connections.</p>
 <ul>
 <li><strong>HikariCP</strong> (Java): fastest, default in Spring Boot. Typical pool size: CPU cores × 2 + disk spindles.</li>
@@ -931,7 +931,7 @@ spring.datasource.hikari.connection-timeout=30000</pre>
       {
         q: 'What is the difference between DELETE, TRUNCATE, and DROP?',
         difficulty: 'tricky',
-        a: `<div class="interview-answer"><p>Opening a database connection is expensive because of the handshake, authentication, and memory setup, so a pool keeps live connections ready and reuses them. More connections is not always better; too many cause memory pressure and context switching, and PostgreSQL uses one process per connection. A common size guide is cores times two plus disk spindles, and a tool such as PgBouncer sits in front when thousands of clients are needed. Too few connections makes clients wait, while too many strains the database.</p></div>
+        a: `<div class="interview-answer"><p><code>DELETE</code> removes rows, can use a <code>WHERE</code> clause, logs each row, fires triggers, and can be rolled back. <code>TRUNCATE</code> removes all rows quickly by deallocating pages, resets the identity counter, and skips triggers. <code>DROP</code> removes the whole table including its structure. A common trick is rollback behavior: in PostgreSQL <code>TRUNCATE</code> can be rolled back, but in MySQL it cannot, so the answer depends on the database.</p></div>
 <table><tr><th>Aspect</th><th>DELETE</th><th>TRUNCATE</th><th>DROP</th></tr>
 <tr><td>What it does</td><td>Removes rows (with WHERE)</td><td>Removes ALL rows</td><td>Removes entire table</td></tr>
 <tr><td>WHERE clause</td><td>✅ Yes</td><td>❌ No</td><td>❌ No</td></tr>
@@ -953,7 +953,7 @@ DROP TABLE IF EXISTS temp_data;</pre>
       {
         q: 'What is the difference between UNION and UNION ALL? When does UNION give wrong results?',
         difficulty: 'tricky',
-        a: `<div class="interview-answer"><p><code>DELETE</code> removes rows, can use a <code>WHERE</code> clause, logs each row, fires triggers, and is transactional. <code>TRUNCATE</code> removes all rows quickly by deallocating pages, resets the identity counter, and skips triggers. <code>DROP</code> removes the whole table structure. A common trick is rollback behavior: in PostgreSQL <code>TRUNCATE</code> can be rolled back, but in MySQL it cannot, so the answer depends on the database.</p></div>
+        a: `<div class="interview-answer"><p><code>UNION</code> removes duplicates, which adds an implicit sort or hash step that is slow on large sets, while <code>UNION ALL</code> just joins the results together and is always faster. <code>UNION</code> gives wrong results when the data has real duplicates that must be kept, such as summing a matching amount from two accounts, because it silently drops one. The safe default is <code>UNION ALL</code>, using <code>UNION</code> only when duplicates truly need to be removed.</p></div>
 <pre>-- UNION: combines results and REMOVES duplicates (slower — sorts/hashes)
 SELECT name FROM employees
 UNION
@@ -983,7 +983,7 @@ SELECT amount FROM savings_account;
       {
         q: 'What makes a WHERE clause non-SARGable? How do you fix it?',
         difficulty: 'hard',
-        a: `<div class="interview-answer"><p><code>UNION</code> removes duplicates, which adds an implicit sort or hash step that is slow on large sets, while <code>UNION ALL</code> just joins the results together and is always faster. <code>UNION</code> gives wrong results when the data has real duplicates that must be kept, such as summing a matching amount from two accounts, because it silently drops one. The safe default is <code>UNION ALL</code>, using <code>UNION</code> only when duplicates truly need to be removed.</p></div>
+        a: `<div class="interview-answer"><p>SARGable means a condition can use an index seek. Wrapping the column in a function or expression, such as <code>YEAR(created_at) = 2024</code> or an implicit type cast, makes it non-SARGable and forces a full scan. The fix is to keep the column bare and move all computation to the constant side, for example rewriting the year filter as a date range. When the function is truly needed, a functional index that matches the exact expression can be created, and a leading wildcard such as <code>LIKE '%x'</code> needs a trigram or full-text index.</p></div>
 <p><strong>SARGable</strong> (Search ARGument able) = the predicate can use an index seek. Wrapping the <strong>column</strong> in a function or expression makes it non-SARGable — the DB must compute it for every row (full scan).</p>
 <pre>-- ❌ Non-SARGable                          → ✅ SARGable rewrite
 WHERE YEAR(created_at) = 2024               WHERE created_at >= '2024-01-01'
@@ -1007,7 +1007,7 @@ SELECT * FROM users WHERE LOWER(email) = 'an@x.com';   -- ✅ uses the index</pr
       {
         q: 'What are partial, functional, and other special index types? When do you use them?',
         difficulty: 'hard',
-        a: `<div class="interview-answer"><p>SARGable means the condition can use an index seek. Wrapping the column in a function or expression, such as <code>YEAR(created_at) = 2024</code> or an implicit type cast, blocks the index and forces a full scan. The fix is to keep the column bare and move all computation to the constant side, for example rewriting the year filter as a date range. When the function is truly needed, a functional index that matches the exact expression can be created, and a leading wildcard such as <code>LIKE '%x'</code> needs a trigram or full-text index.</p></div>
+        a: `<div class="interview-answer"><p>Beyond a plain B-tree there are several special index types. A partial index covers only rows that match a condition, giving a small index when queries always target a subset, and a partial unique index can enforce rules such as one active session per user. A functional index indexes an expression like <code>LOWER(email)</code> for case-insensitive lookup, and <code>INCLUDE</code> adds return-only columns for covering scans. GIN and trigram indexes handle contains-style and full-text search, while a hash index is equality only. Partial indexes are often underused because a smaller index fits in memory and keeps writes cheap.</p></div>
 <ul>
 <li><strong>Partial index</strong>: indexes only rows matching a condition — tiny index for a huge table when queries always target a subset.</li>
 <li><strong>Functional (expression) index</strong>: indexes the result of an expression.</li>
@@ -1036,7 +1036,7 @@ CREATE INDEX idx_products_name ON products USING GIN (name gin_trgm_ops);</pre>
       {
         q: 'How do you optimize bulk INSERT / UPDATE / DELETE operations?',
         difficulty: 'hard',
-        a: `<div class="interview-answer"><p>Beyond a plain B-tree there are several special index types. A partial index covers only rows that match a condition, giving a small index when queries always target a subset, and a partial unique index can enforce rules such as one active session per user. A functional index indexes an expression like <code>LOWER(email)</code> for case-insensitive lookup, and <code>INCLUDE</code> adds return-only columns for covering scans. GIN and trigram indexes handle contains-style and full-text search. Partial indexes are often underused because a smaller index fits in memory and keeps writes cheap.</p></div>
+        a: `<div class="interview-answer"><p>The bottleneck in bulk work is the per-row round trips and per-statement overhead, not the amount of data, so batching is the fix. Multi-row inserts are far faster than row-by-row, and <code>COPY</code> or <code>LOAD DATA</code> is faster still. In Java, JDBC <code>executeBatch</code> with the <code>rewriteBatchedStatements</code> driver flag is needed for real batching. Large deletes should be done in chunks to avoid one big lock and bloat, and a one-time massive load is fastest with indexes dropped first and rebuilt after loading.</p></div>
 <p><strong>Batching</strong>: the killer is per-row round trips and per-statement overhead — not the data volume itself.</p>
 <pre>-- ❌ 10,000 round trips
 INSERT INTO items VALUES (1, 'a');
@@ -1069,7 +1069,7 @@ FROM   staging_prices s WHERE s.product_id = p.id;</pre>
       {
         q: 'What is the difference between a view and a materialized view? When do you use each?',
         difficulty: 'medium',
-        a: `<div class="interview-answer"><p>The bottleneck in bulk work is the per-row round trips and per-statement overhead, not the amount of data, so batching is the fix. Multi-row inserts are far faster than row-by-row, and <code>COPY</code> or <code>LOAD DATA</code> is faster still. In Java, JDBC <code>executeBatch</code> with the <code>rewriteBatchedStatements</code> driver flag is needed for real batching. Large deletes should be done in chunks to avoid one big lock and bloat, and a one-time massive load is fastest with indexes dropped first and rebuilt after loading.</p></div>
+        a: `<div class="interview-answer"><p>A view is just a saved query with no stored data, so it is always fresh but pays the full query cost on every read; it is useful for abstraction and security. A materialized view stores the result physically and can be indexed, so reads are fast, but the data is stale until a <code>REFRESH</code> runs. Use a view for simplifying access, and a materialized view for expensive aggregations such as dashboards and reports. This is the same freshness-versus-speed trade-off as a cache, except it lives in the database.</p></div>
 <ul>
 <li><strong>View</strong>: a saved query — no data stored. Every SELECT re-runs the underlying query. Always fresh, costs full query time.</li>
 <li><strong>Materialized view</strong>: the query result is <strong>physically stored</strong> (and can be indexed!). Reads are instant; data is stale until refreshed.</li>
@@ -1099,7 +1099,7 @@ REFRESH MATERIALIZED VIEW CONCURRENTLY daily_revenue;   -- no read lock
       {
         q: 'The column is indexed and the predicate is SARGable — why does the optimizer still choose a full table scan?',
         difficulty: 'tricky',
-        a: `<div class="interview-answer"><p>A view is just a saved query with no stored data, so it is always fresh but pays the full query cost on every read; it is useful for abstraction and security. A materialized view stores the result physically and can be indexed, so reads are fast, but the data is stale until a <code>REFRESH</code> runs. This is the same freshness-versus-speed trade-off as a cache, except it lives in the database and stays queryable with SQL. <code>REFRESH ... CONCURRENTLY</code> avoids blocking reads and is often run on a schedule.</p></div>
+        a: `<div class="interview-answer"><p>Often the optimizer is correct to skip the index. Index access costs about one random read per matching row, while a sequential scan reads pages in bulk, so past a few percent of rows a full scan is genuinely cheaper. Other causes are an <code>OR</code> across different columns, which one B-tree cannot serve, and tiny tables that always scan. To prove it is a cost decision, the index can be forced with <code>enable_seqscan = off</code> or <code>FORCE INDEX</code> and compared; if the forced plan is slower, the planner was right.</p></div>
 <p>Because index access costs roughly <strong>onerandom I/O per matching row</strong> (index leaf → heap lookup), while a sequential scan reads pages in bulk. Past a few percent selectivity, the full scan is genuinely <em>cheaper</em> — the optimizer ignoring your index is often the optimizer being right.</p>
 <pre>-- 1) Low selectivity: the index is used only when it pays off
 SELECT * FROM orders WHERE status = 'done';     -- 95% of rows
@@ -1129,7 +1129,7 @@ EXPLAIN ANALYZE SELECT * FROM orders WHERE status = 'done';
       {
         q: 'EXPLAIN says rows=12 but the step actually returned 480,000 — why are estimates wrong and how do you fix the plan?',
         difficulty: 'hard',
-        a: `<div class="interview-answer"><p>Often the optimizer is correct to skip the index. Index access costs about one random read per matching row, while a sequential scan reads pages in bulk, so past a few percent of rows a full scan is genuinely cheaper. Other causes are an <code>OR</code> across different columns, which one B-tree cannot serve, and tiny tables that always scan. To prove it is a cost decision, the index can be forced with <code>enable_seqscan = off</code> or <code>FORCE INDEX</code> and compared; if the forced plan is slower, the planner was right. A partial index often helps on a skewed column.</p></div>
+        a: `<div class="interview-answer"><p>The optimizer chooses the join type, join order, and memory from row estimates, so an estimate that is far off produces a bad plan, such as a Nested Loop chosen for half a million rows. The most common cause is old statistics after a bulk load or large delete, so <code>ANALYZE</code> should be run first. A subtler cause is correlated columns, because the planner assumes columns are independent and multiplies their selectivity; PostgreSQL extended statistics fixes this. To spot it, compare estimated and actual rows node by node, and treat query hints as a last resort because they go stale as data changes.</p></div>
 <p>Join strategy, join order, and memory grants are all chosen from <strong>row estimates</strong>. When the estimate is off by orders of magnitude, the optimizer picks a plan that is catastrophic at the real size — the classic symptom is a Nested Loop chosen for half a million rows.</p>
 <pre>EXPLAIN ANALYZE
 SELECT * FROM addresses WHERE city = 'Hanoi' AND country = 'VN';
@@ -1159,7 +1159,7 @@ SET plan_cache_mode = force_custom_plan;   -- PostgreSQL: re-plan per parameter<
       {
         q: 'MySQL EXPLAIN shows "Using filesort" and "Using temporary" — what do they mean and how do you eliminate them?',
         difficulty: 'hard',
-        a: `<div class="interview-answer"><p>The optimizer chooses the join type, join order, and memory from row estimates, so an estimate that is far off produces a bad plan, such as a Nested Loop chosen for half a million rows. The most common cause is old statistics after a bulk load or large delete, so <code>ANALYZE</code> should be run first. A subtler cause is correlated columns, because the planner assumes columns are independent and multiplies their selectivity; PostgreSQL extended statistics with a <code>dependencies</code> declaration fixes this. Skewed data with a reused generic plan is a third cause, and hints are a last resort because they go stale as data changes.</p></div>
+        a: `<div class="interview-answer"><p>Both flags mean no index can return rows in the order the query needs. Using filesort is a separate sort step that may run in memory or spill to disk, and Using temporary is an implicit temp table used for <code>GROUP BY</code>, <code>DISTINCT</code>, or some unions. They are costly under <code>LIMIT</code> because the whole result is built before the <code>LIMIT</code> is applied. The fix is a composite index with equality-filter columns first, then the <code>ORDER BY</code> or <code>GROUP BY</code> columns in matching direction, so the index feeds rows already sorted.</p></div>
 <p>Both flags mean "no index delivers rows in theorder I need". <strong>Using filesort</strong> = an explicit sort step (despite the name it may be in-memory; it spills to disk past sort_buffer_size). <strong>Using temporary</strong> = an implicit temp table, typically for GROUP BY / DISTINCT / some UNIONs. On big tables under LIMIT they are performance killers, because the whole set is materialized before the LIMIT applies.</p>
 <pre>EXPLAIN SELECT * FROM orders
 WHERE  customer_id = 42
@@ -1187,7 +1187,7 @@ CREATE INDEX idx_status ON orders (status);
       {
         q: 'How exactly does each extra index slow down writes? (write amplification, HOT updates, index bloat)',
         difficulty: 'hard',
-        a: `<div class="interview-answer"><p>Both flags mean no index can return rows in the order the query needs. Using filesort is a separate sort step that may run in memory or spill to disk, and Using temporary is an implicit temp table used for <code>GROUP BY</code>, <code>DISTINCT</code>, or some unions. They are costly under <code>LIMIT</code> because the whole result is built before the <code>LIMIT</code> is applied. The fix is a composite index with equality-filter columns first, then the <code>ORDER BY</code> or <code>GROUP BY</code> columns in matching direction, so the index feeds rows already sorted. A range condition before the sort column breaks that ordering.</p></div>
+        a: `<div class="interview-answer"><p>Every secondary index is a separate B-tree the database must keep in sync on every write, so one insert into a table with several indexes becomes many writes, known as write amplification. In PostgreSQL an update to an unindexed column can be a cheap HOT update, but indexing a hot column forces maintenance of every index on each update. Deleted and updated entries also leave dead space, causing index bloat that slows reads too. Before adding an index, check that it will actually be used, and drop the ones nobody uses.</p></div>
 <p>Every secondary index is a separate B-tree the database must keep in sync on <strong>every write</strong> — indexes are paid for at write time, not just in disk space.</p>
 <pre>-- One INSERT into a table with 6 secondary indexes =
 --   1 heap write + 6 B-tree inserts (+ page splits + WAL for each) → ~7× amplification
