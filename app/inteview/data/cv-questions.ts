@@ -12,6 +12,7 @@ export const topics: PvTopic[] = [
         q: 'Tell me about yourself and your experience.',
         difficulty: 'easy',
         a: `<div class="interview-answer"><p>This is usually the first question in an interview. A good answer is a short self-introduction of about two minutes that follows a simple order: present role, past roles, then future goal. It should cover years of experience, the current job and main technologies, and the kind of role wanted next. The goal is to tell a clear story, not to read the whole CV.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Đây thường là câu hỏi đầu tiên trong một buổi phỏng vấn. Một câu trả lời tốt là phần tự giới thiệu ngắn gọn khoảng hai phút, đi theo một trình tự đơn giản: vai trò hiện tại, các vai trò trong quá khứ, rồi đến mục tiêu trong tương lai. Nó nên đề cập đến số năm kinh nghiệm, công việc hiện tại cùng các công nghệ chính, và loại vị trí mà bạn muốn hướng tới tiếp theo. Mục tiêu là kể một câu chuyện rõ ràng, chứ không phải đọc lại toàn bộ CV.</p></details>
 <p>This is usually the <strong>first question</strong>. Prepare a 2-minute elevator pitch following this structure:</p>
 <pre>Formula: Present → Past → Future
 
@@ -35,6 +36,7 @@ architectural decisions and continue growing as a technical leader."</pre>
         q: 'Why are you leaving your current company?',
         difficulty: 'medium',
         a: `<div class="interview-answer"><p>This question should be answered in an honest but positive way. The focus should be on what the person wants next, such as more ownership of architecture, new technical challenges, or working on a product with wider impact. Good answers describe growth goals, while bad answers complain about managers, salary, or boredom. It is important to never speak badly about the current employer.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Câu hỏi này nên được trả lời một cách trung thực nhưng tích cực. Trọng tâm nên đặt vào điều bạn mong muốn tiếp theo, chẳng hạn như được làm chủ nhiều hơn về kiến trúc hệ thống, những thử thách kỹ thuật mới, hoặc được làm việc trên một sản phẩm có tầm ảnh hưởng rộng hơn. Câu trả lời tốt mô tả các mục tiêu phát triển, còn câu trả lời dở thì than phiền về sếp, lương thưởng hay sự nhàm chán. Điều quan trọng là đừng bao giờ nói xấu về công ty hiện tại.</p></details>
 <p>Be honest but positive. Focus on what you want, not what you're running from.</p>
 <ul>
 <li><strong>Good answers</strong>: seeking growth, want to work with a specific tech stack, looking for more architectural challenges, want to contribute to a product company.</li>
@@ -51,6 +53,7 @@ on products with a broader impact."</pre>
         q: 'Describe a challenging project you worked on and how you solved it.',
         difficulty: 'hard',
         a: `<div class="interview-answer"><p>This answer uses the <strong>STAR</strong> method: Situation, Task, Action, Result. The example is a database migration toolkit built at CyberLogitec to move data across many PostgreSQL environments with more than 100 tables. The solution used a streaming pipeline on the PostgreSQL <code>COPY</code> protocol, multi-phase validation, data masking for private data, and a real-time monitoring screen. The result was much less manual work and zero production incidents, and the tool is now used across the company. Results should always be measured with numbers.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Câu trả lời này sử dụng phương pháp <strong>STAR</strong>: Situation, Task, Action, Result. Ví dụ ở đây là một bộ công cụ migration cơ sở dữ liệu được xây dựng tại CyberLogitec để di chuyển dữ liệu qua nhiều môi trường PostgreSQL với hơn 100 bảng. Giải pháp sử dụng một pipeline dạng streaming dựa trên giao thức <code>COPY</code> của PostgreSQL, xác thực dữ liệu qua nhiều giai đoạn, che dấu dữ liệu cá nhân, và một màn hình giám sát theo thời gian thực. Kết quả là giảm đáng kể công việc thủ công và không có sự cố nào trên production, và công cụ này hiện đã được dùng trên toàn công ty. Kết quả luôn nên được đo lường bằng những con số cụ thể.</p></details>
 <p>Use the <strong>STAR method</strong>: Situation → Task → Action → Result.</p>
 <pre>Example (FWD Database Migration Toolkit):
 
@@ -79,6 +82,7 @@ validation. The tool is now used across the organization."</pre>
         q: 'You mention ~7 years of experience. What has your growth trajectory been?',
         difficulty: 'medium',
         a: `<div class="interview-answer"><p>This answer shows a clear career progression with growing responsibility over about seven years. It started with building features as a full-stack developer at ALLEXCEED, then leading a small team at WOWCNS, and now making architecture decisions and tuning SQL at CyberLogitec. The main idea is that responsibility grew from writing code, to leading people, to setting the technical direction.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Câu trả lời này cho thấy một lộ trình nghề nghiệp rõ ràng với trách nhiệm ngày càng tăng qua khoảng bảy năm. Bắt đầu bằng việc xây dựng tính năng với vai trò full-stack developer tại ALLEXCEED, sau đó dẫn dắt một nhóm nhỏ tại WOWCNS, và hiện tại là đưa ra các quyết định về kiến trúc cùng tối ưu SQL tại CyberLogitec. Ý chính là trách nhiệm đã lớn dần từ việc viết code, đến việc dẫn dắt con người, rồi đến việc định hướng kỹ thuật.</p></details>
 <p>Show progression from junior developer to senior/lead with increasing responsibilities.</p>
 <pre>Timeline:
 2019-2021 (ALLEXCEED): 
@@ -104,6 +108,7 @@ validation. The tool is now used across the organization."</pre>
         q: 'You mention Hexagonal Architecture and Spring Modulith. Explain the benefits.',
         difficulty: 'hard',
         a: `<div class="interview-answer"><p>Hexagonal architecture, also called ports and adapters, keeps business logic separate from frameworks, which makes it easy to test and easy to swap parts like the database or messaging. <strong>Spring Modulith</strong> enforces module boundaries inside one deployable application, checks for architecture violations during tests, and lets modules talk through events. Together they give strong module isolation like microservices while keeping the simple operation of a single application. Services can still be split out later when it is really needed.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Hexagonal architecture, còn gọi là ports and adapters, tách biệt business logic khỏi các framework, nhờ đó dễ kiểm thử và dễ thay thế những phần như cơ sở dữ liệu hay messaging. <strong>Spring Modulith</strong> áp đặt ranh giới giữa các module bên trong một ứng dụng có thể triển khai duy nhất, kiểm tra các vi phạm kiến trúc trong lúc test, và cho phép các module giao tiếp với nhau qua sự kiện. Kết hợp lại, chúng mang lại sự cô lập module mạnh mẽ như microservices trong khi vẫn giữ được sự đơn giản khi vận hành một ứng dụng duy nhất. Sau này vẫn có thể tách các service ra khi thực sự cần thiết.</p></details>
 <p>Based on your CARIS UPGRADE project using <strong>Spring Modulith</strong> with <strong>Hexagonal Architecture</strong>.</p>
 <pre>Hexagonal Architecture (Ports & Adapters):
   ┌─────────────────────────────────────┐
@@ -146,6 +151,7 @@ com.example.logistics
         q: 'Explain how you standardized API patterns. What does API standardization include?',
         difficulty: 'hard',
         a: `<div class="interview-answer"><p>Standardized API patterns mean every endpoint behaves in the same, predictable way. This includes one response format and one error format, a clear set of HTTP status codes, consistent naming and pagination, and a single global exception handler using <code>@RestControllerAdvice</code>. Authentication and the request lifecycle work the same everywhere, and OpenAPI or Swagger provides automatic documentation. The main benefit is fewer defects, because a developer who understands one endpoint already understands the others.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Chuẩn hóa các API pattern nghĩa là mọi endpoint đều hoạt động theo cùng một cách nhất quán và dễ đoán. Điều này bao gồm một định dạng response chung và một định dạng lỗi chung, một bộ HTTP status code rõ ràng, cách đặt tên và phân trang nhất quán, cùng một global exception handler duy nhất dùng <code>@RestControllerAdvice</code>. Việc xác thực và vòng đời của request hoạt động giống nhau ở mọi nơi, còn OpenAPI hay Swagger thì tự động tạo tài liệu. Lợi ích chính là giảm lỗi, bởi vì một developer đã hiểu một endpoint thì cũng hiểu luôn các endpoint còn lại.</p></details>
 <p>From your CARIS UPGRADE project: "Standardized API patterns (error handling, authentication, request lifecycle)."</p>
 <pre>// 1. Consistent response format
 {
@@ -194,6 +200,7 @@ com.example.logistics
         q: 'You mention SQL optimization as a key skill. Walk me through your approach.',
         difficulty: 'hard',
         a: `<div class="interview-answer"><p>The approach to SQL optimization follows four steps and avoids guessing: identify, analyze, optimize, and validate. Slow queries are first found with tools like <code>pg_stat_statements</code>, then studied with <code>EXPLAIN ANALYZE</code> to spot problems such as full table scans or bad row estimates. Fixes include adding the right indexes, often a composite covering index, and rewriting queries, for example replacing subqueries with joins or using keyset pagination. In one real case a query dropped from eight seconds to fifty milliseconds, and the result is always checked by comparing plans and timing.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Cách tiếp cận để tối ưu SQL đi theo bốn bước và tránh việc phỏng đoán: identify, analyze, optimize và validate. Trước tiên, các query chậm được tìm ra bằng những công cụ như <code>pg_stat_statements</code>, sau đó được phân tích bằng <code>EXPLAIN ANALYZE</code> để phát hiện các vấn đề như full table scan hay ước lượng số dòng sai lệch. Các cách khắc phục bao gồm thêm index phù hợp, thường là một composite covering index, và viết lại query, ví dụ thay subquery bằng join hoặc dùng keyset pagination. Trong một tình huống thực tế, một query đã giảm từ tám giây xuống còn năm mươi mili giây, và kết quả luôn được kiểm chứng bằng cách so sánh execution plan và thời gian chạy.</p></details>
 <p>From your CV: "Optimized SQL queries and tuned database performance through indexing and query restructuring."</p>
 <pre>Step-by-step approach:
 
@@ -248,6 +255,7 @@ ON orders(status, created_at DESC) INCLUDE (customer_id);
         q: 'You were a Deputy Team Lead. How do you handle code reviews?',
         difficulty: 'medium',
         a: `<div class="interview-answer"><p>Code review here is treated as a way to improve quality and teach, not to block people. The focus is on correctness, edge cases, security, and performance problems like N+1 queries, while tools like ESLint and Prettier handle formatting. The tone is polite: asking questions instead of giving orders, praising good code, and marking comments as optional or required. Reviews are returned within a day and kept small, and repeated issues are turned into team guidelines or lint rules.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Ở đây, code review được xem như một cách để nâng cao chất lượng và để dạy lẫn nhau, chứ không phải để cản trở người khác. Trọng tâm là tính đúng đắn, các trường hợp biên, bảo mật, và những vấn đề về hiệu năng như N+1 query, trong khi các công cụ như ESLint và Prettier lo phần định dạng. Giọng điệu thì lịch sự: đặt câu hỏi thay vì ra lệnh, khen ngợi những đoạn code tốt, và đánh dấu các nhận xét là tùy chọn hay bắt buộc. Review được phản hồi trong vòng một ngày và giữ ở quy mô nhỏ, còn những lỗi lặp đi lặp lại thì được chuyển thành quy tắc chung của nhóm hoặc lint rule.</p></details>
 <p>From your CV: "Conducted code reviews and enforced coding standards across the team."</p>
 <pre>My code review approach:
 
@@ -281,6 +289,7 @@ ON orders(status, created_at DESC) INCLUDE (customer_id);
         q: 'How do you mentor junior developers?',
         difficulty: 'medium',
         a: `<div class="interview-answer"><p>The goal of mentoring is to build developers who can work on their own. New developers start with pair programming and small, clearly defined tasks, and the difficulty grows as they gain confidence. Code reviews are used to teach by explaining the reason for each change, and weekly one-on-one meetings help remove blockers and set goals. When a junior is stuck, guiding questions are better than giving the answer directly, and this approach led to faster onboarding at WOWCNS.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Mục tiêu của việc mentoring là tạo ra những developer có thể tự làm việc độc lập. Các developer mới bắt đầu với pair programming và những task nhỏ, được định nghĩa rõ ràng, rồi độ khó tăng dần khi họ tự tin hơn. Code review được dùng để dạy bằng cách giải thích lý do đằng sau mỗi thay đổi, còn các buổi one-on-one hàng tuần giúp gỡ vướng mắc và đặt mục tiêu. Khi một bạn junior bị bí, việc đặt câu hỏi gợi mở sẽ tốt hơn là đưa ra đáp án ngay, và cách làm này đã giúp quá trình onboarding tại WOWCNS nhanh hơn.</p></details>
 <p>From your CV: "Mentored junior developers and resolved complex technical issues."</p>
 <pre>Mentoring strategies I use:
 
@@ -317,6 +326,7 @@ ON orders(status, created_at DESC) INCLUDE (customer_id);
         q: 'Tell me about the legacy system migration (CARIS UPGRADE). What challenges did you face?',
         difficulty: 'hard',
         a: `<div class="interview-answer"><p>The CARIS project moved a live legacy logistics system to Next.js, <code>Java 21</code>, and Spring Modulith with no downtime and no data loss. Because the system runs in production, the Strangler Fig pattern was used to migrate one module at a time. Data across more than 100 tables was moved with an automated toolkit that included strong validation, and the inconsistent legacy APIs were redesigned around a new standard. The team was new to the stack, so coding standards, reusable patterns, and pair programming were important. The main lessons are to migrate step by step, keep backward compatibility, validate carefully, and support the team.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Dự án CARIS đã chuyển một hệ thống logistics legacy đang chạy thật sang Next.js, <code>Java 21</code> và Spring Modulith mà không có downtime và không mất dữ liệu. Vì hệ thống chạy trên production, mẫu Strangler Fig được dùng để migrate từng module một. Dữ liệu trải trên hơn 100 bảng được di chuyển bằng một bộ công cụ tự động có kèm cơ chế xác thực chặt chẽ, và các API legacy vốn thiếu nhất quán đã được thiết kế lại theo một chuẩn mới. Cả nhóm còn mới với stack này, nên coding standard, các pattern tái sử dụng và pair programming đều rất quan trọng. Bài học chính là hãy migrate theo từng bước, giữ tính tương thích ngược, xác thực cẩn thận, và hỗ trợ cả nhóm.</p></details>
 <p>From your CV: "Led the migration of a legacy logistics system to a modern stack (Next.js, Java 21, Spring Modulith), ensuring business continuity and zero data loss."</p>
 <pre>CARIS UPGRADE Migration Overview:
 
@@ -358,6 +368,7 @@ Challenges & Solutions:
         q: 'You mention AI-assisted development. How do you use AI tools in your workflow?',
         difficulty: 'medium',
         a: `<div class="interview-answer"><p>AI tools are used across the daily workflow to speed up development. They help create boilerplate such as CRUD endpoints, test scaffolding, and migration scripts, and to modernize old code, for example converting JavaScript to TypeScript. A shared library of reusable, standardized prompts gives the whole team consistent results. Every AI output is treated as a first draft that must be reviewed and tested, so the biggest value is removing repetitive work and freeing engineers for harder problems.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Các công cụ AI được sử dụng xuyên suốt quy trình làm việc hàng ngày để tăng tốc phát triển. Chúng giúp tạo ra các đoạn boilerplate như CRUD endpoint, khung test và script migration, cũng như hiện đại hóa code cũ, ví dụ chuyển JavaScript sang TypeScript. Một thư viện prompt dùng chung, đã được chuẩn hóa và tái sử dụng, giúp cả nhóm có kết quả nhất quán. Mọi kết quả do AI tạo ra đều được xem như một bản nháp đầu tiên và phải được review cùng kiểm thử, nên giá trị lớn nhất là loại bỏ những công việc lặp đi lặp lại và giải phóng kỹ sư để họ tập trung vào các bài toán khó hơn.</p></details>
 <p>From your CV: "Introduced AI-assisted development practices by researching and creating reusable prompts, accelerating development and refactoring."</p>
 <pre>How I use AI tools:
 
@@ -396,6 +407,7 @@ SLearning Studio: Built multi-provider AI orchestration system</pre>
         q: 'You work with both PostgreSQL and SQL Server. What are the key differences?',
         difficulty: 'hard',
         a: `<div class="interview-answer"><p>PostgreSQL and SQL Server are similar in some ways but differ in practical points. Both default to Read Committed isolation and use MVCC, but PostgreSQL keeps old row versions append-only while SQL Server uses tempdb. The syntax and features differ too: UPSERT is <code>ON CONFLICT</code> in PostgreSQL and <code>MERGE</code> in SQL Server, and pagination and JSON support are handled differently. A common rule is to choose PostgreSQL for new projects because it is free and extensible, and SQL Server when the team already uses the Microsoft ecosystem.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>PostgreSQL và SQL Server có nhiều điểm giống nhau nhưng khác biệt ở những khía cạnh thực tế. Cả hai đều mặc định mức cô lập Read Committed và dùng MVCC, nhưng PostgreSQL lưu các phiên bản dòng cũ theo kiểu append-only còn SQL Server thì dùng tempdb. Cú pháp và tính năng cũng khác nhau: UPSERT là <code>ON CONFLICT</code> trong PostgreSQL và <code>MERGE</code> trong SQL Server, còn phân trang cùng khả năng hỗ trợ JSON cũng được xử lý theo cách khác nhau. Một nguyên tắc phổ biến là chọn PostgreSQL cho các dự án mới vì nó miễn phí và dễ mở rộng, còn chọn SQL Server khi cả nhóm đã quen với hệ sinh thái Microsoft.</p></details>
 <table><tr><th>Feature</th><th>PostgreSQL</th><th>SQL Server</th></tr>
 <tr><td>License</td><td>Open source (free)</td><td>Commercial (Microsoft)</td></tr>
 <tr><td>Default isolation</td><td>Read Committed</td><td>Read Committed</td></tr>
@@ -424,6 +436,7 @@ WHEN NOT MATCHED THEN INSERT (email, name) VALUES (source.email, source.name);</
         q: 'Explain your experience with MyBatis vs JPA. When would you choose each?',
         difficulty: 'medium',
         a: `<div class="interview-answer"><p>The choice between MyBatis and JPA depends on where the complexity is. MyBatis fits complex queries with many joins, fixed or legacy schemas, and cases that need full control over the SQL, which is why it was used on the FWD and CARIS logistics projects. JPA with Spring Data fits CRUD-heavy applications on a schema you own, where fast development matters more, as at WOWCNS. On CARIS, Spring Boot still handled dependency injection, security, and the API layer while MyBatis handled the heavy queries.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Việc lựa chọn giữa MyBatis và JPA tùy thuộc vào nơi độ phức tạp nằm ở đâu. MyBatis phù hợp với các query phức tạp có nhiều join, các schema cố định hoặc legacy, và những trường hợp cần toàn quyền kiểm soát SQL, đó là lý do nó được dùng trong các dự án logistics FWD và CARIS. JPA kết hợp với Spring Data phù hợp với các ứng dụng thiên về CRUD trên một schema do bạn tự sở hữu, nơi tốc độ phát triển quan trọng hơn, như tại WOWCNS. Trong CARIS, Spring Boot vẫn đảm nhận dependency injection, bảo mật và tầng API trong khi MyBatis lo các query nặng.</p></details>
 <p>From your CV: You used MyBatis in CyberLogitec projects and JPA in WOWCNS.</p>
 <pre>My experience:
 
@@ -462,6 +475,7 @@ Decision Guide:
         q: 'How do you handle high-volume data processing and batch operations?',
         difficulty: 'hard',
         a: `<div class="interview-answer"><p>For high-volume data, the best approach uses database-native paths instead of fighting the ORM. The PostgreSQL <code>COPY</code> protocol streams large batches of rows and avoids per-row insert overhead, while MyBatis batch inserts are flushed every few hundred records to stay under SQL limits. Data is processed in chunks with progress tracking and the ability to resume after a failure, shown through a real-time monitoring screen. Database tuning such as staging tables and partitioning helps, and data integrity is always validated before and after.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Với dữ liệu khối lượng lớn, cách tiếp cận tốt nhất là dùng các đường đi native của cơ sở dữ liệu thay vì chống lại ORM. Giao thức <code>COPY</code> của PostgreSQL truyền theo dạng stream từng lô dòng lớn và tránh được chi phí insert theo từng dòng, trong khi các batch insert của MyBatis được flush sau mỗi vài trăm bản ghi để không vượt giới hạn của SQL. Dữ liệu được xử lý theo từng chunk, có theo dõi tiến độ và khả năng chạy tiếp sau khi gặp lỗi, tất cả được hiển thị qua một màn hình giám sát theo thời gian thực. Việc tinh chỉnh cơ sở dữ liệu như dùng staging table và partition cũng giúp ích, và tính toàn vẹn dữ liệu luôn được xác thực trước và sau khi xử lý.</p></details>
 <p>From your CV: "High-volume data processing (batch, streaming)" and "up to 100K rows/batch."</p>
 <pre>Strategies I've used:
 
@@ -502,6 +516,7 @@ Decision Guide:
         q: 'Tell me about your personal project (SLearning Studio). What did you learn?',
         difficulty: 'medium',
         a: `<div class="interview-answer"><p>SLearning Studio is a personal AI-assisted English-learning and developer-utility platform built end to end. It uses a client-first design with a static export to GitHub Pages and Google Sheets as a content source, so it runs at almost no server cost. The interesting part is multi-provider AI orchestration across Gemini, OpenRouter, and GitHub Models with fallback and bounded conversation memory to control cost. The project also involved the Web Speech API and a full migration from older JavaScript to TypeScript and Next.js, and it taught how to build multi-provider AI systems and own a product fully.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>SLearning Studio là một nền tảng cá nhân hỗ trợ học tiếng Anh bằng AI kèm các tiện ích cho developer, được xây dựng hoàn chỉnh từ đầu đến cuối. Nó theo thiết kế client-first với static export lên GitHub Pages và dùng Google Sheets làm nguồn nội dung, nhờ vậy gần như không tốn chi phí server. Phần thú vị là việc điều phối AI đa nhà cung cấp qua Gemini, OpenRouter và GitHub Models, có cơ chế fallback và giới hạn bộ nhớ hội thoại để kiểm soát chi phí. Dự án cũng dùng đến Web Speech API và trải qua một đợt migration toàn diện từ JavaScript cũ sang TypeScript và Next.js, và nó dạy cho tôi cách xây dựng các hệ thống AI đa nhà cung cấp cũng như tự làm chủ trọn vẹn một sản phẩm.</p></details>
 <p>From your CV: SLearning Studio — AI-assisted English learning and developer utility platform.</p>
 <pre>Key technical highlights:
 
@@ -539,6 +554,7 @@ What I learned:
         q: 'Describe a time you disagreed with a technical decision. How did you handle it?',
         difficulty: 'hard',
         a: `<div class="interview-answer"><p>This answer uses the <strong>STAR</strong> method to show calm conflict resolution. On the CARIS project there was a debate about using Redux or Zustand for state management, and most of the team knew Redux. Instead of arguing, a small proof-of-concept was built in both and compared on bundle size, boilerplate, learning curve, and performance. Concrete numbers showed Zustand reduced state code by about forty percent, and the Redux DevTools concern was solved with middleware. The team chose Zustand, and the key was letting the proof-of-concept make the case rather than personal opinion.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Câu trả lời này sử dụng phương pháp <strong>STAR</strong> để thể hiện việc giải quyết mâu thuẫn một cách bình tĩnh. Trong dự án CARIS đã có một cuộc tranh luận về việc dùng Redux hay Zustand để quản lý state, và phần lớn cả nhóm đều đã quen với Redux. Thay vì tranh cãi, một proof-of-concept nhỏ được xây dựng bằng cả hai và đem so sánh về kích thước bundle, lượng boilerplate, độ khó khi học và hiệu năng. Những con số cụ thể cho thấy Zustand giảm khoảng bốn mươi phần trăm lượng code quản lý state, còn mối lo về Redux DevTools thì được giải quyết bằng middleware. Cả nhóm đã chọn Zustand, và điều mấu chốt là để proof-of-concept tự chứng minh thay vì dựa vào ý kiến cá nhân.</p></details>
 <p>Use the <strong>STAR method</strong> and show professional conflict resolution.</p>
 <pre>Example structure:
 
@@ -564,6 +580,7 @@ The key was letting the POC speak for itself rather than arguing."</pre>
         q: 'How do you handle working in an Agile/Scrum team?',
         difficulty: 'easy',
         a: `<div class="interview-answer"><p>This answer shows comfort with the full Scrum cycle, treated as a tool for adaptability rather than ceremony. Standups stay short, and sprint planning includes breaking stories into tasks, estimating with story points, and flagging technical risk early. As a deputy team lead, the work also includes facilitating ceremonies, protecting the team from interruptions, tracking velocity, and handling cross-team dependencies. Reviews and retrospectives add the most value by gathering feedback and turning it into action items for continuous improvement.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Câu trả lời này cho thấy sự thoải mái với toàn bộ chu trình Scrum, xem nó như một công cụ để thích ứng chứ không phải chỉ là các nghi thức hình thức. Standup được giữ ngắn gọn, còn sprint planning thì bao gồm việc chia nhỏ story thành task, ước lượng bằng story point, và nhận diện sớm các rủi ro kỹ thuật. Với vai trò deputy team lead, công việc còn bao gồm điều phối các buổi họp, bảo vệ nhóm khỏi bị gián đoạn, theo dõi velocity, và xử lý các phụ thuộc giữa các nhóm. Sprint review và retrospective mang lại giá trị nhiều nhất nhờ việc thu thập phản hồi và biến chúng thành các action item để cải tiến liên tục.</p></details>
 <p>From your CV: "Experienced in Agile environments" and "Supported sprint planning, task coordination."</p>
 <pre>My Agile experience:
 
@@ -595,6 +612,7 @@ As Deputy Team Lead:
         q: 'How do you prioritize tasks when you have multiple urgent requests?',
         difficulty: 'medium',
         a: `<div class="interview-answer"><p>Tasks are prioritized using an urgency-versus-importance matrix. Work that is both urgent and important, such as a production bug, is done first; important but not urgent work is scheduled; and small requests are delegated or dropped. Clear communication is just as important, telling stakeholders what is being done and what is deferred, and negotiating deadlines when needed. Large tasks are split so they can deliver value in steps, and a real example shows a bug, a deadline, and a review request handled in a sensible order.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Các task được ưu tiên bằng ma trận mức độ khẩn cấp và mức độ quan trọng. Việc vừa khẩn cấp vừa quan trọng, chẳng hạn một bug trên production, sẽ được làm trước; việc quan trọng nhưng chưa khẩn cấp thì được lên lịch; còn những yêu cầu nhỏ thì được giao lại cho người khác hoặc bỏ qua. Giao tiếp rõ ràng cũng quan trọng không kém, tức là cho các bên liên quan biết bạn đang làm gì và việc gì đang được hoãn lại, đồng thời thương lượng lại deadline khi cần. Những task lớn được chia nhỏ để có thể tạo ra giá trị theo từng bước, và một ví dụ thực tế cho thấy một bug, một deadline và một yêu cầu review được xử lý theo một thứ tự hợp lý.</p></details>
 <pre>My prioritization framework:
 
 1. URGENCY vs IMPORTANCE MATRIX (Eisenhower)
@@ -630,6 +648,7 @@ code review request all came at once.
         q: 'How comfortable are you working in English with international teams?',
         difficulty: 'easy',
         a: `<div class="interview-answer"><p>This answer shows a professional working level of English used every day with international teams. Examples include running standups, writing documentation and code review comments, and doing Slack and email in English, plus reading English technical documents. Technical discussion is natural, and for very detailed business topics a moment is taken to stay precise. Asking for clarification when something is unclear is presented as good communication, not a weakness.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Câu trả lời này cho thấy trình độ tiếng Anh ở mức làm việc chuyên nghiệp, được dùng hàng ngày với các nhóm quốc tế. Các ví dụ bao gồm điều hành standup, viết tài liệu và nhận xét code review, trao đổi qua Slack và email bằng tiếng Anh, cùng với việc đọc tài liệu kỹ thuật tiếng Anh. Việc thảo luận kỹ thuật diễn ra tự nhiên, còn với những chủ đề nghiệp vụ rất chi tiết thì bạn dành một chút thời gian để diễn đạt cho chính xác. Việc hỏi lại cho rõ khi có điều gì chưa hiểu được xem là giao tiếp tốt, chứ không phải là điểm yếu.</p></details>
 <p>From your CV: "Professional Working Proficiency (Intermediate–Upper Intermediate). Comfortable working and communicating in English with international teams."</p>
 <pre>Demonstrate during the interview:
 → The fact that you're interviewing in English IS the proof
@@ -650,6 +669,7 @@ If asked about challenges:
         q: 'What is your experience with Docker and CI/CD? Describe your workflow.',
         difficulty: 'medium',
         a: `<div class="interview-answer"><p>Docker is used across the full development lifecycle. Locally, Docker Compose starts services such as PostgreSQL, Redis, and the app so everyone shares the same environment. For production, multi-stage Dockerfiles build in a full image and run on a slim base as a non-root user to reduce size and security risk. CI/CD pipelines with GitHub Actions or GitLab CI run build, test, docker-build, and deploy stages, and SLearning Studio uses a pipeline that builds, exports the static site, and deploys it to GitHub Pages.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Docker được sử dụng xuyên suốt toàn bộ vòng đời phát triển. Ở môi trường local, Docker Compose khởi động các service như PostgreSQL, Redis và ứng dụng để mọi người cùng dùng chung một môi trường. Với production, các Dockerfile multi-stage build trong một image đầy đủ rồi chạy trên một base gọn nhẹ với người dùng non-root nhằm giảm kích thước và rủi ro bảo mật. Các pipeline CI/CD với GitHub Actions hoặc GitLab CI chạy các giai đoạn build, test, docker-build và deploy, còn SLearning Studio thì dùng một pipeline để build, xuất static site và triển khai nó lên GitHub Pages.</p></details>
 <p>From your CV: "Docker" and "basic CI/CD pipelines" in your tech stack.</p>
 <pre>My Docker experience:
 
@@ -690,6 +710,7 @@ For SLearning Studio:
         q: 'What are your salary expectations?',
         difficulty: 'tricky',
         a: `<div class="interview-answer"><p>Salary is treated as a negotiation that needs preparation and flexibility. The market range for a senior fullstack role in the local area should be researched in advance. If the question comes too early, it is better to ask about the budget for the role first, and when pressed, to give a researched range based on experience and skills. The total package, including growth, learning, and benefits, matters, and the strongest negotiating position comes after the company has decided it wants the candidate.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Lương được xem như một cuộc thương lượng cần sự chuẩn bị và linh hoạt. Nên tìm hiểu trước khoảng lương thị trường cho một vị trí senior fullstack tại khu vực của bạn. Nếu câu hỏi đến quá sớm, tốt hơn là nên hỏi về ngân sách cho vị trí đó trước, và khi bị hỏi dồn thì đưa ra một khoảng lương đã tìm hiểu dựa trên kinh nghiệm và kỹ năng. Tổng thể gói đãi ngộ, bao gồm cơ hội phát triển, học hỏi và các phúc lợi, đều quan trọng, và vị thế thương lượng mạnh nhất là sau khi công ty đã quyết định họ muốn tuyển bạn.</p></details>
 <p>This is a negotiation question. Be prepared but flexible.</p>
 <pre>Strategies:
 
@@ -719,6 +740,7 @@ For SLearning Studio:
         q: 'Where do you see yourself in 3-5 years?',
         difficulty: 'easy',
         a: `<div class="interview-answer"><p>This answer shows ambition on two tracks over three to five years. On the technical side, the goal is deeper system architecture and cloud-native patterns such as Kubernetes and service mesh, while staying hands-on with code. On the leadership side, the goal is to grow from team lead toward a technical lead or architect role, setting technical strategy and building strong teams. The message is a wish for bigger technical and team impact, aligned with the company's own growth.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Câu trả lời này thể hiện tham vọng theo hai hướng trong vòng ba đến năm năm. Về mặt kỹ thuật, mục tiêu là đi sâu hơn vào kiến trúc hệ thống và các mẫu cloud-native như Kubernetes và service mesh, trong khi vẫn trực tiếp làm việc với code. Về mặt lãnh đạo, mục tiêu là phát triển từ team lead lên vai trò technical lead hoặc architect, định hình chiến lược kỹ thuật và xây dựng những đội ngũ mạnh. Thông điệp ở đây là mong muốn tạo ra tầm ảnh hưởng lớn hơn về kỹ thuật lẫn con người, gắn liền với chính sự phát triển của công ty.</p></details>
 <pre>Good structure:
 
 "In the next 3-5 years, I want to grow in two directions:
@@ -742,6 +764,7 @@ related to the company/role]."</pre>
         q: 'You list Webix and IBSheet as skills. Explain what they are and when to use them.',
         difficulty: 'medium',
         a: `<div class="interview-answer"><p>Webix and IBSheet are enterprise UI libraries built for data-heavy back-office applications, which suits logistics work. IBSheet is a spreadsheet-style grid with Excel-like editing, virtual scrolling over very large row counts, and copy-paste from Excel, useful for data entry and reporting. Webix is a wider widget library with rich grids, charts, forms, and server-side data handling. Both were used on the FWD project for booking and invoicing forms and large operations grids, and a modern alternative like AG Grid offers better React integration.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Webix và IBSheet là các thư viện UI dành cho doanh nghiệp, được xây dựng cho những ứng dụng back-office nhiều dữ liệu, rất phù hợp với công việc logistics. IBSheet là một grid kiểu bảng tính với khả năng chỉnh sửa giống Excel, virtual scrolling trên số lượng dòng cực lớn, và copy-paste từ Excel, hữu ích cho việc nhập liệu và làm báo cáo. Webix là một thư viện widget rộng hơn với grid, biểu đồ, form phong phú cùng khả năng xử lý dữ liệu ở phía server. Cả hai đều được dùng trong dự án FWD cho các form đặt chỗ và lập hóa đơn cũng như các grid vận hành lớn, và một lựa chọn hiện đại như AG Grid thì tích hợp với React tốt hơn.</p></details>
 <p>Both are enterprise UI component libraries focused on <strong>data-intensive applications</strong> (grids, charts, forms).</p>
 <pre>IBSheet:
 → Korean enterprise spreadsheet-like grid component
@@ -771,6 +794,7 @@ vs Modern alternatives (AG Grid, MUI DataGrid):
         q: 'Do you have any questions for us?',
         difficulty: 'easy',
         a: `<div class="interview-answer"><p>Asking questions at the end shows real interest and helps evaluate the company. Good questions cover the role, such as what success looks like in the first ninety days and the biggest technical challenges, and the team, such as how engineering is structured and how code review and deployment work. Growth questions ask about career development for senior engineers and whether there is a mentoring culture. Questions that are easy to answer from the website, or about salary in a first interview, should be avoided.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Việc đặt câu hỏi ở cuối buổi phỏng vấn thể hiện sự quan tâm thật sự và giúp bạn đánh giá công ty. Những câu hỏi tốt xoay quanh vị trí công việc, chẳng hạn thành công trong chín mươi ngày đầu tiên trông như thế nào và những thử thách kỹ thuật lớn nhất là gì, và xoay quanh đội ngũ, chẳng hạn bộ phận kỹ thuật được tổ chức ra sao cũng như quy trình code review và triển khai diễn ra thế nào. Các câu hỏi về phát triển thì hỏi về lộ trình thăng tiến cho kỹ sư senior và liệu công ty có văn hóa mentoring hay không. Nên tránh những câu hỏi dễ dàng tìm thấy câu trả lời trên website, hoặc hỏi về lương trong buổi phỏng vấn đầu tiên.</p></details>
 <p>ALWAYS ask questions. It shows interest and helps you evaluate the company.</p>
 <pre>Good questions to ask:
 

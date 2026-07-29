@@ -12,6 +12,7 @@ export const topics: PvTopic[] = [
         q: 'What is MyBatis? How is it different from JPA/Hibernate?',
         difficulty: 'easy',
         a: `<div class="interview-answer"><p>MyBatis is a SQL mapper, and JPA is a full ORM. With MyBatis the developer writes the SQL and MyBatis maps the results to objects. With Hibernate the framework builds the SQL from entity mappings and manages a persistence context. MyBatis fits well when the SQL is complex or the schema is old, while JPA fits well when the domain model is the main focus.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>MyBatis là một SQL mapper, còn JPA là một ORM đầy đủ. Với MyBatis, lập trình viên tự viết SQL và MyBatis ánh xạ kết quả sang các object. Với Hibernate, framework tự sinh SQL từ các entity mapping và quản lý persistence context. MyBatis phù hợp khi SQL phức tạp hoặc schema đã cũ, trong khi JPA phù hợp khi domain model là trọng tâm chính.</p></details>
 <ul>
 <li><strong>MyBatis</strong>: SQL mapper framework. You write SQL, MyBatis maps results to objects. Full SQL control.</li>
 <li><strong>JPA/Hibernate</strong>: ORM framework. Generates SQL from entity mappings. Less control, more abstraction.</li>
@@ -29,6 +30,7 @@ export const topics: PvTopic[] = [
         q: 'What is the difference between #{} and ${} in MyBatis?',
         difficulty: 'tricky',
         a: `<div class="interview-answer"><p>This is mainly a security topic. <code>#{}</code> binds a value as a PreparedStatement parameter, so it is safe from SQL injection. The dollar-sign form puts the value straight into the SQL text, which can allow SQL injection. It should only be used for things that cannot be bound, such as a table or column name, and only against a fixed whitelist.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Đây chủ yếu là vấn đề bảo mật. <code>#{}</code> gắn giá trị dưới dạng tham số PreparedStatement nên an toàn trước SQL injection. Còn dạng ký hiệu dollar thì chèn thẳng giá trị vào chuỗi SQL, có thể dẫn tới SQL injection. Chỉ nên dùng nó cho những thứ không thể bind được như tên bảng hoặc tên cột, và chỉ với một whitelist cố định.</p></details>
 <ul>
 <li><strong>#{param}</strong>: creates a <strong>PreparedStatement parameter</strong> (?). <strong>Safe from SQL injection</strong>. Value is type-safe and quoted.</li>
 <li><strong>\${param}</strong>: direct <strong>string substitution</strong>. <strong>VULNERABLE to SQL injection!</strong> Used only for dynamic table/column names.</li>
@@ -50,6 +52,7 @@ export const topics: PvTopic[] = [
         q: 'Explain MyBatis XML Mapper structure. Show a complete example.',
         difficulty: 'medium',
         a: `<div class="interview-answer"><p>A mapper XML file holds the SQL for a mapper interface. The <code>namespace</code> must match the interface full name, and each statement id must match a method name. A <code>resultMap</code> maps columns to object properties, and the CRUD tags hold the queries. Turning on <code>map-underscore-to-camel-case</code> and using <code>useGeneratedKeys</code> for inserts are common good practices.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Một file mapper XML chứa SQL cho một mapper interface. <code>namespace</code> phải khớp với tên đầy đủ của interface, và mỗi statement id phải khớp với tên một method. <code>resultMap</code> ánh xạ các cột sang các property của object, còn các thẻ CRUD chứa các câu truy vấn. Bật <code>map-underscore-to-camel-case</code> và dùng <code>useGeneratedKeys</code> cho insert là những good practice thường gặp.</p></details>
 <pre>&lt;?xml version="1.0" encoding="UTF-8" ?&gt;
 &lt;!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd"&gt;
@@ -87,6 +90,7 @@ export const topics: PvTopic[] = [
         q: 'How to write dynamic SQL in MyBatis? Explain &lt;if&gt;, &lt;choose&gt;, &lt;where&gt;, &lt;foreach&gt;.',
         difficulty: 'hard',
         a: `<div class="interview-answer"><p>MyBatis dynamic SQL adds tags that build the query safely instead of joining strings by hand. <code>&lt;if&gt;</code> includes a part only when a condition is true, and <code>&lt;where&gt;</code> removes a leading AND or OR so the clause stays valid. <code>&lt;choose&gt;</code> works like a switch, and <code>&lt;foreach&gt;</code> builds IN lists and batch inserts. Note that <code>&lt;where&gt;</code> only trims leading connectors, so a trailing AND still needs <code>&lt;trim&gt;</code>.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Dynamic SQL trong MyBatis cung cấp các thẻ để xây dựng truy vấn một cách an toàn thay vì tự nối chuỗi bằng tay. <code>&lt;if&gt;</code> chỉ chèn một phần khi điều kiện đúng, và <code>&lt;where&gt;</code> loại bỏ AND hoặc OR đứng đầu để mệnh đề vẫn hợp lệ. <code>&lt;choose&gt;</code> hoạt động như một switch, còn <code>&lt;foreach&gt;</code> dùng để tạo danh sách IN và batch insert. Lưu ý rằng <code>&lt;where&gt;</code> chỉ cắt các từ nối ở đầu, nên nếu còn AND ở cuối thì vẫn cần đến <code>&lt;trim&gt;</code>.</p></details>
 <pre>&lt;select id="search" resultMap="userMap"&gt;
   SELECT * FROM users
   &lt;where&gt;
@@ -127,6 +131,7 @@ export const topics: PvTopic[] = [
         q: 'How to handle one-to-many and many-to-one relationships in MyBatis?',
         difficulty: 'hard',
         a: `<div class="interview-answer"><p>MyBatis uses <code>&lt;collection&gt;</code> for one-to-many and <code>&lt;association&gt;</code> for many-to-one or one-to-one. A collection maps a list, and an association maps a single nested object. The common approach is one JOIN with a nested resultMap, using the <code>&lt;id&gt;</code> element so parent rows are grouped correctly. A nested select per row is also possible but can cause the N+1 problem.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>MyBatis dùng <code>&lt;collection&gt;</code> cho quan hệ one-to-many và <code>&lt;association&gt;</code> cho many-to-one hoặc one-to-one. <code>&lt;collection&gt;</code> ánh xạ một list, còn <code>&lt;association&gt;</code> ánh xạ một object lồng nhau duy nhất. Cách phổ biến là dùng một JOIN với resultMap lồng nhau, kèm phần tử <code>&lt;id&gt;</code> để các dòng cha được gom nhóm đúng. Cũng có thể dùng nested select cho từng dòng, nhưng cách này dễ gây ra vấn đề N+1.</p></details>
 <pre>&lt;!-- One-to-Many: Order has many Items --&gt;
 &lt;resultMap id="orderWithItems" type="Order"&gt;
   &lt;id column="order_id" property="orderId"/&gt;
@@ -159,6 +164,7 @@ export const topics: PvTopic[] = [
         q: 'What is MyBatis annotation-based mapping vs XML?',
         difficulty: 'medium',
         a: `<div class="interview-answer"><p>Annotations like <code>@Select</code> and <code>@Insert</code> work well for short and simple queries placed next to the code. XML is better for dynamic SQL, joins, and result mapping because it stays readable and keeps SQL out of the Java code. Many teams standardize on XML for consistency. A single mapper can mix both styles.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Các annotation như <code>@Select</code> và <code>@Insert</code> phù hợp cho những truy vấn ngắn và đơn giản, đặt ngay cạnh code. XML thì tốt hơn cho dynamic SQL, join và result mapping vì nó dễ đọc và tách SQL ra khỏi code Java. Nhiều team chuẩn hóa dùng XML để đảm bảo tính nhất quán. Một mapper hoàn toàn có thể kết hợp cả hai kiểu.</p></details>
 <pre>// Annotation-based (simple queries)
 @Mapper
 public interface UserMapper {
@@ -190,6 +196,7 @@ public interface UserMapper {
         q: 'How does MyBatis caching work? Explain first-level and second-level cache.',
         difficulty: 'hard',
         a: `<div class="interview-answer"><p>MyBatis has two cache levels. The first-level cache is per <code>SqlSession</code>, always on, and it is cleared on commit or close. The second-level cache is per mapper namespace, shared across sessions, and off by default. The second-level cache lives in heap per JVM, so with several app instances it can return stale data, and many teams cache at the service layer instead.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>MyBatis có hai cấp cache. First-level cache gắn với từng <code>SqlSession</code>, luôn được bật và bị xóa khi commit hoặc close. Second-level cache gắn với từng mapper namespace, được chia sẻ giữa các session và mặc định tắt. Second-level cache nằm trong heap của từng JVM, nên khi có nhiều instance ứng dụng nó có thể trả về dữ liệu cũ, và nhiều team thay vào đó chọn cache ở tầng service.</p></details>
 <ul>
 <li><strong>First-level cache</strong> (session/local): enabled by default. Scoped to <code>SqlSession</code>. Same query in same session returns cached result. Cleared on <code>commit()</code>, <code>rollback()</code>, or <code>close()</code>.</li>
 <li><strong>Second-level cache</strong> (mapper): disabled by default. Scoped to mapper namespace. Shared across sessions.</li>
@@ -212,6 +219,7 @@ public interface UserMapper {
         q: 'What is MyBatis-Plus? How does it extend MyBatis?',
         difficulty: 'medium',
         a: `<div class="interview-answer"><p>MyBatis-Plus adds features on top of MyBatis to remove repetitive CRUD code. A mapper extends <code>BaseMapper</code> and gets methods like selectById, insert, and updateById for free. It also provides <code>QueryWrapper</code> for building conditions, plus pagination, optimistic locking, and soft delete. Since <code>QueryWrapper</code> uses raw column-name strings, complex cases are still better in XML.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>MyBatis-Plus bổ sung các tính năng trên nền MyBatis để loại bỏ code CRUD lặp đi lặp lại. Một mapper chỉ cần extend <code>BaseMapper</code> là có sẵn các method như selectById, insert và updateById. Nó cũng cung cấp <code>QueryWrapper</code> để xây dựng điều kiện, cùng với phân trang, optimistic locking và soft delete. Vì <code>QueryWrapper</code> dùng chuỗi tên cột thô nên những trường hợp phức tạp vẫn nên viết trong XML.</p></details>
 <p><strong>MyBatis-Plus</strong> is an enhancement on MyBatis that eliminates boilerplate CRUD code.</p>
 <pre>// Just extend BaseMapper — no XML needed for basic CRUD
 @Mapper
@@ -237,6 +245,7 @@ Page&lt;User&gt; page = userMapper.selectPage(
         q: 'How to handle batch operations in MyBatis?',
         difficulty: 'hard',
         a: `<div class="interview-answer"><p>There are two main ways to do batch work. The <code>&lt;foreach&gt;</code> multi-row insert is simple but builds one large SQL string, so it can hit size limits. <code>ExecutorType.BATCH</code> uses JDBC addBatch and executeBatch and works better for large volumes, and flushing every few hundred rows keeps memory low. Batch mode does not return generated keys reliably.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Có hai cách chính để xử lý batch. Cách dùng <code>&lt;foreach&gt;</code> để insert nhiều dòng thì đơn giản nhưng tạo ra một câu SQL rất dài, nên có thể chạm giới hạn kích thước. <code>ExecutorType.BATCH</code> dùng addBatch và executeBatch của JDBC nên hiệu quả hơn với khối lượng lớn, và việc flush sau mỗi vài trăm dòng giúp giữ bộ nhớ ở mức thấp. Chế độ batch không trả về generated key một cách đáng tin cậy.</p></details>
 <pre>&lt;!-- Method 1: foreach in XML --&gt;
 &lt;insert id="batchInsert"&gt;
   INSERT INTO users (user_name, email) VALUES
@@ -263,6 +272,7 @@ try (SqlSession session = sqlSessionFactory.openSession(ExecutorType.BATCH)) {
         q: 'How to configure MyBatis with Spring Boot?',
         difficulty: 'medium',
         a: `<div class="interview-answer"><p>With the mybatis-spring-boot-starter, most setup is done in YAML. Set <code>mapper-locations</code> for the XML files, <code>type-aliases-package</code> for short class names, and turn on <code>map-underscore-to-camel-case</code> so columns like user_name map to userName. Then use <code>@MapperScan</code> or <code>@Mapper</code> so Spring registers the mapper interfaces.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Với mybatis-spring-boot-starter, phần lớn cấu hình được thực hiện trong YAML. Đặt <code>mapper-locations</code> cho các file XML, <code>type-aliases-package</code> để dùng tên class ngắn gọn, và bật <code>map-underscore-to-camel-case</code> để các cột như user_name ánh xạ sang userName. Sau đó dùng <code>@MapperScan</code> hoặc <code>@Mapper</code> để Spring đăng ký các mapper interface.</p></details>
 <pre># application.yml
 mybatis:
   mapper-locations: classpath:mapper/*.xml         # XML mapper location
@@ -287,6 +297,7 @@ public interface UserMapper { }</pre>
         q: 'How do you solve the N+1 problem in MyBatis?',
         difficulty: 'hard',
         a: `<div class="interview-answer"><p>In MyBatis the N+1 problem comes from a mapping choice, not a hidden query. It happens with a nested select mapping, where one query loads the parents and one extra query runs for each parent. The fix is a JOIN with a nested resultMap so it runs in one query, and the <code>&lt;id&gt;</code> element must be present so parents are grouped. A lazy nested select is fine only for children that are rarely accessed.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Trong MyBatis, vấn đề N+1 xuất phát từ lựa chọn cách mapping chứ không phải một truy vấn ẩn. Nó xảy ra với kiểu mapping nested select, khi một truy vấn tải các bản ghi cha và mỗi bản ghi cha lại chạy thêm một truy vấn. Cách khắc phục là dùng JOIN với resultMap lồng nhau để chạy trong một truy vấn duy nhất, và phần tử <code>&lt;id&gt;</code> phải có mặt để các bản ghi cha được gom nhóm. Nested select kiểu lazy chỉ nên dùng cho những phần con hiếm khi được truy cập.</p></details>
 <p>MyBatis has its own N+1 trap: a <strong>nested select</strong> mapping fires one extra query per parent row. There are two mapping styles, and choosing the wrong one is the classic mistake.</p>
 <pre>&lt;!-- STYLE 1: Nested SELECT — causes N+1 if eager! --&gt;
 &lt;resultMap id="orderMap" type="Order"&gt;
@@ -323,6 +334,7 @@ public interface UserMapper { }</pre>
         q: 'Why is the MyBatis second-level cache dangerous in production with multiple app instances?',
         difficulty: 'tricky',
         a: `<div class="interview-answer"><p>The default second-level cache lives in heap and is separate in each JVM. With two instances behind a load balancer, an update on one instance does not clear the other, so stale data can be served. Invalidation is also per namespace, not per table, so a write through one mapper may not clear a cached JOIN in another mapper. In clustered setups it is safer to disable it and cache at the service layer with Redis or Caffeine.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Second-level cache mặc định nằm trong heap và tách biệt ở từng JVM. Với hai instance sau một load balancer, một thao tác update trên instance này không xóa cache của instance kia, nên dữ liệu cũ có thể bị trả về. Việc vô hiệu hóa cache cũng theo từng namespace chứ không theo từng bảng, nên một thao tác ghi qua mapper này có thể không xóa được một JOIN đã cache ở mapper khác. Trong môi trường clustered, an toàn hơn là tắt nó đi và cache ở tầng service bằng Redis hoặc Caffeine.</p></details>
 <p>The default <code>&lt;cache/&gt;</code> is an <strong>in-heap, per-JVM</strong> cache scoped to a mapper namespace. Two failure modes make it dangerous:</p>
 <p><strong>1. Multiple app instances → stale data.</strong> Each instance has its own cache; invalidation on write happens only locally.</p>
 <pre>&lt;!-- UserMapper.xml on instance A and instance B --&gt;
@@ -350,6 +362,7 @@ public interface UserMapper { }</pre>
         q: 'How do you stream a huge result set in MyBatis without OutOfMemoryError?',
         difficulty: 'hard',
         a: `<div class="interview-answer"><p>A normal mapper that returns a <code>List</code> loads every row into memory before returning, and the JDBC driver often buffers the whole result set as well. Streaming needs both a streaming consumer, such as a <code>Cursor</code> or <code>ResultHandler</code>, and a driver fetch size that really streams. MySQL ignores normal fetch sizes, so it needs fetchSize set to Integer.MIN_VALUE or useCursorFetch in the URL. The method must be transactional so the session stays open while the cursor is read.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Một mapper thông thường trả về một <code>List</code> sẽ tải toàn bộ các dòng vào bộ nhớ trước khi trả về, và driver JDBC cũng thường buffer toàn bộ result set. Việc streaming cần cả một consumer kiểu streaming, chẳng hạn <code>Cursor</code> hoặc <code>ResultHandler</code>, lẫn một fetch size của driver thực sự cho phép stream. MySQL bỏ qua các fetch size thông thường, nên cần đặt fetchSize bằng Integer.MIN_VALUE hoặc thêm useCursorFetch vào URL. Method phải nằm trong transaction để session vẫn mở trong khi đọc cursor.</p></details>
 <p>A normal mapper method returning <code>List&lt;T&gt;</code> materializes <strong>every row in memory</strong> before returning — 10M rows means OOM. Two problems must be solved: MyBatis buffering the list, and the <strong>JDBC driver</strong> buffering the whole ResultSet client-side (MySQL does this by default!).</p>
 <pre>// Option 1: Cursor&lt;T&gt; — lazy iteration over an open ResultSet
 @Select("SELECT * FROM events ORDER BY id")
@@ -381,6 +394,7 @@ eventMapper.scanAll(ctx -> process(ctx.getResultObject()));</pre>
         q: 'What is the OGNL "0 equals empty string" trap in MyBatis dynamic SQL?',
         difficulty: 'tricky',
         a: `<div class="interview-answer"><p>A common string guard like status not null and status not empty breaks for numbers. In OGNL, comparing a number to an empty string turns the empty string into 0.0, so 0 equals empty string is true, and the <code>&lt;if&gt;</code> is skipped when the value is 0. The filter then disappears and the query returns all rows. The rule is that the not-empty check is for Strings only, while numeric parameters need only a null check.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Một điều kiện guard cho chuỗi thường gặp như status khác null và status khác rỗng lại sai với các giá trị số. Trong OGNL, khi so sánh một số với chuỗi rỗng, chuỗi rỗng bị chuyển thành 0.0, nên 0 bằng chuỗi rỗng là đúng, và thẻ <code>&lt;if&gt;</code> bị bỏ qua khi giá trị bằng 0. Bộ lọc khi đó biến mất và truy vấn trả về tất cả các dòng. Quy tắc là phép kiểm tra khác rỗng chỉ dành cho String, còn các tham số số chỉ cần kiểm tra null.</p></details>
 <p>The condition everyone copy-pastes for strings silently breaks for numbers. In OGNL, comparing a <code>Number</code> to <code>''</code> coerces the empty string to <code>0.0</code> — so <strong>0 == '' is true</strong>.</p>
 <pre>&lt;!-- Looks safe, works for String... --&gt;
 &lt;if test="status != null and status != ''"&gt;
@@ -423,6 +437,7 @@ eventMapper.scanAll(ctx -> process(ctx.getResultObject()));</pre>
         q: 'What is JPA? What is the relationship between JPA and Hibernate?',
         difficulty: 'easy',
         a: `<div class="interview-answer"><p>JPA is a specification, and Hibernate is an implementation of it. JPA defines the annotations and the EntityManager API, while Hibernate is the ORM engine that does the work, and other implementations like EclipseLink also exist. Coding to the <code>jakarta.persistence</code> interfaces keeps the code portable. In real projects, some Hibernate-specific features such as <code>@BatchSize</code> are often used anyway.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>JPA là một đặc tả, còn Hibernate là một hiện thực của nó. JPA định nghĩa các annotation và API EntityManager, trong khi Hibernate là engine ORM thực sự làm việc, và còn có các hiện thực khác như EclipseLink. Code theo các interface <code>jakarta.persistence</code> giúp giữ code có tính portable. Trong thực tế, một số tính năng riêng của Hibernate như <code>@BatchSize</code> vẫn thường được sử dụng.</p></details>
 <ul>
 <li><strong>JPA (Java Persistence API)</strong>: a <strong>specification</strong> (interface) that defines how Java objects map to relational database tables.</li>
 <li><strong>Hibernate</strong>: the most popular <strong>implementation</strong> of JPA. Provides the actual ORM engine.</li>
@@ -448,6 +463,7 @@ public class User {
         q: 'Explain the JPA entity lifecycle and entity states.',
         difficulty: 'hard',
         a: `<div class="interview-answer"><p>A JPA entity can be in one of four states. Transient is a plain new object with no database row, and managed means it is in the persistence context where Hibernate tracks changes and writes them automatically. Detached is a once-managed object after the context closed, so changes are not saved, and removed is scheduled for deletion. On a managed entity there is no need to call save, because changing a field is enough.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Một entity JPA có thể ở một trong bốn trạng thái. Transient là một object mới tinh chưa có dòng trong database, còn managed nghĩa là nó nằm trong persistence context, nơi Hibernate theo dõi các thay đổi và tự động ghi xuống. Detached là một object từng được managed sau khi context đã đóng, nên các thay đổi không được lưu, và removed là trạng thái đã lên lịch để xóa. Với một entity đang managed thì không cần gọi save, vì chỉ cần thay đổi một field là đủ.</p></details>
 <p>An entity can be in 4 states:</p>
 <ul>
 <li><strong>New/Transient</strong>: just created with <code>new</code>. Not managed. No DB row.</li>
@@ -468,6 +484,7 @@ em.remove(user);                   // → Removed (DELETE on flush)</pre>`,
         q: 'What is the difference between FetchType.LAZY and FetchType.EAGER?',
         difficulty: 'medium',
         a: `<div class="interview-answer"><p>EAGER loading fetches the related data together with the parent, while LAZY loading defers it behind a proxy until it is accessed. A common best practice is to make all relationships LAZY, including <code>@ManyToOne</code> which is EAGER by default. Then the needed data is fetched on demand with <code>JOIN FETCH</code> or an <code>@EntityGraph</code>. This gives more control and helps avoid loading unwanted data or causing N+1 queries.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>EAGER loading tải dữ liệu liên quan cùng lúc với entity cha, còn LAZY loading hoãn lại phía sau một proxy cho tới khi nó được truy cập. Một best practice phổ biến là đặt tất cả các quan hệ thành LAZY, kể cả <code>@ManyToOne</code> vốn mặc định là EAGER. Sau đó dữ liệu cần thiết được tải theo nhu cầu bằng <code>JOIN FETCH</code> hoặc <code>@EntityGraph</code>. Cách này cho nhiều quyền kiểm soát hơn và giúp tránh tải dữ liệu không cần thiết hay gây ra N+1 query.</p></details>
 <ul>
 <li><strong>EAGER</strong>: related entities loaded immediately (with the parent query). Can cause N+1 problem.</li>
 <li><strong>LAZY</strong>: related entities loaded only when accessed. Returns a <strong>proxy</strong>.</li>
@@ -487,6 +504,7 @@ public class Order {
         q: 'What is the N+1 problem in JPA? How to solve it?',
         difficulty: 'hard',
         a: `<div class="interview-answer"><p>The N+1 problem loads N parents with one query, then runs one more query for each lazy child access. The main fixes are <code>JOIN FETCH</code> or an <code>@EntityGraph</code> to load everything in one query, and Hibernate <code>@BatchSize</code> to group the child queries. Fetching two collections with JOIN FETCH causes a cartesian product, and pagination with a fetch join is done in memory. For those cases, @BatchSize or two separate queries is better.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Vấn đề N+1 tải N bản ghi cha bằng một truy vấn, rồi lại chạy thêm một truy vấn cho mỗi lần truy cập vào phần con lazy. Các cách khắc phục chính là <code>JOIN FETCH</code> hoặc <code>@EntityGraph</code> để tải tất cả trong một truy vấn, và <code>@BatchSize</code> của Hibernate để gom nhóm các truy vấn con. Fetch hai collection bằng JOIN FETCH sẽ gây ra tích Descartes, và phân trang với fetch join thì được thực hiện trong bộ nhớ. Với những trường hợp đó, @BatchSize hoặc hai truy vấn riêng biệt sẽ tốt hơn.</p></details>
 <p><strong>Problem</strong>: Loading parent entities triggers N additional queries for lazy children.</p>
 <pre>List&lt;Order&gt; orders = orderRepo.findAll();  // 1 query
 for (Order o : orders) {
@@ -511,6 +529,7 @@ private List&lt;OrderItem&gt; items;
         q: 'Explain the difference between @OneToOne, @OneToMany, @ManyToOne, @ManyToMany.',
         difficulty: 'medium',
         a: `<div class="interview-answer"><p>The four annotations map cardinality, but the key point is which side owns the foreign key. The owning side is the one without <code>mappedBy</code>; for a bidirectional one-to-many, that is the <code>@ManyToOne</code> child that holds the FK column. Only the owning side's state produces SQL. For many-to-many, mapping the join table with <code>@JoinTable</code> and using a <code>Set</code> is common, along with helper methods to keep both sides in sync.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Bốn annotation này ánh xạ cardinality, nhưng điểm mấu chốt là bên nào sở hữu khóa ngoại. Bên sở hữu là bên không có <code>mappedBy</code>; với quan hệ one-to-many hai chiều, đó là phía con <code>@ManyToOne</code> giữ cột FK. Chỉ trạng thái của bên sở hữu mới sinh ra SQL. Với many-to-many, việc ánh xạ bảng trung gian bằng <code>@JoinTable</code> và dùng <code>Set</code> là phổ biến, cùng với các helper method để giữ cho cả hai bên đồng bộ.</p></details>
 <pre>// @OneToOne: User ↔ Profile
 @Entity
 public class User {
@@ -547,6 +566,7 @@ public class Student {
         q: 'What is the Persistence Context and EntityManager?',
         difficulty: 'hard',
         a: `<div class="interview-answer"><p>The EntityManager is the main JPA interface for persist, find, merge, and remove. The persistence context behind it is the first-level cache and unit of work. It gives two guarantees: identity, so finding the same id twice returns the same instance with no second query, and dirty checking, so changes are flushed automatically. In Spring it is transaction-scoped by default, so it lives for one <code>@Transactional</code> method.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>EntityManager là interface JPA chính cho persist, find, merge và remove. Persistence context phía sau nó chính là first-level cache và là unit of work. Nó đảm bảo hai điều: identity, tức là find cùng một id hai lần sẽ trả về cùng một instance mà không cần truy vấn lần hai, và dirty checking, tức là các thay đổi được flush tự động. Trong Spring, mặc định nó có phạm vi theo transaction, nên nó tồn tại trong một method <code>@Transactional</code>.</p></details>
 <ul>
 <li><strong>EntityManager</strong>: the main JPA interface for CRUD operations (<code>persist</code>, <code>find</code>, <code>merge</code>, <code>remove</code>, <code>createQuery</code>).</li>
 <li><strong>Persistence Context</strong>: first-level cache. Stores managed entities. Ensures only ONE instance per entity identity per context.</li>
@@ -567,6 +587,7 @@ em.flush();  // SQL: UPDATE (dirty checking detected change)</pre>
         q: 'What is the difference between JPQL, Criteria API, and Native queries?',
         difficulty: 'medium',
         a: `<div class="interview-answer"><p>There are three query options. JPQL is object-based and looks like SQL over entity names; it is readable, portable, and the most common. The Criteria API is programmatic and type-safe, useful for dynamic queries with many optional filters, but it is verbose. Native SQL uses raw database-specific SQL for special features or tuning, but it is not portable.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Có ba lựa chọn truy vấn. JPQL dựa trên object và trông giống SQL nhưng viết trên tên các entity; nó dễ đọc, portable và phổ biến nhất. Criteria API mang tính lập trình và type-safe, hữu ích cho các truy vấn động với nhiều bộ lọc tùy chọn, nhưng nó dài dòng. Native SQL dùng SQL thô riêng cho từng database để dùng các tính năng đặc biệt hoặc tinh chỉnh hiệu năng, nhưng không portable.</p></details>
 <pre>// JPQL: SQL-like, uses entity names (not table names)
 @Query("SELECT u FROM User u WHERE u.email = :email")
 User findByEmail(@Param("email") String email);
@@ -591,6 +612,7 @@ User findByEmailNative(String email);</pre>
         q: 'Explain Hibernate first-level cache vs second-level cache.',
         difficulty: 'hard',
         a: `<div class="interview-answer"><p>The first-level cache is the persistence context; it is per session, always on, and cannot be disabled. The second-level cache is shared across sessions, optional, and needs a provider such as EhCache or Caffeine. The second-level cache adds invalidation complexity and needs a distributed provider in a clustered app. There is also a query cache as a third layer, and L2 is usually best for read-mostly reference data.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>First-level cache chính là persistence context; nó gắn với từng session, luôn bật và không thể tắt. Second-level cache được chia sẻ giữa các session, là tùy chọn và cần một provider như EhCache hay Caffeine. Second-level cache làm tăng độ phức tạp cho việc vô hiệu hóa cache và cần một provider phân tán khi ứng dụng chạy clustered. Còn có query cache như một lớp thứ ba, và L2 thường phù hợp nhất cho dữ liệu tham chiếu ít thay đổi và chủ yếu để đọc.</p></details>
 <ul>
 <li><strong>First-level cache (L1)</strong>: built-in, per EntityManager/Session. Cannot be disabled. One entity instance per ID. Scoped to transaction.</li>
 <li><strong>Second-level cache (L2)</strong>: shared across sessions. Optional. Must configure provider (EhCache, Caffeine, Redis).</li>
@@ -619,6 +641,7 @@ spring:
         q: 'What is Spring Data JPA? What methods does JpaRepository provide?',
         difficulty: 'medium',
         a: `<div class="interview-answer"><p>Spring Data JPA removes DAO boilerplate by generating the implementation of a repository interface that extends <code>JpaRepository</code>. It provides save, findById, and findAll for free, derived queries from method names like <code>findByEmail</code>, and <code>@Query</code> for custom JPQL, plus <code>Pageable</code> for pagination. Long derived method names get hard to read, so custom queries are better past a few conditions. A <code>@Modifying</code> bulk update bypasses the persistence context, so it should be cleared to avoid stale entities.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Spring Data JPA loại bỏ code DAO lặp lại bằng cách tự sinh phần hiện thực cho một repository interface extend <code>JpaRepository</code>. Nó cung cấp sẵn save, findById và findAll, các truy vấn suy ra từ tên method như <code>findByEmail</code>, và <code>@Query</code> cho JPQL tùy chỉnh, cùng với <code>Pageable</code> để phân trang. Các tên method suy ra dài sẽ khó đọc, nên khi vượt quá vài điều kiện thì truy vấn tùy chỉnh sẽ tốt hơn. Một truy vấn cập nhật hàng loạt với <code>@Modifying</code> sẽ bỏ qua persistence context, nên cần clear nó để tránh entity bị cũ.</p></details>
 <p>Spring Data JPA eliminates boilerplate by auto-implementing repository interfaces.</p>
 <pre>public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
     // Built-in: save, findById, findAll, count, deleteById, existsById...
@@ -644,6 +667,7 @@ spring:
         q: 'What is Hibernate dirty checking? How does it work?',
         difficulty: 'hard',
         a: `<div class="interview-answer"><p>Dirty checking lets a developer load a managed entity, change it, and have Hibernate write the UPDATE at flush without a save call. It works by taking a snapshot of the original field values at load time and comparing at flush. This has a cost, because on a large read Hibernate keeps and compares snapshots for every entity. Using <code>@Transactional(readOnly = true)</code> lets it skip that work.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Dirty checking cho phép lập trình viên tải một entity đang managed, thay đổi nó, và để Hibernate tự ghi câu UPDATE khi flush mà không cần gọi save. Nó hoạt động bằng cách chụp lại snapshot các giá trị field ban đầu tại thời điểm load rồi so sánh khi flush. Điều này có chi phí, vì trên một lần đọc lớn Hibernate phải giữ và so sánh snapshot cho từng entity. Dùng <code>@Transactional(readOnly = true)</code> cho phép nó bỏ qua công việc đó.</p></details>
 <p>Hibernate automatically detects changes to managed entities and generates UPDATE statements on flush — without explicit save calls.</p>
 <pre>@Transactional
 public void updateUserName(Long id, String newName) {
@@ -665,6 +689,7 @@ public void updateUserName(Long id, String newName) {
         q: 'What is the difference between CascadeType and orphanRemoval?',
         difficulty: 'tricky',
         a: `<div class="interview-answer"><p>Cascade and orphanRemoval solve different problems. Cascade passes lifecycle operations from parent to child, so persisting the parent also persists the children. orphanRemoval deletes a child when it is removed from the parent's collection; without it, Hibernate only sets the foreign key to null and leaves the row. A true parent-owns-children setup often uses <code>cascade = ALL</code> with <code>orphanRemoval = true</code>. Cascade REMOVE should be used only when the child cannot exist without the parent.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Cascade và orphanRemoval giải quyết hai vấn đề khác nhau. Cascade truyền các thao tác vòng đời từ cha sang con, nên persist cha thì cũng persist các con. orphanRemoval xóa một con khi nó bị gỡ khỏi collection của cha; nếu không có nó, Hibernate chỉ đặt khóa ngoại thành null và để lại dòng dữ liệu. Một thiết lập cha thực sự sở hữu con thường dùng <code>cascade = ALL</code> kèm <code>orphanRemoval = true</code>. Cascade REMOVE chỉ nên dùng khi con không thể tồn tại nếu thiếu cha.</p></details>
 <ul>
 <li><strong>CascadeType</strong>: propagate operations from parent to child.</li>
 <ul>
@@ -689,6 +714,7 @@ order.getItems().remove(item);  // → DELETE FROM order_items WHERE id = ?</pre
         q: 'How to handle the LazyInitializationException?',
         difficulty: 'tricky',
         a: `<div class="interview-answer"><p>This error happens when a lazy association is accessed after the persistence context has closed, so the proxy has no session to load from. The preferred fixes are to fetch the needed data up front with <code>JOIN FETCH</code> or an <code>@EntityGraph</code>, or to return a DTO projection with no proxies. Open-session-in-view removes the error but hides N+1 and moves database work into the view layer. Setting open-in-view to false makes the problem visible during development.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Lỗi này xảy ra khi một quan hệ lazy bị truy cập sau khi persistence context đã đóng, nên proxy không còn session để tải dữ liệu. Cách khắc phục ưu tiên là tải sẵn dữ liệu cần thiết bằng <code>JOIN FETCH</code> hoặc <code>@EntityGraph</code>, hoặc trả về một DTO projection không có proxy. Open-session-in-view làm biến mất lỗi này nhưng lại che giấu N+1 và đẩy công việc database sang tầng view. Đặt open-in-view thành false giúp vấn đề lộ ra trong quá trình phát triển.</p></details>
 <p><strong>Cause</strong>: accessing a LAZY-loaded relationship after the persistence context (session) is closed.</p>
 <pre>// This throws LazyInitializationException!
 User user = userRepo.findById(1L).get();  // TX ends here
@@ -707,6 +733,7 @@ user.getOrders().size();  // Session closed → BOOM!</pre>
         q: 'What are JPA Specifications and how to build dynamic queries?',
         difficulty: 'hard',
         a: `<div class="interview-answer"><p>Specifications are the Spring Data wrapper over the Criteria API for dynamic, composable queries. Each specification is a lambda that returns a Predicate, and they combine with and and or, returning null to skip a filter that was not given. They fit search screens with many optional filters, where building JPQL by string is fragile and unsafe. The Criteria API underneath is verbose, so QueryDSL may be better for heavy dynamic querying.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Specifications là lớp bọc của Spring Data trên Criteria API dành cho các truy vấn động, có thể kết hợp. Mỗi specification là một lambda trả về một Predicate, và chúng kết hợp với nhau bằng and và or, trả về null để bỏ qua một bộ lọc không được truyền vào. Chúng phù hợp cho các màn hình tìm kiếm với nhiều bộ lọc tùy chọn, nơi mà việc dựng JPQL bằng chuỗi vừa dễ vỡ vừa không an toàn. Criteria API bên dưới khá dài dòng, nên QueryDSL có thể là lựa chọn tốt hơn khi phải truy vấn động nhiều.</p></details>
 <pre>// Repository extends JpaSpecificationExecutor
 public interface UserRepository extends JpaRepository&lt;User, Long&gt;,
     JpaSpecificationExecutor&lt;User&gt; { }
@@ -740,6 +767,7 @@ Page&lt;User&gt; users = userRepo.findAll(
         q: 'What is the difference between @GeneratedValue strategies (IDENTITY, SEQUENCE, TABLE, AUTO)?',
         difficulty: 'medium',
         a: `<div class="interview-answer"><p>The main choice is IDENTITY versus SEQUENCE. IDENTITY uses an auto-increment column and gets the id only after the insert, which forces an immediate flush and breaks JDBC batch inserts. SEQUENCE gets the id before the insert from a database sequence, so inserts can batch, and <code>allocationSize</code> pre-allocates a block of ids. TABLE is portable but slow, and AUTO lets Hibernate choose based on the dialect.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Lựa chọn chính là giữa IDENTITY và SEQUENCE. IDENTITY dùng cột auto-increment và chỉ lấy được id sau khi insert, điều này buộc phải flush ngay và làm hỏng batch insert của JDBC. SEQUENCE lấy id trước khi insert từ một sequence trong database, nên các insert có thể gom batch, và <code>allocationSize</code> cấp phát trước một khối id. TABLE thì portable nhưng chậm, còn AUTO để Hibernate tự chọn dựa trên dialect.</p></details>
 <ul>
 <li><strong>IDENTITY</strong>: auto-increment column (MySQL). ID assigned after INSERT. <strong>Breaks batch inserts</strong> (Hibernate must flush immediately).</li>
 <li><strong>SEQUENCE</strong>: DB sequence (PostgreSQL, Oracle). ID assigned before INSERT. Supports batch inserts. <strong>Preferred for Hibernate</strong>.</li>
@@ -760,6 +788,7 @@ private Long id;
         q: 'What are JPA entity inheritance strategies?',
         difficulty: 'hard',
         a: `<div class="interview-answer"><p>JPA has four inheritance strategies with a tradeoff between speed and clean schema. SINGLE_TABLE, the default, stores the whole hierarchy in one table with a discriminator column; it is fastest but subclass fields must be nullable. JOINED uses one table per class for a clean schema but joins on every query, and TABLE_PER_CLASS makes polymorphic queries use UNION ALL. @MappedSuperclass only shares fields and does not allow querying by parent type.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>JPA có bốn chiến lược kế thừa với sự đánh đổi giữa tốc độ và schema gọn gàng. SINGLE_TABLE, mặc định, lưu toàn bộ cây phân cấp trong một bảng với một cột discriminator; nó nhanh nhất nhưng các field của lớp con phải cho phép null. JOINED dùng một bảng cho mỗi lớp để có schema sạch nhưng phải join ở mọi truy vấn, còn TABLE_PER_CLASS khiến các truy vấn đa hình phải dùng UNION ALL. <code>@MappedSuperclass</code> chỉ chia sẻ các field và không cho phép truy vấn theo kiểu của lớp cha.</p></details>
 <p>JPA supports four strategies for mapping inheritance hierarchies to database tables:</p>
 <pre>@Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)  // Default
@@ -789,6 +818,7 @@ public class BankTransfer extends Payment {
         q: 'What is optimistic locking with @Version in JPA?',
         difficulty: 'hard',
         a: `<div class="interview-answer"><p>Optimistic locking with <code>@Version</code> prevents lost updates without holding a database lock. A version column is added, and every UPDATE checks the version and increases it, so if another transaction committed first, the update matches no rows and Hibernate throws <code>OptimisticLockException</code>. It fits web apps where conflicts are rare, and it is handled by reloading and retrying. For high contention, pessimistic locking with SELECT FOR UPDATE is better, and the version field is never changed by hand.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Optimistic locking với <code>@Version</code> ngăn tình trạng mất cập nhật mà không cần giữ khóa trên database. Một cột version được thêm vào, và mỗi câu UPDATE đều kiểm tra version rồi tăng nó lên, nên nếu một transaction khác commit trước thì câu update sẽ không khớp dòng nào và Hibernate ném ra <code>OptimisticLockException</code>. Nó phù hợp với các ứng dụng web nơi xung đột hiếm khi xảy ra, và được xử lý bằng cách tải lại rồi thử lại. Với mức tranh chấp cao, pessimistic locking bằng SELECT FOR UPDATE sẽ tốt hơn, và field version thì không bao giờ được sửa bằng tay.</p></details>
 <p><strong>Optimistic locking</strong> prevents lost updates when multiple transactions modify the same row concurrently — without holding database locks.</p>
 <pre>@Entity
 public class Product {
@@ -827,6 +857,7 @@ try {
         q: 'What are DTO projections in JPA and why use them?',
         difficulty: 'medium',
         a: `<div class="interview-answer"><p>A DTO projection selects only the columns that are needed instead of loading a full entity. Loading a full entity pulls every column and can drag in lazy associations, while a projection is a lean read-only view. Spring supports interface projections and constructor or record DTOs through <code>SELECT new</code> in JPQL. Projections also have no managed proxies, so there is no LazyInitializationException and no dirty-checking cost.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Một DTO projection chỉ chọn những cột cần thiết thay vì tải cả một entity đầy đủ. Tải một entity đầy đủ sẽ kéo về mọi cột và có thể lôi theo các quan hệ lazy, trong khi một projection là một view gọn nhẹ chỉ để đọc. Spring hỗ trợ interface projection và DTO dạng constructor hoặc record thông qua <code>SELECT new</code> trong JPQL. Projection cũng không có proxy được managed, nên không có LazyInitializationException và không tốn chi phí dirty-checking.</p></details>
 <p>DTO projections let you select only the columns you need, avoiding loading entire entities (better performance).</p>
 <pre>// Problem: loading full entity when you only need name and email
 User user = userRepo.findById(1L);  // loads ALL columns including blob fields
@@ -863,6 +894,7 @@ repo.findByStatus("active", UserDto.class);</pre>
         q: 'Why are equals() and hashCode() hard to implement correctly for JPA entities?',
         difficulty: 'tricky',
         a: `<div class="interview-answer"><p>Two entity traits break IDE-generated equals and hashCode. The id is null before persist, so an id-based hashCode changes after saving, and an entity already in a HashSet becomes lost. Hibernate proxies are runtime subclasses, so <code>getClass()</code> comparisons fail for the same row. A safe pattern uses a constant hashCode with id-based equals using <code>instanceof</code> and the id getter, and Lombok <code>@Data</code> should not be placed on an entity.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Hai đặc điểm của entity làm hỏng equals và hashCode do IDE sinh ra. id là null trước khi persist, nên một hashCode dựa trên id sẽ thay đổi sau khi lưu, khiến một entity đã nằm trong HashSet bị thất lạc. Các Hibernate proxy là lớp con sinh ra lúc runtime, nên các phép so sánh bằng <code>getClass()</code> sẽ sai với cùng một dòng dữ liệu. Một pattern an toàn dùng hashCode hằng số kết hợp equals dựa trên id với <code>instanceof</code> và getter của id, và không nên đặt Lombok <code>@Data</code> lên một entity.</p></details>
 <p>Two properties of entities break the standard IDE-generated implementations:</p>
 <ul>
 <li><strong>The id is null before persist</strong> — an id-based hashCode <em>changes</em> when the entity is saved, violating the contract that hashCode must be stable while the object is in a hash-based collection.</li>
@@ -899,6 +931,7 @@ public int hashCode() {
         q: 'What is the difference between persist(), merge(), and Spring Data save()?',
         difficulty: 'tricky',
         a: `<div class="interview-answer"><p>These three behave differently. <code>persist</code> makes a transient entity managed and returns void, so the argument itself becomes managed. <code>merge</code> copies the detached object's state onto a managed copy and returns that copy, so the original argument stays detached and later changes to it are not saved. Spring Data <code>save</code> calls persist for a new entity and merge otherwise. Saving an entity with a pre-assigned id causes a merge with an extra SELECT, and merge overwrites all columns, which can revert concurrent changes unless <code>@Version</code> is used.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Ba cái này hành xử khác nhau. <code>persist</code> biến một entity transient thành managed và trả về void, nên chính đối số đó trở thành managed. <code>merge</code> sao chép trạng thái của object detached lên một bản managed rồi trả về bản đó, nên đối số gốc vẫn ở trạng thái detached và các thay đổi sau này lên nó sẽ không được lưu. Spring Data <code>save</code> gọi persist cho một entity mới và merge cho các trường hợp còn lại. Lưu một entity có id đã gán sẵn sẽ dẫn tới một lần merge kèm một câu SELECT thừa, và merge ghi đè lên tất cả các cột, điều này có thể làm mất các thay đổi đồng thời trừ khi dùng <code>@Version</code>.</p></details>
 <ul>
 <li><strong>persist(e)</strong>: makes a <em>transient</em> entity managed. Throws <code>EntityExistsException</code> for detached entities. Returns void — the argument itself becomes managed.</li>
 <li><strong>merge(e)</strong>: copies the state of a detached entity onto a managed copy (loading it first if needed) and <strong>returns that NEW managed instance</strong>. The argument stays detached!</li>
@@ -934,6 +967,7 @@ public &lt;S extends T&gt; S save(S entity) {
         q: 'What is the difference between findById() and getReferenceById()?',
         difficulty: 'hard',
         a: `<div class="interview-answer"><p><code>findById</code> runs a SELECT right away and returns a real entity or an empty Optional if the row is missing. <code>getReferenceById</code> returns a lazy proxy with no SQL, and the database is hit only when a non-id field is accessed. It is ideal for setting a foreign key, since the reference carries the id and the insert gets the FK without an extra SELECT. The risk is deferred failure, because a missing row only shows up later as <code>EntityNotFoundException</code>, so findById is better when the data or an existence check is needed now.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><code>findById</code> chạy một câu SELECT ngay lập tức và trả về một entity thật, hoặc một Optional rỗng nếu dòng dữ liệu không tồn tại. <code>getReferenceById</code> trả về một proxy lazy mà không chạy SQL, và database chỉ bị truy cập khi một field không phải id được truy cập. Nó lý tưởng để gán khóa ngoại, vì reference đã mang sẵn id nên câu insert có được FK mà không cần thêm một câu SELECT. Rủi ro là lỗi bị hoãn lại, vì một dòng dữ liệu bị thiếu chỉ lộ ra về sau dưới dạng <code>EntityNotFoundException</code>, nên findById tốt hơn khi cần dữ liệu hoặc cần kiểm tra sự tồn tại ngay.</p></details>
 <ul>
 <li><strong>findById(id)</strong>: executes a <strong>SELECT immediately</strong>, returns <code>Optional.empty()</code> if the row does not exist. You get a real, initialized entity.</li>
 <li><strong>getReferenceById(id)</strong> (JPA <code>em.getReference()</code>): returns a <strong>lazy proxy without any SQL</strong>. The database is hit only when a non-id field is first accessed — and if the row is missing, <em>that access</em> throws <code>EntityNotFoundException</code> (possibly far from the call site, or even during serialization).</li>
@@ -968,6 +1002,7 @@ ghost.getName();   // SELECT ... → row missing → EntityNotFoundException HER
         q: 'Why do bidirectional JPA relationships need synchronization helper methods?',
         difficulty: 'hard',
         a: `<div class="interview-answer"><p>In a bidirectional relationship, only the owning side, the one without <code>mappedBy</code> that holds the FK, produces SQL. Adding a child to the parent's collection without setting the child's back-reference means the foreign key is never written, causing a null FK or a constraint error. Setting only the owning side leaves the in-memory collection stale within the transaction. Helper methods like addItem and removeItem set both sides at once, and equals and toString must not follow both directions or they recurse forever.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Trong một quan hệ hai chiều, chỉ bên sở hữu, tức là bên không có <code>mappedBy</code> và giữ FK, mới sinh ra SQL. Thêm một con vào collection của cha mà không đặt back-reference cho con nghĩa là khóa ngoại không bao giờ được ghi, gây ra FK null hoặc lỗi ràng buộc. Chỉ đặt bên sở hữu thì lại khiến collection trong bộ nhớ bị cũ trong phạm vi transaction. Các helper method như addItem và removeItem đặt cả hai bên cùng lúc, và equals cùng toString không được đi theo cả hai chiều nếu không sẽ đệ quy vô tận.</p></details>
 <p>In a bidirectional association only the <strong>owning side</strong> (the one <em>without</em> <code>mappedBy</code>, usually the <code>@ManyToOne</code>) is written to the database. Setting just the inverse side updates the in-memory object graph but produces the wrong SQL — or none at all.</p>
 <pre>// Order (inverse side)          OrderItem (owning side — has the FK)
 @OneToMany(mappedBy = "order",   @ManyToOne(fetch = FetchType.LAZY)

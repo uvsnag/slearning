@@ -12,6 +12,7 @@ export const topics: PvTopic[] = [
         q: 'What is Zustand and how does it compare to Redux and Context API?',
         difficulty: 'easy',
         a: `<div class="interview-answer"><p><strong>Zustand</strong> is a very small state library for React that uses a hook and needs no provider or reducers. It only re-renders the components that use the exact piece of state that changed, so it avoids the problem where Context re-renders every consumer. It is a good default for client and UI state. It should not be used for server data such as API responses, because that is the job of TanStack Query.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><strong>Zustand</strong> là một thư viện quản lý state rất nhỏ gọn cho React, dùng hook và không cần provider hay reducer. Nó chỉ re-render những component thực sự dùng đúng phần state vừa thay đổi, nên tránh được vấn đề Context re-render mọi consumer. Đây là lựa chọn mặc định tốt cho client state và UI state. Không nên dùng nó cho dữ liệu server như response API, vì đó là việc của TanStack Query.</p></details>
 <p><strong>Zustand</strong> is a small, fast, unopinionated state management library for React. It uses a hook-based API with no boilerplate.</p>
 <table><tr><th>Aspect</th><th>Zustand</th><th>Redux Toolkit</th><th>Context API</th></tr>
 <tr><td>Boilerplate</td><td>Minimal</td><td>Medium (slices, store)</td><td>Low</td></tr>
@@ -42,6 +43,7 @@ function Counter() {
         q: 'How does Zustand handle selectors and prevent unnecessary re-renders?',
         difficulty: 'medium',
         a: `<div class="interview-answer"><p>A component reads state through a <em>selector</em> and only re-renders when that selected value changes. A common mistake is returning a new object or array from the selector every time, because the reference is always new and the check fails; <code>useShallow</code> (or the older <code>shallow</code>) fixes this. It is best to select the smallest piece of state needed and to read actions in a separate selector from values.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Một component đọc state qua một <em>selector</em> và chỉ re-render khi giá trị được chọn đó thay đổi. Một lỗi phổ biến là mỗi lần selector lại trả về một object hoặc array mới, vì reference luôn khác nhau nên phép so sánh luôn thất bại; <code>useShallow</code> (hoặc <code>shallow</code> cũ hơn) sẽ khắc phục điều này. Tốt nhất là chọn phần state nhỏ nhất mà bạn cần, và đọc các action bằng một selector riêng tách khỏi các giá trị.</p></details>
 <p>Zustand uses <strong>selectors</strong> to subscribe to specific parts of the store. Components only re-render when their selected state changes.</p>
 <pre>const useStore = create((set) => ({
   user: { name: 'John', age: 30 },
@@ -83,6 +85,7 @@ const { name, age } = useStore(
         q: 'How to handle async actions in Zustand?',
         difficulty: 'medium',
         a: `<div class="interview-answer"><p>Async work in Zustand needs no extra tools. An action can be a normal <code>async</code> function that calls <code>set</code> when the promise finishes, and <code>get()</code> reads the current state inside the action. This is only for client-owned flows. Fetching API data that needs caching, dedup, or retries should use TanStack Query instead.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Xử lý bất đồng bộ trong Zustand không cần thêm công cụ nào. Một action có thể là một hàm <code>async</code> bình thường, gọi <code>set</code> khi promise hoàn tất, còn <code>get()</code> đọc state hiện tại ngay bên trong action. Cách này chỉ dành cho các luồng do client sở hữu. Việc fetch dữ liệu API cần cache, dedup hay retry thì nên dùng TanStack Query.</p></details>
 <p>Zustand handles async naturally — just use <code>async/await</code> inside actions. No thunks or middleware needed.</p>
 <pre>const useStore = create((set, get) => ({
   users: [],
@@ -125,6 +128,7 @@ function UserList() {
         q: 'What are Zustand middleware? Explain persist, devtools, and immer.',
         difficulty: 'hard',
         a: `<div class="interview-answer"><p>Middleware are wrappers around the store that add features, and they are combined by nesting. <code>persist</code> saves state to localStorage, <code>devtools</code> connects to Redux DevTools, and <code>immer</code> allows writing updates in a mutable style for deeply nested state. The order matters, so <code>devtools</code> is usually kept outermost. With <code>persist</code>, use <code>partialize</code> so that private data like auth tokens is not saved to storage.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Middleware là các lớp bọc quanh store để thêm tính năng, và chúng được kết hợp bằng cách lồng vào nhau. <code>persist</code> lưu state vào localStorage, <code>devtools</code> kết nối với Redux DevTools, còn <code>immer</code> cho phép viết cập nhật theo kiểu mutable cho state lồng sâu. Thứ tự lồng rất quan trọng, nên thường đặt <code>devtools</code> ở ngoài cùng. Với <code>persist</code>, hãy dùng <code>partialize</code> để dữ liệu nhạy cảm như auth token không bị lưu vào storage.</p></details>
 <p>Zustand middleware wraps the store to add features like persistence, DevTools, and immutable updates.</p>
 <pre>import { create } from 'zustand';
 import { persist, devtools } from 'zustand/middleware';
@@ -169,6 +173,7 @@ const logMiddleware = (config) => (set, get, api) =>
         q: 'How to structure a large Zustand store? Slices pattern.',
         difficulty: 'hard',
         a: `<div class="interview-answer"><p>A large store can be split into slice functions, where each slice owns one domain, and the slices are then spread into a single <code>create</code> call. Cross-slice reads go through <code>get()</code>. Slices help once the store grows past about ten fields, but truly independent domains are better as separate stores. In TypeScript, the combined store type is the intersection of each slice's return type.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Một store lớn có thể được tách thành các hàm slice, mỗi slice quản lý một domain, rồi spread chúng vào chung một lời gọi <code>create</code>. Việc đọc chéo giữa các slice thực hiện qua <code>get()</code>. Slice trở nên hữu ích khi store vượt quá khoảng mười field, nhưng những domain thực sự độc lập thì nên tách thành các store riêng. Trong TypeScript, kiểu của store kết hợp chính là giao (intersection) của kiểu trả về từ mỗi slice.</p></details>
 <p>For large apps, split the store into <strong>slices</strong> — separate files that each manage a domain, then combine them.</p>
 <pre>// slices/authSlice.ts
 export const createAuthSlice = (set, get) => ({
@@ -212,6 +217,7 @@ const useCartStore = create(createCartSlice);</pre>
         q: 'How does Zustand work outside of React components?',
         difficulty: 'medium',
         a: `<div class="interview-answer"><p>A Zustand store is a plain object, so <code>getState</code>, <code>setState</code>, and <code>subscribe</code> all work without React. This makes it useful in axios interceptors, plain event handlers, and tests. Outside React, always read the current value with <code>getState()</code> at call time. Also note that <code>subscribe</code> returns an unsubscribe function that must be called to avoid leaking listeners.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Một Zustand store là một object thuần, nên <code>getState</code>, <code>setState</code> và <code>subscribe</code> đều hoạt động mà không cần React. Điều này hữu ích trong axios interceptor, các event handler thuần và trong test. Bên ngoài React, hãy luôn đọc giá trị hiện tại bằng <code>getState()</code> tại thời điểm gọi. Cũng lưu ý rằng <code>subscribe</code> trả về một hàm unsubscribe mà bạn phải gọi để tránh rò rỉ listener.</p></details>
 <p>Zustand stores can be used outside React — in utility functions, API interceptors, or tests.</p>
 <pre>const useStore = create((set) => ({
   token: null,
@@ -247,6 +253,7 @@ useStore.destroy();</pre>
         q: 'What are common Zustand anti-patterns and pitfalls?',
         difficulty: 'tricky',
         a: `<div class="interview-answer"><p>Common mistakes include reading the whole store with no selector, returning new objects from a selector without <code>shallow</code>, changing state in place without <code>immer</code> so no re-render happens, and storing derived values that drift out of sync. The biggest one is keeping server state in Zustand, which belongs in TanStack Query. It is better to keep the store small and compute derived values in selectors.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Các lỗi thường gặp gồm: đọc toàn bộ store mà không dùng selector, trả về object mới từ selector mà không có <code>shallow</code>, sửa state tại chỗ mà không có <code>immer</code> khiến không re-render, và lưu các giá trị dẫn xuất bị lệch khỏi thực tế. Lỗi lớn nhất là giữ server state trong Zustand, trong khi nó thuộc về TanStack Query. Tốt nhất là giữ store nhỏ gọn và tính các giá trị dẫn xuất ngay trong selector.</p></details>
 <pre>// ❌ Anti-pattern 1: No selector — subscribes to entire store
 const store = useStore(); // re-renders on ANY state change
 // ✅ Fix: always use a selector
@@ -281,6 +288,7 @@ const total = useStore((s) => s.items.reduce((sum, i) => sum + i.price, 0));
         q: 'Zustand vs Redux Toolkit vs Jotai vs Recoil — when to use which?',
         difficulty: 'hard',
         a: `<div class="interview-answer"><p>Zustand is a good default because it is tiny and simple. Redux Toolkit fits when strict patterns, action logging, or time-travel debugging are needed, or when the team already knows Redux. Jotai suits fine-grained atomic state with many small independent pieces, and Recoil is best avoided because it is no longer maintained. Most apps are well served by Zustand for client state plus TanStack Query for server state.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Zustand là lựa chọn mặc định tốt vì nó rất nhỏ và đơn giản. Redux Toolkit phù hợp khi cần pattern chặt chẽ, log action hay debug time-travel, hoặc khi team đã quen với Redux. Jotai hợp với state nguyên tử chi tiết gồm nhiều mảnh nhỏ độc lập, còn Recoil thì nên tránh vì không còn được bảo trì. Hầu hết ứng dụng đều phù hợp với Zustand cho client state cộng với TanStack Query cho server state.</p></details>
 <table><tr><th>Library</th><th>Model</th><th>Best For</th><th>Size</th></tr>
 <tr><td><strong>Zustand</strong></td><td>Single store, flux-like</td><td>Simple-medium apps, replaces Redux</td><td>~1KB</td></tr>
 <tr><td><strong>Redux Toolkit</strong></td><td>Single store, actions/reducers</td><td>Large apps, complex state logic, devtools</td><td>~10KB</td></tr>
@@ -301,6 +309,7 @@ const total = useStore((s) => s.items.reduce((sum, i) => sum + i.price, 0));
         q: 'What are the pitfalls of using Zustand with Next.js / SSR, and how do you fix them?',
         difficulty: 'tricky',
         a: `<div class="interview-answer"><p>There are two SSR traps. A module-level store on the server is one instance shared by every request, so one user's state can leak into another user's render. Also, <code>persist</code> reads localStorage on the first render, which causes a hydration mismatch. The fix is to create one store per request behind a Context provider, hold it in a <code>useRef</code>, and delay <code>persist</code> rehydration until after mount with <code>skipHydration</code>.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Có hai cái bẫy khi dùng SSR. Một store ở cấp module trên server chỉ là một instance duy nhất dùng chung cho mọi request, nên state của người dùng này có thể rò rỉ sang lần render của người dùng khác. Ngoài ra, <code>persist</code> đọc localStorage ngay ở lần render đầu tiên, gây ra lỗi hydration mismatch. Cách khắc phục là tạo một store cho mỗi request đặt sau một Context provider, giữ nó trong một <code>useRef</code>, và hoãn việc rehydrate của <code>persist</code> đến sau khi mount bằng <code>skipHydration</code>.</p></details>
 <p>Two classic senior-level traps: <strong>module-level stores leak state between requests on the server</strong>, and <strong>persist middleware causes hydration mismatches</strong>.</p>
 <p><strong>Pitfall 1 — the server singleton.</strong> On the client, a module-level store is one instance per browser tab — fine. On the server, the module is evaluated once per Node process, so <strong>every incoming request (every user!) shares the same store instance</strong> during SSR.</p>
 <pre>// ❌ BAD in Next.js: module-level store used during SSR
@@ -365,6 +374,7 @@ function CartBadge() {
         q: 'What are transient updates in Zustand? How do you consume high-frequency state without re-rendering?',
         difficulty: 'tricky',
         a: `<div class="interview-answer"><p>Transient updates react to state changes without causing a React re-render. Using <code>store.subscribe</code>, high-frequency values such as mouse position or price ticks can be written straight into a ref or the DOM node, and <code>subscribeWithSelector</code> watches only one slice. Inside callbacks, read the current value with <code>getState()</code> to avoid a stale closure. This direct DOM update should stay limited to leaf nodes.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Transient update là phản ứng với thay đổi state mà không gây ra re-render React. Dùng <code>store.subscribe</code>, các giá trị tần suất cao như vị trí chuột hay tick giá có thể được ghi thẳng vào một ref hoặc vào DOM node, và <code>subscribeWithSelector</code> chỉ theo dõi một phần state. Bên trong callback, hãy đọc giá trị hiện tại bằng <code>getState()</code> để tránh stale closure. Cách cập nhật DOM trực tiếp này nên chỉ giới hạn ở các leaf node.</p></details>
 <p><strong>Transient updates</strong> mean reacting to state changes <em>without</em> triggering a React re-render. This matters for high-frequency data — mouse position, canvas animation, websocket price ticks — where re-rendering 20–60 times per second kills performance.</p>
 <pre>// Problem: a websocket pushes prices 20x/second.
 // useStore((s) => s.price) re-renders this component on EVERY tick.
@@ -419,6 +429,7 @@ const onSave = useCallback(() => {
         q: 'What is TanStack Query (React Query)? Why use it instead of useEffect + fetch?',
         difficulty: 'easy',
         a: `<div class="interview-answer"><p><strong>TanStack Query</strong> is a cache for server state, not just a fetching tool. Given a key and a fetch function, it provides caching, deduplication, background refetch, retries, and stale-while-revalidate. Doing the same by hand with <code>useEffect</code> and <code>fetch</code> is error-prone and often has race-condition bugs. The cache is the source of truth for server data, so it should not be copied into Zustand or Redux.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><strong>TanStack Query</strong> là một cache cho server state, không chỉ là công cụ fetch. Khi cho nó một key và một hàm fetch, nó cung cấp caching, dedup, refetch nền, retry và stale-while-revalidate. Tự làm những việc đó bằng tay với <code>useEffect</code> và <code>fetch</code> rất dễ sai và thường dính bug race condition. Cache là nguồn sự thật cho dữ liệu server, nên đừng sao chép nó vào Zustand hay Redux.</p></details>
 <p><strong>TanStack Query</strong> is a server state management library for fetching, caching, synchronizing, and updating server data in React.</p>
 <pre>// ❌ Without TanStack Query (manual approach)
 function Users() {
@@ -462,6 +473,7 @@ function Users() {
         q: 'Explain queryKey, queryFn, and how caching works in TanStack Query.',
         difficulty: 'medium',
         a: `<div class="interview-answer"><p>The <code>queryKey</code> is the cache identity, so the same key means the same cache entry, and every input the <code>queryFn</code> uses must be in the key. Two settings are often confused: <code>staleTime</code> is how long data stays fresh before a background refetch, and <code>gcTime</code> is how long unused data stays in memory after the last user unmounts. The default <code>staleTime</code> is zero, so it refetches often; stable data should use a higher value.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><code>queryKey</code> chính là danh tính của cache, nên cùng một key nghĩa là cùng một entry cache, và mọi input mà <code>queryFn</code> sử dụng đều phải nằm trong key. Có hai thiết lập hay bị nhầm lẫn: <code>staleTime</code> là khoảng thời gian dữ liệu còn được coi là tươi trước khi refetch nền, còn <code>gcTime</code> là khoảng thời gian dữ liệu không dùng còn nằm trong bộ nhớ sau khi người dùng cuối cùng unmount. Mặc định <code>staleTime</code> bằng 0 nên nó refetch khá thường xuyên; dữ liệu ổn định thì nên đặt giá trị cao hơn.</p></details>
 <p>Every query is identified by its <strong>queryKey</strong>. The cache stores data by key.</p>
 <pre>// Simple key
 useQuery({ queryKey: ['users'], queryFn: fetchUsers });
@@ -499,6 +511,7 @@ useQuery({
         q: 'What is useMutation in TanStack Query? How to handle create/update/delete?',
         difficulty: 'medium',
         a: `<div class="interview-answer"><p><code>useMutation</code> handles writes and gives status like <code>isPending</code> and <code>isError</code> plus <code>onSuccess</code>, <code>onError</code>, and <code>onSettled</code> hooks. The usual flow is to call <code>mutate</code> and then <code>invalidateQueries</code> in <code>onSuccess</code> to resync the affected lists. Mutations do not update the cache on their own, so either invalidate the related queries or write the response with <code>setQueryData</code>. Optimistic updates can be added for an instant feel.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><code>useMutation</code> xử lý các thao tác ghi và cung cấp các trạng thái như <code>isPending</code> và <code>isError</code> cùng các hook <code>onSuccess</code>, <code>onError</code> và <code>onSettled</code>. Luồng thông thường là gọi <code>mutate</code> rồi <code>invalidateQueries</code> trong <code>onSuccess</code> để đồng bộ lại những list bị ảnh hưởng. Mutation không tự cập nhật cache, nên hãy hoặc invalidate các query liên quan, hoặc ghi response vào cache bằng <code>setQueryData</code>. Có thể thêm optimistic update để mang lại cảm giác tức thì.</p></details>
 <p><code>useMutation</code> handles data modification (POST, PUT, DELETE) with callbacks for success, error, and cache invalidation.</p>
 <pre>import { useMutation, useQueryClient } from '@tanstack/react-query';
 
@@ -541,6 +554,7 @@ function CreateUser() {
         q: 'What are optimistic updates in TanStack Query?',
         difficulty: 'hard',
         a: `<div class="interview-answer"><p>An optimistic update changes the cache before the server responds so the UI feels instant, then rolls back if the request fails. In <code>onMutate</code>, call <code>cancelQueries</code>, snapshot the previous value, update with <code>setQueryData</code>, and return the snapshot; <code>onError</code> restores it, and <code>onSettled</code> invalidates to reconcile with the server. The <code>cancelQueries</code> step is required, because a late background refetch could otherwise overwrite the optimistic value.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Optimistic update thay đổi cache trước khi server phản hồi để UI có cảm giác tức thì, rồi rollback nếu request thất bại. Trong <code>onMutate</code>, hãy gọi <code>cancelQueries</code>, chụp lại giá trị trước đó, cập nhật bằng <code>setQueryData</code> rồi trả về snapshot; <code>onError</code> khôi phục lại nó, còn <code>onSettled</code> invalidate để đồng bộ lại với server. Bước <code>cancelQueries</code> là bắt buộc, vì một lần refetch nền đến muộn có thể ghi đè lên giá trị optimistic.</p></details>
 <p><strong>Optimistic updates</strong> update the UI immediately (before the server responds), then roll back if the mutation fails.</p>
 <pre>const mutation = useMutation({
   mutationFn: updateTodo,
@@ -579,6 +593,7 @@ function CreateUser() {
         q: 'How to implement pagination and infinite scroll with TanStack Query?',
         difficulty: 'hard',
         a: `<div class="interview-answer"><p>For paged lists, <code>placeholderData: keepPreviousData</code> keeps the old page visible while the next one loads instead of showing a blank screen. For feeds, <code>useInfiniteQuery</code> manages the cursor and joins pages using <code>getNextPageParam</code>. The page or cursor should be part of the queryKey so each page caches on its own. The Next button should be disabled while <code>isPlaceholderData</code> is true.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Với list phân trang, <code>placeholderData: keepPreviousData</code> giữ trang cũ hiển thị trong khi trang mới đang tải thay vì hiện màn hình trắng. Với feed, <code>useInfiniteQuery</code> quản lý cursor và ghép các trang lại bằng <code>getNextPageParam</code>. Số trang hoặc cursor nên là một phần của queryKey để mỗi trang được cache riêng. Nút Next nên bị vô hiệu hóa khi <code>isPlaceholderData</code> đang là true.</p></details>
 <pre>// 1. Standard pagination
 function UserList() {
   const [page, setPage] = useState(1);
@@ -637,6 +652,7 @@ function InfiniteUsers() {
         q: 'What is TanStack Query DevTools and how to debug queries?',
         difficulty: 'medium',
         a: `<div class="interview-answer"><p>The DevTools panel shows what the cache is doing, including each query's state as fresh, stale, fetching, or inactive, the cached data per key, and buttons to invalidate or refetch. Many issues it reveals are configuration problems, such as a <code>staleTime</code> of zero, an unstable key or <code>queryFn</code> causing loops, or a short <code>gcTime</code> dropping data early. It only ships in development builds, so it adds no cost to production.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Panel DevTools cho thấy cache đang làm gì, gồm trạng thái của từng query như fresh, stale, fetching hay inactive, dữ liệu được cache theo từng key, và các nút để invalidate hoặc refetch. Nhiều vấn đề nó phơi bày thực ra là lỗi cấu hình, chẳng hạn <code>staleTime</code> bằng 0, một key hoặc <code>queryFn</code> không ổn định gây vòng lặp, hoặc <code>gcTime</code> quá ngắn khiến dữ liệu bị bỏ sớm. Nó chỉ được đưa vào bản build development nên không tốn chi phí gì cho production.</p></details>
 <pre>// Install: npm install @tanstack/react-query-devtools
 
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
@@ -669,6 +685,7 @@ function App() {
         q: 'How to configure a global QueryClient and default options?',
         difficulty: 'medium',
         a: `<div class="interview-answer"><p>Create one <code>QueryClient</code> at the app root and set sensible <code>defaultOptions</code>, such as a five-minute <code>staleTime</code>, a couple of retries, and refetch on focus and reconnect, then override per query when needed. Cross-cutting handling, like redirecting to login on a 401, can go on the query cache's <code>onError</code>. The client must not be recreated on every render, so keep it in module scope or a ref. In SSR it must be one client per request.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Hãy tạo một <code>QueryClient</code> duy nhất ở gốc ứng dụng và đặt các <code>defaultOptions</code> hợp lý, chẳng hạn <code>staleTime</code> năm phút, vài lần retry, cùng refetch khi focus và khi reconnect, rồi ghi đè theo từng query khi cần. Việc xử lý xuyên suốt như redirect về trang login khi gặp 401 có thể đặt ở <code>onError</code> của query cache. Không được tạo lại client ở mỗi lần render, nên hãy giữ nó ở phạm vi module hoặc trong một ref. Với SSR thì phải là một client cho mỗi request.</p></details>
 <pre>import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const queryClient = new QueryClient({
@@ -717,6 +734,7 @@ function App() {
         q: 'How does TanStack Query handle dependent queries and parallel queries?',
         difficulty: 'hard',
         a: `<div class="interview-answer"><p>Independent queries run in parallel simply by declaring several <code>useQuery</code> hooks. Dependent queries chain with <code>enabled</code>, so the second query waits until the first one's data exists. When the number of parallel queries is dynamic, use <code>useQueries</code>. Note that <code>enabled: false</code> leaves a query pending, so loading UI must account for it, and chaining dependent queries creates a slower request waterfall.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Các query độc lập chạy song song đơn giản bằng cách khai báo nhiều hook <code>useQuery</code>. Các query phụ thuộc thì nối chuỗi bằng <code>enabled</code>, để query thứ hai chờ đến khi dữ liệu của query đầu tồn tại. Khi số lượng query song song thay đổi động, hãy dùng <code>useQueries</code>. Lưu ý rằng <code>enabled: false</code> khiến query ở trạng thái pending, nên UI loading phải tính đến điều này, và việc nối chuỗi các query phụ thuộc tạo ra một waterfall request chậm hơn.</p></details>
 <pre>// 1. Parallel queries (independent — fetch simultaneously)
 function Dashboard() {
   const usersQuery = useQuery({ queryKey: ['users'], queryFn: fetchUsers });
@@ -759,6 +777,7 @@ function UsersList({ userIds }) {
         q: 'What is TanStack Form? How does it compare to React Hook Form?',
         difficulty: 'medium',
         a: `<div class="interview-answer"><p>TanStack Form is headless, works across frameworks, and its main strength is full type safety for field names and values. React Hook Form is React-only but more mature with a larger ecosystem, and it usually pairs with Zod through a resolver for validation. For most React apps today, React Hook Form plus Zod is a safe choice, while TanStack Form fits when stronger typing or cross-framework use matters. Both are fast and mostly uncontrolled.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>TanStack Form là headless, hoạt động trên nhiều framework, và điểm mạnh chính của nó là type safety đầy đủ cho tên field và giá trị. React Hook Form chỉ dành cho React nhưng trưởng thành hơn với hệ sinh thái lớn hơn, và thường kết hợp với Zod thông qua một resolver để validate. Với hầu hết ứng dụng React hiện nay, React Hook Form cộng Zod là lựa chọn an toàn, còn TanStack Form hợp khi cần typing mạnh hơn hoặc dùng đa framework. Cả hai đều nhanh và phần lớn là uncontrolled.</p></details>
 <p><strong>TanStack Form</strong> is a headless, type-safe form library with built-in validation, supporting React, Vue, Angular, and Solid.</p>
 <pre>import { useForm } from '@tanstack/react-form';
 
@@ -816,6 +835,7 @@ function SignupForm() {
         q: 'What is the difference between server state and client state? How does TanStack Query fit?',
         difficulty: 'tricky',
         a: `<div class="interview-answer"><p>Server state lives on a remote source, is shared with other users, is asynchronous, and can become stale when someone else changes it. Client state is local, synchronous, and fully owned by the app. This difference decides the tool: TanStack Query for server state, and Zustand or <code>useState</code> for client state. Fetching into a Zustand store is a common mistake, and copying server data into a client store creates a second source of truth that drifts.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Server state nằm ở một nguồn từ xa, được chia sẻ với những người dùng khác, mang tính bất đồng bộ, và có thể trở nên cũ khi người khác thay đổi nó. Client state là cục bộ, đồng bộ, và hoàn toàn do ứng dụng sở hữu. Khác biệt này quyết định công cụ: TanStack Query cho server state, còn Zustand hoặc <code>useState</code> cho client state. Fetch dữ liệu vào một Zustand store là lỗi thường gặp, và việc sao chép dữ liệu server vào một client store tạo ra một nguồn sự thật thứ hai bị lệch dần.</p></details>
 <p>Understanding this distinction is key to choosing the right tool.</p>
 <table><tr><th>Aspect</th><th>Server State</th><th>Client State</th></tr>
 <tr><td>Source of truth</td><td>Remote server / DB</td><td>Browser / memory</td></tr>
@@ -849,6 +869,7 @@ const useUIStore = create((set) => ({
         q: 'Why are query keys like dependency arrays? Explain the stale-data bug and the query key factory pattern.',
         difficulty: 'tricky',
         a: `<div class="interview-answer"><p>A queryKey works like a <code>useEffect</code> dependency array: every input the <code>queryFn</code> reads must be in the key, or the cache returns data for the wrong inputs with no error. At scale, hand-written keys drift apart, so a query key factory keeps all key shapes in one place. Invalidation is by prefix, so invalidating <code>['todos']</code> clears every todo query under it. Keys hash deterministically, so object key order does not matter, but array order does.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Một queryKey hoạt động giống như dependency array của <code>useEffect</code>: mọi input mà <code>queryFn</code> đọc đều phải nằm trong key, nếu không cache sẽ trả về dữ liệu cho sai input mà không hề báo lỗi. Ở quy mô lớn, các key viết tay sẽ lệch nhau, nên một query key factory giúp gom mọi hình dạng key về một chỗ. Việc invalidate là theo prefix, nên invalidate <code>['todos']</code> sẽ xóa mọi query todo nằm dưới nó. Key được hash một cách xác định, nên thứ tự thuộc tính trong object không quan trọng, nhưng thứ tự phần tử trong array thì có.</p></details>
 <p>The mental model interviewers probe: <strong>a queryKey is to a queryFn what a dependency array is to useEffect</strong>. Every value the queryFn reads must appear in the key — the key IS the cache identity and the refetch trigger.</p>
 <pre>// ❌ THE BUG: filter used by queryFn but missing from the key
 function Todos({ status }) {
@@ -894,6 +915,7 @@ queryClient.invalidateQueries({ queryKey: todoKeys.detail(5), exact: true });</p
         q: 'invalidateQueries vs refetch vs setQueryData — when do you use each?',
         difficulty: 'hard',
         a: `<div class="interview-answer"><p><code>invalidateQueries</code> marks matching queries stale and refetches the active ones, and it is the default after a mutation when the new value is unknown. <code>refetch()</code> re-runs one query right away and ignores <code>staleTime</code>, which suits an explicit action like a Reload button. <code>setQueryData</code> writes a known value into the cache with no network call, for a mutation response or an optimistic update. Using <code>setQueryData</code> alone can let list queries drift, so an <code>invalidateQueries</code> in <code>onSettled</code> acts as a safety net.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><code>invalidateQueries</code> đánh dấu các query khớp là stale và refetch những query đang active, đây là lựa chọn mặc định sau một mutation khi chưa biết giá trị mới. <code>refetch()</code> chạy lại đúng một query ngay lập tức và bỏ qua <code>staleTime</code>, phù hợp cho một hành động rõ ràng như nút Reload. <code>setQueryData</code> ghi một giá trị đã biết vào cache mà không gọi mạng, dùng cho response của mutation hoặc cho optimistic update. Chỉ dùng riêng <code>setQueryData</code> có thể khiến các query dạng list bị lệch, nên một <code>invalidateQueries</code> trong <code>onSettled</code> đóng vai trò lưới an toàn.</p></details>
 <p>Three ways to "update" a query, with very different semantics — mixing them up causes either wasted network calls or stale UIs.</p>
 <table><tr><th>Method</th><th>What it does</th><th>Use when</th></tr>
 <tr><td><code>invalidateQueries</code></td><td>Marks matching queries stale; refetches <strong>active</strong> (mounted) ones now, inactive ones on next mount</td><td>"The server changed, I don't know the new value" — after most mutations</td></tr>
@@ -939,6 +961,7 @@ const mutation = useMutation({
         q: 'How does TanStack Query prevent race conditions? Explain request cancellation with AbortSignal.',
         difficulty: 'tricky',
         a: `<div class="interview-answer"><p>Query keys make out-of-order responses harmless, because a response only lands in its own key's cache; in search-as-you-type, a slow response for an old term cannot overwrite the current results. This is correct by default, unlike raw <code>useEffect</code> and <code>fetch</code> where a stale response can overwrite state. Forwarding the <code>AbortSignal</code> that the <code>queryFn</code> receives also cancels the superseded requests to save bandwidth. The same idea is why optimistic updates start with <code>cancelQueries</code>.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Query key khiến các response về sai thứ tự trở nên vô hại, vì một response chỉ rơi vào cache của đúng key của nó; trong search-as-you-type, một response chậm của từ khóa cũ không thể ghi đè lên kết quả hiện tại. Đây là hành vi đúng theo mặc định, khác với <code>useEffect</code> và <code>fetch</code> thuần nơi một response cũ có thể ghi đè state. Việc chuyển tiếp <code>AbortSignal</code> mà <code>queryFn</code> nhận được còn hủy luôn các request bị thay thế để tiết kiệm băng thông. Cũng chính ý tưởng này giải thích vì sao optimistic update bắt đầu bằng <code>cancelQueries</code>.</p></details>
 <p>The classic race: <strong>search-as-you-type</strong>. The user types "re" (request A), then "react" (request B). B resolves first, then the slow A lands and overwrites the UI with results for "re" — an out-of-order response bug that plain <code>useEffect + fetch + setState</code> code has by default.</p>
 <pre>// TanStack Query is race-safe PER KEY: each keystroke produces a new
 // queryKey, and only data belonging to the CURRENT key is rendered.
