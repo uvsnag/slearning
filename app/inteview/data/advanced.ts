@@ -2397,7 +2397,13 @@ class SmsSender implements NotificationSender {
     public void send(String message) {
         System.out.println("SMS: " + message);
     }
-}</pre>
+}
+
+// Usage: the same call works with any implementation
+NotificationSender sender = new EmailSender();
+sender.send("Order shipped");   // Email: Order shipped
+sender = new SmsSender();
+sender.send("Order shipped");   // SMS: Order shipped</pre>
 <div class="key-point">Patterns are tools, not goals. Overusing them can make simple code harder to understand.</div>`,
       },
       {
@@ -2453,7 +2459,12 @@ class PaymentGatewayFactory {
         if ("paypal".equalsIgnoreCase(type)) return new PaypalGateway();
         throw new IllegalArgumentException("Unknown type");
     }
-}</pre>
+}
+
+// Usage: the caller depends on the interface, not the concrete class
+PaymentGatewayFactory factory = new PaymentGatewayFactory();
+PaymentGateway gateway = factory.create("stripe");
+gateway.pay(100);   // Paid by Stripe: 100</pre>
 <div class="key-point">Use it when creation logic varies and you want calling code to depend on abstractions.</div>`,
       },
       {
@@ -2489,7 +2500,14 @@ interface UiFactory {
 class LightUiFactory implements UiFactory {
     public Button createButton() { return new LightButton(); }
     public Dialog createDialog() { return new LightDialog(); }
-}</pre>
+}
+
+// Usage: one factory builds a matching family of products
+UiFactory factory = new LightUiFactory();
+Button button = factory.createButton();
+Dialog dialog = factory.createDialog();
+button.render();   // Light Button
+dialog.open();     // Light Dialog</pre>
 <div class="key-point">Abstract Factory is useful when several objects must match, such as a theme-specific button, dialog, and input.</div>`,
       },
       {
@@ -2561,7 +2579,13 @@ class CheckoutService {
     double total(double price) {
         return strategy.apply(price);
     }
-}</pre>
+}
+
+// Usage: choose the algorithm at runtime and swap it freely
+CheckoutService checkout = new CheckoutService(new MemberDiscount());
+checkout.total(100);   // 90.0
+checkout = new CheckoutService(new HolidayDiscount());
+checkout.total(100);   // 80.0</pre>
 <div class="key-point">Strategy is great for removing large if/else blocks around changing business rules.</div>`,
       },
       {
@@ -2597,7 +2621,12 @@ class Order {
     private OrderState state = new CreatedState();
     void setState(OrderState state) { this.state = state; }
     void next() { state.next(this); }
-}</pre>
+}
+
+// Usage: the object changes its OWN behavior as it transitions
+Order order = new Order();   // starts in CreatedState
+order.next();                // CreatedState -> becomes PaidState
+order.next();                // PaidState -> prints "Ship order"</pre>
 <div class="key-point">If behavior depends on object lifecycle transitions, it is usually State, not Strategy.</div>`,
       },
       {
@@ -2628,7 +2657,12 @@ class OrderSubject {
             observer.update(event);
         }
     }
-}</pre>
+}
+
+// Usage: the subject notifies every registered observer
+OrderSubject subject = new OrderSubject();
+subject.addObserver(new EmailObserver());
+subject.notifyObservers("Order shipped");   // Email received: Order shipped</pre>
 <div class="key-point">Observer is common in UI events and in-process event systems.</div>`,
       },
       {
@@ -2677,7 +2711,11 @@ class PaymentAdapter implements PaymentProcessor {
     public void pay(int amount) {
         legacy.makePayment(amount * 100);
     }
-}</pre>
+}
+
+// Usage: client talks to PaymentProcessor; the adapter calls the legacy API
+PaymentProcessor processor = new PaymentAdapter();
+processor.pay(50);   // Legacy paid: 5000</pre>
 <div class="key-point">Use Adapter when integrating old or third-party APIs without changing the rest of your code.</div>`,
       },
       {
@@ -2708,7 +2746,11 @@ class CheckoutFacade {
         payment.charge(amount);
         email.sendReceipt();
     }
-}</pre>
+}
+
+// Usage: one simple call hides the whole subsystem
+CheckoutFacade checkout = new CheckoutFacade();
+checkout.checkout("Book", 100);   // Reserved Book / Charged 100 / Receipt sent</pre>
 <div class="key-point">Facade reduces client complexity and centralizes orchestration.</div>`,
       },
       {
@@ -2752,7 +2794,12 @@ class ImageProxy implements Image {
         if (realImage == null) realImage = new RealImage(fileName);
         realImage.display();
     }
-}</pre>
+}
+
+// Usage: the real image loads only on the first display (lazy loading)
+Image image = new ImageProxy("photo.jpg");   // nothing loaded yet
+image.display();   // Loading photo.jpg -> Displaying photo.jpg
+image.display();   // Displaying photo.jpg (already loaded)</pre>
 <div class="key-point">Spring AOP and many ORM lazy-loading features are classic proxy examples.</div>`,
       },
       {
@@ -2780,7 +2827,12 @@ class MilkDecorator implements Coffee {
 
     public String description() { return coffee.description() + ", Milk"; }
     public int cost() { return coffee.cost() + 10; }
-}</pre>
+}
+
+// Usage: wrap an object to add behavior at runtime
+Coffee coffee = new MilkDecorator(new BasicCoffee());
+coffee.description();   // "Coffee, Milk"
+coffee.cost();          // 60</pre>
 <div class="key-point">Decorator is useful when behavior must be combined flexibly at runtime.</div>`,
       },
       {
@@ -2807,7 +2859,11 @@ class MilkDecorator implements Coffee {
 class CsvProcessor extends FileProcessor {
     void read() { System.out.println("Read CSV"); }
     void transform() { System.out.println("Transform CSV"); }
-}</pre>
+}
+
+// Usage: the base class fixes the steps and their order
+FileProcessor processor = new CsvProcessor();
+processor.process();   // Read CSV -> Transform CSV -> Saved file</pre>
 <div class="key-point">Use Template Method when the algorithm flow stays stable but some steps vary.</div>`,
       },
       {
@@ -2842,7 +2898,12 @@ class AuditHandler extends Handler {
     protected void process(String request) {
         System.out.println("Audit log: " + request);
     }
-}</pre>
+}
+
+// Usage: link the handlers, then send a request down the chain
+Handler chain = new AuthHandler();
+chain.linkWith(new AuditHandler());
+chain.handle("GET /orders");   // Auth check: GET /orders -> Audit log: GET /orders</pre>
 <div class="key-point">HTTP middleware and servlet filters are common real-world examples.</div>`,
       },
       {
