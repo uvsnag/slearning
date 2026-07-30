@@ -13,6 +13,7 @@ import {
 } from '../types';
 import { formatCode } from '../formatter';
 import { RunLog, runCode } from '../runner';
+import CodeAssistant from './CodeAssistant';
 import CodeEditor from './CodeEditor';
 import DatabaseExplorer, { tableKey } from './DatabaseExplorer';
 import FileTree from './FileTree';
@@ -83,6 +84,7 @@ export default function CodeStudio({ project }: { project: StudioProject }) {
   const [consoleOpen, setConsoleOpen] = useState(false);
   const [running, setRunning] = useState(false);
   const [formatting, setFormatting] = useState(false);
+  const [assistantOpen, setAssistantOpen] = useState(true);
   const [tabs, setTabs] = useState<StudioTab[]>(initialTabs);
   const [activeTabId, setActiveTabId] = useState<string | null>(initialTabs[0]?.id ?? null);
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
@@ -474,6 +476,16 @@ export default function CodeStudio({ project }: { project: StudioProject }) {
             />
           )}
         </div>
+
+        {/* ---------- ask-AI side panel ---------- */}
+        {assistantOpen && (
+          <CodeAssistant
+            filePath={activePath}
+            language={activeFile?.language}
+            code={activeContent}
+            onClose={() => setAssistantOpen(false)}
+          />
+        )}
       </div>
 
       {/* ---------- status bar ---------- */}
@@ -493,6 +505,14 @@ export default function CodeStudio({ project }: { project: StudioProject }) {
             ▣ Output
           </button>
         )}
+        <button
+          type="button"
+          className={`cs-status-item cs-status-btn ${assistantOpen ? 'cs-status-btn-active' : ''}`}
+          onClick={() => setAssistantOpen((open) => !open)}
+          title="Ask AI about the current code"
+        >
+          🤖 Ask AI
+        </button>
         <span className="cs-status-spacer" />
         {activeFile && (
           <>

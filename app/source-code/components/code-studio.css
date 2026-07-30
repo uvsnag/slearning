@@ -956,6 +956,307 @@
   background: rgba(255, 255, 255, 0.14);
 }
 
+.cs-status-btn-active {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+/* ---------------- ask-AI side panel ---------------- */
+
+.cs-ai-panel {
+  width: 360px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--cs-sidebar);
+  border-left: 1px solid var(--cs-border);
+}
+
+.cs-ai-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px 6px 12px;
+  border-bottom: 1px solid var(--cs-border);
+  flex: none;
+}
+
+.cs-ai-title {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--cs-sidebar-header);
+  margin-right: auto;
+}
+
+.cs-ai-model {
+  background: var(--cs-editor);
+  color: var(--cs-text);
+  border: 1px solid var(--cs-border);
+  border-radius: 4px;
+  font-size: 11px;
+  padding: 2px 4px;
+  max-width: 130px;
+}
+
+.cs-ai-icon-btn {
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  color: var(--cs-text-dim);
+}
+
+.cs-ai-icon-btn:hover {
+  background: #37373d;
+  color: #ffffff;
+}
+
+.cs-ai-icon-btn-active {
+  background: #37373d;
+  color: #ffffff;
+}
+
+.cs-ai-help {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--cs-border);
+  background: var(--cs-editor);
+  overflow-y: auto;
+  max-height: 55%;
+  flex: none;
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.cs-ai-help-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 10px;
+}
+
+.cs-ai-help-section {
+  margin-bottom: 12px;
+}
+
+.cs-ai-help-section b {
+  color: var(--cs-sidebar-header);
+}
+
+.cs-ai-help-section p {
+  margin: 4px 0 0;
+  color: var(--cs-text-dim);
+}
+
+.cs-ai-help-section ul {
+  margin: 4px 0 0;
+  padding-left: 18px;
+  color: var(--cs-text-dim);
+}
+
+.cs-ai-help-section li {
+  margin: 2px 0;
+}
+
+.cs-ai-help-close {
+  margin-top: 4px;
+  border-radius: 4px;
+  padding: 5px 16px;
+  font-size: 12px;
+  background: var(--cs-statusbar);
+  color: #ffffff;
+}
+
+.cs-ai-help-close:hover {
+  background: var(--cs-accent);
+}
+
+.cs-ai-keys {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--cs-border);
+  flex: none;
+}
+
+.cs-ai-key-input {
+  background: var(--cs-editor);
+  color: var(--cs-text);
+  border: 1px solid var(--cs-border);
+  border-radius: 4px;
+  padding: 4px 6px;
+  font-size: 12px;
+  font-family: var(--cs-mono);
+}
+
+.cs-ai-key-input:focus {
+  outline: 1px solid var(--cs-accent);
+}
+
+.cs-ai-keys-hint {
+  font-size: 10.5px;
+  color: var(--cs-text-dim);
+}
+
+.cs-ai-context {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--cs-border);
+  flex: none;
+  font-size: 11.5px;
+  color: var(--cs-text-dim);
+}
+
+.cs-ai-context-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.cs-ai-context-file {
+  margin-left: auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--cs-mono);
+  color: var(--cs-text);
+}
+
+.cs-ai-log {
+  flex: 1;
+  overflow: auto;
+  min-height: 0;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cs-ai-empty {
+  color: var(--cs-text-dim);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.cs-ai-msg {
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 13px;
+  line-height: 1.55;
+  word-break: break-word;
+}
+
+.cs-ai-msg-user {
+  background: var(--cs-selected);
+  color: #ffffff;
+  align-self: flex-end;
+  max-width: 90%;
+}
+
+.cs-ai-msg-ai {
+  background: var(--cs-editor);
+  border: 1px solid var(--cs-border);
+}
+
+.cs-ai-msg-model {
+  font-size: 10.5px;
+  color: var(--cs-text-dim);
+  margin-bottom: 4px;
+}
+
+.cs-ai-pre {
+  background: #1a1a1a;
+  border: 1px solid var(--cs-border);
+  border-radius: 5px;
+  padding: 8px 10px;
+  margin: 6px 0;
+  overflow-x: auto;
+  font-family: var(--cs-mono);
+  font-size: 12px;
+  white-space: pre;
+}
+
+.cs-ai-code {
+  background: #1a1a1a;
+  border-radius: 3px;
+  padding: 1px 4px;
+  font-family: var(--cs-mono);
+  font-size: 12px;
+}
+
+.cs-ai-loading {
+  color: var(--cs-text-dim);
+  font-size: 12px;
+  font-style: italic;
+}
+
+.cs-ai-compose {
+  flex: none;
+  border-top: 1px solid var(--cs-border);
+  padding: 8px 12px;
+}
+
+.cs-ai-input {
+  width: 100%;
+  resize: vertical;
+  background: var(--cs-editor);
+  color: var(--cs-text);
+  border: 1px solid var(--cs-border);
+  border-radius: 5px;
+  padding: 6px 8px;
+  font-size: 13px;
+  font-family: inherit;
+}
+
+.cs-ai-input:focus {
+  outline: 1px solid var(--cs-accent);
+}
+
+.cs-ai-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.cs-ai-clear,
+.cs-ai-send {
+  border-radius: 4px;
+  padding: 4px 14px;
+  font-size: 12px;
+}
+
+.cs-ai-clear {
+  color: var(--cs-text-dim);
+  border: 1px solid var(--cs-border);
+}
+
+.cs-ai-clear:hover {
+  color: #ffffff;
+  background: #37373d;
+}
+
+.cs-ai-send {
+  background: var(--cs-statusbar);
+  color: #ffffff;
+}
+
+.cs-ai-send:hover {
+  background: var(--cs-accent);
+}
+
+.cs-ai-send:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
 /* ---------------- scrollbars (webkit) ---------------- */
 
 .cs-root ::-webkit-scrollbar {
@@ -997,5 +1298,15 @@
 
   .cs-titlebar-text {
     text-align: left;
+  }
+
+  .cs-ai-panel {
+    position: absolute;
+    right: 0;
+    top: 34px;
+    bottom: 24px;
+    z-index: 30;
+    width: min(90vw, 360px);
+    box-shadow: -6px 0 18px rgba(0, 0, 0, 0.45);
   }
 }
