@@ -3,6 +3,7 @@ import { topics as advanced } from './advanced';
 import { topics as cicdDocker } from './cicd-docker';
 import { topics as cvQuestions } from './cv-questions';
 import { topics as gaps } from './gaps';
+import { topics as git } from './git';
 import { topics as htmlCss } from './html-css';
 import { topics as java } from './java';
 import { topics as javascript } from './javascript';
@@ -10,6 +11,7 @@ import { topics as orm } from './orm';
 import { topics as react } from './react';
 import { topics as spring } from './spring';
 import { topics as sql } from './sql';
+import { topics as toolsTech } from './tools';
 import { topics as typescript } from './typescript';
 import { topics as zustandTanstack } from './zustand-tanstack';
 
@@ -24,6 +26,8 @@ const ALL_TOPICS: PvTopic[] = [
   ...orm,
   ...typescript,
   ...advanced,
+  ...toolsTech,
+  ...git,
   ...zustandTanstack,
   ...cvQuestions,
   ...gaps,
@@ -52,6 +56,8 @@ const BACKEND_IDS = [
   'security-jwt',
   'cicd',
   'docker',
+  'tools-tech',
+  'git',
   'algorithms',
   'cv-questions',
 ];
