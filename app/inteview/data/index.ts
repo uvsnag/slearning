@@ -11,6 +11,7 @@ import { topics as orm } from './orm';
 import { topics as react } from './react';
 import { topics as spring } from './spring';
 import { topics as sql } from './sql';
+import { topics as testing } from './testing';
 import { topics as toolsTech } from './tools';
 import { topics as typescript } from './typescript';
 import { topics as zustandTanstack } from './zustand-tanstack';
@@ -22,6 +23,7 @@ const ALL_TOPICS: PvTopic[] = [
   ...cicdDocker,
   ...sql,
   ...spring,
+  ...testing,
   ...htmlCss,
   ...orm,
   ...typescript,
@@ -46,6 +48,7 @@ const pick = (ids: string[]): PvTopic[] =>
 const BACKEND_IDS = [
   'java',
   'springboot',
+  'testing',
   'mybatis',
   'jpa-hibernate',
   'sql',

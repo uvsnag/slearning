@@ -253,6 +253,523 @@ CALL transfer(1, 2, 100.00);</pre>
 <div class="key-point">Use procedures for business logic with side effects. Use functions for calculations that need to be called from queries.</div>`,
       },
       {
+        q: 'How do you write a stored procedure in PostgreSQL and SQL Server? (syntax, parameters, transactions, calling)',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>In PostgreSQL a procedure is created with <code>CREATE PROCEDURE ... LANGUAGE plpgsql AS $$ BEGIN ... END $$</code> and invoked with <code>CALL</code>, and since version 11 it may control transactions with <code>COMMIT</code> and <code>ROLLBACK</code> inside the body, which is the main thing that distinguishes it from a function. In SQL Server the same idea is written as <code>CREATE OR ALTER PROCEDURE ... AS BEGIN ... END</code>, invoked with <code>EXEC</code>, and transactions are managed with <code>BEGIN TRAN</code> together with <code>TRY...CATCH</code> and <code>SET XACT_ABORT ON</code> so a failure cannot leave a half-finished transaction open. Parameters are typed <code>IN</code>, <code>OUT</code> or <code>INOUT</code> in PostgreSQL and <code>OUTPUT</code> in T-SQL, and returning a result set differs: T-SQL just runs a <code>SELECT</code>, while PostgreSQL needs a refcursor or a table-returning function. Both should be written idempotently, with explicit error handling and no business rules hidden where the application cannot see them.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Trong PostgreSQL, một procedure được tạo bằng <code>CREATE PROCEDURE ... LANGUAGE plpgsql AS $$ BEGIN ... END $$</code> và gọi bằng <code>CALL</code>; từ phiên bản 11 nó có thể điều khiển transaction bằng <code>COMMIT</code> và <code>ROLLBACK</code> ngay trong thân, và đây chính là điểm khác biệt chính so với function. Trong SQL Server, ý tưởng tương tự được viết là <code>CREATE OR ALTER PROCEDURE ... AS BEGIN ... END</code>, gọi bằng <code>EXEC</code>, và transaction được quản lý bằng <code>BEGIN TRAN</code> cùng với <code>TRY...CATCH</code> và <code>SET XACT_ABORT ON</code> để một lỗi không thể để lại transaction dở dang. Tham số được khai báo <code>IN</code>, <code>OUT</code>, <code>INOUT</code> trong PostgreSQL và <code>OUTPUT</code> trong T-SQL; việc trả về result set thì khác nhau: T-SQL chỉ cần chạy một <code>SELECT</code>, còn PostgreSQL cần refcursor hoặc một function trả về bảng. Cả hai nên được viết theo hướng idempotent, có xử lý lỗi rõ ràng và không giấu luật nghiệp vụ ở nơi ứng dụng không nhìn thấy.</p></details>
+<p><strong>1. Side-by-side skeleton</strong></p>
+<table>
+<tr><th></th><th>PostgreSQL</th><th>SQL Server</th></tr>
+<tr><td>Create</td><td><code>CREATE OR REPLACE PROCEDURE</code></td><td><code>CREATE OR ALTER PROCEDURE</code> (2016 SP1+)</td></tr>
+<tr><td>Body delimiter</td><td><code>$$ ... $$</code> (dollar quoting) + <code>LANGUAGE plpgsql</code></td><td><code>AS BEGIN ... END</code></td></tr>
+<tr><td>Parameters</td><td><code>IN</code> / <code>OUT</code> / <code>INOUT</code>, defaults allowed</td><td><code>@p type</code>, <code>OUTPUT</code>, defaults allowed</td></tr>
+<tr><td>Call</td><td><code>CALL proc(args);</code></td><td><code>EXEC proc @a = 1, @b = 2;</code></td></tr>
+<tr><td>Return a result set</td><td>Refcursor, or use a function <code>RETURNS TABLE</code></td><td>Just <code>SELECT</code> inside the procedure</td></tr>
+<tr><td>Transaction control inside</td><td>✅ <code>COMMIT</code>/<code>ROLLBACK</code> (PG 11+)</td><td>✅ <code>BEGIN/COMMIT/ROLLBACK TRAN</code></td></tr>
+<tr><td>Error handling</td><td><code>EXCEPTION WHEN ... THEN</code></td><td><code>BEGIN TRY ... BEGIN CATCH</code></td></tr>
+<tr><td>Drop</td><td><code>DROP PROCEDURE IF EXISTS p(int);</code> (signature!)</td><td><code>DROP PROCEDURE IF EXISTS p;</code></td></tr>
+</table>
+<p><strong>2. PostgreSQL — a complete, production-shaped procedure</strong></p>
+<pre>CREATE OR REPLACE PROCEDURE transfer_funds(
+    IN  p_from_id   BIGINT,
+    IN  p_to_id     BIGINT,
+    IN  p_amount    NUMERIC(18,2),
+    OUT p_txn_id    BIGINT                    -- OUT params are returned by CALL
+)
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_balance NUMERIC(18,2);
+BEGIN
+    IF p_amount &lt;= 0 THEN
+        RAISE EXCEPTION 'amount must be positive, got %', p_amount
+              USING ERRCODE = 'check_violation';
+    END IF;
+
+    -- lock the source row so two concurrent transfers cannot both pass the check
+    SELECT balance INTO v_balance
+      FROM accounts WHERE id = p_from_id FOR UPDATE;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'account % not found', p_from_id USING ERRCODE = 'no_data_found';
+    END IF;
+    IF v_balance &lt; p_amount THEN
+        RAISE EXCEPTION 'insufficient funds: % &lt; %', v_balance, p_amount;
+    END IF;
+
+    UPDATE accounts SET balance = balance - p_amount WHERE id = p_from_id;
+    UPDATE accounts SET balance = balance + p_amount WHERE id = p_to_id;
+
+    INSERT INTO transfers (from_id, to_id, amount, created_at)
+    VALUES (p_from_id, p_to_id, p_amount, now())
+    RETURNING id INTO p_txn_id;
+
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE WARNING 'transfer failed: % (%)', SQLERRM, SQLSTATE;
+        RAISE;                                  -- re-raise → caller's transaction rolls back
+END;
+$$;
+
+CALL transfer_funds(1, 2, 100.00, NULL);        -- OUT arg is a placeholder in CALL</pre>
+<pre>-- Transaction control INSIDE a procedure (PG 11+) — batch/ETL style
+CREATE OR REPLACE PROCEDURE purge_old_rows(p_days INT)
+LANGUAGE plpgsql AS $$
+DECLARE deleted INT;
+BEGIN
+    LOOP
+        DELETE FROM events
+         WHERE ctid IN (SELECT ctid FROM events
+                         WHERE created_at &lt; now() - make_interval(days =&gt; p_days)
+                         LIMIT 10000);
+        GET DIAGNOSTICS deleted = ROW_COUNT;
+        EXIT WHEN deleted = 0;
+        COMMIT;                                 -- ✅ allowed in a PROCEDURE, not in a FUNCTION
+    END LOOP;
+END $$;
+-- ⚠ COMMIT is only legal when the procedure was NOT called inside an outer transaction block.</pre>
+<p><strong>3. SQL Server — the same procedure in T-SQL</strong></p>
+<pre>CREATE OR ALTER PROCEDURE dbo.TransferFunds
+    @FromId   BIGINT,
+    @ToId     BIGINT,
+    @Amount   DECIMAL(18,2),
+    @TxnId    BIGINT OUTPUT
+AS
+BEGIN
+    SET NOCOUNT ON;              -- stop "n rows affected" messages (perf + cleaner clients)
+    SET XACT_ABORT ON;           -- any error aborts the whole transaction — recommended default
+
+    IF @Amount &lt;= 0
+        THROW 50001, 'Amount must be positive', 1;
+
+    BEGIN TRY
+        BEGIN TRANSACTION;
+
+        DECLARE @Balance DECIMAL(18,2);
+        SELECT @Balance = balance
+          FROM dbo.Accounts WITH (UPDLOCK, ROWLOCK)     -- lock the row for update
+         WHERE id = @FromId;
+
+        IF @Balance IS NULL  THROW 50002, 'Account not found', 1;
+        IF @Balance &lt; @Amount THROW 50003, 'Insufficient funds', 1;
+
+        UPDATE dbo.Accounts SET balance = balance - @Amount WHERE id = @FromId;
+        UPDATE dbo.Accounts SET balance = balance + @Amount WHERE id = @ToId;
+
+        INSERT INTO dbo.Transfers (from_id, to_id, amount, created_at)
+        VALUES (@FromId, @ToId, @Amount, SYSUTCDATETIME());
+        SET @TxnId = SCOPE_IDENTITY();          -- SCOPE_IDENTITY, never @@IDENTITY (triggers!)
+
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        IF XACT_STATE() &lt;&gt; 0 ROLLBACK TRANSACTION;   -- XACT_STATE handles doomed transactions
+        THROW;                                       -- rethrow with the original error
+    END CATCH
+END;
+GO
+
+DECLARE @id BIGINT;
+EXEC dbo.TransferFunds @FromId = 1, @ToId = 2, @Amount = 100.00, @TxnId = @id OUTPUT;
+SELECT @id AS txn_id;</pre>
+<p><strong>4. Returning data to the application</strong></p>
+<pre>-- SQL Server: a bare SELECT becomes the result set (and you may return several)
+CREATE OR ALTER PROCEDURE dbo.GetOrders @CustomerId INT AS
+BEGIN
+    SET NOCOUNT ON;
+    SELECT id, total, created_at FROM dbo.Orders WHERE customer_id = @CustomerId;
+END;
+-- RETURN in T-SQL returns only an INT status code, not data.
+
+-- PostgreSQL: procedures cannot simply "select"; use a FUNCTION returning a table
+CREATE OR REPLACE FUNCTION get_orders(p_customer_id INT)
+RETURNS TABLE (id BIGINT, total NUMERIC, created_at TIMESTAMPTZ)
+LANGUAGE sql STABLE AS $$
+    SELECT id, total, created_at FROM orders WHERE customer_id = p_customer_id;
+$$;
+SELECT * FROM get_orders(42);
+
+-- …or return a cursor from a procedure when the driver expects one
+CREATE OR REPLACE PROCEDURE get_orders_cur(p_customer_id INT, INOUT ref refcursor)
+LANGUAGE plpgsql AS $$
+BEGIN
+    OPEN ref FOR SELECT id, total FROM orders WHERE customer_id = p_customer_id;
+END $$;</pre>
+<p><strong>5. Calling from an application</strong></p>
+<pre>-- JDBC (both engines)
+CallableStatement cs = conn.prepareCall("{call transfer_funds(?,?,?,?)}");
+cs.setLong(1, 1); cs.setLong(2, 2); cs.setBigDecimal(3, new BigDecimal("100.00"));
+cs.registerOutParameter(4, Types.BIGINT);
+cs.execute();  long txnId = cs.getLong(4);
+
+-- Spring Data JPA
+@Procedure(procedureName = "transfer_funds")
+Long transferFunds(@Param("p_from_id") Long from, @Param("p_to_id") Long to,
+                   @Param("p_amount") BigDecimal amount);</pre>
+<p><strong>6. Practical guidance</strong></p>
+<ul>
+<li><strong>Always</strong> <code>SET NOCOUNT ON</code> in T-SQL procedures, and <code>SET XACT_ABORT ON</code> whenever you use explicit transactions.</li>
+<li><strong>Do not open a transaction and then wait</strong> — no external calls, no long loops without commits; a procedure holding locks is a production incident.</li>
+<li><strong>Idempotent deployment</strong>: <code>CREATE OR REPLACE</code> (PG) / <code>CREATE OR ALTER</code> (MSSQL), and keep the source in version control, not only in the database.</li>
+<li><strong>Overloading</strong>: PostgreSQL allows the same name with different signatures — which is why <code>DROP PROCEDURE</code> needs the argument list.</li>
+<li><strong>Security</strong>: <code>SECURITY DEFINER</code> (PG) / <code>EXECUTE AS OWNER</code> (MSSQL) run with the owner's rights — always pin <code>search_path</code> / schema-qualify names to avoid hijacking.</li>
+<li><strong>When to use procedures at all</strong>: heavy set-based data movement, batch jobs, and operations that must stay atomic close to the data. Business rules that the application team must maintain usually belong in the application — logic in the database is harder to test, review, and deploy.</li>
+</ul>
+<div class="key-point">The two-sentence answer: <em>"PostgreSQL: <code>CREATE PROCEDURE … LANGUAGE plpgsql AS $$ BEGIN … END $$</code>, call with <code>CALL</code>, handle errors with <code>EXCEPTION WHEN</code>, and it may <code>COMMIT</code> inside. SQL Server: <code>CREATE OR ALTER PROCEDURE … AS BEGIN … END</code>, call with <code>EXEC</code>, and always pair <code>BEGIN TRAN</code> with <code>TRY…CATCH</code>, <code>XACT_ABORT ON</code> and <code>XACT_STATE()</code> before rollback."</em></div>`,
+      },
+      {
+        q: 'How do you write a user-defined function in PostgreSQL and SQL Server? (scalar, table-valued, volatility, performance traps)',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>A function returns a value and can be used inside queries, which makes its performance characteristics far more important than a procedure's. In PostgreSQL you write <code>CREATE FUNCTION ... RETURNS type</code> with either <code>LANGUAGE sql</code> for a single expression, which the planner can inline, or <code>LANGUAGE plpgsql</code> when you need variables and control flow, and you must declare the volatility as <code>IMMUTABLE</code>, <code>STABLE</code> or <code>VOLATILE</code> because that is what allows the planner to cache or push down the call. In SQL Server the important distinction is between an <strong>inline table-valued function</strong>, which is expanded into the query like a parameterized view and is fast, and a <strong>scalar or multi-statement function</strong>, which historically executed row by row and destroyed performance, mitigated only from 2019 by scalar UDF inlining. The practical rule in both engines is to prefer set-based functions that the optimizer can see through, and to be explicit about volatility, null handling and determinism.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Function trả về giá trị và có thể dùng ngay trong truy vấn, nên đặc tính hiệu năng của nó quan trọng hơn nhiều so với procedure. Trong PostgreSQL bạn viết <code>CREATE FUNCTION ... RETURNS type</code>, dùng <code>LANGUAGE sql</code> cho một biểu thức đơn để planner có thể inline, hoặc <code>LANGUAGE plpgsql</code> khi cần biến và cấu trúc điều khiển; và bạn phải khai báo mức volatility là <code>IMMUTABLE</code>, <code>STABLE</code> hay <code>VOLATILE</code>, vì đó là thứ cho phép planner cache hoặc đẩy lời gọi xuống. Trong SQL Server, khác biệt quan trọng là giữa <strong>inline table-valued function</strong> — được khai triển vào truy vấn như một view có tham số nên rất nhanh — và <strong>scalar hoặc multi-statement function</strong> — vốn chạy theo từng dòng và phá hủy hiệu năng, chỉ được giảm nhẹ từ bản 2019 nhờ scalar UDF inlining. Quy tắc thực dụng ở cả hai engine là ưu tiên function theo hướng tập hợp mà optimizer nhìn xuyên qua được, và khai báo rõ ràng volatility, cách xử lý null và tính tất định.</p></details>
+<p><strong>1. PostgreSQL functions</strong></p>
+<pre>-- (a) SQL function — a single expression; the planner can INLINE it (fastest)
+CREATE OR REPLACE FUNCTION net_price(gross NUMERIC, vat NUMERIC)
+RETURNS NUMERIC
+LANGUAGE sql
+IMMUTABLE               -- same input → same output, no table access
+PARALLEL SAFE
+RETURNS NULL ON NULL INPUT      -- a.k.a. STRICT: null in → null out, body not executed
+AS $$
+    SELECT gross / (1 + vat);
+$$;
+
+-- (b) plpgsql function — variables, branching, loops
+CREATE OR REPLACE FUNCTION customer_tier(p_customer_id BIGINT)
+RETURNS TEXT
+LANGUAGE plpgsql
+STABLE                  -- reads tables, but no writes; constant within one statement
+AS $$
+DECLARE
+    v_total NUMERIC;
+BEGIN
+    SELECT COALESCE(SUM(total), 0) INTO v_total
+      FROM orders WHERE customer_id = p_customer_id;
+
+    RETURN CASE
+             WHEN v_total &gt;= 100000 THEN 'PLATINUM'
+             WHEN v_total &gt;=  10000 THEN 'GOLD'
+             ELSE 'STANDARD'
+           END;
+END $$;
+
+-- (c) Set-returning function — the PostgreSQL equivalent of an inline TVF
+CREATE OR REPLACE FUNCTION orders_in_range(p_from DATE, p_to DATE)
+RETURNS TABLE (id BIGINT, customer_id BIGINT, total NUMERIC)
+LANGUAGE sql STABLE AS $$
+    SELECT id, customer_id, total
+      FROM orders
+     WHERE created_at &gt;= p_from AND created_at &lt; p_to;
+$$;
+SELECT * FROM orders_in_range('2026-01-01', '2026-02-01');
+
+-- (d) Trigger function (see the trigger question) / RETURNS SETOF record / OUT params
+--     are the other shapes you will meet.</pre>
+<table>
+<tr><th>Volatility</th><th>Meaning</th><th>Planner may</th><th>Example</th></tr>
+<tr><td><code>IMMUTABLE</code></td><td>Same args → same result, forever; no table access</td><td>Pre-evaluate constants, use in <strong>index expressions</strong></td><td><code>upper(text)</code>, pure math</td></tr>
+<tr><td><code>STABLE</code></td><td>Constant within one statement; reads tables</td><td>Call once per statement, push into index scans</td><td>Lookup by id, <code>now()</code>-based</td></tr>
+<tr><td><code>VOLATILE</code> (default)</td><td>May change anytime or have side effects</td><td>Nothing — must call per row</td><td><code>random()</code>, functions that write</td></tr>
+</table>
+<p>Declaring a lookup function <code>VOLATILE</code> by accident (the default!) is one of the most common silent performance bugs in PostgreSQL — it blocks index usage and forces per-row execution.</p>
+<p><strong>2. SQL Server functions — the three kinds, and only one is fast</strong></p>
+<pre>-- (a) Inline table-valued function (iTVF) ✅ THE GOOD ONE — a parameterized view
+CREATE OR ALTER FUNCTION dbo.OrdersInRange (@From DATE, @To DATE)
+RETURNS TABLE                          -- no BEGIN/END, a single SELECT
+AS RETURN
+(
+    SELECT id, customer_id, total
+      FROM dbo.Orders
+     WHERE created_at &gt;= @From AND created_at &lt; @To
+);
+SELECT * FROM dbo.OrdersInRange('2026-01-01','2026-02-01');
+-- Expanded into the calling query → real cardinality estimates, index seeks, parallelism.
+
+-- (b) Scalar UDF ⚠ historically a performance disaster (executed once PER ROW,
+--     forced serial plans, invisible in the plan). SQL Server 2019+ can inline
+--     simple ones (Scalar UDF Inlining); check with sys.sql_modules.is_inlineable.
+CREATE OR ALTER FUNCTION dbo.NetPrice (@Gross DECIMAL(18,2), @Vat DECIMAL(5,4))
+RETURNS DECIMAL(18,2)
+WITH SCHEMABINDING                     -- required for inlining + indexed views; also blocks
+AS                                     -- dropping referenced objects underneath you
+BEGIN
+    RETURN @Gross / (1 + @Vat);
+END;
+
+-- (c) Multi-statement TVF (mTVF) ⚠ fills a table variable; the optimizer guesses
+--     the row count (1 row before 2014, 100 after; interleaved execution in 2017+ helps)
+CREATE OR ALTER FUNCTION dbo.SplitCsv (@Csv NVARCHAR(MAX))
+RETURNS @Result TABLE (value NVARCHAR(200))
+AS
+BEGIN
+    INSERT INTO @Result (value) SELECT LTRIM(RTRIM(value)) FROM STRING_SPLIT(@Csv, ',');
+    RETURN;
+END;
+-- Rewrite as an iTVF whenever the logic can be expressed as one SELECT.</pre>
+<table>
+<tr><th></th><th>Inline TVF</th><th>Scalar UDF</th><th>Multi-statement TVF</th></tr>
+<tr><td>Shape</td><td><code>RETURNS TABLE AS RETURN (SELECT …)</code></td><td><code>RETURNS type … BEGIN RETURN … END</code></td><td><code>RETURNS @t TABLE(…) … BEGIN … END</code></td></tr>
+<tr><td>Optimizer sees inside</td><td>✅ Yes — expanded</td><td>❌ No (unless inlined, 2019+)</td><td>❌ No — fixed guess</td></tr>
+<tr><td>Row-by-row cost</td><td>None</td><td>High</td><td>Materializes into a table variable</td></tr>
+<tr><td>Parallelism</td><td>Allowed</td><td>Blocked (pre-2019)</td><td>Restricted</td></tr>
+<tr><td>Verdict</td><td>Use freely</td><td>Avoid in <code>SELECT</code>/<code>WHERE</code> over many rows</td><td>Convert to iTVF where possible</td></tr>
+</table>
+<p><strong>3. Traps in both engines</strong></p>
+<ul>
+<li><strong>Function in a WHERE clause kills the index</strong>: <code>WHERE fn(col) = 'x'</code> is non-SARGable. Fix by rewriting the predicate, or in PostgreSQL by creating an expression index — which requires the function to be <code>IMMUTABLE</code>.</li>
+<li><strong>Hidden per-row work</strong>: a function that queries a table, called for a million rows, is a million queries. Turn it into a join or a set-returning function.</li>
+<li><strong>Null handling</strong>: declare <code>STRICT</code>/<code>RETURNS NULL ON NULL INPUT</code> in PG when null in should mean null out (it also lets the planner skip the call). In T-SQL, remember arithmetic with NULL yields NULL silently.</li>
+<li><strong>Determinism</strong>: PostgreSQL needs <code>IMMUTABLE</code> for index expressions; SQL Server needs <code>WITH SCHEMABINDING</code> + a deterministic body for computed-column indexes and indexed views.</li>
+<li><strong>Error handling in functions</strong>: PostgreSQL allows <code>EXCEPTION</code> blocks but each one creates a subtransaction (a real cost in loops); T-SQL scalar functions cannot use <code>TRY…CATCH</code> to swallow errors and cannot perform DML at all.</li>
+<li><strong>No transaction control</strong> inside a function in either engine — that is what procedures are for.</li>
+</ul>
+<div class="key-point">The rule that matters in interviews: <em>"prefer functions the optimizer can see through — <code>LANGUAGE sql</code> + correct volatility in PostgreSQL, inline table-valued functions in SQL Server — and treat scalar UDFs called over large row sets as a performance bug until proven otherwise."</em> Declaring volatility (or <code>SCHEMABINDING</code>) is not paperwork: it is what unlocks inlining, index expressions and parallel plans.</div>`,
+      },
+      {
+        q: 'How do you write a trigger in PostgreSQL and SQL Server? (BEFORE/AFTER/INSTEAD OF, row vs statement, NEW/OLD vs inserted/deleted)',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>PostgreSQL splits a trigger in two: you write a function that returns <code>TRIGGER</code> and uses the <code>NEW</code> and <code>OLD</code> row variables, then attach it with <code>CREATE TRIGGER ... FOR EACH ROW EXECUTE FUNCTION</code>, where a <code>BEFORE</code> trigger can modify the row by returning a changed <code>NEW</code> and an <code>AFTER</code> trigger cannot. SQL Server has no separate function: the trigger body is inline and, crucially, it fires <strong>once per statement</strong> with two pseudo-tables, <code>inserted</code> and <code>deleted</code>, that contain all affected rows, so a trigger written as if only one row changed is the classic production bug. Both engines support <code>INSTEAD OF</code> triggers to make a view updatable, and both let you filter with a <code>WHEN</code> or by checking which columns changed. Triggers are powerful for auditing, denormalized counters and timestamps, but they are invisible side effects, so keep them small, set-based and free of business rules the application needs to understand.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>PostgreSQL tách trigger làm hai phần: bạn viết một function trả về <code>TRIGGER</code> và dùng hai biến dòng <code>NEW</code> và <code>OLD</code>, rồi gắn nó bằng <code>CREATE TRIGGER ... FOR EACH ROW EXECUTE FUNCTION</code>; trigger <code>BEFORE</code> có thể sửa dòng bằng cách trả về <code>NEW</code> đã đổi, còn <code>AFTER</code> thì không. SQL Server không có function riêng: thân trigger viết trực tiếp và, quan trọng nhất, nó chạy <strong>một lần cho mỗi câu lệnh</strong> với hai bảng ảo <code>inserted</code> và <code>deleted</code> chứa toàn bộ các dòng bị ảnh hưởng, nên một trigger viết như thể chỉ có một dòng thay đổi chính là lỗi kinh điển trong production. Cả hai engine đều hỗ trợ trigger <code>INSTEAD OF</code> để làm cho view có thể cập nhật được, và đều cho phép lọc bằng mệnh đề <code>WHEN</code> hoặc kiểm tra cột nào đã thay đổi. Trigger rất mạnh cho audit, đếm phi chuẩn hóa và mốc thời gian, nhưng chúng là những tác dụng phụ vô hình, nên hãy giữ chúng nhỏ gọn, theo hướng tập hợp và tránh nhét vào đó những luật nghiệp vụ mà ứng dụng cần biết.</p></details>
+<p><strong>1. The mental model</strong></p>
+<table>
+<tr><th></th><th>PostgreSQL</th><th>SQL Server</th></tr>
+<tr><td>Structure</td><td>Trigger <strong>function</strong> + <code>CREATE TRIGGER</code> that references it</td><td>Body written inline in <code>CREATE TRIGGER</code></td></tr>
+<tr><td>Granularity</td><td><code>FOR EACH ROW</code> or <code>FOR EACH STATEMENT</code></td><td><strong>Statement-level only</strong> — no per-row triggers</td></tr>
+<tr><td>Access to rows</td><td><code>NEW</code> / <code>OLD</code> record variables</td><td><code>inserted</code> / <code>deleted</code> pseudo-tables (a <strong>set</strong> of rows)</td></tr>
+<tr><td>Timing</td><td><code>BEFORE</code>, <code>AFTER</code>, <code>INSTEAD OF</code> (views)</td><td><code>AFTER</code> (= <code>FOR</code>), <code>INSTEAD OF</code></td></tr>
+<tr><td>Modify the row in flight</td><td>✅ <code>BEFORE</code> trigger returns a modified <code>NEW</code></td><td>❌ No BEFORE — use <code>INSTEAD OF</code> or update afterwards</td></tr>
+<tr><td>Events</td><td>INSERT, UPDATE, DELETE, <strong>TRUNCATE</strong></td><td>INSERT, UPDATE, DELETE (+ DDL and logon triggers)</td></tr>
+<tr><td>Condition</td><td><code>WHEN (OLD.x IS DISTINCT FROM NEW.x)</code></td><td><code>IF UPDATE(col)</code> / <code>COLUMNS_UPDATED()</code></td></tr>
+</table>
+<p><strong>2. PostgreSQL — audit trigger (the standard pattern)</strong></p>
+<pre>-- Step 1: the trigger FUNCTION
+CREATE OR REPLACE FUNCTION audit_changes()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF TG_OP = 'INSERT' THEN
+        INSERT INTO audit_log(table_name, op, row_id, new_data, changed_by, changed_at)
+        VALUES (TG_TABLE_NAME, TG_OP, NEW.id, to_jsonb(NEW), current_user, now());
+        RETURN NEW;
+    ELSIF TG_OP = 'UPDATE' THEN
+        INSERT INTO audit_log(table_name, op, row_id, old_data, new_data, changed_by, changed_at)
+        VALUES (TG_TABLE_NAME, TG_OP, NEW.id, to_jsonb(OLD), to_jsonb(NEW), current_user, now());
+        RETURN NEW;
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO audit_log(table_name, op, row_id, old_data, changed_by, changed_at)
+        VALUES (TG_TABLE_NAME, TG_OP, OLD.id, to_jsonb(OLD), current_user, now());
+        RETURN OLD;                       -- AFTER triggers ignore the value, BEFORE ones don't
+    END IF;
+    RETURN NULL;
+END $$;
+
+-- Step 2: attach it (one function can serve many tables)
+CREATE TRIGGER orders_audit
+AFTER INSERT OR UPDATE OR DELETE ON orders
+FOR EACH ROW EXECUTE FUNCTION audit_changes();
+
+-- Useful context variables: TG_OP, TG_TABLE_NAME, TG_WHEN, TG_LEVEL, TG_ARGV[]</pre>
+<pre>-- BEFORE trigger: modify the row being written (the only place you can)
+CREATE OR REPLACE FUNCTION set_updated_at()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+BEGIN
+    NEW.updated_at := now();
+    RETURN NEW;            -- ⚠ RETURN NULL in a BEFORE ROW trigger CANCELS the operation
+END $$;
+
+CREATE TRIGGER orders_set_updated_at
+BEFORE UPDATE ON orders
+FOR EACH ROW
+WHEN (OLD.* IS DISTINCT FROM NEW.*)        -- skip no-op updates entirely
+EXECUTE FUNCTION set_updated_at();
+
+-- Statement-level trigger + transition tables (PG 10+): efficient bulk handling
+CREATE TRIGGER orders_bulk_summary
+AFTER INSERT ON orders
+REFERENCING NEW TABLE AS new_rows
+FOR EACH STATEMENT EXECUTE FUNCTION refresh_daily_totals();
+-- inside the function: SELECT count(*) FROM new_rows;  ← all inserted rows at once</pre>
+<p><strong>3. SQL Server — the same ideas, set-based</strong></p>
+<pre>CREATE OR ALTER TRIGGER dbo.TR_Orders_Audit
+ON dbo.Orders
+AFTER INSERT, UPDATE, DELETE
+AS
+BEGIN
+    SET NOCOUNT ON;
+    IF @@ROWCOUNT = 0 RETURN;              -- nothing happened → do nothing
+
+    -- Work in SETS. 'inserted' and 'deleted' hold ALL affected rows.
+    --   INSERT → inserted only     DELETE → deleted only     UPDATE → both
+    INSERT INTO dbo.AuditLog (table_name, op, row_id, old_data, new_data, changed_by, changed_at)
+    SELECT 'Orders',
+           CASE WHEN i.id IS NOT NULL AND d.id IS NOT NULL THEN 'UPDATE'
+                WHEN i.id IS NOT NULL                      THEN 'INSERT'
+                ELSE 'DELETE' END,
+           COALESCE(i.id, d.id),
+           (SELECT d.* FOR JSON PATH, WITHOUT_ARRAY_WRAPPER),
+           (SELECT i.* FOR JSON PATH, WITHOUT_ARRAY_WRAPPER),
+           SUSER_SNAME(), SYSUTCDATETIME()
+      FROM inserted i
+      FULL OUTER JOIN deleted d ON i.id = d.id;
+END;
+GO
+
+-- ❌ THE classic bug — assumes a single row; silently wrong for multi-row DML
+--    DECLARE @id INT = (SELECT id FROM inserted);   -- error or arbitrary row
+-- ✅ always JOIN to inserted/deleted instead of scalar-assigning from them.
+
+-- Column-conditional logic
+CREATE OR ALTER TRIGGER dbo.TR_Orders_StatusChange ON dbo.Orders AFTER UPDATE AS
+BEGIN
+    SET NOCOUNT ON;
+    IF NOT UPDATE(status) RETURN;          -- fires only when 'status' was in the SET list
+    INSERT INTO dbo.StatusHistory (order_id, old_status, new_status, changed_at)
+    SELECT i.id, d.status, i.status, SYSUTCDATETIME()
+      FROM inserted i JOIN deleted d ON i.id = d.id
+     WHERE i.status &lt;&gt; d.status;           -- UPDATE(col) is true even if the value is unchanged
+END;
+
+-- INSTEAD OF trigger: make a view updatable (both engines support this)
+CREATE OR ALTER TRIGGER dbo.TR_vOrders_Insert ON dbo.vOrders INSTEAD OF INSERT AS
+BEGIN
+    INSERT INTO dbo.Orders (customer_id, total) SELECT customer_id, total FROM inserted;
+END;</pre>
+<p><strong>4. Behaviour you must know</strong></p>
+<ul>
+<li><strong>Triggers run inside the caller's transaction.</strong> An error in the trigger rolls back the whole statement (T-SQL: <code>ROLLBACK</code> inside a trigger aborts the batch; PG: raising an exception aborts the statement/transaction).</li>
+<li><strong>Order of multiple triggers</strong>: PostgreSQL fires them alphabetically by name; SQL Server is unordered except for <code>sp_settriggerorder</code> (first/last only). Do not rely on ordering — merge the logic instead.</li>
+<li><strong>Recursion and nesting</strong>: a trigger that updates its own table can re-fire. SQL Server: <code>RECURSIVE_TRIGGERS</code> is off by default, nesting is limited to 32 levels; PostgreSQL happily recurses — guard with a condition or <code>pg_trigger_depth()</code>.</li>
+<li><strong>Bulk operations</strong>: SQL Server <code>TRUNCATE</code>, <code>BULK INSERT</code> (without <code>FIRE_TRIGGERS</code>) and some replication paths do <strong>not</strong> fire triggers; PostgreSQL has a dedicated statement-level <code>TRUNCATE</code> trigger.</li>
+<li><strong>Performance</strong>: a row trigger doing a query per row turns one statement into N statements. Prefer statement-level triggers with transition tables (PG) or set-based joins to <code>inserted</code>/<code>deleted</code> (MSSQL).</li>
+<li><strong>Disabling</strong>: <code>ALTER TABLE t DISABLE TRIGGER x</code> (both). Remember to re-enable after a bulk load — and that data loaded while disabled skipped the audit.</li>
+<li><strong>Debugging</strong>: triggers are invisible at the call site. Name them consistently (<code>tr_table_event</code>), keep them in version control, and document them where developers actually look.</li>
+</ul>
+<p><strong>5. When NOT to use a trigger</strong>: complex business rules, calls to external systems, anything a developer must reason about when reading application code, and cross-row validation that a constraint could enforce (a <code>CHECK</code>, a <code>UNIQUE</code> index or a foreign key is faster, declarative and self-documenting). Good uses: audit trails, <code>updated_at</code> stamps, denormalized counters, and making a view writable.</p>
+<div class="key-point">The two things interviewers look for: <em>"in PostgreSQL a trigger is a function returning TRIGGER with NEW/OLD, and only a BEFORE trigger can change the row"</em>, and <em>"in SQL Server a trigger fires once per statement — <code>inserted</code> and <code>deleted</code> are tables, so any code that assumes one row is a bug."</em> Add "triggers run in the caller's transaction and are invisible side effects" and you have covered correctness, performance and maintainability.</div>`,
+      },
+      {
+        q: 'PL/pgSQL vs T-SQL cheat sheet: variables, control flow, loops, cursors, error handling, dynamic SQL',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>The two procedural dialects express the same concepts with different keywords, so the fastest way to be productive in both is a mapping. Variables are declared in a <code>DECLARE</code> block in PL/pgSQL and with <code>DECLARE @name type</code> anywhere in T-SQL, assignment is <code>:=</code> or <code>SELECT ... INTO</code> versus <code>SET</code> or <code>SELECT @v =</code>, and control flow differs mainly in syntax. Error handling is the biggest difference in shape: PL/pgSQL uses an <code>EXCEPTION WHEN</code> block attached to a <code>BEGIN</code> block, which quietly creates a subtransaction, while T-SQL uses <code>BEGIN TRY ... BEGIN CATCH</code> with <code>ERROR_MESSAGE()</code> and <code>THROW</code>. Dynamic SQL must be parameterized in both — <code>EXECUTE ... USING</code> with <code>format()</code> and <code>%I</code>/<code>%L</code> in PostgreSQL, <code>sp_executesql</code> with typed parameters in SQL Server — because string concatenation is how SQL injection gets into stored code.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Hai ngôn ngữ thủ tục này diễn đạt cùng những khái niệm bằng các từ khóa khác nhau, nên cách nhanh nhất để làm việc được với cả hai là một bảng ánh xạ. Biến được khai báo trong khối <code>DECLARE</code> ở PL/pgSQL và bằng <code>DECLARE @name type</code> ở bất cứ đâu trong T-SQL; gán giá trị dùng <code>:=</code> hoặc <code>SELECT ... INTO</code> so với <code>SET</code> hoặc <code>SELECT @v =</code>; cấu trúc điều khiển chỉ khác nhau chủ yếu về cú pháp. Khác biệt lớn nhất là hình dạng của xử lý lỗi: PL/pgSQL dùng khối <code>EXCEPTION WHEN</code> gắn với một khối <code>BEGIN</code>, và điều này âm thầm tạo ra một subtransaction; còn T-SQL dùng <code>BEGIN TRY ... BEGIN CATCH</code> với <code>ERROR_MESSAGE()</code> và <code>THROW</code>. SQL động phải được tham số hóa ở cả hai — <code>EXECUTE ... USING</code> kèm <code>format()</code> với <code>%I</code>/<code>%L</code> trong PostgreSQL, <code>sp_executesql</code> với tham số có kiểu trong SQL Server — vì nối chuỗi chính là cách SQL injection lọt vào code lưu trong database.</p></details>
+<p><strong>1. Quick mapping</strong></p>
+<table>
+<tr><th>Concept</th><th>PL/pgSQL (PostgreSQL)</th><th>T-SQL (SQL Server)</th></tr>
+<tr><td>Declare</td><td><code>DECLARE v_x INT := 0;</code> (in the DECLARE section)</td><td><code>DECLARE @x INT = 0;</code> (anywhere)</td></tr>
+<tr><td>Assign</td><td><code>v_x := 5;</code></td><td><code>SET @x = 5;</code></td></tr>
+<tr><td>Assign from query</td><td><code>SELECT col INTO v_x FROM t WHERE …;</code></td><td><code>SELECT @x = col FROM t WHERE …;</code></td></tr>
+<tr><td>Row type</td><td><code>DECLARE r orders%ROWTYPE;</code> / <code>RECORD</code></td><td>Table variable or individual scalars</td></tr>
+<tr><td>If</td><td><code>IF … THEN … ELSIF … ELSE … END IF;</code></td><td><code>IF … BEGIN … END ELSE BEGIN … END</code></td></tr>
+<tr><td>Loop</td><td><code>LOOP … EXIT WHEN cond; END LOOP;</code>, <code>WHILE</code>, <code>FOR i IN 1..10</code></td><td><code>WHILE cond BEGIN … BREAK / CONTINUE … END</code></td></tr>
+<tr><td>Iterate a query</td><td><code>FOR r IN SELECT … LOOP … END LOOP;</code></td><td>Cursor, or better: a set-based statement</td></tr>
+<tr><td>Rows affected</td><td><code>GET DIAGNOSTICS n = ROW_COUNT;</code> / <code>FOUND</code></td><td><code>SET @n = @@ROWCOUNT;</code></td></tr>
+<tr><td>Raise error</td><td><code>RAISE EXCEPTION 'msg %', v USING ERRCODE='…';</code></td><td><code>THROW 50001, 'msg', 1;</code> (or <code>RAISERROR</code>)</td></tr>
+<tr><td>Catch error</td><td><code>EXCEPTION WHEN unique_violation THEN …</code></td><td><code>BEGIN TRY … END TRY BEGIN CATCH … END CATCH</code></td></tr>
+<tr><td>Error info</td><td><code>SQLERRM</code>, <code>SQLSTATE</code></td><td><code>ERROR_MESSAGE()</code>, <code>ERROR_NUMBER()</code>, <code>ERROR_LINE()</code></td></tr>
+<tr><td>Print / debug</td><td><code>RAISE NOTICE 'x = %', v_x;</code></td><td><code>PRINT</code> / <code>RAISERROR(…,0,1) WITH NOWAIT</code></td></tr>
+<tr><td>Temp storage</td><td><code>CREATE TEMP TABLE</code>, arrays, <code>RECORD</code></td><td><code>#temp</code> table, <code>@table</code> variable</td></tr>
+<tr><td>Dynamic SQL</td><td><code>EXECUTE format(…) USING …;</code></td><td><code>EXEC sp_executesql @sql, @params, …;</code></td></tr>
+<tr><td>String concat</td><td><code>||</code> or <code>format()</code></td><td><code>+</code> or <code>CONCAT()</code></td></tr>
+<tr><td>Now</td><td><code>now()</code>, <code>clock_timestamp()</code></td><td><code>SYSUTCDATETIME()</code>, <code>GETDATE()</code></td></tr>
+</table>
+<p><strong>2. Control flow and loops</strong></p>
+<pre>-- PL/pgSQL
+DO $$
+DECLARE
+    v_total NUMERIC := 0;
+    r       RECORD;
+BEGIN
+    FOR r IN SELECT id, amount FROM invoices WHERE paid = false LOOP
+        v_total := v_total + r.amount;
+        CONTINUE WHEN r.amount = 0;
+        EXIT WHEN v_total &gt; 1000000;
+    END LOOP;
+
+    FOR i IN 1..10 LOOP RAISE NOTICE 'i=%', i; END LOOP;
+    WHILE v_total &gt; 0 LOOP v_total := v_total - 1; END LOOP;
+END $$;
+
+-- T-SQL
+DECLARE @Total DECIMAL(18,2) = 0, @i INT = 1;
+WHILE @i &lt;= 10
+BEGIN
+    PRINT CONCAT('i=', @i);
+    SET @i += 1;
+    IF @i = 5 CONTINUE;
+    IF @i &gt; 8 BREAK;
+END</pre>
+<p><strong>3. Cursors — and why you usually should not use them</strong></p>
+<pre>-- PL/pgSQL: the implicit FOR loop above IS a cursor, and it is the idiomatic form.
+-- Explicit cursor when you need FETCH control:
+DECLARE cur CURSOR FOR SELECT id FROM orders WHERE status = 'NEW';
+OPEN cur;  FETCH cur INTO v_id;  CLOSE cur;
+
+-- T-SQL explicit cursor (verbose on purpose — treat it as a warning sign)
+DECLARE @Id INT;
+DECLARE c CURSOR LOCAL FAST_FORWARD FOR SELECT id FROM dbo.Orders WHERE status='NEW';
+OPEN c;
+FETCH NEXT FROM c INTO @Id;
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    EXEC dbo.ProcessOrder @Id;
+    FETCH NEXT FROM c INTO @Id;
+END
+CLOSE c; DEALLOCATE c;
+
+-- ✅ Prefer a single set-based statement: one UPDATE/INSERT…SELECT/MERGE beats
+--    10,000 round trips through a cursor by orders of magnitude.
+--    Use a batched WHILE loop (TOP 10000 … WHERE not-yet-processed) for huge DML instead.</pre>
+<p><strong>4. Error handling side by side</strong></p>
+<pre>-- PL/pgSQL
+BEGIN
+    INSERT INTO users(email) VALUES (p_email);
+EXCEPTION
+    WHEN unique_violation THEN
+        UPDATE users SET last_seen = now() WHERE email = p_email;
+    WHEN OTHERS THEN
+        RAISE WARNING 'failed: % / %', SQLSTATE, SQLERRM;
+        RAISE;                       -- rethrow
+END;
+-- ⚠ Every BEGIN…EXCEPTION block opens a SUBTRANSACTION (savepoint).
+--   Inside a per-row loop that is a measurable cost — catch outside the loop when you can.
+
+-- T-SQL
+BEGIN TRY
+    INSERT INTO dbo.Users(email) VALUES (@Email);
+END TRY
+BEGIN CATCH
+    IF ERROR_NUMBER() = 2627            -- unique constraint
+        UPDATE dbo.Users SET last_seen = SYSUTCDATETIME() WHERE email = @Email;
+    ELSE
+    BEGIN
+        IF XACT_STATE() &lt;&gt; 0 ROLLBACK TRANSACTION;
+        THROW;                          -- rethrow preserving number/message (RAISERROR does not)
+    END
+END CATCH</pre>
+<p><strong>5. Dynamic SQL — parameterize, never concatenate</strong></p>
+<pre>-- PostgreSQL: %I quotes an IDENTIFIER, %L quotes a LITERAL, USING binds parameters
+EXECUTE format('SELECT count(*) FROM %I WHERE status = $1', p_table)
+   INTO v_count
+  USING p_status;                      -- ✅ value is bound, not interpolated
+
+-- SQL Server: sp_executesql with typed parameters (also gets a cached plan)
+DECLARE @sql NVARCHAR(MAX) =
+    N'SELECT COUNT(*) FROM ' + QUOTENAME(@TableName) + N' WHERE status = @Status';
+EXEC sp_executesql @sql, N'@Status NVARCHAR(20), @Cnt INT OUTPUT', @Status=@Status, @Cnt=@Cnt OUTPUT;
+-- QUOTENAME for identifiers (they cannot be parameters); values ALWAYS as parameters.
+-- ❌ EXEC('SELECT … WHERE name = ''' + @Name + '''')  → injection + one plan per literal</pre>
+<p><strong>6. Habits that keep procedural SQL maintainable</strong></p>
+<ul>
+<li>Prefer <strong>one set-based statement</strong> over any loop; reach for procedural code only when the logic genuinely cannot be expressed as a query.</li>
+<li>Name things predictably (<code>p_</code> parameters, <code>v_</code> variables in PG; <code>@p</code> conventions in T-SQL) — you cannot rename them easily once other objects depend on them.</li>
+<li>Keep the source in Git and deploy with <code>CREATE OR REPLACE</code> / <code>CREATE OR ALTER</code> migrations; a database-only definition has no review history.</li>
+<li>Log with <code>RAISE NOTICE</code> / <code>PRINT … WITH NOWAIT</code> during development, and remove or gate it in production.</li>
+<li>Test procedural code like application code (pgTAP, tSQLt, or plain assertion scripts in your migration pipeline).</li>
+</ul>
+<div class="key-point">Memorize the four rows that matter most: <strong>assign</strong> (<code>:=</code> / <code>SET @x</code>), <strong>catch</strong> (<code>EXCEPTION WHEN</code> / <code>TRY…CATCH</code>), <strong>raise</strong> (<code>RAISE EXCEPTION</code> / <code>THROW</code>), and <strong>dynamic SQL</strong> (<code>EXECUTE format() USING</code> / <code>sp_executesql</code>). Everything else is syntax you can look up — but writing dynamic SQL by concatenating values, or a cursor where a single UPDATE would do, is what actually gets flagged in review.</div>`,
+      },
+      {
         q: 'Write SQL: Find the Nth highest salary.',
         difficulty: 'tricky',
         a: `<div class="interview-answer"><p>The clearest way to find the Nth highest salary is <code>DENSE_RANK</code> in a subquery filtered to rank N, because it shows the intent and handles ties well. <code>LIMIT</code> with <code>OFFSET</code> over distinct salaries is the shortest to write, and a correlated subquery works on old databases but is slow. If there are fewer than N distinct salaries, all correct versions return no rows. It also helps to clarify whether Nth means the Nth distinct value or the Nth person.</p></div>

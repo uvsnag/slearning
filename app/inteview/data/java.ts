@@ -1385,6 +1385,149 @@ List&lt;Object&gt; list = new ArrayList&lt;String&gt;(); // ❌ COMPILE error �
 
       // ──── 5. FUNCTIONAL PROGRAMMING & STREAMS (Java 8) ────
       {
+        q: 'Lambda & Stream cheat sheet: functional interfaces, method references, pipeline operations, collectors, Optional, parallel streams',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>Functional Java is seven layers. A <strong>lambda</strong> is an implementation of a <strong>functional interface</strong> (exactly one abstract method), and a <strong>method reference</strong> is a shorter lambda. A <strong>stream</strong> is a pipeline of source → lazy intermediate operations → one eager terminal operation, and nothing runs until the terminal call. <strong>Collectors</strong> turn the result back into a collection, a map or a grouped structure. <strong>Primitive streams</strong> avoid boxing, <strong>Optional</strong> models a possibly-absent value as a tiny stream, and <strong>parallel streams</strong> use the common ForkJoinPool and only pay off for large CPU-bound work on splittable sources. The two lines to remember: a stream is single-use and lazy — reusing one throws <code>IllegalStateException</code>, and without a terminal operation nothing executes at all.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Java hàm gồm bảy tầng. Một <strong>lambda</strong> là phần cài đặt của một <strong>functional interface</strong> (đúng một abstract method), còn <strong>method reference</strong> là dạng viết ngắn của lambda. Một <strong>stream</strong> là một pipeline gồm nguồn → các intermediate operation lười (lazy) → đúng một terminal operation chạy thật, và không có gì được thực thi cho tới khi gọi terminal. <strong>Collector</strong> chuyển kết quả trở lại thành collection, map hay cấu trúc đã nhóm. <strong>Primitive stream</strong> tránh boxing, <strong>Optional</strong> mô hình hóa giá trị có thể vắng mặt như một stream tí hon, còn <strong>parallel stream</strong> dùng common ForkJoinPool và chỉ có lợi khi xử lý lượng lớn dữ liệu nặng CPU trên nguồn chia tách được. Hai câu cần nhớ: stream chỉ dùng được một lần và lười — dùng lại sẽ ném <code>IllegalStateException</code>, và nếu thiếu terminal operation thì tuyệt đối không có gì chạy.</p></details>
+<p><strong>1. Lambda &amp; method references</strong></p>
+<table>
+<tr><th>Form</th><th>Example</th><th>Note</th></tr>
+<tr><td>Lambda</td><td><code>(a, b) -&gt; a + b</code></td><td>Types inferred; braces + <code>return</code> only for multi-statement bodies</td></tr>
+<tr><td>Static method ref</td><td><code>Integer::parseInt</code></td><td>= <code>s -&gt; Integer.parseInt(s)</code></td></tr>
+<tr><td>Instance ref (bound)</td><td><code>System.out::println</code></td><td>Receiver already known</td></tr>
+<tr><td>Instance ref (unbound)</td><td><code>String::toUpperCase</code></td><td>First argument becomes the receiver</td></tr>
+<tr><td>Constructor ref</td><td><code>ArrayList::new</code>, <code>User[]::new</code></td><td>Works for arrays too</td></tr>
+</table>
+<pre>// Captured local variables must be FINAL or EFFECTIVELY FINAL
+int base = 10;
+Function&lt;Integer,Integer&gt; f = x -&gt; x + base;   // ✅
+// base = 20;                                  // ❌ would break the lambda above
+
+// Lambda is NOT an anonymous class:
+//   'this' inside a lambda            = the ENCLOSING instance
+//   'this' inside an anonymous class  = the anonymous object itself
+//   lambdas have no separate class file (invokedynamic), no state, no shadowed names</pre>
+<p><strong>2. The built-in functional interfaces (java.util.function)</strong></p>
+<table>
+<tr><th>Interface</th><th>Abstract method</th><th>Use</th></tr>
+<tr><td><code>Function&lt;T,R&gt;</code></td><td><code>R apply(T)</code></td><td>Transform — <code>map</code></td></tr>
+<tr><td><code>BiFunction&lt;T,U,R&gt;</code></td><td><code>R apply(T,U)</code></td><td>Two inputs — <code>merge</code>, <code>reduce</code></td></tr>
+<tr><td><code>Predicate&lt;T&gt;</code></td><td><code>boolean test(T)</code></td><td>Condition — <code>filter</code>; combine with <code>and/or/negate</code></td></tr>
+<tr><td><code>Consumer&lt;T&gt;</code></td><td><code>void accept(T)</code></td><td>Side effect — <code>forEach</code>; chain with <code>andThen</code></td></tr>
+<tr><td><code>Supplier&lt;T&gt;</code></td><td><code>T get()</code></td><td>Lazy value — <code>orElseGet</code>, <code>Stream.generate</code></td></tr>
+<tr><td><code>UnaryOperator&lt;T&gt;</code></td><td><code>T apply(T)</code></td><td><code>Function&lt;T,T&gt;</code> — <code>List.replaceAll</code></td></tr>
+<tr><td><code>BinaryOperator&lt;T&gt;</code></td><td><code>T apply(T,T)</code></td><td>Reduce/merge — <code>Integer::sum</code></td></tr>
+<tr><td>Primitive variants</td><td><code>IntPredicate</code>, <code>ToIntFunction</code>, <code>IntUnaryOperator</code>…</td><td>Avoid boxing in hot paths</td></tr>
+<tr><td>Legacy but functional</td><td><code>Runnable</code>, <code>Callable&lt;V&gt;</code>, <code>Comparator&lt;T&gt;</code></td><td>Also usable as lambda targets</td></tr>
+</table>
+<p><code>@FunctionalInterface</code> is optional but tells the compiler to reject a second abstract method. <code>default</code> and <code>static</code> methods do not count.</p>
+<p><strong>3. Stream pipeline anatomy</strong></p>
+<pre>    SOURCE            INTERMEDIATE (lazy, returns Stream)         TERMINAL (eager, runs it)
+list.stream()   →   .filter(...).map(...).sorted()          →    .collect(...)
+
+Sources: collection.stream() / parallelStream(), Arrays.stream(arr), Stream.of(a,b,c),
+         Stream.iterate(seed, f) [+ 3-arg with predicate, Java 9], Stream.generate(sup),
+         IntStream.range(0,n), Files.lines(path), string.chars(), Random.ints()
+
+⭐ Lazy: intermediate ops build a plan. Without a terminal op NOTHING executes.
+⭐ Single use: a stream is consumed once — a second terminal op throws IllegalStateException.
+⭐ Fused: one pass over the data, element by element (not one full pass per operation).</pre>
+<p><strong>4. Intermediate operations</strong></p>
+<table>
+<tr><th>Operation</th><th>Does</th><th>Note</th></tr>
+<tr><td><code>filter(Predicate)</code></td><td>Keep matching elements</td><td>Filter early — shrinks everything downstream</td></tr>
+<tr><td><code>map(Function)</code></td><td>1 → 1 transform</td><td><code>mapToInt/Long/Double</code> to leave the object world</td></tr>
+<tr><td><code>flatMap(Function)</code></td><td>1 → N, then flatten</td><td>Stream of lists → stream of elements</td></tr>
+<tr><td><code>distinct()</code></td><td>Remove duplicates</td><td>Uses <code>equals</code>/<code>hashCode</code>; stateful, buffers seen elements</td></tr>
+<tr><td><code>sorted()</code> / <code>sorted(cmp)</code></td><td>Order</td><td>Stateful — must consume the whole stream first</td></tr>
+<tr><td><code>limit(n)</code> / <code>skip(n)</code></td><td>Slice</td><td><code>limit</code> short-circuits — works on infinite streams</td></tr>
+<tr><td><code>takeWhile</code> / <code>dropWhile</code></td><td>Prefix-based slicing (Java 9)</td><td>Stops at the first non-match, unlike <code>filter</code></td></tr>
+<tr><td><code>peek(Consumer)</code></td><td>Look at elements</td><td><strong>Debug only</strong> — may be skipped entirely by optimizations</td></tr>
+<tr><td><code>mapMulti</code></td><td>1 → N via a callback (Java 16)</td><td>Cheaper than <code>flatMap</code> for few outputs</td></tr>
+<tr><td><code>boxed()</code></td><td><code>IntStream</code> → <code>Stream&lt;Integer&gt;</code></td><td>Needed before most collectors</td></tr>
+</table>
+<p><strong>5. Terminal operations</strong></p>
+<table>
+<tr><th>Operation</th><th>Returns</th><th>Note</th></tr>
+<tr><td><code>collect(Collector)</code></td><td>Anything</td><td>The general-purpose one — see collectors below</td></tr>
+<tr><td><code>toList()</code></td><td><code>List&lt;T&gt;</code></td><td>Java 16+, returns an <strong>unmodifiable</strong> list (allows nulls, unlike <code>toUnmodifiableList</code>)</td></tr>
+<tr><td><code>reduce(id, op)</code></td><td><code>T</code> / <code>Optional&lt;T&gt;</code></td><td>Op must be associative; identity must be a true identity</td></tr>
+<tr><td><code>forEach</code> / <code>forEachOrdered</code></td><td><code>void</code></td><td><code>forEach</code> has no order guarantee in parallel</td></tr>
+<tr><td><code>count()</code></td><td><code>long</code></td><td>May skip the pipeline entirely if the size is known</td></tr>
+<tr><td><code>anyMatch</code>/<code>allMatch</code>/<code>noneMatch</code></td><td><code>boolean</code></td><td>Short-circuit; on an empty stream <code>allMatch</code> is <strong>true</strong></td></tr>
+<tr><td><code>findFirst</code> / <code>findAny</code></td><td><code>Optional&lt;T&gt;</code></td><td><code>findAny</code> is cheaper in parallel</td></tr>
+<tr><td><code>min</code> / <code>max</code>(cmp)</td><td><code>Optional&lt;T&gt;</code></td><td>Needs a comparator</td></tr>
+<tr><td><code>toArray(T[]::new)</code></td><td>Array</td><td></td></tr>
+<tr><td><code>sum/average/summaryStatistics</code></td><td>Primitive stats</td><td>Primitive streams only</td></tr>
+</table>
+<p><strong>6. Collectors (java.util.stream.Collectors)</strong></p>
+<pre>toList()  toSet()  toCollection(TreeSet::new)  toUnmodifiableList()
+joining(", ", "[", "]")
+counting()   summingInt(f)   averagingDouble(f)   summarizingInt(f)
+minBy(cmp)   maxBy(cmp)      reducing(identity, op)
+
+toMap(keyFn, valFn)                       // ❌ throws on duplicate key
+toMap(keyFn, valFn, (a, b) -&gt; b)          // ✅ merge function decides the winner
+toMap(keyFn, valFn, merge, TreeMap::new)  // pick the map implementation
+
+groupingBy(User::getDept)                              // Map&lt;Dept, List&lt;User&gt;&gt;
+groupingBy(User::getDept, counting())                  // Map&lt;Dept, Long&gt;
+groupingBy(User::getDept, mapping(User::getName, toList()))
+groupingBy(User::getDept, TreeMap::new, averagingInt(User::getAge))
+partitioningBy(u -&gt; u.getAge() &gt;= 18)                  // Map&lt;Boolean, List&lt;User&gt;&gt; (both keys always present)
+filtering(pred, toList())   flatMapping(f, toList())   // Java 9 — downstream, keeps empty groups
+collectingAndThen(toList(), List::copyOf)              // post-process the result
+teeing(minBy(c), maxBy(c), (min, max) -&gt; ...)          // Java 12 — two collectors, one pass</pre>
+<pre>// Grouping is where streams beat loops
+Map&lt;String, List&lt;Employee&gt;&gt; byDept = emps.stream()
+    .collect(Collectors.groupingBy(Employee::getDept));
+
+Map&lt;String, Double&gt; avgSalaryByDept = emps.stream()
+    .collect(Collectors.groupingBy(Employee::getDept,
+             Collectors.averagingDouble(Employee::getSalary)));
+
+String names = emps.stream().map(Employee::getName)
+    .collect(Collectors.joining(", "));</pre>
+<p><strong>7. Comparators (the lambda API you use most)</strong></p>
+<pre>Comparator.comparing(Employee::getDept)
+          .thenComparing(Employee::getSalary, Comparator.reverseOrder())
+          .thenComparing(Employee::getName);
+Comparator.comparingInt(Employee::getAge);            // no boxing
+Comparator.nullsFirst(Comparator.naturalOrder());     // null-safe
+list.sort(cmp);  list.stream().sorted(cmp).toList();  // sort in place vs sorted copy</pre>
+<p><strong>8. Optional — the small API, in order of preference</strong></p>
+<pre>Create:   Optional.of(x)  ofNullable(maybeNull)  empty()
+Transform: map(f)  flatMap(f)  filter(p)  or(supplier)   stream()          // Java 9+
+Consume:  ifPresent(c)   ifPresentOrElse(c, runnable)                      // Java 9+
+Unwrap:   orElse(default)        // ALWAYS evaluates the argument
+          orElseGet(supplier)    // lazy — use this when the default is expensive
+          orElseThrow(() -&gt; new NotFoundException())
+Avoid:    isPresent() + get()    // that is just a null check with more typing
+          Optional fields / parameters / collection elements — return values only</pre>
+<p><strong>9. Parallel streams — when they help</strong></p>
+<ul>
+<li>Use for <strong>large</strong> (roughly 10k+ elements), <strong>CPU-bound</strong>, independent work on a <strong>splittable</strong> source (array, <code>ArrayList</code>, <code>IntStream.range</code>). Bad for <code>LinkedList</code>, <code>Iterator</code>-based or IO-bound work.</li>
+<li>They run on the shared <strong>common ForkJoinPool</strong> (cores − 1 threads) — one slow parallel stream stalls every other one in the JVM. Submit to your own pool if you must.</li>
+<li>Never use blocking IO inside a parallel stream, and never mutate shared state — collect instead.</li>
+<li>Measure. Splitting, merging and boxing frequently make the parallel version slower.</li>
+</ul>
+<p><strong>10. The traps interviewers actually ask about</strong></p>
+<pre>1. Stream reuse       → Stream&lt;T&gt; s = list.stream(); s.count(); s.count();  // IllegalStateException
+2. No terminal op     → list.stream().map(this::save);   // saves NOTHING (lazy)
+3. peek() for logic   → may be elided; use map/forEach for real work
+4. toMap duplicates   → IllegalStateException; and a null VALUE throws NPE (groupingBy tolerates it)
+5. Side effects       → .map(x -&gt; { results.add(x); return x; })  // breaks in parallel; use collect
+6. forEach + shared list → use collect(toList()), not forEach(list::add)
+7. Collectors.toList() → historically mutable, unspecified; Java 16 stream.toList() is UNMODIFIABLE
+8. Infinite stream    → Stream.iterate(1, i -&gt; i + 1).filter(...)  needs limit() before a terminal op
+9. reduce identity    → reduce("", String::concat) is O(n²); use joining() / StringBuilder
+10. Boxing            → list.stream().map(Integer::intValue).reduce(0, Integer::sum)
+                        vs list.stream().mapToInt(Integer::intValue).sum()   ← much faster
+11. Order             → findAny/forEach are unordered in parallel; use findFirst/forEachOrdered
+12. Checked exceptions→ lambdas cannot throw them; wrap, or write a throwing-functional-interface helper</pre>
+<div class="key-point">Map of the section that follows: a lambda is just an instance of a one-method interface → streams chain those lambdas into a lazy, single-use pipeline that only runs on the terminal operation → collectors decide the shape of the result → primitive streams remove boxing → <code>Optional</code> removes the null check → parallel streams are a last-resort optimization you must measure. If you remember only one thing: <strong>lazy + single-use</strong> explains most stream bugs, and <strong>groupingBy</strong> explains most of their value.</div>`,
+      },
+      {
         q: 'What are functional interfaces and lambda expressions?',
         difficulty: 'medium',
         a: `<div class="interview-answer"><p>A functional interface has exactly one abstract method. A lambda is a short way to write that one method, and the compiler figures out which interface it fits from the context. Java provides ready-made ones in <code>java.util.function</code> like <code>Predicate</code>, <code>Function</code>, <code>Consumer</code>, and <code>Supplier</code>. Unlike an anonymous class, in a lambda <code>this</code> means the outer object, captured variables must be effectively final, and no extra <code>.class</code> file is created.</p></div>
