@@ -9,6 +9,7 @@ export const topics: PvTopic[] = [
     name: 'Next.js',
     icon: '▲',
     questions: [
+      // ──── 1. NEXT.JS FUNDAMENTALS & ROUTING ────
       {
         q: 'What is Next.js and how is it different from Create React App?',
         difficulty: 'easy',
@@ -58,88 +59,6 @@ app/
 <li>Data fetching: Pages Router uses <code>getServerSideProps</code> / <code>getStaticProps</code>. App Router uses <code>async</code> server components or <code>fetch()</code> with caching.</li>
 </ul>
 <div class="key-point">New projects should use App Router. Pages Router is still supported but won't get new features.</div>`,
-      },
-      {
-        q: 'What are the rendering strategies in Next.js? SSR, SSG, ISR, CSR.',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p>Next.js has four rendering strategies. SSG builds pages at build time and is the fastest and cheapest. SSR builds the page on every request and fits personalized or real-time content. ISR is SSG plus a revalidate time, so pages stay fresh without rebuilding on every request, and CSR renders in the browser for highly interactive views. In the App Router the strategy is chosen through <code>fetch</code> cache options and route settings, not by exporting a named function.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Next.js có bốn chiến lược render. SSG dựng trang tại thời điểm build và là cách nhanh cùng rẻ nhất. SSR dựng trang trên mỗi request, phù hợp với nội dung cá nhân hóa hoặc thời gian thực. ISR là SSG cộng thêm thời gian revalidate, nên trang luôn được cập nhật mà không phải rebuild trên mỗi request, còn CSR render ngay trong trình duyệt cho các giao diện có tính tương tác cao. Trong App Router, chiến lược được chọn thông qua các tùy chọn cache của <code>fetch</code> và cấu hình route, chứ không phải bằng cách export một hàm có tên cố định.</p></details>
-<ul>
-<li><strong>SSR (Server-Side Rendering)</strong>: HTML generated on every request. Dynamic, but slower. Good for personalized/real-time pages.</li>
-<li><strong>SSG (Static Site Generation)</strong>: HTML generated at build time. Fastest. Good for blogs, docs, marketing pages.</li>
-<li><strong>ISR (Incremental Static Regeneration)</strong>: SSG + revalidation after a time period. Best of both worlds.</li>
-<li><strong>CSR (Client-Side Rendering)</strong>: No server rendering. Data fetched in browser. Use for highly interactive dashboards.</li>
-</ul>
-<pre>// App Router — data fetching with caching controls the strategy:
-
-// SSG (cached forever until revalidate)
-async function Page() {
-  const data = await fetch('https://api.example.com/data', {
-    cache: 'force-cache'  // default — static
-  });
-}
-
-// SSR (no cache — fresh every request)
-async function Page() {
-  const data = await fetch('https://api.example.com/data', {
-    cache: 'no-store'  // dynamic — SSR
-  });
-}
-
-// ISR (revalidate every 60 seconds)
-async function Page() {
-  const data = await fetch('https://api.example.com/data', {
-    next: { revalidate: 60 }
-  });
-}
-
-// CSR (client component with useEffect)
-'use client';
-function Page() {
-  const [data, setData] = useState(null);
-  useEffect(() => { fetch('/api/data').then(...); }, []);
-}</pre>
-<div class="key-point">In App Router, the rendering strategy is determined by how you fetch data (cache options), not by which function you export (unlike Pages Router).</div>`,
-      },
-      {
-        q: "What is the difference between 'use client' and 'use server' in Next.js?",
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p><code>'use client'</code> marks a component that runs in the browser so it can use hooks, events, and browser APIs. <code>'use server'</code> marks a function as a Server Action that runs on the server and can reach the database or secrets directly. They are not opposites: every component is a Server Component by default, and <code>'use client'</code> is added only on the small parts that need interactivity to keep the browser bundle small. A common mistake is adding <code>'use client'</code> at the top of the tree, which pulls everything below it into the browser.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><code>'use client'</code> đánh dấu một component chạy trong trình duyệt để nó có thể dùng hook, sự kiện và các browser API. <code>'use server'</code> đánh dấu một hàm là Server Action chạy trên server và có thể truy cập trực tiếp database hoặc secret. Chúng không phải là hai thứ đối lập: mặc định mọi component đều là Server Component, và <code>'use client'</code> chỉ được thêm vào những phần nhỏ cần tương tác để giữ cho bundle phía trình duyệt gọn nhẹ. Một lỗi thường gặp là thêm <code>'use client'</code> ở đầu cây component, khiến toàn bộ phần bên dưới bị kéo vào trình duyệt.</p></details>
-<ul>
-<li><code>'use client'</code>: marks a component as a <strong>Client Component</strong>. Runs in the browser. Can use hooks, event handlers, browser APIs.</li>
-<li><code>'use server'</code>: marks a function as a <strong>Server Action</strong>. Runs on the server. Can access DB, file system, secrets directly.</li>
-</ul>
-<pre>// Server Component (default — no directive needed)
-async function UserList() {
-  const users = await db.query('SELECT * FROM users'); // direct DB access!
-  return &lt;ul&gt;{users.map(u => &lt;li&gt;{u.name}&lt;/li&gt;)}&lt;/ul&gt;;
-}
-
-// Client Component
-'use client';
-function SearchBar() {
-  const [query, setQuery] = useState('');
-  return &lt;input value={query} onChange={e => setQuery(e.target.value)} /&gt;;
-}
-
-// Server Action
-'use server';
-async function createUser(formData: FormData) {
-  const name = formData.get('name');
-  await db.query('INSERT INTO users (name) VALUES ($1)', [name]);
-  revalidatePath('/users');
-}
-
-// Using Server Action from Client Component
-'use client';
-function Form() {
-  return &lt;form action={createUser}&gt;
-    &lt;input name="name" /&gt;
-    &lt;button type="submit"&gt;Create&lt;/button&gt;
-  &lt;/form&gt;;
-}</pre>
-<div class="key-point">Keep components as Server Components by default. Only add <code>'use client'</code> when you need interactivity (hooks, events). This minimizes the client bundle.</div>`,
       },
       {
         q: 'How does Next.js handle routing? Explain dynamic routes, catch-all, and parallel routes.',
@@ -224,68 +143,171 @@ export const config = {
 };</pre>
 <div class="key-point">Middleware runs at the Edge (very fast, limited APIs). Don't do heavy computation or DB queries in middleware — only lightweight checks and redirects.</div>`,
       },
-      {
-        q: 'How does static export work in Next.js? What are the limitations?',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p>Setting <code>output: 'export'</code> produces plain static HTML, CSS, and JS that can be hosted on any static server with no Node process. The cost is losing all server features: no SSR, no ISR, no route handlers, no middleware, and no image optimization unless <code>unoptimized</code> is set. Dynamic routes must be listed at build time with <code>generateStaticParams</code>. It fits docs sites, portfolios, and fully client-driven apps, and a hosted runtime is needed once real per-request logic is required.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Thiết lập <code>output: 'export'</code> tạo ra HTML, CSS và JS tĩnh thuần túy, có thể host trên bất kỳ server tĩnh nào mà không cần tiến trình Node. Cái giá phải trả là mất toàn bộ tính năng server: không SSR, không ISR, không route handler, không middleware, và không có tối ưu image trừ khi đặt <code>unoptimized</code>. Các dynamic route phải được liệt kê tại thời điểm build bằng <code>generateStaticParams</code>. Nó phù hợp với trang tài liệu, portfolio và các app hoàn toàn chạy phía client, còn khi cần logic thật sự theo từng request thì bạn sẽ cần một runtime được host.</p></details>
-<p>Static export generates a fully static site (HTML/CSS/JS) that can be hosted anywhere (GitHub Pages, S3, Nginx).</p>
-<pre>// next.config.ts
-const nextConfig = {
-  output: 'export',      // enable static export
-  images: {
-    unoptimized: true,   // required: no image optimization server
-  },
-};
 
-// Build: npm run build → generates 'out/' directory
-// Deploy: upload 'out/' to any static hosting</pre>
-<p><strong>Limitations (no server features):</strong></p>
+      // ──── 2. RENDERING & SERVER COMPONENTS ────
+      {
+        q: 'What are the rendering strategies in Next.js? SSR, SSG, ISR, CSR.',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>Next.js has four rendering strategies. SSG builds pages at build time and is the fastest and cheapest. SSR builds the page on every request and fits personalized or real-time content. ISR is SSG plus a revalidate time, so pages stay fresh without rebuilding on every request, and CSR renders in the browser for highly interactive views. In the App Router the strategy is chosen through <code>fetch</code> cache options and route settings, not by exporting a named function.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Next.js có bốn chiến lược render. SSG dựng trang tại thời điểm build và là cách nhanh cùng rẻ nhất. SSR dựng trang trên mỗi request, phù hợp với nội dung cá nhân hóa hoặc thời gian thực. ISR là SSG cộng thêm thời gian revalidate, nên trang luôn được cập nhật mà không phải rebuild trên mỗi request, còn CSR render ngay trong trình duyệt cho các giao diện có tính tương tác cao. Trong App Router, chiến lược được chọn thông qua các tùy chọn cache của <code>fetch</code> và cấu hình route, chứ không phải bằng cách export một hàm có tên cố định.</p></details>
 <ul>
-<li>No Server Components (everything becomes client)</li>
-<li>No API Routes / Route Handlers</li>
-<li>No SSR (no <code>cache: 'no-store'</code>)</li>
-<li>No ISR (no revalidation)</li>
-<li>No Middleware</li>
-<li>No next/image optimization (use <code>unoptimized: true</code>)</li>
-<li>Dynamic routes need <code>generateStaticParams</code></li>
+<li><strong>SSR (Server-Side Rendering)</strong>: HTML generated on every request. Dynamic, but slower. Good for personalized/real-time pages.</li>
+<li><strong>SSG (Static Site Generation)</strong>: HTML generated at build time. Fastest. Good for blogs, docs, marketing pages.</li>
+<li><strong>ISR (Incremental Static Regeneration)</strong>: SSG + revalidation after a time period. Best of both worlds.</li>
+<li><strong>CSR (Client-Side Rendering)</strong>: No server rendering. Data fetched in browser. Use for highly interactive dashboards.</li>
 </ul>
-<div class="key-point">Static export is ideal for documentation sites, portfolios, and apps that run entirely in the browser (like SLearning Studio). All dynamic behavior must happen client-side.</div>`,
+<pre>// App Router — data fetching with caching controls the strategy:
+
+// SSG (cached forever until revalidate)
+async function Page() {
+  const data = await fetch('https://api.example.com/data', {
+    cache: 'force-cache'  // default — static
+  });
+}
+
+// SSR (no cache — fresh every request)
+async function Page() {
+  const data = await fetch('https://api.example.com/data', {
+    cache: 'no-store'  // dynamic — SSR
+  });
+}
+
+// ISR (revalidate every 60 seconds)
+async function Page() {
+  const data = await fetch('https://api.example.com/data', {
+    next: { revalidate: 60 }
+  });
+}
+
+// CSR (client component with useEffect)
+'use client';
+function Page() {
+  const [data, setData] = useState(null);
+  useEffect(() => { fetch('/api/data').then(...); }, []);
+}</pre>
+<div class="key-point">In App Router, the rendering strategy is determined by how you fetch data (cache options), not by which function you export (unlike Pages Router).</div>`,
       },
       {
-        q: 'What is next/image and why should you use it?',
-        difficulty: 'easy',
-        a: `<div class="interview-answer"><p><code>next/image</code> improves performance with little effort: it serves modern formats like WebP and AVIF, resizes per device, lazy-loads by default, and reserves space to prevent layout shift, which helps LCP and CLS. Set <code>priority</code> on the main above-the-fold image so it loads early, and set correct <code>width</code> and <code>height</code> (or <code>fill</code> with <code>sizes</code>) to avoid over-fetching. It needs an optimization server, so static export uses <code>unoptimized</code> instead. For content images there is little reason to use a plain <code>&lt;img&gt;</code>.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><code>next/image</code> cải thiện hiệu năng với ít công sức: nó phục vụ các định dạng hiện đại như WebP và AVIF, resize theo từng thiết bị, lazy-load mặc định, và giữ chỗ sẵn để tránh layout shift, giúp cải thiện LCP và CLS. Hãy đặt <code>priority</code> cho image chính nằm phía trên màn hình đầu tiên để nó được tải sớm, và đặt đúng <code>width</code> cùng <code>height</code> (hoặc <code>fill</code> kèm <code>sizes</code>) để tránh tải quá mức. Nó cần một server tối ưu, nên với static export thì dùng <code>unoptimized</code> thay thế. Với image nội dung thì gần như không có lý do gì để dùng thẻ <code>&lt;img&gt;</code> thuần.</p></details>
-<pre>import Image from 'next/image';
-
-// Automatic optimization
-&lt;Image
-  src="/hero.jpg"
-  alt="Hero"
-  width={800}
-  height={400}
-  priority          // preload for LCP image
-  placeholder="blur" // show blur while loading
-/&gt;
-
-// Responsive
-&lt;Image
-  src="/photo.jpg"
-  alt="Photo"
-  fill              // fills parent container
-  sizes="(max-width: 768px) 100vw, 50vw"
-  style={{ objectFit: 'cover' }}
-/&gt;</pre>
-<p><strong>Benefits over &lt;img&gt;:</strong></p>
+        q: "What is the difference between 'use client' and 'use server' in Next.js?",
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p><code>'use client'</code> marks a component that runs in the browser so it can use hooks, events, and browser APIs. <code>'use server'</code> marks a function as a Server Action that runs on the server and can reach the database or secrets directly. They are not opposites: every component is a Server Component by default, and <code>'use client'</code> is added only on the small parts that need interactivity to keep the browser bundle small. A common mistake is adding <code>'use client'</code> at the top of the tree, which pulls everything below it into the browser.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><code>'use client'</code> đánh dấu một component chạy trong trình duyệt để nó có thể dùng hook, sự kiện và các browser API. <code>'use server'</code> đánh dấu một hàm là Server Action chạy trên server và có thể truy cập trực tiếp database hoặc secret. Chúng không phải là hai thứ đối lập: mặc định mọi component đều là Server Component, và <code>'use client'</code> chỉ được thêm vào những phần nhỏ cần tương tác để giữ cho bundle phía trình duyệt gọn nhẹ. Một lỗi thường gặp là thêm <code>'use client'</code> ở đầu cây component, khiến toàn bộ phần bên dưới bị kéo vào trình duyệt.</p></details>
 <ul>
-<li>Automatic format conversion (WebP/AVIF)</li>
-<li>Automatic resizing based on device</li>
-<li>Lazy loading by default</li>
-<li>Prevents layout shift (requires width/height)</li>
-<li>Blur placeholder while loading</li>
+<li><code>'use client'</code>: marks a component as a <strong>Client Component</strong>. Runs in the browser. Can use hooks, event handlers, browser APIs.</li>
+<li><code>'use server'</code>: marks a function as a <strong>Server Action</strong>. Runs on the server. Can access DB, file system, secrets directly.</li>
 </ul>
-<div class="key-point">Always use <code>next/image</code> for images in Next.js. It can reduce image sizes by 50-80% with zero effort. Use <code>priority</code> for above-the-fold images.</div>`,
+<pre>// Server Component (default — no directive needed)
+async function UserList() {
+  const users = await db.query('SELECT * FROM users'); // direct DB access!
+  return &lt;ul&gt;{users.map(u => &lt;li&gt;{u.name}&lt;/li&gt;)}&lt;/ul&gt;;
+}
+
+// Client Component
+'use client';
+function SearchBar() {
+  const [query, setQuery] = useState('');
+  return &lt;input value={query} onChange={e => setQuery(e.target.value)} /&gt;;
+}
+
+// Server Action
+'use server';
+async function createUser(formData: FormData) {
+  const name = formData.get('name');
+  await db.query('INSERT INTO users (name) VALUES ($1)', [name]);
+  revalidatePath('/users');
+}
+
+// Using Server Action from Client Component
+'use client';
+function Form() {
+  return &lt;form action={createUser}&gt;
+    &lt;input name="name" /&gt;
+    &lt;button type="submit"&gt;Create&lt;/button&gt;
+  &lt;/form&gt;;
+}</pre>
+<div class="key-point">Keep components as Server Components by default. Only add <code>'use client'</code> when you need interactivity (hooks, events). This minimizes the client bundle.</div>`,
+      },
+      {
+        q: 'Why can you not pass a function or class instance as a prop from a Server Component to a Client Component?',
+        difficulty: 'tricky',
+        a: `<div class="interview-answer"><p>The boundary between Server and Client Components is a network serialization boundary: the server renders to a payload that is sent to the browser, and props that cross it must survive serialization. A function cannot cross because it holds a server closure with things like database handles and secrets, and a class instance loses its prototype, so a <code>Date</code> arrives as a string. The one allowed exception is a Server Action, which is sent as an opaque ID the client calls back, not as code. To place server content inside interactive UI, pass already-rendered server output as <code>children</code> into a client component.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Ranh giới giữa Server Component và Client Component là một ranh giới serialize qua mạng: server render ra một payload rồi gửi tới trình duyệt, và các prop vượt qua ranh giới này phải sống sót được qua quá trình serialize. Một hàm không thể vượt qua vì nó giữ một closure phía server với những thứ như database handle và secret, còn một instance của class thì mất prototype, nên một <code>Date</code> sẽ đến nơi dưới dạng chuỗi. Ngoại lệ duy nhất được cho phép là Server Action, thứ được gửi đi dưới dạng một ID mờ mà client gọi lại, chứ không phải dưới dạng code. Để đặt nội dung server bên trong UI có tương tác, hãy truyền phần output đã được server render sẵn vào một client component thông qua <code>children</code>.</p></details>
+<p>Server and Client Components run in <strong>different environments at different times</strong>. The server renders to a serialized payload (the RSC payload) that is sent over the network; props crossing the boundary must survive serialization. Functions capture closures over server scope (DB handles, secrets) — there is no way to ship that to a browser. Class instances lose their prototype: a <code>Date</code> arriving as a string, a custom class arriving as a plain object.</p>
+<pre>// BROKEN — build/runtime error:
+// "Functions cannot be passed directly to Client Components"
+export default async function Page() {
+  const user = await getUser();
+  return &lt;ProfileCard user={user} onSave={(u) => db.save(u)} /&gt;; // ✗ function prop
+}
+
+// FIX 1 — pass a Server Action (the one sanctioned exception):
+// actions.ts
+'use server';
+export async function saveUser(formData: FormData) {
+  await db.save(Object.fromEntries(formData));
+}
+// page.tsx (Server Component)
+&lt;ProfileCard user={user} saveAction={saveUser} /&gt;  // ✓ serializable reference
+
+// FIX 2 — children composition: interleave server content INSIDE a client shell
+// instead of passing it data it can't receive:
+'use client';
+function Collapsible({ children }) {          // client interactivity
+  const [open, setOpen] = useState(false);
+  return &lt;div&gt;
+    &lt;button onClick={() => setOpen(!open)}&gt;Toggle&lt;/button&gt;
+    {open &amp;&amp; children}
+  &lt;/div&gt;;
+}
+// Server Component passes ALREADY-RENDERED server content as children:
+&lt;Collapsible&gt;&lt;ServerOnlyReport /&gt;&lt;/Collapsible&gt;  // ✓</pre>
+<p><strong>Why Server Actions are allowed:</strong> <code>'use server'</code> functions aren't serialized as code — Next.js replaces them with an opaque reference (an ID) the client can invoke via an HTTP POST back to the server. The closure never leaves the server.</p>
+<p><strong>Follow-up trap:</strong> "so a Client Component can never contain server content?" Wrong — the children pattern above proves client components can <strong>compose</strong> server-rendered subtrees; they just can't <strong>create</strong> them.</p>
+<div class="key-point">The RSC boundary is a network serialization boundary: only serializable data and Server Action references cross it, and children composition is how you nest server content inside client interactivity.</div>`,
+      },
+      {
+        q: 'How does streaming SSR with Suspense work in the App Router, and what do loading.tsx and error.tsx actually do?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>Classic SSR waits for every fetch to finish before sending any HTML, while streaming SSR sends the shell right away and streams slow parts in later, using <code>&lt;Suspense&gt;</code> boundaries as the split points. <code>loading.tsx</code> is a shortcut for one Suspense around the whole segment, and <code>error.tsx</code> is a per-segment error boundary with a <code>reset()</code> so one broken widget does not crash the page. Fine-grained Suspense at each async component is better than one full-page spinner. Streaming improves perceived speed and first byte time, but not total time, since a slow query is still slow.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>SSR truyền thống chờ mọi fetch hoàn tất trước khi gửi bất kỳ HTML nào, trong khi streaming SSR gửi phần khung ngay lập tức rồi stream các phần chậm vào sau, dùng các ranh giới <code>&lt;Suspense&gt;</code> làm điểm chia. <code>loading.tsx</code> là cách viết tắt cho một Suspense bao quanh toàn bộ segment, còn <code>error.tsx</code> là một error boundary theo từng segment kèm <code>reset()</code> để một widget hỏng không làm sập cả trang. Đặt Suspense chi tiết ở từng async component tốt hơn là một spinner cho cả trang. Streaming cải thiện tốc độ cảm nhận và thời gian byte đầu tiên, nhưng không cải thiện tổng thời gian, vì một truy vấn chậm thì vẫn chậm.</p></details>
+<p>Classic SSR is all-or-nothing: the server must finish <strong>every</strong> data fetch before sending byte one. Streaming SSR sends the shell immediately and <strong>streams in slow parts later</strong> over the same response, using <code>&lt;Suspense&gt;</code> boundaries as the seams.</p>
+<pre>// app/dashboard/page.tsx
+import { Suspense } from 'react';
+
+export default function Dashboard() {
+  return &lt;&gt;
+    &lt;Header /&gt;                         {/* sent immediately */}
+    &lt;Suspense fallback={&lt;StatsSkeleton /&gt;}&gt;
+      &lt;Stats /&gt;                        {/* async — streams in when ready */}
+    &lt;/Suspense&gt;
+    &lt;Suspense fallback={&lt;FeedSkeleton /&gt;}&gt;
+      &lt;SlowFeed /&gt;                     {/* independent — streams separately */}
+    &lt;/Suspense&gt;
+  &lt;/&gt;;
+}
+
+async function SlowFeed() {
+  const posts = await fetch('https://api.example.com/feed', { cache: 'no-store' })
+    .then(r => r.json());
+  return &lt;Feed posts={posts} /&gt;;
+}
+
+// app/dashboard/loading.tsx — implicit Suspense around the WHOLE page:
+export default function Loading() { return &lt;PageSkeleton /&gt;; }
+
+// app/dashboard/error.tsx — error boundary for the segment (must be client):
+'use client';
+export default function Error({ error, reset }) {
+  return &lt;div&gt;&lt;p&gt;Failed: {error.message}&lt;/p&gt;
+    &lt;button onClick={reset}&gt;Retry&lt;/button&gt;&lt;/div&gt;;
+}</pre>
+<ul>
+<li><code>loading.tsx</code> is sugar for wrapping the route segment in one big Suspense boundary. Fine-grained <code>&lt;Suspense&gt;</code> inside the page beats one whole-page spinner.</li>
+<li><code>error.tsx</code> creates a React error boundary per segment — a crashing widget takes down its segment, not the app; <code>reset()</code> re-renders the segment.</li>
+<li><strong>The subtle point:</strong> streaming improves TTFB and perceived performance, but <strong>total</strong> time to full content is unchanged — the slow query is still slow. You improved when users see <strong>something</strong>, not when they see <strong>everything</strong>.</li>
+</ul>
+<p><strong>Follow-ups:</strong> streaming requires a Node/edge runtime (not <code>output: 'export'</code>); an awaited fetch <strong>above</strong> your Suspense boundary in the tree still blocks the shell — suspend at the component that fetches, not the layout.</p>
+<div class="key-point">Suspense boundaries let the server flush the shell immediately and stream slow subtrees later — better TTFB and perceived speed, same total data time, with loading.tsx/error.tsx as per-segment Suspense and error boundaries.</div>`,
       },
       {
         q: 'You see "Text content does not match server-rendered HTML" in the console. What causes hydration mismatches and how do you fix them?',
@@ -326,44 +348,8 @@ const Map = dynamic(() => import('./Map'), { ssr: false });</pre>
 <p><strong>Interviewer follow-up:</strong> why not sprinkle <code>suppressHydrationWarning</code> everywhere? It only suppresses one level deep, hides real bugs, and doesn't fix the underlying re-render cost — it's for genuinely unavoidable cases like timestamps.</p>
 <div class="key-point">Hydration requires the first client render to be byte-identical to the server render — move anything non-deterministic or browser-dependent into useEffect, and reserve suppressHydrationWarning for single unavoidable text nodes.</div>`,
       },
-      {
-        q: 'Why can you not pass a function or class instance as a prop from a Server Component to a Client Component?',
-        difficulty: 'tricky',
-        a: `<div class="interview-answer"><p>The boundary between Server and Client Components is a network serialization boundary: the server renders to a payload that is sent to the browser, and props that cross it must survive serialization. A function cannot cross because it holds a server closure with things like database handles and secrets, and a class instance loses its prototype, so a <code>Date</code> arrives as a string. The one allowed exception is a Server Action, which is sent as an opaque ID the client calls back, not as code. To place server content inside interactive UI, pass already-rendered server output as <code>children</code> into a client component.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Ranh giới giữa Server Component và Client Component là một ranh giới serialize qua mạng: server render ra một payload rồi gửi tới trình duyệt, và các prop vượt qua ranh giới này phải sống sót được qua quá trình serialize. Một hàm không thể vượt qua vì nó giữ một closure phía server với những thứ như database handle và secret, còn một instance của class thì mất prototype, nên một <code>Date</code> sẽ đến nơi dưới dạng chuỗi. Ngoại lệ duy nhất được cho phép là Server Action, thứ được gửi đi dưới dạng một ID mờ mà client gọi lại, chứ không phải dưới dạng code. Để đặt nội dung server bên trong UI có tương tác, hãy truyền phần output đã được server render sẵn vào một client component thông qua <code>children</code>.</p></details>
-<p>Server and Client Components run in <strong>different environments at different times</strong>. The server renders to a serialized payload (the RSC payload) that is sent over the network; props crossing the boundary must survive serialization. Functions capture closures over server scope (DB handles, secrets) — there is no way to ship that to a browser. Class instances lose their prototype: a <code>Date</code> arriving as a string, a custom class arriving as a plain object.</p>
-<pre>// BROKEN — build/runtime error:
-// "Functions cannot be passed directly to Client Components"
-export default async function Page() {
-  const user = await getUser();
-  return &lt;ProfileCard user={user} onSave={(u) => db.save(u)} /&gt;; // ✗ function prop
-}
 
-// FIX 1 — pass a Server Action (the one sanctioned exception):
-// actions.ts
-'use server';
-export async function saveUser(formData: FormData) {
-  await db.save(Object.fromEntries(formData));
-}
-// page.tsx (Server Component)
-&lt;ProfileCard user={user} saveAction={saveUser} /&gt;  // ✓ serializable reference
-
-// FIX 2 — children composition: interleave server content INSIDE a client shell
-// instead of passing it data it can't receive:
-'use client';
-function Collapsible({ children }) {          // client interactivity
-  const [open, setOpen] = useState(false);
-  return &lt;div&gt;
-    &lt;button onClick={() => setOpen(!open)}&gt;Toggle&lt;/button&gt;
-    {open &amp;&amp; children}
-  &lt;/div&gt;;
-}
-// Server Component passes ALREADY-RENDERED server content as children:
-&lt;Collapsible&gt;&lt;ServerOnlyReport /&gt;&lt;/Collapsible&gt;  // ✓</pre>
-<p><strong>Why Server Actions are allowed:</strong> <code>'use server'</code> functions aren't serialized as code — Next.js replaces them with an opaque reference (an ID) the client can invoke via an HTTP POST back to the server. The closure never leaves the server.</p>
-<p><strong>Follow-up trap:</strong> "so a Client Component can never contain server content?" Wrong — the children pattern above proves client components can <strong>compose</strong> server-rendered subtrees; they just can't <strong>create</strong> them.</p>
-<div class="key-point">The RSC boundary is a network serialization boundary: only serializable data and Server Action references cross it, and children composition is how you nest server content inside client interactivity.</div>`,
-      },
+      // ──── 3. CACHING, DATA & SERVER ACTIONS ────
       {
         q: 'Your Next.js page shows stale data in production but works fine in dev. Explain the App Router caching layers and how to control them.',
         difficulty: 'tricky',
@@ -445,49 +431,70 @@ function PostRow({ id }) {
 <p><strong>Other failure modes interviewers probe:</strong> actions run sequentially (not for parallel reads — use Route Handlers or server fetches for GET-style data), and closing over sensitive server values in inline actions can leak them into the encrypted bound-args payload.</p>
 <div class="key-point">Server Actions are public POST endpoints in disguise — do auth and input validation inside every action, and use useFormStatus/useActionState for pending and error UI with progressive enhancement for free.</div>`,
       },
+
+      // ──── 4. ASSETS & DEPLOYMENT ────
       {
-        q: 'How does streaming SSR with Suspense work in the App Router, and what do loading.tsx and error.tsx actually do?',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p>Classic SSR waits for every fetch to finish before sending any HTML, while streaming SSR sends the shell right away and streams slow parts in later, using <code>&lt;Suspense&gt;</code> boundaries as the split points. <code>loading.tsx</code> is a shortcut for one Suspense around the whole segment, and <code>error.tsx</code> is a per-segment error boundary with a <code>reset()</code> so one broken widget does not crash the page. Fine-grained Suspense at each async component is better than one full-page spinner. Streaming improves perceived speed and first byte time, but not total time, since a slow query is still slow.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>SSR truyền thống chờ mọi fetch hoàn tất trước khi gửi bất kỳ HTML nào, trong khi streaming SSR gửi phần khung ngay lập tức rồi stream các phần chậm vào sau, dùng các ranh giới <code>&lt;Suspense&gt;</code> làm điểm chia. <code>loading.tsx</code> là cách viết tắt cho một Suspense bao quanh toàn bộ segment, còn <code>error.tsx</code> là một error boundary theo từng segment kèm <code>reset()</code> để một widget hỏng không làm sập cả trang. Đặt Suspense chi tiết ở từng async component tốt hơn là một spinner cho cả trang. Streaming cải thiện tốc độ cảm nhận và thời gian byte đầu tiên, nhưng không cải thiện tổng thời gian, vì một truy vấn chậm thì vẫn chậm.</p></details>
-<p>Classic SSR is all-or-nothing: the server must finish <strong>every</strong> data fetch before sending byte one. Streaming SSR sends the shell immediately and <strong>streams in slow parts later</strong> over the same response, using <code>&lt;Suspense&gt;</code> boundaries as the seams.</p>
-<pre>// app/dashboard/page.tsx
-import { Suspense } from 'react';
+        q: 'What is next/image and why should you use it?',
+        difficulty: 'easy',
+        a: `<div class="interview-answer"><p><code>next/image</code> improves performance with little effort: it serves modern formats like WebP and AVIF, resizes per device, lazy-loads by default, and reserves space to prevent layout shift, which helps LCP and CLS. Set <code>priority</code> on the main above-the-fold image so it loads early, and set correct <code>width</code> and <code>height</code> (or <code>fill</code> with <code>sizes</code>) to avoid over-fetching. It needs an optimization server, so static export uses <code>unoptimized</code> instead. For content images there is little reason to use a plain <code>&lt;img&gt;</code>.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><code>next/image</code> cải thiện hiệu năng với ít công sức: nó phục vụ các định dạng hiện đại như WebP và AVIF, resize theo từng thiết bị, lazy-load mặc định, và giữ chỗ sẵn để tránh layout shift, giúp cải thiện LCP và CLS. Hãy đặt <code>priority</code> cho image chính nằm phía trên màn hình đầu tiên để nó được tải sớm, và đặt đúng <code>width</code> cùng <code>height</code> (hoặc <code>fill</code> kèm <code>sizes</code>) để tránh tải quá mức. Nó cần một server tối ưu, nên với static export thì dùng <code>unoptimized</code> thay thế. Với image nội dung thì gần như không có lý do gì để dùng thẻ <code>&lt;img&gt;</code> thuần.</p></details>
+<pre>import Image from 'next/image';
 
-export default function Dashboard() {
-  return &lt;&gt;
-    &lt;Header /&gt;                         {/* sent immediately */}
-    &lt;Suspense fallback={&lt;StatsSkeleton /&gt;}&gt;
-      &lt;Stats /&gt;                        {/* async — streams in when ready */}
-    &lt;/Suspense&gt;
-    &lt;Suspense fallback={&lt;FeedSkeleton /&gt;}&gt;
-      &lt;SlowFeed /&gt;                     {/* independent — streams separately */}
-    &lt;/Suspense&gt;
-  &lt;/&gt;;
-}
+// Automatic optimization
+&lt;Image
+  src="/hero.jpg"
+  alt="Hero"
+  width={800}
+  height={400}
+  priority          // preload for LCP image
+  placeholder="blur" // show blur while loading
+/&gt;
 
-async function SlowFeed() {
-  const posts = await fetch('https://api.example.com/feed', { cache: 'no-store' })
-    .then(r => r.json());
-  return &lt;Feed posts={posts} /&gt;;
-}
-
-// app/dashboard/loading.tsx — implicit Suspense around the WHOLE page:
-export default function Loading() { return &lt;PageSkeleton /&gt;; }
-
-// app/dashboard/error.tsx — error boundary for the segment (must be client):
-'use client';
-export default function Error({ error, reset }) {
-  return &lt;div&gt;&lt;p&gt;Failed: {error.message}&lt;/p&gt;
-    &lt;button onClick={reset}&gt;Retry&lt;/button&gt;&lt;/div&gt;;
-}</pre>
+// Responsive
+&lt;Image
+  src="/photo.jpg"
+  alt="Photo"
+  fill              // fills parent container
+  sizes="(max-width: 768px) 100vw, 50vw"
+  style={{ objectFit: 'cover' }}
+/&gt;</pre>
+<p><strong>Benefits over &lt;img&gt;:</strong></p>
 <ul>
-<li><code>loading.tsx</code> is sugar for wrapping the route segment in one big Suspense boundary. Fine-grained <code>&lt;Suspense&gt;</code> inside the page beats one whole-page spinner.</li>
-<li><code>error.tsx</code> creates a React error boundary per segment — a crashing widget takes down its segment, not the app; <code>reset()</code> re-renders the segment.</li>
-<li><strong>The subtle point:</strong> streaming improves TTFB and perceived performance, but <strong>total</strong> time to full content is unchanged — the slow query is still slow. You improved when users see <strong>something</strong>, not when they see <strong>everything</strong>.</li>
+<li>Automatic format conversion (WebP/AVIF)</li>
+<li>Automatic resizing based on device</li>
+<li>Lazy loading by default</li>
+<li>Prevents layout shift (requires width/height)</li>
+<li>Blur placeholder while loading</li>
 </ul>
-<p><strong>Follow-ups:</strong> streaming requires a Node/edge runtime (not <code>output: 'export'</code>); an awaited fetch <strong>above</strong> your Suspense boundary in the tree still blocks the shell — suspend at the component that fetches, not the layout.</p>
-<div class="key-point">Suspense boundaries let the server flush the shell immediately and stream slow subtrees later — better TTFB and perceived speed, same total data time, with loading.tsx/error.tsx as per-segment Suspense and error boundaries.</div>`,
+<div class="key-point">Always use <code>next/image</code> for images in Next.js. It can reduce image sizes by 50-80% with zero effort. Use <code>priority</code> for above-the-fold images.</div>`,
+      },
+      {
+        q: 'How does static export work in Next.js? What are the limitations?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>Setting <code>output: 'export'</code> produces plain static HTML, CSS, and JS that can be hosted on any static server with no Node process. The cost is losing all server features: no SSR, no ISR, no route handlers, no middleware, and no image optimization unless <code>unoptimized</code> is set. Dynamic routes must be listed at build time with <code>generateStaticParams</code>. It fits docs sites, portfolios, and fully client-driven apps, and a hosted runtime is needed once real per-request logic is required.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Thiết lập <code>output: 'export'</code> tạo ra HTML, CSS và JS tĩnh thuần túy, có thể host trên bất kỳ server tĩnh nào mà không cần tiến trình Node. Cái giá phải trả là mất toàn bộ tính năng server: không SSR, không ISR, không route handler, không middleware, và không có tối ưu image trừ khi đặt <code>unoptimized</code>. Các dynamic route phải được liệt kê tại thời điểm build bằng <code>generateStaticParams</code>. Nó phù hợp với trang tài liệu, portfolio và các app hoàn toàn chạy phía client, còn khi cần logic thật sự theo từng request thì bạn sẽ cần một runtime được host.</p></details>
+<p>Static export generates a fully static site (HTML/CSS/JS) that can be hosted anywhere (GitHub Pages, S3, Nginx).</p>
+<pre>// next.config.ts
+const nextConfig = {
+  output: 'export',      // enable static export
+  images: {
+    unoptimized: true,   // required: no image optimization server
+  },
+};
+
+// Build: npm run build → generates 'out/' directory
+// Deploy: upload 'out/' to any static hosting</pre>
+<p><strong>Limitations (no server features):</strong></p>
+<ul>
+<li>No Server Components (everything becomes client)</li>
+<li>No API Routes / Route Handlers</li>
+<li>No SSR (no <code>cache: 'no-store'</code>)</li>
+<li>No ISR (no revalidation)</li>
+<li>No Middleware</li>
+<li>No next/image optimization (use <code>unoptimized: true</code>)</li>
+<li>Dynamic routes need <code>generateStaticParams</code></li>
+</ul>
+<div class="key-point">Static export is ideal for documentation sites, portfolios, and apps that run entirely in the browser (like SLearning Studio). All dynamic behavior must happen client-side.</div>`,
       },
     ],
   },
@@ -500,6 +507,7 @@ export default function Error({ error, reset }) {
     name: 'Web Performance',
     icon: '🚀',
     questions: [
+      // ──── 1. METRICS & MEASUREMENT ────
       {
         q: 'What are Core Web Vitals? Explain LCP, FID, CLS.',
         difficulty: 'medium',
@@ -523,86 +531,6 @@ export default function Error({ error, reset }) {
 // Fix INP: break long tasks
 // Use requestIdleCallback, Web Workers, or React.startTransition</pre>
 <div class="key-point">Core Web Vitals affect Google search ranking. Measure with: Lighthouse, PageSpeed Insights, Chrome DevTools Performance tab, or <code>web-vitals</code> npm package.</div>`,
-      },
-      {
-        q: 'What techniques do you use to optimize web application performance?',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p>The first step is to measure with Lighthouse and a performance trace to find the real bottleneck before changing anything. Common improvements are shrinking the JavaScript bundle with code splitting and tree shaking, optimizing images with modern formats and lazy loading, removing render-blocking CSS and JavaScript, caching with proper headers and a CDN, and cutting wasteful React re-renders with memoization and list virtualization. On the network side, compression, HTTP/2, and prefetching help. Effort should focus on the few big items on the critical path rather than small tweaks that do not matter.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Bước đầu tiên là đo bằng Lighthouse và một bản performance trace để tìm ra nút thắt thực sự trước khi thay đổi bất cứ điều gì. Các cải thiện thường gặp là giảm kích thước bundle JavaScript bằng code splitting và tree shaking, tối ưu image với các định dạng hiện đại và lazy loading, loại bỏ CSS và JavaScript chặn render, cache bằng header phù hợp và một CDN, cùng việc cắt giảm các lần re-render lãng phí của React bằng memoization và virtualization cho danh sách. Về phía mạng, nén, HTTP/2 và prefetch đều có ích. Công sức nên tập trung vào vài mục lớn nằm trên critical path thay vì những tinh chỉnh nhỏ không tạo khác biệt.</p></details>
-<pre>Frontend optimization checklist:
-
-1. REDUCE BUNDLE SIZE
-   → Code splitting (React.lazy, dynamic import)
-   → Tree shaking (ES modules)
-   → Analyze with: webpack-bundle-analyzer or next/bundle-analyzer
-
-2. OPTIMIZE IMAGES
-   → Use modern formats: WebP, AVIF
-   → Lazy loading: loading="lazy"
-   → Responsive images: srcset, sizes
-   → Next.js: next/image (automatic optimization)
-
-3. MINIMIZE RENDER BLOCKING
-   → CSS: inline critical CSS, defer non-critical
-   → JS: defer/async script loading
-   → Fonts: font-display: swap; preload key fonts
-
-4. CACHING
-   → HTTP cache headers (Cache-Control, ETag)
-   → Service Workers for offline
-   → CDN for static assets
-   → API response caching (TanStack Query)
-
-5. REACT-SPECIFIC
-   → React.memo for expensive components
-   → useMemo/useCallback for stable references
-   → Virtualization for long lists (react-window, tanstack-virtual)
-   → Avoid unnecessary re-renders (selectors, state splitting)
-
-6. NETWORK
-   → HTTP/2 multiplexing
-   → Gzip/Brotli compression
-   → Prefetch next page: &lt;Link prefetch /&gt; (Next.js)
-   → DNS prefetch: &lt;link rel="dns-prefetch" href="//api.example.com" /&gt;</pre>
-<div class="key-point">Measure before optimizing. Use Lighthouse and Chrome DevTools Performance tab to identify actual bottlenecks. Don't optimize what doesn't need it.</div>`,
-      },
-      {
-        q: 'What is list virtualization and when should you use it?',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p>Virtualization renders only the rows currently visible plus a small buffer instead of every item, so a list of 10,000 rows becomes about a dozen DOM nodes. This greatly reduces render time, memory, and layout cost. It is useful once a list or table grows past about a hundred rows, using libraries like <code>react-window</code> or <code>@tanstack/react-virtual</code>. The tradeoffs are that variable row heights need measuring and that find-on-page and accessibility get harder because off-screen rows are not in the DOM, so a short list should not be virtualized.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Virtualization chỉ render những hàng đang hiển thị cộng thêm một vùng đệm nhỏ thay vì toàn bộ item, nên một danh sách 10.000 hàng chỉ còn khoảng một chục node DOM. Điều này giảm mạnh thời gian render, bộ nhớ và chi phí layout. Nó hữu ích khi một danh sách hoặc bảng vượt quá khoảng một trăm hàng, dùng các thư viện như <code>react-window</code> hoặc <code>@tanstack/react-virtual</code>. Đánh đổi là các hàng có chiều cao thay đổi cần được đo đạc, và việc tìm kiếm trên trang cùng khả năng truy cập trở nên khó hơn vì các hàng ngoài màn hình không nằm trong DOM, nên đừng virtualize một danh sách ngắn.</p></details>
-<p><strong>Virtualization</strong> renders only the visible items in a long list, instead of all items at once.</p>
-<pre>// Problem: 10,000 items → 10,000 DOM nodes → slow, high memory
-function BadList({ items }) {
-  return items.map(item => &lt;div key={item.id}&gt;{item.name}&lt;/div&gt;);
-  // Renders ALL 10,000 items even though only ~20 are visible!
-}
-
-// Solution: react-window (or @tanstack/react-virtual)
-import { FixedSizeList } from 'react-window';
-
-function VirtualList({ items }) {
-  return (
-    &lt;FixedSizeList
-      height={600}       // container height
-      itemCount={items.length}
-      itemSize={50}      // row height
-      width="100%"
-    &gt;
-      {({ index, style }) => (
-        &lt;div style={style}&gt;{items[index].name}&lt;/div&gt;
-      )}
-    &lt;/FixedSizeList&gt;
-  );
-  // Only renders ~12 items at a time (visible + buffer)!
-}</pre>
-<p><strong>Libraries:</strong></p>
-<ul>
-<li><code>react-window</code>: lightweight, fixed/variable row heights</li>
-<li><code>@tanstack/react-virtual</code>: framework-agnostic, more features</li>
-<li><code>react-virtuoso</code>: grouped lists, infinite scroll</li>
-</ul>
-<div class="key-point">Use virtualization when rendering 100+ items in a list or table. It reduces DOM nodes from thousands to dozens, dramatically improving render time and memory usage.</div>`,
       },
       {
         q: 'INP replaced FID as a Core Web Vital in March 2024. What does INP measure, why was FID insufficient, and how do you fix a bad INP score?',
@@ -646,6 +574,47 @@ onChange={e => {
 <div class="key-point">INP scores the worst interaction over the whole session (delay + processing + paint), so the fix is breaking long tasks and yielding to the main thread so the browser can paint feedback within 200ms.</div>`,
       },
       {
+        q: 'Your Lighthouse score is 98 but users complain the site is slow. Explain lab vs field data and how you would close the gap.',
+        difficulty: 'tricky',
+        a: `<div class="interview-answer"><p>Lab and field data answer different questions, which is the whole gap. Lighthouse is a lab test: one synthetic cold load of a logged-out page on a simulated device, with high variance, and it cannot even measure real INP. Field data from CrUX and RUM reflects real users at p75 over 28 days across real devices, networks, cache states, and heavy pages. A 98 lab score with slow users usually means real users are on mid-tier phones on a page Lighthouse never tested. Close the gap by collecting RUM with the web-vitals library, segmenting p75 by page and device to find what to fix, and keeping Lighthouse as a CI budget to prevent regressions. Google also ranks on field data, so the lab score does not affect SEO.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Dữ liệu lab và field trả lời hai câu hỏi khác nhau, và đó chính là toàn bộ khoảng cách. Lighthouse là một bài kiểm tra lab: một lần tải nguội tổng hợp của một trang chưa đăng nhập trên một thiết bị mô phỏng, với độ dao động cao, và nó thậm chí không thể đo được INP thực. Dữ liệu field từ CrUX và RUM phản ánh người dùng thực ở p75 trong vòng 28 ngày trên các thiết bị, mạng, trạng thái cache và các trang nặng thực tế. Điểm lab 98 mà người dùng vẫn thấy chậm thường có nghĩa là người dùng thực đang dùng điện thoại tầm trung trên một trang mà Lighthouse chưa từng kiểm tra. Hãy thu hẹp khoảng cách bằng cách thu thập RUM với thư viện web-vitals, phân nhóm p75 theo trang và thiết bị để tìm ra thứ cần sửa, và giữ Lighthouse như một ngân sách trong CI để ngăn hồi quy. Google cũng xếp hạng dựa trên dữ liệu field, nên điểm lab không ảnh hưởng đến SEO.</p></details>
+<p>The two data types answer different questions, and confusing them is how teams "pass CI" while losing users:</p>
+<table><tr><th></th><th>Lab (Lighthouse, WebPageTest)</th><th>Field (CrUX, RUM)</th></tr>
+<tr><td>Who</td><td>A synthetic run, one simulated device</td><td>Your real users, real devices/networks</td></tr>
+<tr><td>When</td><td>Cold load, no interaction (so: no real INP)</td><td>Whole sessions, all pages</td></tr>
+<tr><td>Statistic</td><td>One run (high variance)</td><td>p75 over 28 days (CrUX)</td></tr>
+<tr><td>Good for</td><td>Debugging, reproducibility, CI regression gates</td><td>Truth about experience, SEO ranking</td></tr>
+</table>
+<p><strong>Why the scores diverge:</strong> Lighthouse tests a cold, logged-out landing page on a simulated Moto G on your fast CI network profile — your users are on mid-tier Androids, logged in, on the heavy <code>/search</code> page, hitting cache states and third-party scripts (chat widgets, tag managers) that a lab run may not trigger. Lighthouse also cannot measure real INP at all — it approximates with TBT.</p>
+<pre>// Close the gap: instrument RUM with the web-vitals library
+import { onLCP, onINP, onCLS } from 'web-vitals/attribution';
+
+function send(metric) {
+  const body = JSON.stringify({
+    name: metric.name, value: metric.value, rating: metric.rating,
+    page: location.pathname,
+    // attribution tells you WHAT to fix, not just the number:
+    target: metric.attribution?.interactionTarget
+         || metric.attribution?.element,
+  });
+  navigator.sendBeacon('/api/vitals', body); // survives page unload
+}
+onLCP(send); onINP(send); onCLS(send);
+
+// Then segment p75 by page, device class, and country —
+// "INP p75 = 480ms on /search for low-end Android" is actionable.
+
+// Lab still has a job: performance budgets as a CI regression gate
+// (lighthouse-ci assertion config):
+{ "assertions": {
+    "largest-contentful-paint": ["error", { "maxNumericValue": 2500 }],
+    "total-byte-weight": ["error", { "maxNumericValue": 350000 }] } }</pre>
+<p><strong>The senior framing:</strong> field data (p75) decides <strong>whether</strong> you have a problem and where; lab tools reproduce and debug it; CI budgets stop it coming back. Google ranking uses CrUX field data — your Lighthouse score is irrelevant to SEO.</p>
+<div class="key-point">Lighthouse is a controlled experiment, not reality: trust p75 field data (CrUX/RUM via web-vitals) to find problems, use lab tools to debug them, and enforce lab budgets in CI to prevent regressions.</div>`,
+      },
+
+      // ──── 2. DIAGNOSING & FIXING SLOW PAGES ────
+      {
         q: 'Your LCP is 4.5s. Walk me through diagnosing and fixing it.',
         difficulty: 'hard',
         a: `<div class="interview-answer"><p>Instead of guessing, split LCP into its four parts: TTFB, resource load delay, resource load time, and render delay, which the Performance panel or web-vitals attribution can show. Fix them in order of impact: improve TTFB first, make the LCP image easy to find early with a preload and <code>fetchpriority='high'</code>, shrink it with AVIF or WebP and a right-sized srcset, then remove things that block rendering. Common self-made problems are lazy-loading the hero image, hiding it as a CSS background so it is found late, or rendering it with client JavaScript. If a preload made no difference, check the actual network waterfall instead of trusting a checklist.</p></div>
@@ -680,6 +649,50 @@ onChange={e => {
 <p><strong>Follow-up trap:</strong> "we preloaded it, no change" — a preload competing with render-blocking CSS/fonts at the same priority may just reshuffle the queue; check the waterfall, not the checklist.</p>
 <div class="key-point">Decompose LCP into TTFB, load delay, load time, and render delay to find the dominant sub-part — and never lazy-load the LCP image; preload it with fetchpriority="high".</div>`,
       },
+      {
+        q: 'What techniques do you use to optimize web application performance?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>The first step is to measure with Lighthouse and a performance trace to find the real bottleneck before changing anything. Common improvements are shrinking the JavaScript bundle with code splitting and tree shaking, optimizing images with modern formats and lazy loading, removing render-blocking CSS and JavaScript, caching with proper headers and a CDN, and cutting wasteful React re-renders with memoization and list virtualization. On the network side, compression, HTTP/2, and prefetching help. Effort should focus on the few big items on the critical path rather than small tweaks that do not matter.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Bước đầu tiên là đo bằng Lighthouse và một bản performance trace để tìm ra nút thắt thực sự trước khi thay đổi bất cứ điều gì. Các cải thiện thường gặp là giảm kích thước bundle JavaScript bằng code splitting và tree shaking, tối ưu image với các định dạng hiện đại và lazy loading, loại bỏ CSS và JavaScript chặn render, cache bằng header phù hợp và một CDN, cùng việc cắt giảm các lần re-render lãng phí của React bằng memoization và virtualization cho danh sách. Về phía mạng, nén, HTTP/2 và prefetch đều có ích. Công sức nên tập trung vào vài mục lớn nằm trên critical path thay vì những tinh chỉnh nhỏ không tạo khác biệt.</p></details>
+<pre>Frontend optimization checklist:
+
+1. REDUCE BUNDLE SIZE
+   → Code splitting (React.lazy, dynamic import)
+   → Tree shaking (ES modules)
+   → Analyze with: webpack-bundle-analyzer or next/bundle-analyzer
+
+2. OPTIMIZE IMAGES
+   → Use modern formats: WebP, AVIF
+   → Lazy loading: loading="lazy"
+   → Responsive images: srcset, sizes
+   → Next.js: next/image (automatic optimization)
+
+3. MINIMIZE RENDER BLOCKING
+   → CSS: inline critical CSS, defer non-critical
+   → JS: defer/async script loading
+   → Fonts: font-display: swap; preload key fonts
+
+4. CACHING
+   → HTTP cache headers (Cache-Control, ETag)
+   → Service Workers for offline
+   → CDN for static assets
+   → API response caching (TanStack Query)
+
+5. REACT-SPECIFIC
+   → React.memo for expensive components
+   → useMemo/useCallback for stable references
+   → Virtualization for long lists (react-window, tanstack-virtual)
+   → Avoid unnecessary re-renders (selectors, state splitting)
+
+6. NETWORK
+   → HTTP/2 multiplexing
+   → Gzip/Brotli compression
+   → Prefetch next page: &lt;Link prefetch /&gt; (Next.js)
+   → DNS prefetch: &lt;link rel="dns-prefetch" href="//api.example.com" /&gt;</pre>
+<div class="key-point">Measure before optimizing. Use Lighthouse and Chrome DevTools Performance tab to identify actual bottlenecks. Don't optimize what doesn't need it.</div>`,
+      },
+
+      // ──── 3. ASSET DELIVERY & CACHING ────
       {
         q: 'How do you reduce JavaScript bundle size? Explain code splitting, tree shaking requirements, and the barrel-file trap.',
         difficulty: 'hard',
@@ -793,44 +806,45 @@ import(/* webpackChunkName: "settings" */ './Settings')
 <p><strong>Follow-up:</strong> ETag vs Last-Modified? ETag is content-based and precise; Last-Modified has 1-second granularity and breaks with multi-server clock/mtime drift. Prefer ETag (but ensure it's consistent across servers — default Apache/Nginx ETags can include inode data).</p>
 <div class="key-point">Content-hashed assets get max-age=31536000, immutable; index.html gets no-cache + ETag; keep old assets deployed for a grace period and recover from chunk-load failures — most "deploy broke the app" incidents are exactly this pattern inverted.</div>`,
       },
+
+      // ──── 4. RUNTIME RENDERING PERFORMANCE ────
       {
-        q: 'Your Lighthouse score is 98 but users complain the site is slow. Explain lab vs field data and how you would close the gap.',
-        difficulty: 'tricky',
-        a: `<div class="interview-answer"><p>Lab and field data answer different questions, which is the whole gap. Lighthouse is a lab test: one synthetic cold load of a logged-out page on a simulated device, with high variance, and it cannot even measure real INP. Field data from CrUX and RUM reflects real users at p75 over 28 days across real devices, networks, cache states, and heavy pages. A 98 lab score with slow users usually means real users are on mid-tier phones on a page Lighthouse never tested. Close the gap by collecting RUM with the web-vitals library, segmenting p75 by page and device to find what to fix, and keeping Lighthouse as a CI budget to prevent regressions. Google also ranks on field data, so the lab score does not affect SEO.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Dữ liệu lab và field trả lời hai câu hỏi khác nhau, và đó chính là toàn bộ khoảng cách. Lighthouse là một bài kiểm tra lab: một lần tải nguội tổng hợp của một trang chưa đăng nhập trên một thiết bị mô phỏng, với độ dao động cao, và nó thậm chí không thể đo được INP thực. Dữ liệu field từ CrUX và RUM phản ánh người dùng thực ở p75 trong vòng 28 ngày trên các thiết bị, mạng, trạng thái cache và các trang nặng thực tế. Điểm lab 98 mà người dùng vẫn thấy chậm thường có nghĩa là người dùng thực đang dùng điện thoại tầm trung trên một trang mà Lighthouse chưa từng kiểm tra. Hãy thu hẹp khoảng cách bằng cách thu thập RUM với thư viện web-vitals, phân nhóm p75 theo trang và thiết bị để tìm ra thứ cần sửa, và giữ Lighthouse như một ngân sách trong CI để ngăn hồi quy. Google cũng xếp hạng dựa trên dữ liệu field, nên điểm lab không ảnh hưởng đến SEO.</p></details>
-<p>The two data types answer different questions, and confusing them is how teams "pass CI" while losing users:</p>
-<table><tr><th></th><th>Lab (Lighthouse, WebPageTest)</th><th>Field (CrUX, RUM)</th></tr>
-<tr><td>Who</td><td>A synthetic run, one simulated device</td><td>Your real users, real devices/networks</td></tr>
-<tr><td>When</td><td>Cold load, no interaction (so: no real INP)</td><td>Whole sessions, all pages</td></tr>
-<tr><td>Statistic</td><td>One run (high variance)</td><td>p75 over 28 days (CrUX)</td></tr>
-<tr><td>Good for</td><td>Debugging, reproducibility, CI regression gates</td><td>Truth about experience, SEO ranking</td></tr>
-</table>
-<p><strong>Why the scores diverge:</strong> Lighthouse tests a cold, logged-out landing page on a simulated Moto G on your fast CI network profile — your users are on mid-tier Androids, logged in, on the heavy <code>/search</code> page, hitting cache states and third-party scripts (chat widgets, tag managers) that a lab run may not trigger. Lighthouse also cannot measure real INP at all — it approximates with TBT.</p>
-<pre>// Close the gap: instrument RUM with the web-vitals library
-import { onLCP, onINP, onCLS } from 'web-vitals/attribution';
-
-function send(metric) {
-  const body = JSON.stringify({
-    name: metric.name, value: metric.value, rating: metric.rating,
-    page: location.pathname,
-    // attribution tells you WHAT to fix, not just the number:
-    target: metric.attribution?.interactionTarget
-         || metric.attribution?.element,
-  });
-  navigator.sendBeacon('/api/vitals', body); // survives page unload
+        q: 'What is list virtualization and when should you use it?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>Virtualization renders only the rows currently visible plus a small buffer instead of every item, so a list of 10,000 rows becomes about a dozen DOM nodes. This greatly reduces render time, memory, and layout cost. It is useful once a list or table grows past about a hundred rows, using libraries like <code>react-window</code> or <code>@tanstack/react-virtual</code>. The tradeoffs are that variable row heights need measuring and that find-on-page and accessibility get harder because off-screen rows are not in the DOM, so a short list should not be virtualized.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Virtualization chỉ render những hàng đang hiển thị cộng thêm một vùng đệm nhỏ thay vì toàn bộ item, nên một danh sách 10.000 hàng chỉ còn khoảng một chục node DOM. Điều này giảm mạnh thời gian render, bộ nhớ và chi phí layout. Nó hữu ích khi một danh sách hoặc bảng vượt quá khoảng một trăm hàng, dùng các thư viện như <code>react-window</code> hoặc <code>@tanstack/react-virtual</code>. Đánh đổi là các hàng có chiều cao thay đổi cần được đo đạc, và việc tìm kiếm trên trang cùng khả năng truy cập trở nên khó hơn vì các hàng ngoài màn hình không nằm trong DOM, nên đừng virtualize một danh sách ngắn.</p></details>
+<p><strong>Virtualization</strong> renders only the visible items in a long list, instead of all items at once.</p>
+<pre>// Problem: 10,000 items → 10,000 DOM nodes → slow, high memory
+function BadList({ items }) {
+  return items.map(item => &lt;div key={item.id}&gt;{item.name}&lt;/div&gt;);
+  // Renders ALL 10,000 items even though only ~20 are visible!
 }
-onLCP(send); onINP(send); onCLS(send);
 
-// Then segment p75 by page, device class, and country —
-// "INP p75 = 480ms on /search for low-end Android" is actionable.
+// Solution: react-window (or @tanstack/react-virtual)
+import { FixedSizeList } from 'react-window';
 
-// Lab still has a job: performance budgets as a CI regression gate
-// (lighthouse-ci assertion config):
-{ "assertions": {
-    "largest-contentful-paint": ["error", { "maxNumericValue": 2500 }],
-    "total-byte-weight": ["error", { "maxNumericValue": 350000 }] } }</pre>
-<p><strong>The senior framing:</strong> field data (p75) decides <strong>whether</strong> you have a problem and where; lab tools reproduce and debug it; CI budgets stop it coming back. Google ranking uses CrUX field data — your Lighthouse score is irrelevant to SEO.</p>
-<div class="key-point">Lighthouse is a controlled experiment, not reality: trust p75 field data (CrUX/RUM via web-vitals) to find problems, use lab tools to debug them, and enforce lab budgets in CI to prevent regressions.</div>`,
+function VirtualList({ items }) {
+  return (
+    &lt;FixedSizeList
+      height={600}       // container height
+      itemCount={items.length}
+      itemSize={50}      // row height
+      width="100%"
+    &gt;
+      {({ index, style }) => (
+        &lt;div style={style}&gt;{items[index].name}&lt;/div&gt;
+      )}
+    &lt;/FixedSizeList&gt;
+  );
+  // Only renders ~12 items at a time (visible + buffer)!
+}</pre>
+<p><strong>Libraries:</strong></p>
+<ul>
+<li><code>react-window</code>: lightweight, fixed/variable row heights</li>
+<li><code>@tanstack/react-virtual</code>: framework-agnostic, more features</li>
+<li><code>react-virtuoso</code>: grouped lists, infinite scroll</li>
+</ul>
+<div class="key-point">Use virtualization when rendering 100+ items in a list or table. It reduces DOM nodes from thousands to dozens, dramatically improving render time and memory usage.</div>`,
       },
     ],
   },

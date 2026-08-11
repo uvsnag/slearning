@@ -8,6 +8,7 @@ export const topics: PvTopic[] = [
     name: 'CI/CD',
     icon: '🔄',
     questions: [
+      // ──── 1. CI/CD FUNDAMENTALS & PIPELINE DESIGN ────
       {
         q: 'What is CI/CD? Explain the difference between Continuous Integration, Delivery, and Deployment.',
         difficulty: 'easy',
@@ -62,181 +63,42 @@ jobs:
     steps: [ ... canary rollout + health checks ... ]</pre>`,
       },
       {
-        q: 'What are Blue-Green, Canary, and Rolling deployment strategies?',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p>These are three ways to release a new version with different risk and cost. <strong>Blue-green</strong> runs two full environments and switches traffic to the new one, giving instant rollback but doubling infrastructure cost. <strong>Canary</strong> sends a small share of real traffic to the new version and watches metrics before increasing it, which is safe but needs good monitoring. <strong>Rolling</strong> replaces instances a few at a time with no extra infrastructure, but old and new versions run at the same time for a short while.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Đây là ba cách phát hành phiên bản mới với mức rủi ro và chi phí khác nhau. <strong>Blue-green</strong> chạy song song hai môi trường giống hệt nhau rồi chuyển traffic sang môi trường mới, nhờ vậy rollback được ngay lập tức nhưng tốn gấp đôi chi phí hạ tầng. <strong>Canary</strong> đẩy một phần nhỏ traffic thật sang phiên bản mới và theo dõi metric trước khi tăng dần tỷ lệ, an toàn nhưng đòi hỏi hệ thống monitoring tốt. <strong>Rolling</strong> thay thế lần lượt vài instance một mà không cần thêm hạ tầng, đổi lại phiên bản cũ và mới sẽ chạy song song trong một khoảng thời gian ngắn.</p></details>
+        q: 'What makes a good CI pipeline? How do you order stages and deal with flaky tests?',
+        difficulty: 'tricky',
+        a: `<div class="interview-answer"><p>A good pipeline gives trustworthy feedback in under about ten minutes by running cheap checks like lint, typecheck, and unit tests first, then heavier integration and end-to-end tests later and in parallel. Speed matters because a slow or flaky pipeline makes developers batch changes and ignore failures. Flaky tests should be found by pass-on-retry, then quarantined out of the blocking path with a ticket to fix them, rather than hidden by retrying many times. A red main branch is a stop-the-line event that is reverted or fixed right away.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Một pipeline tốt phải trả về phản hồi đáng tin trong khoảng dưới mười phút: chạy trước các kiểm tra rẻ như lint, typecheck và unit test, rồi mới tới integration và end-to-end test nặng hơn ở phía sau và cho chạy song song. Tốc độ rất quan trọng, vì pipeline chậm hoặc hay chập chờn sẽ khiến lập trình viên dồn thay đổi thành từng lô lớn và dần bỏ qua các lần build đỏ. Với test chập chờn (flaky), hãy phát hiện chúng qua dấu hiệu chạy lại lần hai thì pass, rồi tách chúng ra khỏi luồng chặn merge và mở ticket để sửa, thay vì che giấu bằng cách cho retry nhiều lần. Nhánh chính bị đỏ phải được coi là sự cố dừng cả dây chuyền: revert hoặc sửa ngay lập tức.</p></details>
+<p>A good pipeline optimizes for <strong>trustworthy feedback time</strong>: the cheapest, most-likely-to-fail checks run first (fail fast), expensive checks run later and in parallel. A slow or flaky pipeline is worse than none — developers start batching changes and ignoring red builds, which quietly kills the whole point of CI.</p>
 <ul>
-<li><strong>Blue-Green</strong>: two identical environments. Switch traffic from blue (old) to green (new). Instant rollback by switching back.</li>
-<li><strong>Canary</strong>: route a small % of traffic to new version. Gradually increase if healthy. Best for large-scale services.</li>
-<li><strong>Rolling</strong>: update instances one by one. No extra infrastructure needed. Risk: mixed versions during deploy.</li>
+<li><strong>Fail-fast ordering</strong>: lint/format → compile/typecheck → unit tests → build artifact → integration tests → E2E. Never make someone wait 20 minutes to learn about a lint error.</li>
+<li><strong>Parallelize</strong>: shard test suites across runners; run independent jobs concurrently.</li>
+<li><strong>Cache aggressively</strong>: dependencies and Docker layers between runs.</li>
+<li><strong>Flaky tests</strong>: detect them (pass-on-retry = flaky), <strong>quarantine</strong> them out of the blocking path, and fix or delete them under an SLA. A blanket "retry 3 times" policy hides real race conditions that will resurface in production.</li>
+<li><strong>Pipeline-as-code</strong>: the pipeline definition lives in the repo and is reviewed like any other change — no hand-edited server jobs that drift.</li>
+<li><strong>Time budget</strong>: keep the blocking path under ~10 minutes; push slower suites to a merge queue or nightly run.</li>
 </ul>
-<pre># Blue-Green: flip the load balancer between two identical environments
-LB → blue  (v1.4) 100%          LB → green (v1.5) 100%
-     green (v1.5)   0%    ⇒          blue  (v1.4)   0%   (kept warm for instant rollback)
-
-# Canary: shift traffic gradually while watching error rate / latency
-v1.5 gets 5% → metrics healthy → 25% → 50% → 100%
-
-# Rolling update in Kubernetes (default strategy):
-spec:
-  strategy:
-    rollingUpdate: { maxSurge: 1, maxUnavailable: 0 }   # zero downtime
-kubectl set image deploy/api api=myapi:v1.5
-kubectl rollout status deploy/api
-kubectl rollout undo deploy/api                          # rollback</pre>
-<div class="key-point">Blue-green doubles infrastructure cost. Canary needs good observability (metrics, logs, alerts) to detect issues.</div>`,
-      },
-      {
-        q: 'Explain GitFlow vs Trunk-Based Development.',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p><strong>GitFlow</strong> uses several long-lived branches like develop, release, and feature, which fits scheduled version releases but leads to large, painful merges. <strong>Trunk-based development</strong> has everyone commit to the main branch using very short-lived branches that merge within a day, with unfinished work hidden behind feature flags. Small frequent merges cause fewer conflicts and faster feedback, so trunk-based fits CI/CD better. GitFlow still helps when a product ships many supported versions.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><strong>GitFlow</strong> dùng nhiều nhánh tồn tại lâu dài như develop, release và feature, phù hợp cho việc phát hành phiên bản theo lịch nhưng thường dẫn tới những lần merge lớn và vất vả. <strong>Trunk-based development</strong> thì mọi người commit thẳng vào nhánh chính, chỉ tách nhánh rất ngắn và merge lại trong vòng một ngày, còn phần việc chưa xong thì được che sau feature flag. Merge nhỏ và thường xuyên giúp ít xung đột hơn và nhận phản hồi nhanh hơn, nên trunk-based hợp với CI/CD hơn. GitFlow vẫn hữu ích khi sản phẩm phải hỗ trợ song song nhiều phiên bản.</p></details>
-<ul>
-<li><strong>GitFlow</strong>: long-lived branches (develop, feature, release, hotfix). Good for scheduled releases. Complex.</li>
-<li><strong>Trunk-Based</strong>: everyone commits to main/trunk. Short-lived feature branches (&lt;1 day). Feature flags for incomplete code.</li>
-</ul>
-<pre># GitFlow — many long-lived branches
-main     ──●─────────────●────   (production releases only)
-release        ╲        ╱
-develop  ──●──●──●──●──●─────
-feature      ╲────●────╱         (lives for days/weeks → big merges)
-
-# Trunk-Based — one branch that is always releasable
-main     ──●──●──●──●──●──●──    (every commit builds + deploys)
-feature     ╲●╱  ╲●╱             (&lt; 1 day, tiny PRs)
-# unfinished work ships dark, hidden behind feature flags</pre>
-<div class="key-point">Trunk-based development is preferred for CI/CD. Frequent small merges → fewer conflicts → faster feedback.</div>`,
-      },
-      {
-        q: 'What are GitHub Actions? Explain workflow, job, step.',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p>GitHub Actions has a simple hierarchy: a <strong>workflow</strong> contains <strong>jobs</strong>, and each job contains <strong>steps</strong>. A workflow is a YAML file in <code>.github/workflows</code> that runs on events like push or pull request, a job runs on its own fresh machine, and a step is one action or shell command. Jobs run in parallel by default and share nothing, so use <code>needs</code> for order and artifacts to pass files between them. Pinning third-party actions to a commit SHA is safer than using a moving tag.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>GitHub Actions có cấu trúc phân cấp khá đơn giản: một <strong>workflow</strong> chứa nhiều <strong>job</strong>, và mỗi job chứa nhiều <strong>step</strong>. Workflow là file YAML nằm trong <code>.github/workflows</code>, được kích hoạt bởi các sự kiện như push hay pull request; mỗi job chạy trên một máy sạch riêng biệt, còn step là một action hoặc một lệnh shell. Mặc định các job chạy song song và không chia sẻ gì với nhau, nên hãy dùng <code>needs</code> để sắp thứ tự và dùng artifact để truyền file giữa chúng. Ghim các action bên thứ ba theo commit SHA sẽ an toàn hơn dùng tag, vì tag có thể bị trỏ sang commit khác.</p></details>
-<ul>
-<li><strong>Workflow</strong>: YAML file in <code>.github/workflows/</code>. Triggered by events (push, PR, schedule).</li>
-<li><strong>Job</strong>: runs on a runner (VM). Jobs run in parallel by default; use <code>needs</code> for dependencies.</li>
-<li><strong>Step</strong>: individual task within a job. Can be an action or a shell command.</li>
-</ul>
-<pre>name: CI
-on: [push, pull_request]
+<pre># Fail-fast: cheap checks gate the expensive ones
 jobs:
-  test:
-    runs-on: ubuntu-latest
+  quick-checks:                        # ~1 min — catches most failures
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-      - run: npm ci
-      - run: npm test</pre>`,
-      },
-      {
-        q: 'How do you handle secrets and environment variables in CI/CD?',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p>Secrets should never be stored in the repository, not in code and not in committed <code>.env</code> files. Instead they are injected at runtime from the platform's secret store, shown as masked values, and scoped per environment so staging cannot read production credentials. For cloud deploys, <strong>OIDC</strong> lets the pipeline get a short-lived token instead of storing a long-lived key. Secrets should also be rotated regularly with an audit trail.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Tuyệt đối không lưu secret trong repository, kể cả trong code lẫn trong file <code>.env</code> bị commit lên. Thay vào đó, secret được inject lúc runtime từ kho secret của nền tảng CI, được che (mask) khi in ra log, và được phân quyền riêng theo từng môi trường để staging không đọc được credential của production. Khi deploy lên cloud, <strong>OIDC</strong> cho phép pipeline xin một token ngắn hạn thay vì phải lưu sẵn một key dài hạn. Ngoài ra secret nên được thay mới định kỳ và có nhật ký truy vết ai đã dùng.</p></details>
-<ul>
-<li><strong>Never</strong> commit secrets to code. Use pipeline secret management.</li>
-<li><strong>GitHub</strong>: Settings → Secrets → accessed via <code>\${{ secrets.API_KEY }}</code>.</li>
-<li><strong>Jenkins</strong>: Credentials plugin + <code>withCredentials</code> block.</li>
-<li><strong>Vault/AWS Secrets Manager</strong>: centralized secret storage, rotation, audit.</li>
-<li>Environment-specific configs via <code>.env</code> files (not committed) or pipeline environment variables.</li>
-</ul>
-<pre># GitHub Actions — secrets are masked in logs
-jobs:
-  deploy:
-    environment: production        # env-scoped secrets + approval rule
+      - run: npm run lint
+      - run: npm run typecheck
+  unit:
+    needs: quick-checks
+    strategy:
+      fail-fast: true
+      matrix: { shard: [1, 2, 3, 4] }  # parallel test shards
     steps:
-      - run: ./deploy.sh
-        env:
-          API_KEY: \${{ secrets.API_KEY }}
-
-# Better for cloud deploys: OIDC — short-lived token, nothing stored at all
-      - uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: arn:aws:iam::123456789:role/deploy-role
-          aws-region: ap-southeast-1</pre>
-<div class="key-point">Rotate secrets regularly. Use OIDC for cloud deployments instead of long-lived tokens.</div>`,
-      },
-      {
-        q: 'What is Infrastructure as Code (IaC)? How does it relate to CI/CD?',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p><strong>Infrastructure as Code</strong> means servers, networks, and policies are written in version-controlled files instead of set up by hand in a console. This lets infrastructure changes go through the same pull request review, history, and CI as application code, giving reproducible and auditable environments. A common flow runs <code>terraform plan</code> on the pull request so reviewers see the exact change, then <code>terraform apply</code> on merge. The state file must be stored remotely and locked so two runs do not corrupt each other.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><strong>Infrastructure as Code</strong> nghĩa là server, network và policy đều được mô tả bằng file và quản lý trong version control, thay vì cấu hình thủ công trên console. Nhờ đó mọi thay đổi hạ tầng đều đi qua đúng quy trình review pull request, có lịch sử thay đổi và chạy CI giống như code ứng dụng, giúp môi trường luôn dựng lại được y hệt và có thể truy vết. Một luồng phổ biến là chạy <code>terraform plan</code> trên pull request để reviewer thấy chính xác những gì sẽ thay đổi, rồi chạy <code>terraform apply</code> khi merge. State file phải được lưu trên remote backend và có cơ chế khóa để hai lần chạy đồng thời không làm hỏng nhau.</p></details>
-<p><strong>IaC</strong>: manage infrastructure through code/config files, versioned in Git.</p>
-<ul>
-<li><strong>Terraform</strong>: cloud-agnostic, declarative (HCL). Plan → Apply.</li>
-<li><strong>AWS CloudFormation</strong>: AWS-specific, YAML/JSON templates.</li>
-<li><strong>Ansible</strong>: configuration management, procedural.</li>
-<li><strong>Pulumi</strong>: IaC using real programming languages.</li>
-</ul>
-<pre># main.tf — declarative: you describe WHAT, Terraform figures out HOW
-resource "aws_instance" "api" {
-  ami           = "ami-0abc1234"
-  instance_type = "t3.small"
-  tags = { Name = "api-server" }
-}
-
-# In the pipeline:
-terraform init
-terraform plan    # on PR: reviewers see the exact infra diff
-terraform apply   # on merge to main: change is applied
-# State file records what exists → same config always converges to same infra</pre>
-<div class="key-point">CI/CD pipeline: run <code>terraform plan</code> on PR (review changes), <code>terraform apply</code> on merge to main.</div>`,
-      },
-      {
-        q: 'How do you implement rollback strategies in CI/CD?',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p>A good rollback should be fast and simple, often faster than trying to fix the problem live. Common options are redeploying the previous known-good artifact, switching traffic back in a blue-green setup, or reverting the commit in a GitOps repo so the controller restores the old state. Feature flags are the fastest because a feature can be turned off with no deploy. The hardest part is the database, so migrations must be backward-compatible using the expand-contract pattern.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Một cơ chế rollback tốt phải nhanh và đơn giản, thường còn nhanh hơn việc cố sửa lỗi ngay trên production. Các lựa chọn phổ biến là deploy lại artifact tốt gần nhất, chuyển traffic ngược về môi trường cũ trong mô hình blue-green, hoặc revert commit trong repo GitOps để controller tự khôi phục trạng thái cũ. Feature flag là cách nhanh nhất vì tắt được tính năng mà không cần deploy lại. Phần khó nhất luôn là database, nên mọi migration phải tương thích ngược theo mô hình expand-contract.</p></details>
-<ul>
-<li><strong>Artifact-based rollback</strong>: redeploy previous known-good artifact. Fast.</li>
-<li><strong>Blue-green switch</strong>: route traffic back to old environment.</li>
-<li><strong>Feature flags</strong>: disable the feature without deploying.</li>
-<li><strong>Database rollback</strong>: versioned migrations (Flyway/Liquibase) with rollback scripts.</li>
-<li><strong>GitOps</strong>: revert the commit in the config repo → ArgoCD/Flux auto-applies.</li>
-</ul>
-<pre># Kubernetes — back to the previous ReplicaSet in seconds
-kubectl rollout undo deployment/api
-kubectl rollout undo deployment/api --to-revision=3
-
-# GitOps — rollback is just a revert
-git revert HEAD && git push        # ArgoCD reconciles the cluster back
-
-# Artifact-based — redeploy the last known-good immutable tag
-docker service update --image registry/myapi:1.4.2 api</pre>
-<div class="key-point">Always make database migrations backward-compatible (expand-contract pattern) so rollback is safe.</div>`,
-      },
-      {
-        q: 'What is the difference between Jenkins, GitLab CI, and GitHub Actions?',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p>All three tools do the same core work, so the main difference is hosting and ecosystem. <strong>Jenkins</strong> is self-hosted and very flexible through plugins, but the team must maintain, upgrade, and secure it. <strong>GitLab CI</strong> and <strong>GitHub Actions</strong> are managed and configured as code in the repo, with almost no infrastructure to run; GitLab works well as an all-in-one platform and GitHub Actions has the largest marketplace. The choice usually depends on where the code already lives.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Cả ba công cụ đều làm được phần việc cốt lõi như nhau, nên khác biệt chính nằm ở cách vận hành và hệ sinh thái. <strong>Jenkins</strong> phải tự host, rất linh hoạt nhờ kho plugin, nhưng đội ngũ phải tự bảo trì, nâng cấp và bảo mật nó. <strong>GitLab CI</strong> và <strong>GitHub Actions</strong> là dịch vụ được quản lý sẵn, cấu hình bằng file ngay trong repo và gần như không phải lo vận hành hạ tầng; GitLab mạnh ở chỗ gom tất cả vào một nền tảng, còn GitHub Actions có marketplace lớn nhất. Trên thực tế, lựa chọn thường phụ thuộc vào việc code đang được lưu ở đâu.</p></details>
-<ul>
-<li><strong>Jenkins</strong>: self-hosted, plugin-based, Jenkinsfile (Groovy). Maximum flexibility, high maintenance.</li>
-<li><strong>GitLab CI</strong>: built into GitLab. <code>.gitlab-ci.yml</code>. Great for all-in-one (SCM + CI + registry + deploy).</li>
-<li><strong>GitHub Actions</strong>: built into GitHub. YAML workflows. Huge marketplace. Best for open-source.</li>
-</ul>
-<pre># Jenkins — Jenkinsfile (Groovy DSL, self-hosted, plugins)
-pipeline {
-  agent any
-  stages {
-    stage('Test') { steps { sh 'npm test' } }
-  }
-}
-
-# GitLab CI — .gitlab-ci.yml
-test:
-  stage: test
-  script: [npm test]
-
-# GitHub Actions — .github/workflows/ci.yml
-jobs:
-  test:
-    runs-on: ubuntu-latest
+      - run: npm test -- --shard=\${{ matrix.shard }}/4
+  e2e:
+    needs: unit                        # slowest suite last, only if all else passed
     steps:
-      - uses: actions/checkout@v4
-      - run: npm test</pre>
-<div class="key-point">All three can do the same things. Choice depends on: existing SCM, team expertise, hosting requirements.</div>`,
+      - run: npx playwright test
+
+# Flaky-test policy:
+#   passes only on retry → tag @quarantine → excluded from the blocking run
+#   quarantined tests still run (non-blocking) + ticket with a fix-by date</pre>
+<p>Interviewer follow-up: "what do you do when the pipeline is red?" Senior answer: red main is a stop-the-line event — revert or fix forward immediately; nobody merges onto a broken trunk.</p>
+<div class="key-point">A pipeline's job is trustworthy feedback in under ~10 minutes: fail fast, parallelize the rest, and quarantine flaky tests instead of retrying them into green.</div>`,
       },
       {
         q: 'What are pipeline artifacts and caching? How to speed up CI?',
@@ -268,86 +130,28 @@ jobs:
 - uses: actions/download-artifact@v4
   with: { name: app-jar }</pre>`,
       },
-      {
-        q: 'What is GitOps? How does it work?',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p><strong>GitOps</strong> makes Git the single source of truth for what is running, not just for code. The desired state, such as Kubernetes manifests or Helm charts, is stored in a repo, and a controller like ArgoCD or Flux continuously makes the cluster match it. Changes go through pull requests, giving an audit trail, easy rollback with <code>git revert</code>, and self-healing when someone changes the cluster by hand. It uses a pull model: CI builds the image, a pull request updates the tag, and the cluster pulls itself into line.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><strong>GitOps</strong> lấy Git làm nguồn thông tin chuẩn duy nhất cho cả những gì đang chạy thật, chứ không chỉ cho code. Trạng thái mong muốn — chẳng hạn các manifest Kubernetes hay Helm chart — được lưu trong một repo, và một controller như ArgoCD hay Flux liên tục điều chỉnh cluster cho khớp với repo đó. Mọi thay đổi đều đi qua pull request, nhờ vậy có lịch sử để truy vết, rollback đơn giản bằng <code>git revert</code>, và cluster tự phục hồi khi ai đó lỡ sửa tay. Đây là mô hình pull: CI build image, một pull request cập nhật tag, rồi cluster tự đồng bộ về đúng trạng thái đã khai báo.</p></details>
-<p><strong>GitOps</strong>: Git is the single source of truth for infrastructure AND application deployment.</p>
-<ul>
-<li>Desired state is declared in Git (Kubernetes manifests, Helm charts).</li>
-<li>A controller (ArgoCD, Flux) watches the repo and reconciles cluster state.</li>
-<li>Changes go through PRs → automated deployment. No direct <code>kubectl apply</code>.</li>
-</ul>
-<pre># ArgoCD Application: "keep the cluster in sync with this repo path"
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-spec:
-  source:
-    repoURL: https://github.com/company/k8s-config
-    path: apps/api/production
-    targetRevision: main
-  destination: { server: https://kubernetes.default.svc }
-  syncPolicy:
-    automated: { prune: true, selfHeal: true }   # drift is auto-corrected
 
-# Deploy flow:
-# 1. CI builds image myapi:1.5.0, pushes to registry
-# 2. PR bumps the image tag in the k8s-config repo
-# 3. Merge → ArgoCD sees the diff → applies it to the cluster
-# 4. Rollback = git revert</pre>
-<div class="key-point">Benefits: audit trail (Git history), easy rollback (revert commit), consistent environments, self-healing.</div>`,
-      },
+      // ──── 2. BRANCHING, ARTIFACTS & PROMOTION ────
       {
-        q: 'How do you test in a CI/CD pipeline? Explain the testing pyramid.',
+        q: 'Explain GitFlow vs Trunk-Based Development.',
         difficulty: 'medium',
-        a: `<div class="interview-answer"><p>The testing pyramid spends the test budget where it pays off: many fast unit tests at the base, fewer integration tests in the middle, and a small number of slow, fragile end-to-end tests at the top. The bad pattern is the reverse, mostly manual and end-to-end tests, which gives slow and flaky feedback. In the pipeline, unit tests run on every push, integration tests on merge, and end-to-end tests before production. A rough split is 70 percent unit, 20 percent integration, and 10 percent end-to-end.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Testing pyramid dồn công sức viết test vào chỗ đem lại hiệu quả cao nhất: thật nhiều unit test chạy nhanh ở đáy, ít integration test hơn ở giữa, và chỉ một số ít end-to-end test vốn chậm và dễ hỏng ở đỉnh. Kiểu làm sai là làm ngược lại — chủ yếu dựa vào test thủ công và end-to-end — khiến phản hồi vừa chậm vừa chập chờn. Trong pipeline, unit test chạy ở mỗi lần push, integration test khi merge, còn end-to-end test chỉ chạy trước khi lên production. Tỷ lệ tham khảo thường là 70% unit, 20% integration và 10% end-to-end.</p></details>
-<p><strong>Testing pyramid</strong> (bottom to top):</p>
-<ol>
-<li><strong>Unit tests</strong> (most): fast, isolated, mock dependencies. Run on every commit.</li>
-<li><strong>Integration tests</strong>: test interactions between components, real DB/API calls.</li>
-<li><strong>E2E tests</strong> (fewest): simulate real user. Cypress, Playwright. Slow, fragile.</li>
-</ol>
-<p><strong>In CI pipeline</strong>:</p>
+        a: `<div class="interview-answer"><p><strong>GitFlow</strong> uses several long-lived branches like develop, release, and feature, which fits scheduled version releases but leads to large, painful merges. <strong>Trunk-based development</strong> has everyone commit to the main branch using very short-lived branches that merge within a day, with unfinished work hidden behind feature flags. Small frequent merges cause fewer conflicts and faster feedback, so trunk-based fits CI/CD better. GitFlow still helps when a product ships many supported versions.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><strong>GitFlow</strong> dùng nhiều nhánh tồn tại lâu dài như develop, release và feature, phù hợp cho việc phát hành phiên bản theo lịch nhưng thường dẫn tới những lần merge lớn và vất vả. <strong>Trunk-based development</strong> thì mọi người commit thẳng vào nhánh chính, chỉ tách nhánh rất ngắn và merge lại trong vòng một ngày, còn phần việc chưa xong thì được che sau feature flag. Merge nhỏ và thường xuyên giúp ít xung đột hơn và nhận phản hồi nhanh hơn, nên trunk-based hợp với CI/CD hơn. GitFlow vẫn hữu ích khi sản phẩm phải hỗ trợ song song nhiều phiên bản.</p></details>
 <ul>
-<li>Unit tests: every push.</li>
-<li>Integration tests: PR merge or staging deploy.</li>
-<li>E2E tests: pre-production only (avoid blocking fast feedback).</li>
+<li><strong>GitFlow</strong>: long-lived branches (develop, feature, release, hotfix). Good for scheduled releases. Complex.</li>
+<li><strong>Trunk-Based</strong>: everyone commits to main/trunk. Short-lived feature branches (&lt;1 day). Feature flags for incomplete code.</li>
 </ul>
-<pre>        ▲▲      E2E (few, slow, fragile)      Cypress / Playwright
-      ▲▲▲▲▲     Integration (some)            Testcontainers, real DB/API
-   ▲▲▲▲▲▲▲▲▲    Unit (many, run in ms)        JUnit / Jest, mocked deps
+<pre># GitFlow — many long-lived branches
+main     ──●─────────────●────   (production releases only)
+release        ╲        ╱
+develop  ──●──●──●──●──●─────
+feature      ╲────●────╱         (lives for days/weeks → big merges)
 
-# Rule of thumb: ~70% unit / 20% integration / 10% E2E
-# Anti-pattern: "ice cream cone" — mostly manual + E2E tests, few unit tests</pre>`,
-      },
-      {
-        q: 'What are feature flags and how do they relate to CI/CD?',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p><strong>Feature flags</strong> separate deploying code from releasing a feature, so code can ship to production with the feature turned off and enabled later without another deploy. This makes trunk-based development and continuous deployment safer, and allows gradual rollout, A/B tests, and an instant kill switch. The tradeoff is that flags are technical debt, since each one adds a branch in the code and more tests. Flags should have expiry dates and be removed after launch.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><strong>Feature flag</strong> tách việc deploy code ra khỏi việc phát hành tính năng: code vẫn lên production nhưng tính năng đang tắt, và có thể bật sau mà không cần deploy lại. Nhờ đó trunk-based development và continuous deployment trở nên an toàn hơn, đồng thời mở ra khả năng rollout từ từ, chạy A/B test, và có sẵn một công tắc tắt khẩn cấp (kill switch). Cái giá phải trả là flag chính là nợ kỹ thuật, vì mỗi flag thêm một nhánh rẽ trong code và kéo theo nhiều trường hợp test hơn. Vì vậy mỗi flag nên có hạn sử dụng và được dọn đi sau khi tính năng ra mắt ổn định.</p></details>
-<p><strong>Feature flags</strong> (feature toggles) let you deploy code to production with new features <strong>turned off</strong>, then enable them without redeploying.</p>
-<pre>// Simple feature flag:
-if (featureFlags.isEnabled("new-checkout")) {
-    return newCheckoutFlow(cart);
-} else {
-    return oldCheckoutFlow(cart);
-}
-
-// Types of flags:
-// Release flag: toggle incomplete features (remove after launch)
-// Experiment flag: A/B testing (10% see new UI)
-// Ops flag: kill switch (disable features under load)
-// Permission flag: premium features for paid users</pre>
-<p><strong>Benefits for CI/CD:</strong></p>
-<ul>
-<li>Deploy incomplete features safely (trunk-based development)</li>
-<li>Gradual rollout: enable for 5% → 25% → 100% of users</li>
-<li>Instant rollback: just flip the flag off (no redeploy)</li>
-<li>A/B testing: measure impact before full rollout</li>
-</ul>
-<div class="key-point">Feature flags enable trunk-based development + continuous deployment. But don't accumulate stale flags — they become technical debt. Set expiry dates and clean up after launch. Tools: LaunchDarkly, Unleash, Flagsmith.</div>`,
+# Trunk-Based — one branch that is always releasable
+main     ──●──●──●──●──●──●──    (every commit builds + deploys)
+feature     ╲●╱  ╲●╱             (&lt; 1 day, tiny PRs)
+# unfinished work ships dark, hidden behind feature flags</pre>
+<div class="key-point">Trunk-based development is preferred for CI/CD. Frequent small merges → fewer conflicts → faster feedback.</div>`,
       },
       {
         q: 'What is a monorepo vs polyrepo? How does it affect CI/CD?',
@@ -397,6 +201,110 @@ deploy prod      → image: registry/myapi:1.5.0-a1b2c3d   # identical digest
 SPRING_PROFILES_ACTIVE=staging | prod</pre>
 <div class="key-point">If staging and production run different builds, staging tested nothing. The artifact is the contract — configuration is the only variable.</div>`,
       },
+
+      // ──── 3. TESTING & QUALITY GATES ────
+      {
+        q: 'How do you test in a CI/CD pipeline? Explain the testing pyramid.',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>The testing pyramid spends the test budget where it pays off: many fast unit tests at the base, fewer integration tests in the middle, and a small number of slow, fragile end-to-end tests at the top. The bad pattern is the reverse, mostly manual and end-to-end tests, which gives slow and flaky feedback. In the pipeline, unit tests run on every push, integration tests on merge, and end-to-end tests before production. A rough split is 70 percent unit, 20 percent integration, and 10 percent end-to-end.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Testing pyramid dồn công sức viết test vào chỗ đem lại hiệu quả cao nhất: thật nhiều unit test chạy nhanh ở đáy, ít integration test hơn ở giữa, và chỉ một số ít end-to-end test vốn chậm và dễ hỏng ở đỉnh. Kiểu làm sai là làm ngược lại — chủ yếu dựa vào test thủ công và end-to-end — khiến phản hồi vừa chậm vừa chập chờn. Trong pipeline, unit test chạy ở mỗi lần push, integration test khi merge, còn end-to-end test chỉ chạy trước khi lên production. Tỷ lệ tham khảo thường là 70% unit, 20% integration và 10% end-to-end.</p></details>
+<p><strong>Testing pyramid</strong> (bottom to top):</p>
+<ol>
+<li><strong>Unit tests</strong> (most): fast, isolated, mock dependencies. Run on every commit.</li>
+<li><strong>Integration tests</strong>: test interactions between components, real DB/API calls.</li>
+<li><strong>E2E tests</strong> (fewest): simulate real user. Cypress, Playwright. Slow, fragile.</li>
+</ol>
+<p><strong>In CI pipeline</strong>:</p>
+<ul>
+<li>Unit tests: every push.</li>
+<li>Integration tests: PR merge or staging deploy.</li>
+<li>E2E tests: pre-production only (avoid blocking fast feedback).</li>
+</ul>
+<pre>        ▲▲      E2E (few, slow, fragile)      Cypress / Playwright
+      ▲▲▲▲▲     Integration (some)            Testcontainers, real DB/API
+   ▲▲▲▲▲▲▲▲▲    Unit (many, run in ms)        JUnit / Jest, mocked deps
+
+# Rule of thumb: ~70% unit / 20% integration / 10% E2E
+# Anti-pattern: "ice cream cone" — mostly manual + E2E tests, few unit tests</pre>`,
+      },
+
+      // ──── 4. DEPLOYMENT & RELEASE STRATEGIES ────
+      {
+        q: 'What are Blue-Green, Canary, and Rolling deployment strategies?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>These are three ways to release a new version with different risk and cost. <strong>Blue-green</strong> runs two full environments and switches traffic to the new one, giving instant rollback but doubling infrastructure cost. <strong>Canary</strong> sends a small share of real traffic to the new version and watches metrics before increasing it, which is safe but needs good monitoring. <strong>Rolling</strong> replaces instances a few at a time with no extra infrastructure, but old and new versions run at the same time for a short while.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Đây là ba cách phát hành phiên bản mới với mức rủi ro và chi phí khác nhau. <strong>Blue-green</strong> chạy song song hai môi trường giống hệt nhau rồi chuyển traffic sang môi trường mới, nhờ vậy rollback được ngay lập tức nhưng tốn gấp đôi chi phí hạ tầng. <strong>Canary</strong> đẩy một phần nhỏ traffic thật sang phiên bản mới và theo dõi metric trước khi tăng dần tỷ lệ, an toàn nhưng đòi hỏi hệ thống monitoring tốt. <strong>Rolling</strong> thay thế lần lượt vài instance một mà không cần thêm hạ tầng, đổi lại phiên bản cũ và mới sẽ chạy song song trong một khoảng thời gian ngắn.</p></details>
+<ul>
+<li><strong>Blue-Green</strong>: two identical environments. Switch traffic from blue (old) to green (new). Instant rollback by switching back.</li>
+<li><strong>Canary</strong>: route a small % of traffic to new version. Gradually increase if healthy. Best for large-scale services.</li>
+<li><strong>Rolling</strong>: update instances one by one. No extra infrastructure needed. Risk: mixed versions during deploy.</li>
+</ul>
+<pre># Blue-Green: flip the load balancer between two identical environments
+LB → blue  (v1.4) 100%          LB → green (v1.5) 100%
+     green (v1.5)   0%    ⇒          blue  (v1.4)   0%   (kept warm for instant rollback)
+
+# Canary: shift traffic gradually while watching error rate / latency
+v1.5 gets 5% → metrics healthy → 25% → 50% → 100%
+
+# Rolling update in Kubernetes (default strategy):
+spec:
+  strategy:
+    rollingUpdate: { maxSurge: 1, maxUnavailable: 0 }   # zero downtime
+kubectl set image deploy/api api=myapi:v1.5
+kubectl rollout status deploy/api
+kubectl rollout undo deploy/api                          # rollback</pre>
+<div class="key-point">Blue-green doubles infrastructure cost. Canary needs good observability (metrics, logs, alerts) to detect issues.</div>`,
+      },
+      {
+        q: 'How do you implement rollback strategies in CI/CD?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>A good rollback should be fast and simple, often faster than trying to fix the problem live. Common options are redeploying the previous known-good artifact, switching traffic back in a blue-green setup, or reverting the commit in a GitOps repo so the controller restores the old state. Feature flags are the fastest because a feature can be turned off with no deploy. The hardest part is the database, so migrations must be backward-compatible using the expand-contract pattern.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Một cơ chế rollback tốt phải nhanh và đơn giản, thường còn nhanh hơn việc cố sửa lỗi ngay trên production. Các lựa chọn phổ biến là deploy lại artifact tốt gần nhất, chuyển traffic ngược về môi trường cũ trong mô hình blue-green, hoặc revert commit trong repo GitOps để controller tự khôi phục trạng thái cũ. Feature flag là cách nhanh nhất vì tắt được tính năng mà không cần deploy lại. Phần khó nhất luôn là database, nên mọi migration phải tương thích ngược theo mô hình expand-contract.</p></details>
+<ul>
+<li><strong>Artifact-based rollback</strong>: redeploy previous known-good artifact. Fast.</li>
+<li><strong>Blue-green switch</strong>: route traffic back to old environment.</li>
+<li><strong>Feature flags</strong>: disable the feature without deploying.</li>
+<li><strong>Database rollback</strong>: versioned migrations (Flyway/Liquibase) with rollback scripts.</li>
+<li><strong>GitOps</strong>: revert the commit in the config repo → ArgoCD/Flux auto-applies.</li>
+</ul>
+<pre># Kubernetes — back to the previous ReplicaSet in seconds
+kubectl rollout undo deployment/api
+kubectl rollout undo deployment/api --to-revision=3
+
+# GitOps — rollback is just a revert
+git revert HEAD && git push        # ArgoCD reconciles the cluster back
+
+# Artifact-based — redeploy the last known-good immutable tag
+docker service update --image registry/myapi:1.4.2 api</pre>
+<div class="key-point">Always make database migrations backward-compatible (expand-contract pattern) so rollback is safe.</div>`,
+      },
+      {
+        q: 'What are feature flags and how do they relate to CI/CD?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p><strong>Feature flags</strong> separate deploying code from releasing a feature, so code can ship to production with the feature turned off and enabled later without another deploy. This makes trunk-based development and continuous deployment safer, and allows gradual rollout, A/B tests, and an instant kill switch. The tradeoff is that flags are technical debt, since each one adds a branch in the code and more tests. Flags should have expiry dates and be removed after launch.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><strong>Feature flag</strong> tách việc deploy code ra khỏi việc phát hành tính năng: code vẫn lên production nhưng tính năng đang tắt, và có thể bật sau mà không cần deploy lại. Nhờ đó trunk-based development và continuous deployment trở nên an toàn hơn, đồng thời mở ra khả năng rollout từ từ, chạy A/B test, và có sẵn một công tắc tắt khẩn cấp (kill switch). Cái giá phải trả là flag chính là nợ kỹ thuật, vì mỗi flag thêm một nhánh rẽ trong code và kéo theo nhiều trường hợp test hơn. Vì vậy mỗi flag nên có hạn sử dụng và được dọn đi sau khi tính năng ra mắt ổn định.</p></details>
+<p><strong>Feature flags</strong> (feature toggles) let you deploy code to production with new features <strong>turned off</strong>, then enable them without redeploying.</p>
+<pre>// Simple feature flag:
+if (featureFlags.isEnabled("new-checkout")) {
+    return newCheckoutFlow(cart);
+} else {
+    return oldCheckoutFlow(cart);
+}
+
+// Types of flags:
+// Release flag: toggle incomplete features (remove after launch)
+// Experiment flag: A/B testing (10% see new UI)
+// Ops flag: kill switch (disable features under load)
+// Permission flag: premium features for paid users</pre>
+<p><strong>Benefits for CI/CD:</strong></p>
+<ul>
+<li>Deploy incomplete features safely (trunk-based development)</li>
+<li>Gradual rollout: enable for 5% → 25% → 100% of users</li>
+<li>Instant rollback: just flip the flag off (no redeploy)</li>
+<li>A/B testing: measure impact before full rollout</li>
+</ul>
+<div class="key-point">Feature flags enable trunk-based development + continuous deployment. But don't accumulate stale flags — they become technical debt. Set expiry dates and clean up after launch. Tools: LaunchDarkly, Unleash, Flagsmith.</div>`,
+      },
       {
         q: 'How do you deploy database schema changes with zero downtime?',
         difficulty: 'hard',
@@ -422,6 +330,147 @@ ALTER TABLE users DROP COLUMN name;</pre>
 <li>Never in one release: rename/drop a column in use, add NOT NULL without a default, long table-locking ALTERs during peak traffic.</li>
 </ul>
 <div class="key-point">Rule: versions N and N+1 of the app must both work against the same schema. That is exactly what makes rolling deploys AND rollbacks safe.</div>`,
+      },
+
+      // ──── 5. TOOLING, IaC & GITOPS ────
+      {
+        q: 'What are GitHub Actions? Explain workflow, job, step.',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>GitHub Actions has a simple hierarchy: a <strong>workflow</strong> contains <strong>jobs</strong>, and each job contains <strong>steps</strong>. A workflow is a YAML file in <code>.github/workflows</code> that runs on events like push or pull request, a job runs on its own fresh machine, and a step is one action or shell command. Jobs run in parallel by default and share nothing, so use <code>needs</code> for order and artifacts to pass files between them. Pinning third-party actions to a commit SHA is safer than using a moving tag.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>GitHub Actions có cấu trúc phân cấp khá đơn giản: một <strong>workflow</strong> chứa nhiều <strong>job</strong>, và mỗi job chứa nhiều <strong>step</strong>. Workflow là file YAML nằm trong <code>.github/workflows</code>, được kích hoạt bởi các sự kiện như push hay pull request; mỗi job chạy trên một máy sạch riêng biệt, còn step là một action hoặc một lệnh shell. Mặc định các job chạy song song và không chia sẻ gì với nhau, nên hãy dùng <code>needs</code> để sắp thứ tự và dùng artifact để truyền file giữa chúng. Ghim các action bên thứ ba theo commit SHA sẽ an toàn hơn dùng tag, vì tag có thể bị trỏ sang commit khác.</p></details>
+<ul>
+<li><strong>Workflow</strong>: YAML file in <code>.github/workflows/</code>. Triggered by events (push, PR, schedule).</li>
+<li><strong>Job</strong>: runs on a runner (VM). Jobs run in parallel by default; use <code>needs</code> for dependencies.</li>
+<li><strong>Step</strong>: individual task within a job. Can be an action or a shell command.</li>
+</ul>
+<pre>name: CI
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+      - run: npm ci
+      - run: npm test</pre>`,
+      },
+      {
+        q: 'What is the difference between Jenkins, GitLab CI, and GitHub Actions?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>All three tools do the same core work, so the main difference is hosting and ecosystem. <strong>Jenkins</strong> is self-hosted and very flexible through plugins, but the team must maintain, upgrade, and secure it. <strong>GitLab CI</strong> and <strong>GitHub Actions</strong> are managed and configured as code in the repo, with almost no infrastructure to run; GitLab works well as an all-in-one platform and GitHub Actions has the largest marketplace. The choice usually depends on where the code already lives.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Cả ba công cụ đều làm được phần việc cốt lõi như nhau, nên khác biệt chính nằm ở cách vận hành và hệ sinh thái. <strong>Jenkins</strong> phải tự host, rất linh hoạt nhờ kho plugin, nhưng đội ngũ phải tự bảo trì, nâng cấp và bảo mật nó. <strong>GitLab CI</strong> và <strong>GitHub Actions</strong> là dịch vụ được quản lý sẵn, cấu hình bằng file ngay trong repo và gần như không phải lo vận hành hạ tầng; GitLab mạnh ở chỗ gom tất cả vào một nền tảng, còn GitHub Actions có marketplace lớn nhất. Trên thực tế, lựa chọn thường phụ thuộc vào việc code đang được lưu ở đâu.</p></details>
+<ul>
+<li><strong>Jenkins</strong>: self-hosted, plugin-based, Jenkinsfile (Groovy). Maximum flexibility, high maintenance.</li>
+<li><strong>GitLab CI</strong>: built into GitLab. <code>.gitlab-ci.yml</code>. Great for all-in-one (SCM + CI + registry + deploy).</li>
+<li><strong>GitHub Actions</strong>: built into GitHub. YAML workflows. Huge marketplace. Best for open-source.</li>
+</ul>
+<pre># Jenkins — Jenkinsfile (Groovy DSL, self-hosted, plugins)
+pipeline {
+  agent any
+  stages {
+    stage('Test') { steps { sh 'npm test' } }
+  }
+}
+
+# GitLab CI — .gitlab-ci.yml
+test:
+  stage: test
+  script: [npm test]
+
+# GitHub Actions — .github/workflows/ci.yml
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm test</pre>
+<div class="key-point">All three can do the same things. Choice depends on: existing SCM, team expertise, hosting requirements.</div>`,
+      },
+      {
+        q: 'What is Infrastructure as Code (IaC)? How does it relate to CI/CD?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p><strong>Infrastructure as Code</strong> means servers, networks, and policies are written in version-controlled files instead of set up by hand in a console. This lets infrastructure changes go through the same pull request review, history, and CI as application code, giving reproducible and auditable environments. A common flow runs <code>terraform plan</code> on the pull request so reviewers see the exact change, then <code>terraform apply</code> on merge. The state file must be stored remotely and locked so two runs do not corrupt each other.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><strong>Infrastructure as Code</strong> nghĩa là server, network và policy đều được mô tả bằng file và quản lý trong version control, thay vì cấu hình thủ công trên console. Nhờ đó mọi thay đổi hạ tầng đều đi qua đúng quy trình review pull request, có lịch sử thay đổi và chạy CI giống như code ứng dụng, giúp môi trường luôn dựng lại được y hệt và có thể truy vết. Một luồng phổ biến là chạy <code>terraform plan</code> trên pull request để reviewer thấy chính xác những gì sẽ thay đổi, rồi chạy <code>terraform apply</code> khi merge. State file phải được lưu trên remote backend và có cơ chế khóa để hai lần chạy đồng thời không làm hỏng nhau.</p></details>
+<p><strong>IaC</strong>: manage infrastructure through code/config files, versioned in Git.</p>
+<ul>
+<li><strong>Terraform</strong>: cloud-agnostic, declarative (HCL). Plan → Apply.</li>
+<li><strong>AWS CloudFormation</strong>: AWS-specific, YAML/JSON templates.</li>
+<li><strong>Ansible</strong>: configuration management, procedural.</li>
+<li><strong>Pulumi</strong>: IaC using real programming languages.</li>
+</ul>
+<pre># main.tf — declarative: you describe WHAT, Terraform figures out HOW
+resource "aws_instance" "api" {
+  ami           = "ami-0abc1234"
+  instance_type = "t3.small"
+  tags = { Name = "api-server" }
+}
+
+# In the pipeline:
+terraform init
+terraform plan    # on PR: reviewers see the exact infra diff
+terraform apply   # on merge to main: change is applied
+# State file records what exists → same config always converges to same infra</pre>
+<div class="key-point">CI/CD pipeline: run <code>terraform plan</code> on PR (review changes), <code>terraform apply</code> on merge to main.</div>`,
+      },
+      {
+        q: 'What is GitOps? How does it work?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p><strong>GitOps</strong> makes Git the single source of truth for what is running, not just for code. The desired state, such as Kubernetes manifests or Helm charts, is stored in a repo, and a controller like ArgoCD or Flux continuously makes the cluster match it. Changes go through pull requests, giving an audit trail, easy rollback with <code>git revert</code>, and self-healing when someone changes the cluster by hand. It uses a pull model: CI builds the image, a pull request updates the tag, and the cluster pulls itself into line.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><strong>GitOps</strong> lấy Git làm nguồn thông tin chuẩn duy nhất cho cả những gì đang chạy thật, chứ không chỉ cho code. Trạng thái mong muốn — chẳng hạn các manifest Kubernetes hay Helm chart — được lưu trong một repo, và một controller như ArgoCD hay Flux liên tục điều chỉnh cluster cho khớp với repo đó. Mọi thay đổi đều đi qua pull request, nhờ vậy có lịch sử để truy vết, rollback đơn giản bằng <code>git revert</code>, và cluster tự phục hồi khi ai đó lỡ sửa tay. Đây là mô hình pull: CI build image, một pull request cập nhật tag, rồi cluster tự đồng bộ về đúng trạng thái đã khai báo.</p></details>
+<p><strong>GitOps</strong>: Git is the single source of truth for infrastructure AND application deployment.</p>
+<ul>
+<li>Desired state is declared in Git (Kubernetes manifests, Helm charts).</li>
+<li>A controller (ArgoCD, Flux) watches the repo and reconciles cluster state.</li>
+<li>Changes go through PRs → automated deployment. No direct <code>kubectl apply</code>.</li>
+</ul>
+<pre># ArgoCD Application: "keep the cluster in sync with this repo path"
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+spec:
+  source:
+    repoURL: https://github.com/company/k8s-config
+    path: apps/api/production
+    targetRevision: main
+  destination: { server: https://kubernetes.default.svc }
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }   # drift is auto-corrected
+
+# Deploy flow:
+# 1. CI builds image myapi:1.5.0, pushes to registry
+# 2. PR bumps the image tag in the k8s-config repo
+# 3. Merge → ArgoCD sees the diff → applies it to the cluster
+# 4. Rollback = git revert</pre>
+<div class="key-point">Benefits: audit trail (Git history), easy rollback (revert commit), consistent environments, self-healing.</div>`,
+      },
+
+      // ──── 6. SECURITY & MEASURING DELIVERY ────
+      {
+        q: 'How do you handle secrets and environment variables in CI/CD?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>Secrets should never be stored in the repository, not in code and not in committed <code>.env</code> files. Instead they are injected at runtime from the platform's secret store, shown as masked values, and scoped per environment so staging cannot read production credentials. For cloud deploys, <strong>OIDC</strong> lets the pipeline get a short-lived token instead of storing a long-lived key. Secrets should also be rotated regularly with an audit trail.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Tuyệt đối không lưu secret trong repository, kể cả trong code lẫn trong file <code>.env</code> bị commit lên. Thay vào đó, secret được inject lúc runtime từ kho secret của nền tảng CI, được che (mask) khi in ra log, và được phân quyền riêng theo từng môi trường để staging không đọc được credential của production. Khi deploy lên cloud, <strong>OIDC</strong> cho phép pipeline xin một token ngắn hạn thay vì phải lưu sẵn một key dài hạn. Ngoài ra secret nên được thay mới định kỳ và có nhật ký truy vết ai đã dùng.</p></details>
+<ul>
+<li><strong>Never</strong> commit secrets to code. Use pipeline secret management.</li>
+<li><strong>GitHub</strong>: Settings → Secrets → accessed via <code>\${{ secrets.API_KEY }}</code>.</li>
+<li><strong>Jenkins</strong>: Credentials plugin + <code>withCredentials</code> block.</li>
+<li><strong>Vault/AWS Secrets Manager</strong>: centralized secret storage, rotation, audit.</li>
+<li>Environment-specific configs via <code>.env</code> files (not committed) or pipeline environment variables.</li>
+</ul>
+<pre># GitHub Actions — secrets are masked in logs
+jobs:
+  deploy:
+    environment: production        # env-scoped secrets + approval rule
+    steps:
+      - run: ./deploy.sh
+        env:
+          API_KEY: \${{ secrets.API_KEY }}
+
+# Better for cloud deploys: OIDC — short-lived token, nothing stored at all
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::123456789:role/deploy-role
+          aws-region: ap-southeast-1</pre>
+<div class="key-point">Rotate secrets regularly. Use OIDC for cloud deployments instead of long-lived tokens.</div>`,
       },
       {
         q: 'How do you secure a CI/CD pipeline? (supply-chain security)',
@@ -461,44 +510,6 @@ cosign verify registry/myapi:1.5.0 \\
 </ul>
 <div class="key-point">A senior answer sounds like: "we deploy small batches on demand behind flags, and if something breaks we roll back in minutes" — that is what elite DORA numbers mean in practice.</div>`,
       },
-      {
-        q: 'What makes a good CI pipeline? How do you order stages and deal with flaky tests?',
-        difficulty: 'tricky',
-        a: `<div class="interview-answer"><p>A good pipeline gives trustworthy feedback in under about ten minutes by running cheap checks like lint, typecheck, and unit tests first, then heavier integration and end-to-end tests later and in parallel. Speed matters because a slow or flaky pipeline makes developers batch changes and ignore failures. Flaky tests should be found by pass-on-retry, then quarantined out of the blocking path with a ticket to fix them, rather than hidden by retrying many times. A red main branch is a stop-the-line event that is reverted or fixed right away.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Một pipeline tốt phải trả về phản hồi đáng tin trong khoảng dưới mười phút: chạy trước các kiểm tra rẻ như lint, typecheck và unit test, rồi mới tới integration và end-to-end test nặng hơn ở phía sau và cho chạy song song. Tốc độ rất quan trọng, vì pipeline chậm hoặc hay chập chờn sẽ khiến lập trình viên dồn thay đổi thành từng lô lớn và dần bỏ qua các lần build đỏ. Với test chập chờn (flaky), hãy phát hiện chúng qua dấu hiệu chạy lại lần hai thì pass, rồi tách chúng ra khỏi luồng chặn merge và mở ticket để sửa, thay vì che giấu bằng cách cho retry nhiều lần. Nhánh chính bị đỏ phải được coi là sự cố dừng cả dây chuyền: revert hoặc sửa ngay lập tức.</p></details>
-<p>A good pipeline optimizes for <strong>trustworthy feedback time</strong>: the cheapest, most-likely-to-fail checks run first (fail fast), expensive checks run later and in parallel. A slow or flaky pipeline is worse than none — developers start batching changes and ignoring red builds, which quietly kills the whole point of CI.</p>
-<ul>
-<li><strong>Fail-fast ordering</strong>: lint/format → compile/typecheck → unit tests → build artifact → integration tests → E2E. Never make someone wait 20 minutes to learn about a lint error.</li>
-<li><strong>Parallelize</strong>: shard test suites across runners; run independent jobs concurrently.</li>
-<li><strong>Cache aggressively</strong>: dependencies and Docker layers between runs.</li>
-<li><strong>Flaky tests</strong>: detect them (pass-on-retry = flaky), <strong>quarantine</strong> them out of the blocking path, and fix or delete them under an SLA. A blanket "retry 3 times" policy hides real race conditions that will resurface in production.</li>
-<li><strong>Pipeline-as-code</strong>: the pipeline definition lives in the repo and is reviewed like any other change — no hand-edited server jobs that drift.</li>
-<li><strong>Time budget</strong>: keep the blocking path under ~10 minutes; push slower suites to a merge queue or nightly run.</li>
-</ul>
-<pre># Fail-fast: cheap checks gate the expensive ones
-jobs:
-  quick-checks:                        # ~1 min — catches most failures
-    steps:
-      - run: npm run lint
-      - run: npm run typecheck
-  unit:
-    needs: quick-checks
-    strategy:
-      fail-fast: true
-      matrix: { shard: [1, 2, 3, 4] }  # parallel test shards
-    steps:
-      - run: npm test -- --shard=\${{ matrix.shard }}/4
-  e2e:
-    needs: unit                        # slowest suite last, only if all else passed
-    steps:
-      - run: npx playwright test
-
-# Flaky-test policy:
-#   passes only on retry → tag @quarantine → excluded from the blocking run
-#   quarantined tests still run (non-blocking) + ticket with a fix-by date</pre>
-<p>Interviewer follow-up: "what do you do when the pipeline is red?" Senior answer: red main is a stop-the-line event — revert or fix forward immediately; nobody merges onto a broken trunk.</p>
-<div class="key-point">A pipeline's job is trustworthy feedback in under ~10 minutes: fail fast, parallelize the rest, and quarantine flaky tests instead of retrying them into green.</div>`,
-      },
     ],
   },
 
@@ -508,6 +519,7 @@ jobs:
     name: 'Docker',
     icon: '🐳',
     questions: [
+      // ──── 1. DOCKER FUNDAMENTALS ────
       {
         q: 'What is Docker? How is it different from a Virtual Machine?',
         difficulty: 'easy',
@@ -551,6 +563,30 @@ jobs:
 # networks, volumes and the API on top.</pre>`,
       },
       {
+        q: 'What happens step by step when you run `docker run -d -p 8080:80 nginx`?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>The CLI sends the request over the REST API to the daemon, which checks for <code>nginx:latest</code> locally and pulls the layers if missing. It creates the container with read-only image layers and a fresh writable layer on top, sets up a network namespace on the default bridge with its own IP, and for <code>-p 8080:80</code> adds an iptables NAT rule forwarding host port 8080 to container port 80. Then containerd and runc start nginx as PID 1 with namespaces and cgroup limits, and <code>-d</code> detaches so only the container ID is returned. The container lives exactly as long as PID 1.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>CLI gửi yêu cầu qua REST API tới daemon; daemon tìm <code>nginx:latest</code> ở máy, nếu chưa có thì pull các layer về. Tiếp theo nó tạo container gồm các layer image chỉ đọc cộng thêm một layer ghi mới nằm trên cùng, tạo network namespace và gắn vào bridge mặc định với một IP riêng; với <code>-p 8080:80</code>, Docker thêm một rule NAT trong iptables để chuyển tiếp port 8080 của host xuống port 80 của container. Sau đó containerd cùng runc khởi động nginx thành process PID 1 bên trong các namespace và bị giới hạn tài nguyên bởi cgroup; cờ <code>-d</code> cho chạy nền nên lệnh chỉ in ra container ID rồi kết thúc. Container tồn tại đúng bằng vòng đời của process PID 1.</p></details>
+<ol>
+<li>CLI sends the request to the Docker daemon over the REST API.</li>
+<li>Daemon looks for <code>nginx:latest</code> locally; if missing, <strong>pulls the layers</strong> from the registry (each layer cached for future use).</li>
+<li>Creates the container: image layers stay <strong>read-only</strong>, a fresh <strong>writable layer</strong> goes on top.</li>
+<li>Creates a network namespace, attaches it to the default <strong>bridge</strong> network, allocates a container IP.</li>
+<li><code>-p 8080:80</code>: adds a NAT rule (iptables) so host port 8080 forwards to container port 80.</li>
+<li>containerd/runc start the process as <strong>PID 1</strong> inside its namespaces (pid, net, mnt, uts) with cgroup limits applied.</li>
+<li><code>-d</code>: detached — prints the container ID and returns immediately.</li>
+</ol>
+<pre>docker ps                    # STATUS: Up — running
+docker logs -f &lt;id&gt;          # stdout/stderr of PID 1
+curl localhost:8080          # host → NAT → container:80
+
+# The container lives exactly as long as PID 1 lives:
+# process exits → container stops. No init system, no daemon inside.</pre>
+<div class="key-point">A container is just a normal Linux process wrapped in namespaces (what it can see) + cgroups (what it can use). That's why it starts in milliseconds while a VM boots an OS.</div>`,
+      },
+
+      // ──── 2. IMAGES & DOCKERFILE ────
+      {
         q: 'What is a Dockerfile? Explain key instructions.',
         difficulty: 'medium',
         a: `<div class="interview-answer"><p>A Dockerfile is the recipe for building an image, and it helps to know which instructions create layers and how order affects caching. <code>FROM</code> sets the base, <code>RUN</code> executes build commands and each one adds a layer, <code>COPY</code> brings files in, and <code>CMD</code> or <code>ENTRYPOINT</code> defines what runs. Prefer <code>COPY</code> over <code>ADD</code> unless tar extraction is needed, and copy the dependency file and install before copying source so the install layer stays cached when only code changes. Running as a non-root <code>USER</code> is safer than the default root.</p></div>
@@ -569,6 +605,23 @@ CMD ["node", "server.js"]     # default command</pre>
 <li><code>COPY</code> vs <code>ADD</code>: COPY is simpler; ADD can extract tars and fetch URLs.</li>
 <li><code>CMD</code> vs <code>ENTRYPOINT</code>: CMD is overridable; ENTRYPOINT is fixed (use both for default args pattern).</li>
 </ul>`,
+      },
+      {
+        q: 'What is the difference between CMD and ENTRYPOINT?',
+        difficulty: 'tricky',
+        a: `<div class="interview-answer"><p><code>CMD</code> sets a default that arguments to <code>docker run</code> can easily override, while <code>ENTRYPOINT</code> fixes the executable and appends run arguments to it. The common pattern uses <code>ENTRYPOINT</code> for the binary and <code>CMD</code> for its default flags, so users can change flags without replacing the whole command. A subtle trap is shell form versus exec form: without the JSON-array brackets the command runs through <code>/bin/sh</code>, which becomes PID 1 and does not pass on signals. Always use the exec form with bracket syntax.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><code>CMD</code> chỉ đặt giá trị mặc định và bị ghi đè dễ dàng bởi tham số truyền cho <code>docker run</code>, còn <code>ENTRYPOINT</code> cố định file thực thi và các tham số của <code>docker run</code> sẽ được nối vào phía sau nó. Cách dùng phổ biến là đặt binary vào <code>ENTRYPOINT</code> và các tham số mặc định vào <code>CMD</code>, nhờ đó người dùng đổi được tham số mà không phải thay cả câu lệnh. Một cái bẫy khó thấy là khác biệt giữa dạng shell và dạng exec: nếu không viết theo cú pháp mảng JSON, lệnh sẽ chạy qua <code>/bin/sh</code>, khiến shell trở thành PID 1 và không chuyển tiếp tín hiệu xuống ứng dụng. Vì vậy hãy luôn dùng dạng exec với cú pháp ngoặc vuông.</p></details>
+<ul>
+<li><strong>CMD</strong>: default command. Can be <strong>overridden</strong> by <code>docker run &lt;image&gt; &lt;command&gt;</code>.</li>
+<li><strong>ENTRYPOINT</strong>: fixed executable. Args from <code>docker run</code> are appended.</li>
+</ul>
+<pre>ENTRYPOINT ["python", "app.py"]
+CMD ["--port", "8080"]
+
+docker run myapp                  # python app.py --port 8080
+docker run myapp --port 9090      # python app.py --port 9090
+docker run myapp bash             # python app.py bash (!) </pre>
+<div class="key-point">Best practice: use ENTRYPOINT for the main executable, CMD for default arguments.</div>`,
       },
       {
         q: 'How do Docker layers work? How to optimize image size?',
@@ -606,22 +659,95 @@ CMD ["node", "dist/server.js"]</pre>
 <div class="key-point">The mental model: an image is cached, shared, read-only layers; a container is a copy-on-write layer on top. Put what changes least at the top of the Dockerfile — a cache miss invalidates that layer <em>and everything below it</em>.</div>`,
       },
       {
-        q: 'What is the difference between CMD and ENTRYPOINT?',
-        difficulty: 'tricky',
-        a: `<div class="interview-answer"><p><code>CMD</code> sets a default that arguments to <code>docker run</code> can easily override, while <code>ENTRYPOINT</code> fixes the executable and appends run arguments to it. The common pattern uses <code>ENTRYPOINT</code> for the binary and <code>CMD</code> for its default flags, so users can change flags without replacing the whole command. A subtle trap is shell form versus exec form: without the JSON-array brackets the command runs through <code>/bin/sh</code>, which becomes PID 1 and does not pass on signals. Always use the exec form with bracket syntax.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><code>CMD</code> chỉ đặt giá trị mặc định và bị ghi đè dễ dàng bởi tham số truyền cho <code>docker run</code>, còn <code>ENTRYPOINT</code> cố định file thực thi và các tham số của <code>docker run</code> sẽ được nối vào phía sau nó. Cách dùng phổ biến là đặt binary vào <code>ENTRYPOINT</code> và các tham số mặc định vào <code>CMD</code>, nhờ đó người dùng đổi được tham số mà không phải thay cả câu lệnh. Một cái bẫy khó thấy là khác biệt giữa dạng shell và dạng exec: nếu không viết theo cú pháp mảng JSON, lệnh sẽ chạy qua <code>/bin/sh</code>, khiến shell trở thành PID 1 và không chuyển tiếp tín hiệu xuống ứng dụng. Vì vậy hãy luôn dùng dạng exec với cú pháp ngoặc vuông.</p></details>
-<ul>
-<li><strong>CMD</strong>: default command. Can be <strong>overridden</strong> by <code>docker run &lt;image&gt; &lt;command&gt;</code>.</li>
-<li><strong>ENTRYPOINT</strong>: fixed executable. Args from <code>docker run</code> are appended.</li>
-</ul>
-<pre>ENTRYPOINT ["python", "app.py"]
-CMD ["--port", "8080"]
+        q: 'What are multi-stage Docker builds and why are they important?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>Multi-stage builds use several <code>FROM</code> stages in one Dockerfile and ship only the last one. This separates build time from runtime: the code is compiled in a heavy stage with the full toolchain, then <code>COPY --from</code> takes only the artifact into a slim runtime image. The result is much smaller images with faster pulls, a smaller attack surface since build tools never ship, and better caching because dependencies and source layer separately. They are essential for production, for example dropping a Java image from around 800MB to about 200MB.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Multi-stage build cho phép dùng nhiều <code>FROM</code> trong cùng một Dockerfile và chỉ ship ra stage cuối cùng. Cách này tách hẳn môi trường build khỏi môi trường runtime: code được biên dịch ở một stage nặng có đầy đủ toolchain, sau đó <code>COPY --from</code> chỉ lấy đúng artifact sang một image runtime gọn nhẹ. Kết quả là image nhỏ hơn hẳn nên pull nhanh hơn, bề mặt tấn công thu hẹp vì build tool không bao giờ đi lên production, và cache cũng tốt hơn do dependency và source nằm ở các layer tách biệt. Đây gần như là kỹ thuật bắt buộc cho image production — ví dụ một image Java có thể giảm từ khoảng 800MB xuống còn khoảng 200MB.</p></details>
+<p><strong>Multi-stage builds</strong> let you use multiple FROM instructions in one Dockerfile. Each stage can use a different base image. Only the final stage becomes the output image.</p>
+<pre># Stage 1: Build (has all build tools — large image)
+FROM maven:3.9-eclipse-temurin-21 AS builder
+WORKDIR /app
+COPY pom.xml .
+RUN mvn dependency:resolve          # cache dependencies layer
+COPY src ./src
+RUN mvn package -DskipTests
 
-docker run myapp                  # python app.py --port 8080
-docker run myapp --port 9090      # python app.py --port 9090
-docker run myapp bash             # python app.py bash (!) </pre>
-<div class="key-point">Best practice: use ENTRYPOINT for the main executable, CMD for default arguments.</div>`,
+# Stage 2: Run (minimal image — NO build tools)
+FROM eclipse-temurin:21-jre-alpine
+WORKDIR /app
+COPY --from=builder /app/target/app.jar app.jar
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "app.jar"]
+
+# Result:
+# Builder stage: ~800MB (Maven, JDK, source code)
+# Final image:   ~200MB (JRE + JAR only)
+
+# Node.js example:
+FROM node:20 AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+FROM nginx:alpine
+COPY --from=builder /app/dist /usr/share/nginx/html
+# Final: ~25MB instead of ~1GB</pre>
+<div class="key-point">Multi-stage builds are essential for production images: smaller size (faster pulls), smaller attack surface (no build tools), better layer caching (dependencies cached separately from source code).</div>`,
       },
+      {
+        q: 'Alpine vs distroless vs slim — how do you choose a production base image?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>A safe default is slim or distroless, with Alpine chosen only after checking compatibility. The reason is libc: Alpine uses musl instead of glibc, so glibc-compiled native modules can crash or force slow rebuilds, and it has DNS and allocator differences that can hurt the JVM. Slim is the safe glibc default with most extras removed, while distroless goes further with no shell or package manager for a smaller attack surface but harder debugging. Whatever the choice, never ship a floating tag like <code>latest</code>; pin the version and ideally the digest so builds are reproducible and tamper-proof.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Lựa chọn an toàn để mặc định là slim hoặc distroless; Alpine chỉ nên dùng sau khi đã kiểm tra kỹ tính tương thích. Lý do nằm ở libc: Alpine dùng musl thay vì glibc, nên các native module vốn được biên dịch cho glibc có thể crash hoặc buộc phải build lại từ source rất lâu; ngoài ra musl còn khác biệt ở phần DNS resolver và có bộ cấp phát bộ nhớ chậm hơn, ảnh hưởng xấu tới JVM. Slim là lựa chọn glibc an toàn, đã lược bớt phần lớn gói không cần thiết; distroless đi xa hơn nữa khi không có cả shell lẫn trình quản lý package, nhờ đó bề mặt tấn công nhỏ hơn nhưng bù lại rất khó debug. Dù chọn base nào, đừng bao giờ đưa lên production một tag hay thay đổi như <code>latest</code>; hãy ghim version, và tốt nhất là ghim theo digest để bản build luôn tái lập được và không thể bị tráo.</p></details>
+<p>The choice is a trade-off between size, attack surface, <strong>libc compatibility</strong>, and debuggability:</p>
+<table><tr><th>Base</th><th>Size</th><th>libc</th><th>Trade-off</th></tr>
+<tr><td>node:20 / debian</td><td>~1GB</td><td>glibc</td><td>Everything works; huge attack surface, slow pulls</td></tr>
+<tr><td>*-slim</td><td>~200MB</td><td>glibc</td><td>Good default: full compatibility, most packages removed</td></tr>
+<tr><td>*-alpine</td><td>~50MB</td><td><strong>musl</strong></td><td>Tiny, but musl breaks glibc-compiled native modules, has subtle DNS-resolver differences, and a slower allocator (hurts JVM/multithreaded apps)</td></tr>
+<tr><td>distroless</td><td>~20–130MB</td><td>glibc</td><td>No shell, no package manager — minimal attack surface, harder to poke around in</td></tr>
+<tr><td>scratch</td><td>~0</td><td>—</td><td>Static binaries only (Go, Rust)</td></tr></table>
+<ul>
+<li><strong>The musl trap</strong>: Alpine is not "small Debian" — it's a different libc. Prebuilt native npm wheels/binaries targeting glibc can crash at runtime or force slow source rebuilds. Verify before adopting.</li>
+<li><strong>Distroless debugging</strong>: no shell means <code>docker exec ... sh</code> fails by design; use ephemeral debug containers instead.</li>
+<li><strong>Why FROM node:latest is a bug</strong>: the tag moves — tomorrow's build silently gets a new major version, so builds are not reproducible and prod runs something you never tested. Pin the version, and pin the <strong>digest</strong> for immutability (a tag can be re-pushed; a digest cannot).</li>
+</ul>
+<pre># Build with a full image, ship without a shell:
+FROM node:20-slim AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --omit=dev
+COPY . .
+
+FROM gcr.io/distroless/nodejs20-debian12
+WORKDIR /app
+COPY --from=build /app /app
+CMD ["server.js"]                  # distroless entrypoint already runs node
+
+# Pin by digest — reproducible and tamper-proof:
+FROM node:20.11.1-slim@sha256:4b632f...
+
+# No shell in distroless? Attach an ephemeral debug container:
+kubectl debug -it api-xyz --image=busybox --target=api</pre>
+<div class="key-point">Default to slim or distroless (glibc); choose Alpine only after verifying musl compatibility — and never ship a floating tag like latest to production.</div>`,
+      },
+      {
+        q: 'How does Docker image caching work in CI/CD?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>Layer caching works well locally, but in CI each run starts on a fresh machine with no cache, so naive builds rebuild everything every time. The fix is external caches: a BuildKit registry cache using <code>cache-from</code> and <code>cache-to</code>, or cache mounts so package downloads persist. Good Dockerfile ordering still matters, with dependencies before source so code changes only rebuild the last layers. A common cause of slow CI is never setting up <code>cache-from</code>, so every build starts cold.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Layer caching chạy rất tốt trên máy cá nhân, nhưng trong CI thì mỗi lần chạy đều bắt đầu trên một máy sạch không có cache, nên nếu không xử lý gì thì lần build nào cũng phải làm lại từ đầu. Cách khắc phục là dùng cache đặt ở bên ngoài: registry cache của BuildKit thông qua <code>cache-from</code> và <code>cache-to</code>, hoặc cache mount để giữ lại các package đã tải về. Việc sắp xếp Dockerfile hợp lý vẫn quan trọng — dependency trước, source sau — để mỗi lần sửa code chỉ phải build lại vài layer cuối. Một nguyên nhân rất phổ biến khiến CI chậm là chưa bao giờ cấu hình <code>cache-from</code>, nên lần build nào cũng khởi đầu với cache rỗng.</p></details>
+<p>Docker caches each layer. If a layer's instruction + context haven't changed, the cache is used.</p>
+<p><strong>In CI (no local cache)</strong>:</p>
+<ul>
+<li><strong>BuildKit cache mount</strong>: <code>--mount=type=cache,target=/root/.npm</code></li>
+<li><strong>Registry cache</strong>: <code>docker buildx build --cache-from=type=registry,ref=myrepo:cache --cache-to=type=registry,ref=myrepo:cache</code></li>
+<li><strong>GitHub Actions cache</strong>: <code>actions/cache</code> with Docker layer cache.</li>
+</ul>
+<div class="key-point">Order Dockerfile: OS packages → language runtime → dependencies → source code. Only last layers rebuild on code change.</div>`,
+      },
+
+      // ──── 3. RUNTIME — NETWORKING, VOLUMES & HEALTH ────
       {
         q: 'Explain Docker networking: bridge, host, none, overlay.',
         difficulty: 'hard',
@@ -665,6 +791,27 @@ docker run -v $(pwd)/src:/app/src node
 docker run --tmpfs /tmp myapp</pre>
 <div class="key-point">Rule of thumb: <strong>named volumes for persistent app/database data</strong> (portable, Docker-managed), <strong>bind mounts for local development</strong> (live source), <strong>tmpfs for secrets/temp</strong>. A classic gotcha: with <code>-v name:/path</code> the first token has no slash (named volume) but <code>-v /host/path:/path</code> has one (bind mount) — the leading slash is what decides which you get.</div>`,
       },
+      {
+        q: 'What is a Docker health check and how to implement it?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>A health check is a command Docker runs on a schedule to decide whether the container is actually working, not just running. It is defined in the Dockerfile or Compose with interval, timeout, retries, and a <code>start_period</code> grace window, and the container moves through starting, healthy, and unhealthy states. Orchestrators use this: Compose can gate startup order on it and Swarm reschedules unhealthy containers. Kubernetes ignores Docker's HEALTHCHECK and uses its own liveness and readiness probes instead.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Health check là một lệnh mà Docker chạy định kỳ để xác định container có thực sự hoạt động được hay không, chứ không chỉ dừng ở việc nó đang chạy. Health check được khai báo trong Dockerfile hoặc Compose với interval, timeout, retries và <code>start_period</code> — khoảng thời gian chờ ứng dụng khởi động xong; container sẽ lần lượt đi qua các trạng thái starting, healthy và unhealthy. Các orchestrator tận dụng thông tin này: Compose dựa vào đó để quyết định thứ tự khởi động, còn Swarm sẽ khởi động lại những container bị unhealthy. Riêng Kubernetes thì bỏ qua HEALTHCHECK của Docker và dùng liveness probe cùng readiness probe của riêng nó.</p></details>
+<p>Health checks let Docker know if a container is functioning properly.</p>
+<pre># In Dockerfile
+HEALTHCHECK --interval=30s --timeout=3s --retries=3 \\
+  CMD curl -f http://localhost:3000/health || exit 1
+
+# In docker-compose.yml
+healthcheck:
+  test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+  interval: 30s
+  timeout: 3s
+  retries: 3
+  start_period: 10s</pre>
+<p>States: <code>starting</code> → <code>healthy</code> / <code>unhealthy</code>. Orchestrators use this for restart policies and load balancing.</p>`,
+      },
+
+      // ──── 4. COMPOSE & ORCHESTRATION ────
       {
         q: 'What is Docker Compose? Explain key sections.',
         difficulty: 'medium',
@@ -712,77 +859,8 @@ volumes:
 </table>
 <div class="key-point">How to answer "which should we use?": <strong>Swarm</strong> if the team is small, the app is simple, and you want to be running today — it's genuinely fine at small scale. <strong>Kubernetes</strong> if you need autoscaling, a rich ecosystem, multi-cloud portability, or you're hiring for skills the market already has. In practice K8s (usually managed — EKS/GKE/AKS) has won for anything non-trivial, so the honest senior answer is "Swarm to start simple, but expect to standardize on managed Kubernetes as you grow."</div>`,
       },
-      {
-        q: 'How does Docker image caching work in CI/CD?',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p>Layer caching works well locally, but in CI each run starts on a fresh machine with no cache, so naive builds rebuild everything every time. The fix is external caches: a BuildKit registry cache using <code>cache-from</code> and <code>cache-to</code>, or cache mounts so package downloads persist. Good Dockerfile ordering still matters, with dependencies before source so code changes only rebuild the last layers. A common cause of slow CI is never setting up <code>cache-from</code>, so every build starts cold.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Layer caching chạy rất tốt trên máy cá nhân, nhưng trong CI thì mỗi lần chạy đều bắt đầu trên một máy sạch không có cache, nên nếu không xử lý gì thì lần build nào cũng phải làm lại từ đầu. Cách khắc phục là dùng cache đặt ở bên ngoài: registry cache của BuildKit thông qua <code>cache-from</code> và <code>cache-to</code>, hoặc cache mount để giữ lại các package đã tải về. Việc sắp xếp Dockerfile hợp lý vẫn quan trọng — dependency trước, source sau — để mỗi lần sửa code chỉ phải build lại vài layer cuối. Một nguyên nhân rất phổ biến khiến CI chậm là chưa bao giờ cấu hình <code>cache-from</code>, nên lần build nào cũng khởi đầu với cache rỗng.</p></details>
-<p>Docker caches each layer. If a layer's instruction + context haven't changed, the cache is used.</p>
-<p><strong>In CI (no local cache)</strong>:</p>
-<ul>
-<li><strong>BuildKit cache mount</strong>: <code>--mount=type=cache,target=/root/.npm</code></li>
-<li><strong>Registry cache</strong>: <code>docker buildx build --cache-from=type=registry,ref=myrepo:cache --cache-to=type=registry,ref=myrepo:cache</code></li>
-<li><strong>GitHub Actions cache</strong>: <code>actions/cache</code> with Docker layer cache.</li>
-</ul>
-<div class="key-point">Order Dockerfile: OS packages → language runtime → dependencies → source code. Only last layers rebuild on code change.</div>`,
-      },
-      {
-        q: 'What is a Docker health check and how to implement it?',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p>A health check is a command Docker runs on a schedule to decide whether the container is actually working, not just running. It is defined in the Dockerfile or Compose with interval, timeout, retries, and a <code>start_period</code> grace window, and the container moves through starting, healthy, and unhealthy states. Orchestrators use this: Compose can gate startup order on it and Swarm reschedules unhealthy containers. Kubernetes ignores Docker's HEALTHCHECK and uses its own liveness and readiness probes instead.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Health check là một lệnh mà Docker chạy định kỳ để xác định container có thực sự hoạt động được hay không, chứ không chỉ dừng ở việc nó đang chạy. Health check được khai báo trong Dockerfile hoặc Compose với interval, timeout, retries và <code>start_period</code> — khoảng thời gian chờ ứng dụng khởi động xong; container sẽ lần lượt đi qua các trạng thái starting, healthy và unhealthy. Các orchestrator tận dụng thông tin này: Compose dựa vào đó để quyết định thứ tự khởi động, còn Swarm sẽ khởi động lại những container bị unhealthy. Riêng Kubernetes thì bỏ qua HEALTHCHECK của Docker và dùng liveness probe cùng readiness probe của riêng nó.</p></details>
-<p>Health checks let Docker know if a container is functioning properly.</p>
-<pre># In Dockerfile
-HEALTHCHECK --interval=30s --timeout=3s --retries=3 \\
-  CMD curl -f http://localhost:3000/health || exit 1
 
-# In docker-compose.yml
-healthcheck:
-  test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
-  interval: 30s
-  timeout: 3s
-  retries: 3
-  start_period: 10s</pre>
-<p>States: <code>starting</code> → <code>healthy</code> / <code>unhealthy</code>. Orchestrators use this for restart policies and load balancing.</p>`,
-      },
-      {
-        q: 'What are multi-stage Docker builds and why are they important?',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p>Multi-stage builds use several <code>FROM</code> stages in one Dockerfile and ship only the last one. This separates build time from runtime: the code is compiled in a heavy stage with the full toolchain, then <code>COPY --from</code> takes only the artifact into a slim runtime image. The result is much smaller images with faster pulls, a smaller attack surface since build tools never ship, and better caching because dependencies and source layer separately. They are essential for production, for example dropping a Java image from around 800MB to about 200MB.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Multi-stage build cho phép dùng nhiều <code>FROM</code> trong cùng một Dockerfile và chỉ ship ra stage cuối cùng. Cách này tách hẳn môi trường build khỏi môi trường runtime: code được biên dịch ở một stage nặng có đầy đủ toolchain, sau đó <code>COPY --from</code> chỉ lấy đúng artifact sang một image runtime gọn nhẹ. Kết quả là image nhỏ hơn hẳn nên pull nhanh hơn, bề mặt tấn công thu hẹp vì build tool không bao giờ đi lên production, và cache cũng tốt hơn do dependency và source nằm ở các layer tách biệt. Đây gần như là kỹ thuật bắt buộc cho image production — ví dụ một image Java có thể giảm từ khoảng 800MB xuống còn khoảng 200MB.</p></details>
-<p><strong>Multi-stage builds</strong> let you use multiple FROM instructions in one Dockerfile. Each stage can use a different base image. Only the final stage becomes the output image.</p>
-<pre># Stage 1: Build (has all build tools — large image)
-FROM maven:3.9-eclipse-temurin-21 AS builder
-WORKDIR /app
-COPY pom.xml .
-RUN mvn dependency:resolve          # cache dependencies layer
-COPY src ./src
-RUN mvn package -DskipTests
-
-# Stage 2: Run (minimal image — NO build tools)
-FROM eclipse-temurin:21-jre-alpine
-WORKDIR /app
-COPY --from=builder /app/target/app.jar app.jar
-EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
-
-# Result:
-# Builder stage: ~800MB (Maven, JDK, source code)
-# Final image:   ~200MB (JRE + JAR only)
-
-# Node.js example:
-FROM node:20 AS builder
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci
-COPY . .
-RUN npm run build
-
-FROM nginx:alpine
-COPY --from=builder /app/dist /usr/share/nginx/html
-# Final: ~25MB instead of ~1GB</pre>
-<div class="key-point">Multi-stage builds are essential for production images: smaller size (faster pulls), smaller attack surface (no build tools), better layer caching (dependencies cached separately from source code).</div>`,
-      },
+      // ──── 5. PRODUCTION — SECURITY, JAVA APPS & TROUBLESHOOTING ────
       {
         q: 'What are Docker security best practices?',
         difficulty: 'hard',
@@ -821,65 +899,6 @@ node_modules
 Dockerfile
 *.md</pre>
 <div class="key-point">Never embed secrets (API keys, passwords) in Docker images — they persist in image layers even if you delete them later. Use Docker BuildKit <code>--mount=type=secret</code> for build-time secrets.</div>`,
-      },
-      {
-        q: 'What happens step by step when you run `docker run -d -p 8080:80 nginx`?',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p>The CLI sends the request over the REST API to the daemon, which checks for <code>nginx:latest</code> locally and pulls the layers if missing. It creates the container with read-only image layers and a fresh writable layer on top, sets up a network namespace on the default bridge with its own IP, and for <code>-p 8080:80</code> adds an iptables NAT rule forwarding host port 8080 to container port 80. Then containerd and runc start nginx as PID 1 with namespaces and cgroup limits, and <code>-d</code> detaches so only the container ID is returned. The container lives exactly as long as PID 1.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>CLI gửi yêu cầu qua REST API tới daemon; daemon tìm <code>nginx:latest</code> ở máy, nếu chưa có thì pull các layer về. Tiếp theo nó tạo container gồm các layer image chỉ đọc cộng thêm một layer ghi mới nằm trên cùng, tạo network namespace và gắn vào bridge mặc định với một IP riêng; với <code>-p 8080:80</code>, Docker thêm một rule NAT trong iptables để chuyển tiếp port 8080 của host xuống port 80 của container. Sau đó containerd cùng runc khởi động nginx thành process PID 1 bên trong các namespace và bị giới hạn tài nguyên bởi cgroup; cờ <code>-d</code> cho chạy nền nên lệnh chỉ in ra container ID rồi kết thúc. Container tồn tại đúng bằng vòng đời của process PID 1.</p></details>
-<ol>
-<li>CLI sends the request to the Docker daemon over the REST API.</li>
-<li>Daemon looks for <code>nginx:latest</code> locally; if missing, <strong>pulls the layers</strong> from the registry (each layer cached for future use).</li>
-<li>Creates the container: image layers stay <strong>read-only</strong>, a fresh <strong>writable layer</strong> goes on top.</li>
-<li>Creates a network namespace, attaches it to the default <strong>bridge</strong> network, allocates a container IP.</li>
-<li><code>-p 8080:80</code>: adds a NAT rule (iptables) so host port 8080 forwards to container port 80.</li>
-<li>containerd/runc start the process as <strong>PID 1</strong> inside its namespaces (pid, net, mnt, uts) with cgroup limits applied.</li>
-<li><code>-d</code>: detached — prints the container ID and returns immediately.</li>
-</ol>
-<pre>docker ps                    # STATUS: Up — running
-docker logs -f &lt;id&gt;          # stdout/stderr of PID 1
-curl localhost:8080          # host → NAT → container:80
-
-# The container lives exactly as long as PID 1 lives:
-# process exits → container stops. No init system, no daemon inside.</pre>
-<div class="key-point">A container is just a normal Linux process wrapped in namespaces (what it can see) + cgroups (what it can use). That's why it starts in milliseconds while a VM boots an OS.</div>`,
-      },
-      {
-        q: 'How do you debug a container that keeps crashing or misbehaving?',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p>A good debug order is exit code, then logs, then a shell. <code>docker ps -a</code> shows the exit code and <code>docker inspect</code> shows the OOMKilled flag; knowing the codes helps, since 137 is a SIGKILL that is almost always an out-of-memory kill, 143 is SIGTERM, and 139 is a segfault. Logs survive the crash, so read them next, then exec into a running container with a shell, or override the entrypoint with sh if it will not start. Since a container lives only as long as PID 1, the question in a crash loop is always why that process keeps exiting.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Thứ tự debug hợp lý là: xem exit code trước, rồi tới log, cuối cùng mới vào shell. <code>docker ps -a</code> cho thấy exit code, còn <code>docker inspect</code> cho biết cờ OOMKilled. Nhớ ý nghĩa các mã sẽ rất có ích: 137 là SIGKILL, gần như luôn là do bị kill vì hết bộ nhớ; 143 là SIGTERM; còn 139 là segfault. Log vẫn còn nguyên sau khi container chết nên hãy đọc log ở bước tiếp theo, rồi dùng shell exec vào container đang chạy, hoặc ghi đè entrypoint bằng sh nếu container không khởi động nổi. Vì container chỉ sống đúng bằng vòng đời của PID 1, nên với một crash loop thì câu hỏi luôn là: tại sao process đó cứ thoát ra.</p></details>
-<pre># 1. Why did it die? Exit code + OOM flag
-docker ps -a                                   # STATUS: Exited (137) 2 min ago
-docker inspect &lt;id&gt; \\
-  --format '{{.State.ExitCode}} OOM={{.State.OOMKilled}}'
-
-# Common exit codes:
-#   1     application error → read the logs
-#   137   SIGKILL — almost always OOM-killed (memory limit hit)
-#   139   segmentation fault
-#   143   SIGTERM — graceful stop
-
-# 2. Logs survive the crash — read the dead container's output
-docker logs --tail 100 &lt;id&gt;
-
-# 3. Shell into a RUNNING container
-docker exec -it &lt;id&gt; sh
-
-# 4. Container won't even start? Override the entrypoint and look around
-docker run -it --entrypoint sh myimage
-
-# 5. Live resource usage and daemon events
-docker stats
-docker events --since 30m
-
-# 6. Copy evidence out
-docker cp &lt;id&gt;:/app/logs ./logs</pre>
-<ul>
-<li><strong>Exit 137 + OOMKilled=true</strong>: raise <code>--memory</code> or fix the leak. For Java, set <code>-XX:MaxRAMPercentage</code> so the heap respects the container limit.</li>
-<li><strong>Crash loop</strong>: PID 1 keeps exiting — a container only lives as long as its main process; check why the process terminates (config, missing dependency, port already bound).</li>
-</ul>
-<div class="key-point">Debug order: exit code → logs → exec / entrypoint override. Knowing that 137 = OOM kill is a classic senior-level signal in interviews.</div>`,
       },
       {
         q: 'How do you properly dockerize a Java / Spring Boot application?',
@@ -979,40 +998,41 @@ docker inspect &lt;id&gt; --format '{{.State.OOMKilled}}'   # true</pre>
 <div class="key-point">Exit 137 is the cgroup limit being hit, not a JVM error: size the heap as a percentage of the container limit and keep 25%+ headroom for non-heap memory.</div>`,
       },
       {
-        q: 'Alpine vs distroless vs slim — how do you choose a production base image?',
+        q: 'How do you debug a container that keeps crashing or misbehaving?',
         difficulty: 'hard',
-        a: `<div class="interview-answer"><p>A safe default is slim or distroless, with Alpine chosen only after checking compatibility. The reason is libc: Alpine uses musl instead of glibc, so glibc-compiled native modules can crash or force slow rebuilds, and it has DNS and allocator differences that can hurt the JVM. Slim is the safe glibc default with most extras removed, while distroless goes further with no shell or package manager for a smaller attack surface but harder debugging. Whatever the choice, never ship a floating tag like <code>latest</code>; pin the version and ideally the digest so builds are reproducible and tamper-proof.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Lựa chọn an toàn để mặc định là slim hoặc distroless; Alpine chỉ nên dùng sau khi đã kiểm tra kỹ tính tương thích. Lý do nằm ở libc: Alpine dùng musl thay vì glibc, nên các native module vốn được biên dịch cho glibc có thể crash hoặc buộc phải build lại từ source rất lâu; ngoài ra musl còn khác biệt ở phần DNS resolver và có bộ cấp phát bộ nhớ chậm hơn, ảnh hưởng xấu tới JVM. Slim là lựa chọn glibc an toàn, đã lược bớt phần lớn gói không cần thiết; distroless đi xa hơn nữa khi không có cả shell lẫn trình quản lý package, nhờ đó bề mặt tấn công nhỏ hơn nhưng bù lại rất khó debug. Dù chọn base nào, đừng bao giờ đưa lên production một tag hay thay đổi như <code>latest</code>; hãy ghim version, và tốt nhất là ghim theo digest để bản build luôn tái lập được và không thể bị tráo.</p></details>
-<p>The choice is a trade-off between size, attack surface, <strong>libc compatibility</strong>, and debuggability:</p>
-<table><tr><th>Base</th><th>Size</th><th>libc</th><th>Trade-off</th></tr>
-<tr><td>node:20 / debian</td><td>~1GB</td><td>glibc</td><td>Everything works; huge attack surface, slow pulls</td></tr>
-<tr><td>*-slim</td><td>~200MB</td><td>glibc</td><td>Good default: full compatibility, most packages removed</td></tr>
-<tr><td>*-alpine</td><td>~50MB</td><td><strong>musl</strong></td><td>Tiny, but musl breaks glibc-compiled native modules, has subtle DNS-resolver differences, and a slower allocator (hurts JVM/multithreaded apps)</td></tr>
-<tr><td>distroless</td><td>~20–130MB</td><td>glibc</td><td>No shell, no package manager — minimal attack surface, harder to poke around in</td></tr>
-<tr><td>scratch</td><td>~0</td><td>—</td><td>Static binaries only (Go, Rust)</td></tr></table>
+        a: `<div class="interview-answer"><p>A good debug order is exit code, then logs, then a shell. <code>docker ps -a</code> shows the exit code and <code>docker inspect</code> shows the OOMKilled flag; knowing the codes helps, since 137 is a SIGKILL that is almost always an out-of-memory kill, 143 is SIGTERM, and 139 is a segfault. Logs survive the crash, so read them next, then exec into a running container with a shell, or override the entrypoint with sh if it will not start. Since a container lives only as long as PID 1, the question in a crash loop is always why that process keeps exiting.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Thứ tự debug hợp lý là: xem exit code trước, rồi tới log, cuối cùng mới vào shell. <code>docker ps -a</code> cho thấy exit code, còn <code>docker inspect</code> cho biết cờ OOMKilled. Nhớ ý nghĩa các mã sẽ rất có ích: 137 là SIGKILL, gần như luôn là do bị kill vì hết bộ nhớ; 143 là SIGTERM; còn 139 là segfault. Log vẫn còn nguyên sau khi container chết nên hãy đọc log ở bước tiếp theo, rồi dùng shell exec vào container đang chạy, hoặc ghi đè entrypoint bằng sh nếu container không khởi động nổi. Vì container chỉ sống đúng bằng vòng đời của PID 1, nên với một crash loop thì câu hỏi luôn là: tại sao process đó cứ thoát ra.</p></details>
+<pre># 1. Why did it die? Exit code + OOM flag
+docker ps -a                                   # STATUS: Exited (137) 2 min ago
+docker inspect &lt;id&gt; \\
+  --format '{{.State.ExitCode}} OOM={{.State.OOMKilled}}'
+
+# Common exit codes:
+#   1     application error → read the logs
+#   137   SIGKILL — almost always OOM-killed (memory limit hit)
+#   139   segmentation fault
+#   143   SIGTERM — graceful stop
+
+# 2. Logs survive the crash — read the dead container's output
+docker logs --tail 100 &lt;id&gt;
+
+# 3. Shell into a RUNNING container
+docker exec -it &lt;id&gt; sh
+
+# 4. Container won't even start? Override the entrypoint and look around
+docker run -it --entrypoint sh myimage
+
+# 5. Live resource usage and daemon events
+docker stats
+docker events --since 30m
+
+# 6. Copy evidence out
+docker cp &lt;id&gt;:/app/logs ./logs</pre>
 <ul>
-<li><strong>The musl trap</strong>: Alpine is not "small Debian" — it's a different libc. Prebuilt native npm wheels/binaries targeting glibc can crash at runtime or force slow source rebuilds. Verify before adopting.</li>
-<li><strong>Distroless debugging</strong>: no shell means <code>docker exec ... sh</code> fails by design; use ephemeral debug containers instead.</li>
-<li><strong>Why FROM node:latest is a bug</strong>: the tag moves — tomorrow's build silently gets a new major version, so builds are not reproducible and prod runs something you never tested. Pin the version, and pin the <strong>digest</strong> for immutability (a tag can be re-pushed; a digest cannot).</li>
+<li><strong>Exit 137 + OOMKilled=true</strong>: raise <code>--memory</code> or fix the leak. For Java, set <code>-XX:MaxRAMPercentage</code> so the heap respects the container limit.</li>
+<li><strong>Crash loop</strong>: PID 1 keeps exiting — a container only lives as long as its main process; check why the process terminates (config, missing dependency, port already bound).</li>
 </ul>
-<pre># Build with a full image, ship without a shell:
-FROM node:20-slim AS build
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci --omit=dev
-COPY . .
-
-FROM gcr.io/distroless/nodejs20-debian12
-WORKDIR /app
-COPY --from=build /app /app
-CMD ["server.js"]                  # distroless entrypoint already runs node
-
-# Pin by digest — reproducible and tamper-proof:
-FROM node:20.11.1-slim@sha256:4b632f...
-
-# No shell in distroless? Attach an ephemeral debug container:
-kubectl debug -it api-xyz --image=busybox --target=api</pre>
-<div class="key-point">Default to slim or distroless (glibc); choose Alpine only after verifying musl compatibility — and never ship a floating tag like latest to production.</div>`,
+<div class="key-point">Debug order: exit code → logs → exec / entrypoint override. Knowing that 137 = OOM kill is a classic senior-level signal in interviews.</div>`,
       },
     ],
   },

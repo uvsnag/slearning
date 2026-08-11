@@ -7,6 +7,7 @@ export const topics: PvTopic[] = [
     name: 'Design Patterns',
     icon: '🧩',
     questions: [
+      // ──── 1. FOUNDATIONS & DESIGN PRINCIPLES ────
       {
         q: 'What is a design pattern and why does it matter?',
         difficulty: 'easy',
@@ -43,6 +44,123 @@ sender.send("Order shipped");   // SMS: Order shipped</pre>
 <div class="key-point">Patterns are tools, not goals. Overusing them can make simple code harder to understand.</div>`,
       },
       {
+        q: 'What are SOLID principles? Give a brief example of each.',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>SOLID is a set of five design principles that help keep code easy to change. <strong>SRP</strong> says a class should have only one reason to change. <strong>OCP</strong> says add new behavior with new code instead of editing tested code, <strong>LSP</strong> says a subtype must work anywhere its parent is used, <strong>ISP</strong> says prefer small focused interfaces, and <strong>DIP</strong> says depend on abstractions, not concrete classes. These are guidelines to reduce coupling, so apply them where change really happens rather than everywhere.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>SOLID là tập hợp năm nguyên tắc thiết kế giúp code dễ thay đổi. <strong>SRP</strong> nói rằng một class chỉ nên có một lý do để thay đổi. <strong>OCP</strong> nói rằng hãy thêm hành vi mới bằng code mới thay vì sửa code đã được kiểm thử, <strong>LSP</strong> nói rằng một subtype phải hoạt động đúng ở bất cứ nơi nào dùng lớp cha của nó, <strong>ISP</strong> khuyến khích dùng các interface nhỏ và tập trung, còn <strong>DIP</strong> nói rằng hãy phụ thuộc vào abstraction chứ không phải class cụ thể. Đây là những hướng dẫn để giảm coupling, nên hãy áp dụng ở nơi thực sự có thay đổi thay vì áp dụng ở mọi chỗ.</p></details>
+<p>SOLID is five object-oriented design principles that make code more maintainable:</p>
+<pre>S - Single Responsibility: One class = one reason to change
+  ❌ UserService handles login, email sending, and PDF generation
+  ✅ UserService handles login; EmailService handles email; PdfService handles PDF
+
+O - Open/Closed: Open for extension, closed for modification
+  ❌ if (type == "pdf") ... else if (type == "csv") ... // modify to add new type
+  ✅ interface Exporter { void export(); } // extend by adding new class
+
+L - Liskov Substitution: Subtype must work wherever parent type is expected
+  ❌ class Square extends Rectangle { setWidth() { also sets height } }
+     // violates: Rectangle user expects width/height to be independent
+  ✅ Use separate Shape interface for Square and Rectangle
+
+I - Interface Segregation: Don't force classes to implement methods they don't use
+  ❌ interface Worker { void code(); void manageMeetings(); void cook(); }
+  ✅ interface Coder { void code(); }
+     interface Manager { void manageMeetings(); }
+
+D - Dependency Inversion: Depend on abstractions, not concretions
+  ❌ class OrderService { private MySqlRepo repo = new MySqlRepo(); }
+  ✅ class OrderService { private Repository repo; // interface injected }</pre>
+<div class="key-point">SOLID principles are heavily asked in interviews. Know one concrete example for each. The most commonly tested are Single Responsibility (S) and Dependency Inversion (D).</div>`,
+      },
+      {
+        q: 'Why favor composition over inheritance?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>Inheritance is very tight coupling because a subclass depends on the parent's internal details, so a change in the base class can silently break it. This is called the fragile base class problem, shown by the <code>InstrumentedHashSet</code> example where the parent calls its own methods internally. Composition holds an object and delegates to it, depending only on its public interface, so it is safer and can be changed at runtime. Use inheritance only for a real is-a relationship where the base is designed for extension, and otherwise prefer has-a.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Inheritance tạo ra coupling rất chặt vì một subclass phụ thuộc vào chi tiết bên trong của lớp cha, nên một thay đổi ở base class có thể âm thầm làm hỏng nó. Đây gọi là vấn đề fragile base class, được minh họa qua ví dụ <code>InstrumentedHashSet</code> nơi lớp cha tự gọi các method của chính nó ở bên trong. Composition thì giữ một đối tượng và ủy quyền (delegate) cho nó, chỉ phụ thuộc vào public interface, nên an toàn hơn và có thể thay đổi lúc runtime. Chỉ dùng inheritance khi có quan hệ is-a thực sự và base được thiết kế để mở rộng, còn lại thì nên ưu tiên has-a.</p></details>
+<p>Inheritance couples your class to the <strong>implementation details</strong> of the parent — the "fragile base class" problem. The canonical demonstration is <code>InstrumentedHashSet</code> from <em>Effective Java</em>:</p>
+<pre>// BROKEN: inheritance leaks the parent's self-calls
+class InstrumentedHashSet&lt;E&gt; extends HashSet&lt;E&gt; {
+    private int addCount = 0;
+
+    @Override public boolean add(E e) {
+        addCount++;
+        return super.add(e);
+    }
+    @Override public boolean addAll(Collection&lt;? extends E&gt; c) {
+        addCount += c.size();
+        return super.addAll(c);   // ← HashSet.addAll calls add()
+    }                             //   internally... OUR add()!
+}
+
+InstrumentedHashSet&lt;String&gt; s = new InstrumentedHashSet&lt;&gt;();
+s.addAll(List.of("a", "b", "c"));
+s.getAddCount();  // 6, not 3! Counted once in addAll, once per add()
+
+// Worse: this depends on an UNDOCUMENTED detail of HashSet.
+// If a JDK update changes addAll to not call add(), the count
+// silently becomes 3. Your correctness depends on code you
+// don't own and can't see.</pre>
+<pre>// FIX: composition + delegation (wrapper / decorator style)
+class InstrumentedSet&lt;E&gt; implements Set&lt;E&gt; {
+    private final Set&lt;E&gt; inner;      // HAS-A, not IS-A
+    private int addCount = 0;
+
+    InstrumentedSet(Set&lt;E&gt; inner) { this.inner = inner; }
+
+    public boolean add(E e) { addCount++; return inner.add(e); }
+    public boolean addAll(Collection&lt;? extends E&gt; c) {
+        addCount += c.size();
+        return inner.addAll(c);  // inner's self-calls stay inside
+    }                            // inner — can't re-enter our code
+    // ...delegate the rest
+}
+// Bonus: works with ANY Set (HashSet, TreeSet, ...), not just one parent</pre>
+<p><strong>The deeper reasons:</strong></p>
+<ul>
+<li>Inheritance is decided at compile time and you get exactly one parent; composition can be swapped at runtime and combined freely.</li>
+<li>Subclassing breaks encapsulation: overriding requires knowing the parent's internal call graph.</li>
+<li>Inheritance means the subclass must honor the parent's full contract (LSP) — often you only wanted to reuse some code.</li>
+</ul>
+<p><strong>When inheritance IS right:</strong> a genuine is-a relationship where the base class is <em>designed and documented for extension</em> (or abstract with template methods). Otherwise, per Effective Java: "design and document for inheritance or else prohibit it."</p>
+<div class="key-point">Inheritance couples you to the parent's hidden self-call patterns — a JDK update can break your subclass. Composition forwards calls across a hard boundary, so you depend only on the public contract.</div>`,
+      },
+      {
+        q: 'What is Dependency Injection and how does it relate to design patterns?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p><strong>Dependency Injection</strong> means a class receives its dependencies from outside, usually through the constructor, instead of creating them with <code>new</code>. This makes code loosely coupled and testable, since a mock or a different implementation can be injected without changing the class. It is the concrete way to apply the Dependency Inversion principle and is closely tied to Inversion of Control. Constructor injection is preferred because it makes dependencies explicit and allows immutable, fully-built objects. DI can be done by hand, so a container is a convenience, not a requirement, and over-configured containers can become hard to maintain.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><strong>Dependency Injection</strong> nghĩa là một class nhận các dependency của nó từ bên ngoài, thường qua constructor, thay vì tự tạo chúng bằng <code>new</code>. Điều này khiến code ít ràng buộc và dễ test, vì có thể inject một mock hoặc một implementation khác mà không phải sửa class. Đây là cách cụ thể để áp dụng nguyên tắc Dependency Inversion và gắn chặt với Inversion of Control. Constructor injection được ưu tiên vì nó làm các dependency rõ ràng và cho phép tạo ra những object bất biến, được dựng đầy đủ. DI có thể làm bằng tay, nên container chỉ là tiện lợi chứ không bắt buộc, và những container cấu hình quá mức có thể trở nên khó bảo trì.</p></details>
+<p><strong>Dependency Injection (DI)</strong> provides dependencies from outside rather than creating them inside, enabling loose coupling and testability.</p>
+<pre>// ❌ Without DI: tight coupling
+class OrderService {
+    private EmailService emailService = new EmailService(); // hardcoded dependency
+    private PaymentGateway gateway = new StripeGateway();   // can't swap easily
+}
+
+// ✅ With DI: dependencies injected
+class OrderService {
+    private final EmailService emailService;
+    private final PaymentGateway gateway;
+
+    // Constructor injection (preferred)
+    OrderService(EmailService emailService, PaymentGateway gateway) {
+        this.emailService = emailService;
+        this.gateway = gateway;
+    }
+}
+
+// Production: new OrderService(new SmtpEmailService(), new StripeGateway())
+// Testing:    new OrderService(new MockEmailService(), new MockGateway())</pre>
+<p><strong>DI types:</strong></p>
+<ul>
+<li><strong>Constructor injection</strong> (recommended): all dependencies in constructor, object is always valid</li>
+<li><strong>Setter injection</strong>: optional dependencies, can change at runtime</li>
+<li><strong>Field injection</strong>: Spring @Autowired on fields — convenient but harder to test</li>
+</ul>
+<div class="key-point">DI applies the Dependency Inversion Principle (the "D" in SOLID): depend on abstractions, not concrete classes. Spring, Angular, and .NET all have built-in DI containers.</div>`,
+      },
+
+      // ──── 2. CREATIONAL PATTERNS ────
+      {
         q: 'What is the Singleton pattern and what are its risks?',
         difficulty: 'medium',
         a: `<div class="interview-answer"><p><strong>Singleton</strong> makes sure only one instance of a class exists, with a global access point. It has real pitfalls: thread safety during lazy creation, and being broken through reflection or serialization. The deeper problem is that it is global mutable state, which hides dependencies and makes testing hard. In most cases it is better to keep a single instance managed by a DI container and inject it as a normal dependency.</p></div>
@@ -66,6 +184,58 @@ public enum AppConfig {
 // Usage:
 String env = AppConfig.INSTANCE.getEnv();</pre>
 <div class="key-point">In Java, enum-based singleton is the safest common implementation.</div>`,
+      },
+      {
+        q: 'Why is double-checked locking broken without volatile?',
+        difficulty: 'tricky',
+        a: `<div class="interview-answer"><p>Double-checked locking checks the instance, locks only if it is null, then checks again to avoid locking on every call. The problem is that <code>instance = new Singleton()</code> is not atomic, so the reference can be published before the constructor finishes and another thread may see a half-built object. Marking the field <code>volatile</code> adds a memory barrier that prevents this reordering and guarantees visibility. In Java it is simpler to use the holder idiom or an enum, which are lazy and thread-safe by default.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Double-checked locking kiểm tra instance, chỉ lock nếu nó null, rồi kiểm tra lại để tránh phải lock ở mỗi lần gọi. Vấn đề là <code>instance = new Singleton()</code> không phải là thao tác atomic, nên reference có thể được công bố trước khi constructor chạy xong, và một thread khác có thể thấy một đối tượng chưa được khởi tạo hoàn chỉnh. Đánh dấu field là <code>volatile</code> sẽ thêm một memory barrier ngăn việc reorder này và đảm bảo tính visibility. Trong Java thì đơn giản hơn là dùng holder idiom hoặc enum, vốn đã lazy và thread-safe sẵn.</p></details>
+<p>The classic Java singleton trap. Double-checked locking tries to avoid synchronizing on every <code>getInstance()</code> call — but without <code>volatile</code> it can return a <strong>half-constructed object</strong>.</p>
+<pre>// BROKEN without volatile:
+class Singleton {
+    private static Singleton instance;   // ← missing volatile!
+
+    static Singleton getInstance() {
+        if (instance == null) {                  // 1st check (no lock)
+            synchronized (Singleton.class) {
+                if (instance == null) {          // 2nd check (locked)
+                    instance = new Singleton();  // ← the problem
+                }
+            }
+        }
+        return instance;
+    }
+}
+
+// "instance = new Singleton()" is NOT atomic. It's roughly:
+//   1. allocate memory
+//   2. run constructor (initialize fields)
+//   3. assign reference to 'instance'
+// The JIT/CPU may REORDER 2 and 3. So Thread A can publish
+// the reference (step 3) BEFORE the constructor ran (step 2).
+// Thread B sees instance != null at the 1st check (no lock,
+// no happens-before!) and happily uses an object whose fields
+// are still default values (null/0). Rare, non-reproducible, brutal.</pre>
+<pre>// Fix 1: volatile — forbids the reorder, creates happens-before
+private static volatile Singleton instance;
+
+// Fix 2 (better): initialization-on-demand holder — lazy, fast, no locks
+class Singleton {
+    private static class Holder {
+        static final Singleton INSTANCE = new Singleton();
+    }
+    static Singleton getInstance() { return Holder.INSTANCE; }
+    // JVM class-loading guarantees safe, lazy, once-only init
+}
+
+// Fix 3 (Effective Java): enum singleton
+enum Singleton {
+    INSTANCE;
+    void doWork() { ... }
+    // serialization-safe and reflection-safe for free
+}</pre>
+<p><strong>Why interviewers love it:</strong> it tests whether you understand the Java Memory Model — that <code>null</code>-checks without synchronization give no visibility guarantees, and that object publication is a memory-ordering problem, not a logic problem.</p>
+<div class="key-point">Without <code>volatile</code>, instruction reordering can publish the reference before the constructor finishes — another thread sees a non-null, half-built object. Prefer the holder idiom or an enum over hand-rolled double-checked locking.</div>`,
       },
       {
         q: 'What is the Factory Method pattern?',
@@ -187,144 +357,8 @@ User user = new User.Builder()
     .build();</pre>
 <div class="key-point">Builder is ideal when parameter count grows and constructor calls become hard to read safely.</div>`,
       },
-      {
-        q: 'What is the Strategy pattern and when do you use it?',
-        difficulty: 'easy',
-        a: `<div class="interview-answer"><p><strong>Strategy</strong> puts a group of interchangeable algorithms behind one interface, so the behavior can be chosen or swapped at runtime. Its main value is removing large <code>if/else</code> or <code>switch</code> chains: each branch becomes its own class, so adding a behavior means adding a class instead of editing existing code. Each algorithm is also easy to test on its own. In modern languages a strategy can simply be a function or lambda. In Strategy the client picks the behavior, while in State the object changes its own behavior over its lifecycle.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><strong>Strategy</strong> đặt một nhóm thuật toán có thể hoán đổi cho nhau đằng sau một interface, nên hành vi có thể được chọn hoặc thay đổi lúc runtime. Giá trị chính của nó là loại bỏ những chuỗi <code>if/else</code> hoặc <code>switch</code> dài: mỗi nhánh trở thành một class riêng, nên thêm một hành vi nghĩa là thêm một class thay vì sửa code cũ. Mỗi thuật toán cũng dễ test độc lập. Trong các ngôn ngữ hiện đại, một strategy đơn giản có thể chỉ là một hàm hoặc lambda. Trong Strategy thì client chọn hành vi, còn trong State thì object tự thay đổi hành vi của mình theo vòng đời.</p></details>
-<p><strong>Strategy</strong> encapsulates interchangeable algorithms behind a common interface.</p>
-<pre>interface DiscountStrategy {
-    double apply(double price);
-}
 
-class MemberDiscount implements DiscountStrategy {
-    public double apply(double price) { return price * 0.9; }
-}
-
-class HolidayDiscount implements DiscountStrategy {
-    public double apply(double price) { return price * 0.8; }
-}
-
-class CheckoutService {
-    private final DiscountStrategy strategy;
-
-    CheckoutService(DiscountStrategy strategy) {
-        this.strategy = strategy;
-    }
-
-    double total(double price) {
-        return strategy.apply(price);
-    }
-}
-
-// Usage: choose the algorithm at runtime and swap it freely
-CheckoutService checkout = new CheckoutService(new MemberDiscount());
-checkout.total(100);   // 90.0
-checkout = new CheckoutService(new HolidayDiscount());
-checkout.total(100);   // 80.0</pre>
-<div class="key-point">Strategy is great for removing large if/else blocks around changing business rules.</div>`,
-      },
-      {
-        q: 'What is the difference between Strategy and State?',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p>Strategy and State look almost the same in structure: an object delegates to a swappable behavior interface. The difference is intent. <strong>Strategy</strong> is about choosing one of several interchangeable algorithms, and the client picks it; the strategies do not change themselves. <strong>State</strong> is about an object behaving differently based on its current lifecycle state, and the states drive their own transitions, such as a document moving from draft to review to published.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Strategy và State trông gần như giống hệt nhau về cấu trúc: một object ủy thác cho một interface hành vi có thể hoán đổi. Khác biệt nằm ở ý định. <strong>Strategy</strong> là chọn một trong nhiều thuật toán có thể hoán đổi cho nhau, và client là bên chọn; các strategy không tự thay đổi chúng. <strong>State</strong> là object hành xử khác nhau tùy theo trạng thái vòng đời hiện tại, và chính các state điều khiển những chuyển đổi của mình, chẳng hạn một document đi từ draft sang review rồi sang published.</p></details>
-<ul>
-<li><strong>Strategy</strong>: choose one behavior among alternatives.</li>
-<li><strong>State</strong>: behavior changes based on current lifecycle state.</li>
-</ul>
-<pre>// Strategy: chosen from outside
-CheckoutService checkout = new CheckoutService(new MemberDiscount());
-
-// State: behavior changes inside the object
-interface OrderState {
-    void next(Order order);
-}
-
-class CreatedState implements OrderState {
-    public void next(Order order) {
-        order.setState(new PaidState());
-    }
-}
-
-class PaidState implements OrderState {
-    public void next(Order order) {
-        System.out.println("Ship order");
-    }
-}
-
-class Order {
-    private OrderState state = new CreatedState();
-    void setState(OrderState state) { this.state = state; }
-    void next() { state.next(this); }
-}
-
-// Usage: the object changes its OWN behavior as it transitions
-Order order = new Order();   // starts in CreatedState
-order.next();                // CreatedState -> becomes PaidState
-order.next();                // PaidState -> prints "Ship order"</pre>
-<div class="key-point">If behavior depends on object lifecycle transitions, it is usually State, not Strategy.</div>`,
-      },
-      {
-        q: 'What is the Observer pattern?',
-        difficulty: 'easy',
-        a: `<div class="interview-answer"><p><strong>Observer</strong> sets up a one-to-many notification: a subject keeps a list of observers and notifies them when its state changes, so they stay in sync without the subject knowing their concrete types. It is the basis of event listeners, UI data binding, and reactive frameworks. Common problems are memory leaks from observers that never unsubscribe, and heavy work done during notification. Observer runs in-process with direct references, while Pub/Sub uses a broker to fully decouple senders and receivers.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><strong>Observer</strong> thiết lập một cơ chế thông báo một-nhiều: một subject giữ danh sách các observer và thông báo cho chúng khi trạng thái của nó thay đổi, để chúng luôn đồng bộ mà subject không cần biết kiểu cụ thể của chúng. Đây là nền tảng của event listener, data binding trong UI và các framework reactive. Những vấn đề thường gặp là rò rỉ bộ nhớ do observer không bao giờ hủy đăng ký, và việc xử lý nặng ngay trong lúc thông báo. Observer chạy trong cùng tiến trình với tham chiếu trực tiếp, còn Pub/Sub dùng một broker để tách rời hoàn toàn bên gửi và bên nhận.</p></details>
-<p><strong>Observer</strong> defines a one-to-many dependency so observers are notified when subject state changes.</p>
-<pre>interface Observer {
-    void update(String event);
-}
-
-class EmailObserver implements Observer {
-    public void update(String event) {
-        System.out.println("Email received: " + event);
-    }
-}
-
-class OrderSubject {
-    private final java.util.List&lt;Observer&gt; observers = new java.util.ArrayList&lt;&gt;();
-
-    void addObserver(Observer observer) {
-        observers.add(observer);
-    }
-
-    void notifyObservers(String event) {
-        for (Observer observer : observers) {
-            observer.update(event);
-        }
-    }
-}
-
-// Usage: the subject notifies every registered observer
-OrderSubject subject = new OrderSubject();
-subject.addObserver(new EmailObserver());
-subject.notifyObservers("Order shipped");   // Email received: Order shipped</pre>
-<div class="key-point">Observer is common in UI events and in-process event systems.</div>`,
-      },
-      {
-        q: 'What is the difference between Observer and Pub/Sub?',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p>Observer and Pub/Sub share the same idea of notifying interested parties, but differ in coupling and scope. <strong>Observer</strong> runs inside one application: the subject holds direct references to its observers and calls them synchronously. <strong>Pub/Sub</strong> puts a broker in the middle: publishers send to a topic and subscribers listen on it, and the two never know about each other, often across processes and asynchronously. Pub/Sub adds broker infrastructure, delivery guarantees, and eventual consistency.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Observer và Pub/Sub cùng chia sẻ ý tưởng thông báo cho những bên quan tâm, nhưng khác nhau về mức độ tách rời và phạm vi. <strong>Observer</strong> chạy bên trong một ứng dụng: subject giữ tham chiếu trực tiếp tới các observer và gọi chúng một cách đồng bộ. <strong>Pub/Sub</strong> đặt một broker ở giữa: publisher gửi vào một topic và subscriber lắng nghe trên đó, và hai bên không hề biết về nhau, thường là qua nhiều tiến trình và bất đồng bộ. Pub/Sub thêm hạ tầng broker, các đảm bảo về phân phối, và eventual consistency.</p></details>
-<ul>
-<li><strong>Observer</strong>: in-process object pattern.</li>
-<li><strong>Pub/Sub</strong>: distributed messaging architecture using a broker.</li>
-</ul>
-<pre>// Observer: direct in-memory subscription
-OrderSubject subject = new OrderSubject();
-subject.addObserver(new EmailObserver());
-subject.notifyObservers("Order shipped");
-
-// Pub/Sub: publisher talks to broker, not direct subscribers
-class EventBus {
-    void publish(String topic, String event) {
-        System.out.println("Published to " + topic + ": " + event);
-    }
-}
-
-new EventBus().publish("orders", "OrderShipped");</pre>
-<div class="key-point">They are similar in idea but very different in runtime, scalability, and failure behavior.</div>`,
-      },
+      // ──── 3. STRUCTURAL PATTERNS ────
       {
         q: 'What is the Adapter pattern?',
         difficulty: 'medium',
@@ -472,6 +506,181 @@ coffee.cost();          // 60</pre>
 <div class="key-point">Decorator is useful when behavior must be combined flexibly at runtime.</div>`,
       },
       {
+        q: 'What is the difference between Adapter, Facade, and Proxy patterns?',
+        difficulty: 'tricky',
+        a: `<div class="interview-answer"><p>Adapter, Facade, and Proxy all wrap another object, but for different reasons. <strong>Adapter</strong> changes an interface so an incompatible class fits what the client expects. <strong>Facade</strong> puts one simple interface over a whole complex subsystem. <strong>Proxy</strong> keeps the same interface and controls access, for example lazy loading, caching, or security.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Adapter, Facade và Proxy đều bọc một đối tượng khác, nhưng vì những lý do khác nhau. <strong>Adapter</strong> thay đổi interface để một class không tương thích khớp với cái mà client mong đợi. <strong>Facade</strong> đặt một interface đơn giản lên trên cả một hệ thống con phức tạp. <strong>Proxy</strong> giữ nguyên interface và kiểm soát việc truy cập, ví dụ như lazy loading, caching hoặc bảo mật.</p></details>
+<p>All three wrap another object, but for <strong>different reasons</strong>:</p>
+<table><tr><th>Pattern</th><th>Purpose</th><th>Interface</th><th>Example</th></tr>
+<tr><td><strong>Adapter</strong></td><td>Convert incompatible interface</td><td>Changes interface</td><td>Legacy API → new interface</td></tr>
+<tr><td><strong>Facade</strong></td><td>Simplify complex subsystem</td><td>New simplified interface</td><td>checkout() wraps 5 services</td></tr>
+<tr><td><strong>Proxy</strong></td><td>Control access to real object</td><td>Same interface as real</td><td>Lazy load, security check, caching</td></tr></table>
+<pre>// Adapter: makes incompatible interface compatible
+class OldPaymentAdapter implements NewPaymentInterface {
+    private OldPaymentSystem old;
+    void pay(Money m) { old.makePayment(m.toCents()); } // adapts interface
+}
+
+// Facade: simplifies multiple subsystems
+class OrderFacade {
+    void placeOrder() {
+        inventoryService.reserve();  // hides complexity
+        paymentService.charge();     // of multiple services
+        emailService.notify();       // behind one method
+    }
+}
+
+// Proxy: same interface, adds behavior
+class CachingUserProxy implements UserService {
+    private UserService real;
+    User getUser(int id) {
+        if (cache.has(id)) return cache.get(id);  // adds caching
+        return real.getUser(id);                    // same interface
+    }
+}</pre>
+<div class="key-point">Trick question tip: If asked "which pattern wraps another object?" — all three do! The difference is WHY: Adapter = interface mismatch, Facade = simplification, Proxy = access control.</div>`,
+      },
+
+      // ──── 4. BEHAVIORAL PATTERNS ────
+      {
+        q: 'What is the Strategy pattern and when do you use it?',
+        difficulty: 'easy',
+        a: `<div class="interview-answer"><p><strong>Strategy</strong> puts a group of interchangeable algorithms behind one interface, so the behavior can be chosen or swapped at runtime. Its main value is removing large <code>if/else</code> or <code>switch</code> chains: each branch becomes its own class, so adding a behavior means adding a class instead of editing existing code. Each algorithm is also easy to test on its own. In modern languages a strategy can simply be a function or lambda. In Strategy the client picks the behavior, while in State the object changes its own behavior over its lifecycle.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><strong>Strategy</strong> đặt một nhóm thuật toán có thể hoán đổi cho nhau đằng sau một interface, nên hành vi có thể được chọn hoặc thay đổi lúc runtime. Giá trị chính của nó là loại bỏ những chuỗi <code>if/else</code> hoặc <code>switch</code> dài: mỗi nhánh trở thành một class riêng, nên thêm một hành vi nghĩa là thêm một class thay vì sửa code cũ. Mỗi thuật toán cũng dễ test độc lập. Trong các ngôn ngữ hiện đại, một strategy đơn giản có thể chỉ là một hàm hoặc lambda. Trong Strategy thì client chọn hành vi, còn trong State thì object tự thay đổi hành vi của mình theo vòng đời.</p></details>
+<p><strong>Strategy</strong> encapsulates interchangeable algorithms behind a common interface.</p>
+<pre>interface DiscountStrategy {
+    double apply(double price);
+}
+
+class MemberDiscount implements DiscountStrategy {
+    public double apply(double price) { return price * 0.9; }
+}
+
+class HolidayDiscount implements DiscountStrategy {
+    public double apply(double price) { return price * 0.8; }
+}
+
+class CheckoutService {
+    private final DiscountStrategy strategy;
+
+    CheckoutService(DiscountStrategy strategy) {
+        this.strategy = strategy;
+    }
+
+    double total(double price) {
+        return strategy.apply(price);
+    }
+}
+
+// Usage: choose the algorithm at runtime and swap it freely
+CheckoutService checkout = new CheckoutService(new MemberDiscount());
+checkout.total(100);   // 90.0
+checkout = new CheckoutService(new HolidayDiscount());
+checkout.total(100);   // 80.0</pre>
+<div class="key-point">Strategy is great for removing large if/else blocks around changing business rules.</div>`,
+      },
+      {
+        q: 'What is the difference between Strategy and State?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>Strategy and State look almost the same in structure: an object delegates to a swappable behavior interface. The difference is intent. <strong>Strategy</strong> is about choosing one of several interchangeable algorithms, and the client picks it; the strategies do not change themselves. <strong>State</strong> is about an object behaving differently based on its current lifecycle state, and the states drive their own transitions, such as a document moving from draft to review to published.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Strategy và State trông gần như giống hệt nhau về cấu trúc: một object ủy thác cho một interface hành vi có thể hoán đổi. Khác biệt nằm ở ý định. <strong>Strategy</strong> là chọn một trong nhiều thuật toán có thể hoán đổi cho nhau, và client là bên chọn; các strategy không tự thay đổi chúng. <strong>State</strong> là object hành xử khác nhau tùy theo trạng thái vòng đời hiện tại, và chính các state điều khiển những chuyển đổi của mình, chẳng hạn một document đi từ draft sang review rồi sang published.</p></details>
+<ul>
+<li><strong>Strategy</strong>: choose one behavior among alternatives.</li>
+<li><strong>State</strong>: behavior changes based on current lifecycle state.</li>
+</ul>
+<pre>// Strategy: chosen from outside
+CheckoutService checkout = new CheckoutService(new MemberDiscount());
+
+// State: behavior changes inside the object
+interface OrderState {
+    void next(Order order);
+}
+
+class CreatedState implements OrderState {
+    public void next(Order order) {
+        order.setState(new PaidState());
+    }
+}
+
+class PaidState implements OrderState {
+    public void next(Order order) {
+        System.out.println("Ship order");
+    }
+}
+
+class Order {
+    private OrderState state = new CreatedState();
+    void setState(OrderState state) { this.state = state; }
+    void next() { state.next(this); }
+}
+
+// Usage: the object changes its OWN behavior as it transitions
+Order order = new Order();   // starts in CreatedState
+order.next();                // CreatedState -> becomes PaidState
+order.next();                // PaidState -> prints "Ship order"</pre>
+<div class="key-point">If behavior depends on object lifecycle transitions, it is usually State, not Strategy.</div>`,
+      },
+      {
+        q: 'What is the Observer pattern?',
+        difficulty: 'easy',
+        a: `<div class="interview-answer"><p><strong>Observer</strong> sets up a one-to-many notification: a subject keeps a list of observers and notifies them when its state changes, so they stay in sync without the subject knowing their concrete types. It is the basis of event listeners, UI data binding, and reactive frameworks. Common problems are memory leaks from observers that never unsubscribe, and heavy work done during notification. Observer runs in-process with direct references, while Pub/Sub uses a broker to fully decouple senders and receivers.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><strong>Observer</strong> thiết lập một cơ chế thông báo một-nhiều: một subject giữ danh sách các observer và thông báo cho chúng khi trạng thái của nó thay đổi, để chúng luôn đồng bộ mà subject không cần biết kiểu cụ thể của chúng. Đây là nền tảng của event listener, data binding trong UI và các framework reactive. Những vấn đề thường gặp là rò rỉ bộ nhớ do observer không bao giờ hủy đăng ký, và việc xử lý nặng ngay trong lúc thông báo. Observer chạy trong cùng tiến trình với tham chiếu trực tiếp, còn Pub/Sub dùng một broker để tách rời hoàn toàn bên gửi và bên nhận.</p></details>
+<p><strong>Observer</strong> defines a one-to-many dependency so observers are notified when subject state changes.</p>
+<pre>interface Observer {
+    void update(String event);
+}
+
+class EmailObserver implements Observer {
+    public void update(String event) {
+        System.out.println("Email received: " + event);
+    }
+}
+
+class OrderSubject {
+    private final java.util.List&lt;Observer&gt; observers = new java.util.ArrayList&lt;&gt;();
+
+    void addObserver(Observer observer) {
+        observers.add(observer);
+    }
+
+    void notifyObservers(String event) {
+        for (Observer observer : observers) {
+            observer.update(event);
+        }
+    }
+}
+
+// Usage: the subject notifies every registered observer
+OrderSubject subject = new OrderSubject();
+subject.addObserver(new EmailObserver());
+subject.notifyObservers("Order shipped");   // Email received: Order shipped</pre>
+<div class="key-point">Observer is common in UI events and in-process event systems.</div>`,
+      },
+      {
+        q: 'What is the difference between Observer and Pub/Sub?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>Observer and Pub/Sub share the same idea of notifying interested parties, but differ in coupling and scope. <strong>Observer</strong> runs inside one application: the subject holds direct references to its observers and calls them synchronously. <strong>Pub/Sub</strong> puts a broker in the middle: publishers send to a topic and subscribers listen on it, and the two never know about each other, often across processes and asynchronously. Pub/Sub adds broker infrastructure, delivery guarantees, and eventual consistency.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Observer và Pub/Sub cùng chia sẻ ý tưởng thông báo cho những bên quan tâm, nhưng khác nhau về mức độ tách rời và phạm vi. <strong>Observer</strong> chạy bên trong một ứng dụng: subject giữ tham chiếu trực tiếp tới các observer và gọi chúng một cách đồng bộ. <strong>Pub/Sub</strong> đặt một broker ở giữa: publisher gửi vào một topic và subscriber lắng nghe trên đó, và hai bên không hề biết về nhau, thường là qua nhiều tiến trình và bất đồng bộ. Pub/Sub thêm hạ tầng broker, các đảm bảo về phân phối, và eventual consistency.</p></details>
+<ul>
+<li><strong>Observer</strong>: in-process object pattern.</li>
+<li><strong>Pub/Sub</strong>: distributed messaging architecture using a broker.</li>
+</ul>
+<pre>// Observer: direct in-memory subscription
+OrderSubject subject = new OrderSubject();
+subject.addObserver(new EmailObserver());
+subject.notifyObservers("Order shipped");
+
+// Pub/Sub: publisher talks to broker, not direct subscribers
+class EventBus {
+    void publish(String topic, String event) {
+        System.out.println("Published to " + topic + ": " + event);
+    }
+}
+
+new EventBus().publish("orders", "OrderShipped");</pre>
+<div class="key-point">They are similar in idea but very different in runtime, scalability, and failure behavior.</div>`,
+      },
+      {
         q: 'What is the Template Method pattern?',
         difficulty: 'medium',
         a: `<div class="interview-answer"><p><strong>Template Method</strong> defines the fixed steps of an algorithm in a base class and lets subclasses fill in specific steps through overridable hooks. The overall sequence stays the same, and only the varying steps change. It suits frameworks, such as a base test runner with setup, run, and teardown, or a pipeline where only one step differs. Because it is based on inheritance, it carries the coupling and fragile-base-class risks of inheritance, so Strategy with composition is often a more flexible modern choice.</p></div>
@@ -542,6 +751,8 @@ chain.linkWith(new AuditHandler());
 chain.handle("GET /orders");   // Auth check: GET /orders -> Audit log: GET /orders</pre>
 <div class="key-point">HTTP middleware and servlet filters are common real-world examples.</div>`,
       },
+
+      // ──── 5. ENTERPRISE / ARCHITECTURAL PATTERNS ────
       {
         q: 'What is the Repository pattern?',
         difficulty: 'medium',
@@ -585,208 +796,8 @@ class UserService {
 }</pre>
 <div class="key-point">Repository makes business logic testable (inject a fake repo in tests) and allows swapping persistence technology without changing domain code. Spring Data JPA auto-generates repository implementations.</div>`,
       },
-      {
-        q: 'What is Dependency Injection and how does it relate to design patterns?',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p><strong>Dependency Injection</strong> means a class receives its dependencies from outside, usually through the constructor, instead of creating them with <code>new</code>. This makes code loosely coupled and testable, since a mock or a different implementation can be injected without changing the class. It is the concrete way to apply the Dependency Inversion principle and is closely tied to Inversion of Control. Constructor injection is preferred because it makes dependencies explicit and allows immutable, fully-built objects. DI can be done by hand, so a container is a convenience, not a requirement, and over-configured containers can become hard to maintain.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><strong>Dependency Injection</strong> nghĩa là một class nhận các dependency của nó từ bên ngoài, thường qua constructor, thay vì tự tạo chúng bằng <code>new</code>. Điều này khiến code ít ràng buộc và dễ test, vì có thể inject một mock hoặc một implementation khác mà không phải sửa class. Đây là cách cụ thể để áp dụng nguyên tắc Dependency Inversion và gắn chặt với Inversion of Control. Constructor injection được ưu tiên vì nó làm các dependency rõ ràng và cho phép tạo ra những object bất biến, được dựng đầy đủ. DI có thể làm bằng tay, nên container chỉ là tiện lợi chứ không bắt buộc, và những container cấu hình quá mức có thể trở nên khó bảo trì.</p></details>
-<p><strong>Dependency Injection (DI)</strong> provides dependencies from outside rather than creating them inside, enabling loose coupling and testability.</p>
-<pre>// ❌ Without DI: tight coupling
-class OrderService {
-    private EmailService emailService = new EmailService(); // hardcoded dependency
-    private PaymentGateway gateway = new StripeGateway();   // can't swap easily
-}
 
-// ✅ With DI: dependencies injected
-class OrderService {
-    private final EmailService emailService;
-    private final PaymentGateway gateway;
-
-    // Constructor injection (preferred)
-    OrderService(EmailService emailService, PaymentGateway gateway) {
-        this.emailService = emailService;
-        this.gateway = gateway;
-    }
-}
-
-// Production: new OrderService(new SmtpEmailService(), new StripeGateway())
-// Testing:    new OrderService(new MockEmailService(), new MockGateway())</pre>
-<p><strong>DI types:</strong></p>
-<ul>
-<li><strong>Constructor injection</strong> (recommended): all dependencies in constructor, object is always valid</li>
-<li><strong>Setter injection</strong>: optional dependencies, can change at runtime</li>
-<li><strong>Field injection</strong>: Spring @Autowired on fields — convenient but harder to test</li>
-</ul>
-<div class="key-point">DI applies the Dependency Inversion Principle (the "D" in SOLID): depend on abstractions, not concrete classes. Spring, Angular, and .NET all have built-in DI containers.</div>`,
-      },
-      {
-        q: 'What are SOLID principles? Give a brief example of each.',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p>SOLID is a set of five design principles that help keep code easy to change. <strong>SRP</strong> says a class should have only one reason to change. <strong>OCP</strong> says add new behavior with new code instead of editing tested code, <strong>LSP</strong> says a subtype must work anywhere its parent is used, <strong>ISP</strong> says prefer small focused interfaces, and <strong>DIP</strong> says depend on abstractions, not concrete classes. These are guidelines to reduce coupling, so apply them where change really happens rather than everywhere.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>SOLID là tập hợp năm nguyên tắc thiết kế giúp code dễ thay đổi. <strong>SRP</strong> nói rằng một class chỉ nên có một lý do để thay đổi. <strong>OCP</strong> nói rằng hãy thêm hành vi mới bằng code mới thay vì sửa code đã được kiểm thử, <strong>LSP</strong> nói rằng một subtype phải hoạt động đúng ở bất cứ nơi nào dùng lớp cha của nó, <strong>ISP</strong> khuyến khích dùng các interface nhỏ và tập trung, còn <strong>DIP</strong> nói rằng hãy phụ thuộc vào abstraction chứ không phải class cụ thể. Đây là những hướng dẫn để giảm coupling, nên hãy áp dụng ở nơi thực sự có thay đổi thay vì áp dụng ở mọi chỗ.</p></details>
-<p>SOLID is five object-oriented design principles that make code more maintainable:</p>
-<pre>S - Single Responsibility: One class = one reason to change
-  ❌ UserService handles login, email sending, and PDF generation
-  ✅ UserService handles login; EmailService handles email; PdfService handles PDF
-
-O - Open/Closed: Open for extension, closed for modification
-  ❌ if (type == "pdf") ... else if (type == "csv") ... // modify to add new type
-  ✅ interface Exporter { void export(); } // extend by adding new class
-
-L - Liskov Substitution: Subtype must work wherever parent type is expected
-  ❌ class Square extends Rectangle { setWidth() { also sets height } }
-     // violates: Rectangle user expects width/height to be independent
-  ✅ Use separate Shape interface for Square and Rectangle
-
-I - Interface Segregation: Don't force classes to implement methods they don't use
-  ❌ interface Worker { void code(); void manageMeetings(); void cook(); }
-  ✅ interface Coder { void code(); }
-     interface Manager { void manageMeetings(); }
-
-D - Dependency Inversion: Depend on abstractions, not concretions
-  ❌ class OrderService { private MySqlRepo repo = new MySqlRepo(); }
-  ✅ class OrderService { private Repository repo; // interface injected }</pre>
-<div class="key-point">SOLID principles are heavily asked in interviews. Know one concrete example for each. The most commonly tested are Single Responsibility (S) and Dependency Inversion (D).</div>`,
-      },
-      {
-        q: 'What is the difference between Adapter, Facade, and Proxy patterns?',
-        difficulty: 'tricky',
-        a: `<div class="interview-answer"><p>Adapter, Facade, and Proxy all wrap another object, but for different reasons. <strong>Adapter</strong> changes an interface so an incompatible class fits what the client expects. <strong>Facade</strong> puts one simple interface over a whole complex subsystem. <strong>Proxy</strong> keeps the same interface and controls access, for example lazy loading, caching, or security.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Adapter, Facade và Proxy đều bọc một đối tượng khác, nhưng vì những lý do khác nhau. <strong>Adapter</strong> thay đổi interface để một class không tương thích khớp với cái mà client mong đợi. <strong>Facade</strong> đặt một interface đơn giản lên trên cả một hệ thống con phức tạp. <strong>Proxy</strong> giữ nguyên interface và kiểm soát việc truy cập, ví dụ như lazy loading, caching hoặc bảo mật.</p></details>
-<p>All three wrap another object, but for <strong>different reasons</strong>:</p>
-<table><tr><th>Pattern</th><th>Purpose</th><th>Interface</th><th>Example</th></tr>
-<tr><td><strong>Adapter</strong></td><td>Convert incompatible interface</td><td>Changes interface</td><td>Legacy API → new interface</td></tr>
-<tr><td><strong>Facade</strong></td><td>Simplify complex subsystem</td><td>New simplified interface</td><td>checkout() wraps 5 services</td></tr>
-<tr><td><strong>Proxy</strong></td><td>Control access to real object</td><td>Same interface as real</td><td>Lazy load, security check, caching</td></tr></table>
-<pre>// Adapter: makes incompatible interface compatible
-class OldPaymentAdapter implements NewPaymentInterface {
-    private OldPaymentSystem old;
-    void pay(Money m) { old.makePayment(m.toCents()); } // adapts interface
-}
-
-// Facade: simplifies multiple subsystems
-class OrderFacade {
-    void placeOrder() {
-        inventoryService.reserve();  // hides complexity
-        paymentService.charge();     // of multiple services
-        emailService.notify();       // behind one method
-    }
-}
-
-// Proxy: same interface, adds behavior
-class CachingUserProxy implements UserService {
-    private UserService real;
-    User getUser(int id) {
-        if (cache.has(id)) return cache.get(id);  // adds caching
-        return real.getUser(id);                    // same interface
-    }
-}</pre>
-<div class="key-point">Trick question tip: If asked "which pattern wraps another object?" — all three do! The difference is WHY: Adapter = interface mismatch, Facade = simplification, Proxy = access control.</div>`,
-      },
-      {
-        q: 'Why is double-checked locking broken without volatile?',
-        difficulty: 'tricky',
-        a: `<div class="interview-answer"><p>Double-checked locking checks the instance, locks only if it is null, then checks again to avoid locking on every call. The problem is that <code>instance = new Singleton()</code> is not atomic, so the reference can be published before the constructor finishes and another thread may see a half-built object. Marking the field <code>volatile</code> adds a memory barrier that prevents this reordering and guarantees visibility. In Java it is simpler to use the holder idiom or an enum, which are lazy and thread-safe by default.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Double-checked locking kiểm tra instance, chỉ lock nếu nó null, rồi kiểm tra lại để tránh phải lock ở mỗi lần gọi. Vấn đề là <code>instance = new Singleton()</code> không phải là thao tác atomic, nên reference có thể được công bố trước khi constructor chạy xong, và một thread khác có thể thấy một đối tượng chưa được khởi tạo hoàn chỉnh. Đánh dấu field là <code>volatile</code> sẽ thêm một memory barrier ngăn việc reorder này và đảm bảo tính visibility. Trong Java thì đơn giản hơn là dùng holder idiom hoặc enum, vốn đã lazy và thread-safe sẵn.</p></details>
-<p>The classic Java singleton trap. Double-checked locking tries to avoid synchronizing on every <code>getInstance()</code> call — but without <code>volatile</code> it can return a <strong>half-constructed object</strong>.</p>
-<pre>// BROKEN without volatile:
-class Singleton {
-    private static Singleton instance;   // ← missing volatile!
-
-    static Singleton getInstance() {
-        if (instance == null) {                  // 1st check (no lock)
-            synchronized (Singleton.class) {
-                if (instance == null) {          // 2nd check (locked)
-                    instance = new Singleton();  // ← the problem
-                }
-            }
-        }
-        return instance;
-    }
-}
-
-// "instance = new Singleton()" is NOT atomic. It's roughly:
-//   1. allocate memory
-//   2. run constructor (initialize fields)
-//   3. assign reference to 'instance'
-// The JIT/CPU may REORDER 2 and 3. So Thread A can publish
-// the reference (step 3) BEFORE the constructor ran (step 2).
-// Thread B sees instance != null at the 1st check (no lock,
-// no happens-before!) and happily uses an object whose fields
-// are still default values (null/0). Rare, non-reproducible, brutal.</pre>
-<pre>// Fix 1: volatile — forbids the reorder, creates happens-before
-private static volatile Singleton instance;
-
-// Fix 2 (better): initialization-on-demand holder — lazy, fast, no locks
-class Singleton {
-    private static class Holder {
-        static final Singleton INSTANCE = new Singleton();
-    }
-    static Singleton getInstance() { return Holder.INSTANCE; }
-    // JVM class-loading guarantees safe, lazy, once-only init
-}
-
-// Fix 3 (Effective Java): enum singleton
-enum Singleton {
-    INSTANCE;
-    void doWork() { ... }
-    // serialization-safe and reflection-safe for free
-}</pre>
-<p><strong>Why interviewers love it:</strong> it tests whether you understand the Java Memory Model — that <code>null</code>-checks without synchronization give no visibility guarantees, and that object publication is a memory-ordering problem, not a logic problem.</p>
-<div class="key-point">Without <code>volatile</code>, instruction reordering can publish the reference before the constructor finishes — another thread sees a non-null, half-built object. Prefer the holder idiom or an enum over hand-rolled double-checked locking.</div>`,
-      },
-      {
-        q: 'Why favor composition over inheritance?',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p>Inheritance is very tight coupling because a subclass depends on the parent's internal details, so a change in the base class can silently break it. This is called the fragile base class problem, shown by the <code>InstrumentedHashSet</code> example where the parent calls its own methods internally. Composition holds an object and delegates to it, depending only on its public interface, so it is safer and can be changed at runtime. Use inheritance only for a real is-a relationship where the base is designed for extension, and otherwise prefer has-a.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Inheritance tạo ra coupling rất chặt vì một subclass phụ thuộc vào chi tiết bên trong của lớp cha, nên một thay đổi ở base class có thể âm thầm làm hỏng nó. Đây gọi là vấn đề fragile base class, được minh họa qua ví dụ <code>InstrumentedHashSet</code> nơi lớp cha tự gọi các method của chính nó ở bên trong. Composition thì giữ một đối tượng và ủy quyền (delegate) cho nó, chỉ phụ thuộc vào public interface, nên an toàn hơn và có thể thay đổi lúc runtime. Chỉ dùng inheritance khi có quan hệ is-a thực sự và base được thiết kế để mở rộng, còn lại thì nên ưu tiên has-a.</p></details>
-<p>Inheritance couples your class to the <strong>implementation details</strong> of the parent — the "fragile base class" problem. The canonical demonstration is <code>InstrumentedHashSet</code> from <em>Effective Java</em>:</p>
-<pre>// BROKEN: inheritance leaks the parent's self-calls
-class InstrumentedHashSet&lt;E&gt; extends HashSet&lt;E&gt; {
-    private int addCount = 0;
-
-    @Override public boolean add(E e) {
-        addCount++;
-        return super.add(e);
-    }
-    @Override public boolean addAll(Collection&lt;? extends E&gt; c) {
-        addCount += c.size();
-        return super.addAll(c);   // ← HashSet.addAll calls add()
-    }                             //   internally... OUR add()!
-}
-
-InstrumentedHashSet&lt;String&gt; s = new InstrumentedHashSet&lt;&gt;();
-s.addAll(List.of("a", "b", "c"));
-s.getAddCount();  // 6, not 3! Counted once in addAll, once per add()
-
-// Worse: this depends on an UNDOCUMENTED detail of HashSet.
-// If a JDK update changes addAll to not call add(), the count
-// silently becomes 3. Your correctness depends on code you
-// don't own and can't see.</pre>
-<pre>// FIX: composition + delegation (wrapper / decorator style)
-class InstrumentedSet&lt;E&gt; implements Set&lt;E&gt; {
-    private final Set&lt;E&gt; inner;      // HAS-A, not IS-A
-    private int addCount = 0;
-
-    InstrumentedSet(Set&lt;E&gt; inner) { this.inner = inner; }
-
-    public boolean add(E e) { addCount++; return inner.add(e); }
-    public boolean addAll(Collection&lt;? extends E&gt; c) {
-        addCount += c.size();
-        return inner.addAll(c);  // inner's self-calls stay inside
-    }                            // inner — can't re-enter our code
-    // ...delegate the rest
-}
-// Bonus: works with ANY Set (HashSet, TreeSet, ...), not just one parent</pre>
-<p><strong>The deeper reasons:</strong></p>
-<ul>
-<li>Inheritance is decided at compile time and you get exactly one parent; composition can be swapped at runtime and combined freely.</li>
-<li>Subclassing breaks encapsulation: overriding requires knowing the parent's internal call graph.</li>
-<li>Inheritance means the subclass must honor the parent's full contract (LSP) — often you only wanted to reuse some code.</li>
-</ul>
-<p><strong>When inheritance IS right:</strong> a genuine is-a relationship where the base class is <em>designed and documented for extension</em> (or abstract with template methods). Otherwise, per Effective Java: "design and document for inheritance or else prohibit it."</p>
-<div class="key-point">Inheritance couples you to the parent's hidden self-call patterns — a JDK update can break your subclass. Composition forwards calls across a hard boundary, so you depend only on the public contract.</div>`,
-      },
+      // ──── 6. ANTI-PATTERNS & WHEN NOT TO USE A PATTERN ────
       {
         q: 'What is the Anemic Domain Model anti-pattern?',
         difficulty: 'hard',
@@ -840,6 +851,43 @@ class Order {
 <div class="key-point">Anemic models scatter invariants across services where any caller can bypass them; rich models make illegal states unrepresentable — but judge by complexity: rich domain for complex business rules, plain CRUD for plain CRUD.</div>`,
       },
       {
+        q: 'What is a God Object, and what does the Law of Demeter say about train wrecks?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>A God Object is a class that knows and does too much, so everything depends on it, it is hard to test, and every change touches it. It is the clearest violation of single responsibility. The Law of Demeter says a method should only talk to its direct neighbors, which targets train wrecks like <code>order.getCustomer().getAddress().getCity()</code> that couple code to the whole object structure. The fix for both is tell, don't ask: give objects behavior instead of reaching into their internals, though plain data objects and fluent builders may chain freely.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>God Object là một class biết và làm quá nhiều thứ, khiến mọi thứ đều phụ thuộc vào nó, khó kiểm thử, và mọi thay đổi đều động tới nó. Đây là vi phạm rõ ràng nhất của nguyên tắc single responsibility. Law of Demeter nói rằng một method chỉ nên nói chuyện với những hàng xóm trực tiếp của nó, nhắm vào các train wreck như <code>order.getCustomer().getAddress().getCity()</code> vốn khiến code phụ thuộc vào toàn bộ cấu trúc đối tượng. Cách khắc phục cho cả hai là tell, don't ask: hãy trao hành vi cho đối tượng thay vì thò tay vào bên trong nó, dù các đối tượng dữ liệu thuần và fluent builder vẫn có thể chain thoải mái.</p></details>
+<p>Two related coupling smells that interviewers probe together.</p>
+<p><strong>God Object</strong>: one class that knows too much and does too much — <code>AppManager</code>, <code>Utils</code>, a 4000-line <code>OrderService</code> touching pricing, inventory, email, and PDF generation. Every change routes through it, so it has maximal merge conflicts, untestable constructor dependencies, and no single reason to change (violates SRP by definition).</p>
+<p><strong>Law of Demeter</strong> ("only talk to your immediate friends"): a method should call methods on its own fields, its parameters, and objects it creates — not on objects <em>returned by</em> those objects. Violations look like train wrecks:</p>
+<pre>// Train wreck — coupled to the STRUCTURE of three objects:
+if (customer.getWallet().getPrimaryCard().getExpiry()
+            .isBefore(LocalDate.now())) {
+    // ...
+}
+// This code breaks if: Wallet is renamed, a customer can have
+// no wallet (NPE!), cards move to a payment service, expiry
+// becomes a range... You've hard-coded a path through the
+// object graph: customer → wallet → card → expiry.
+
+// Tell, don't ask — push the question to where the data lives:
+if (customer.hasExpiredPaymentMethod()) { ... }
+
+class Customer {
+    boolean hasExpiredPaymentMethod() {
+        return wallet != null && wallet.hasExpiredCard();
+    }
+}
+class Wallet {
+    boolean hasExpiredCard() {
+        return primaryCard != null && primaryCard.isExpired();
+    }
+}
+// Each class asks only its DIRECT neighbor one question.
+// Restructure the graph → only one class changes.</pre>
+<p><strong>Why the two smells feed each other:</strong> a God Object is usually built <em>from</em> train wrecks — since it reaches through everyone's internals, all logic gravitates into it. Applying tell-don't-ask redistributes behavior to the objects that own the data, which is exactly how you dismantle a God Object: identify field clusters used by disjoint method groups, extract them, and <em>move the behavior with the data</em>.</p>
+<p><strong>Nuance to volunteer:</strong> Demeter applies to <em>objects with behavior</em>, not plain data. Chaining through a DTO, a fluent builder, or a Stream pipeline (<code>list.stream().filter().map()</code>) is fine — those return new values, they don't expose a neighbor's internal structure.</p>
+<div class="key-point">Train wrecks couple you to the shape of the whole object graph; tell-don't-ask moves behavior next to its data — the same move that breaks up God Objects. But don't cargo-cult it: fluent APIs and DTO chains are not Demeter violations.</div>`,
+      },
+      {
         q: 'When should you NOT use a design pattern?',
         difficulty: 'tricky',
         a: `<div class="interview-answer"><p>Design patterns are shared vocabulary, not goals, and each one adds indirection that has a lasting readability and maintenance cost. Do not use a pattern until the problem it solves actually appears, since adding flexibility for change that never comes is wasted effort (YAGNI). Speculative generality makes simple code hard to follow. Write the simplest thing that works, and refactor toward a pattern when a second or third real variation forces it.</p></div>
@@ -878,43 +926,6 @@ BigDecimal discount(CustomerType type, BigDecimal price) {
 </ul>
 <p><strong>How to frame it:</strong> patterns emerged as <em>descriptions</em> of good solutions, not prescriptions. Their biggest everyday value is communication — saying "this is a decorator" compresses a design conversation. Interviewers often follow up with: "show me a pattern you removed." Have a story.</p>
 <div class="key-point">Every pattern trades readability for flexibility along one axis of change — if that axis never changes, you paid the cost for nothing. Write the simple thing; refactor to the pattern when the second or third real variant shows up.</div>`,
-      },
-      {
-        q: 'What is a God Object, and what does the Law of Demeter say about train wrecks?',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p>A God Object is a class that knows and does too much, so everything depends on it, it is hard to test, and every change touches it. It is the clearest violation of single responsibility. The Law of Demeter says a method should only talk to its direct neighbors, which targets train wrecks like <code>order.getCustomer().getAddress().getCity()</code> that couple code to the whole object structure. The fix for both is tell, don't ask: give objects behavior instead of reaching into their internals, though plain data objects and fluent builders may chain freely.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>God Object là một class biết và làm quá nhiều thứ, khiến mọi thứ đều phụ thuộc vào nó, khó kiểm thử, và mọi thay đổi đều động tới nó. Đây là vi phạm rõ ràng nhất của nguyên tắc single responsibility. Law of Demeter nói rằng một method chỉ nên nói chuyện với những hàng xóm trực tiếp của nó, nhắm vào các train wreck như <code>order.getCustomer().getAddress().getCity()</code> vốn khiến code phụ thuộc vào toàn bộ cấu trúc đối tượng. Cách khắc phục cho cả hai là tell, don't ask: hãy trao hành vi cho đối tượng thay vì thò tay vào bên trong nó, dù các đối tượng dữ liệu thuần và fluent builder vẫn có thể chain thoải mái.</p></details>
-<p>Two related coupling smells that interviewers probe together.</p>
-<p><strong>God Object</strong>: one class that knows too much and does too much — <code>AppManager</code>, <code>Utils</code>, a 4000-line <code>OrderService</code> touching pricing, inventory, email, and PDF generation. Every change routes through it, so it has maximal merge conflicts, untestable constructor dependencies, and no single reason to change (violates SRP by definition).</p>
-<p><strong>Law of Demeter</strong> ("only talk to your immediate friends"): a method should call methods on its own fields, its parameters, and objects it creates — not on objects <em>returned by</em> those objects. Violations look like train wrecks:</p>
-<pre>// Train wreck — coupled to the STRUCTURE of three objects:
-if (customer.getWallet().getPrimaryCard().getExpiry()
-            .isBefore(LocalDate.now())) {
-    // ...
-}
-// This code breaks if: Wallet is renamed, a customer can have
-// no wallet (NPE!), cards move to a payment service, expiry
-// becomes a range... You've hard-coded a path through the
-// object graph: customer → wallet → card → expiry.
-
-// Tell, don't ask — push the question to where the data lives:
-if (customer.hasExpiredPaymentMethod()) { ... }
-
-class Customer {
-    boolean hasExpiredPaymentMethod() {
-        return wallet != null && wallet.hasExpiredCard();
-    }
-}
-class Wallet {
-    boolean hasExpiredCard() {
-        return primaryCard != null && primaryCard.isExpired();
-    }
-}
-// Each class asks only its DIRECT neighbor one question.
-// Restructure the graph → only one class changes.</pre>
-<p><strong>Why the two smells feed each other:</strong> a God Object is usually built <em>from</em> train wrecks — since it reaches through everyone's internals, all logic gravitates into it. Applying tell-don't-ask redistributes behavior to the objects that own the data, which is exactly how you dismantle a God Object: identify field clusters used by disjoint method groups, extract them, and <em>move the behavior with the data</em>.</p>
-<p><strong>Nuance to volunteer:</strong> Demeter applies to <em>objects with behavior</em>, not plain data. Chaining through a DTO, a fluent builder, or a Stream pipeline (<code>list.stream().filter().map()</code>) is fine — those return new values, they don't expose a neighbor's internal structure.</p>
-<div class="key-point">Train wrecks couple you to the shape of the whole object graph; tell-don't-ask moves behavior next to its data — the same move that breaks up God Objects. But don't cargo-cult it: fluent APIs and DTO chains are not Demeter violations.</div>`,
       },
     ],
   },

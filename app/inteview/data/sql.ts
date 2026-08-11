@@ -8,6 +8,7 @@ export const topics: PvTopic[] = [
     name: 'SQL',
     icon: '🗄️',
     questions: [
+      // ──── 1. QUERY FUNDAMENTALS ────
       {
         q: 'What are the types of SQL JOINs? Explain with examples.',
         difficulty: 'easy',
@@ -39,6 +40,44 @@ SELECT e.name AS employee, m.name AS manager
 FROM employees e
 LEFT JOIN employees m ON e.manager_id = m.id;   -- LEFT keeps the CEO (no manager)</pre>
 <div class="key-point">Pick by intent: <strong>INNER</strong> when a row must exist on both sides; <strong>LEFT</strong> when the left table is the "master" list you must keep in full (customers with or without orders). Trap: putting a right-table filter in <code>WHERE</code> silently turns a LEFT JOIN into an INNER JOIN — right-side conditions belong in the <code>ON</code> clause (covered in its own question).</div>`,
+      },
+      {
+        q: 'Why did my LEFT JOIN return fewer rows after adding a WHERE filter? (the LEFT JOIN that silently becomes an INNER JOIN)',
+        difficulty: 'tricky',
+        a: `<div class="interview-answer"><p>In an outer join, <code>ON</code> and <code>WHERE</code> are not the same: <code>ON</code> decides what matches, while <code>WHERE</code> filters the joined result. Unmatched left rows have NULLs in the right columns, so a <code>WHERE</code> condition on a right-table column drops them and quietly turns a <code>LEFT JOIN</code> into an <code>INNER JOIN</code>. The fix is to move right-table filters into the <code>ON</code> clause. The one intended exception is the anti-join, which uses <code>WHERE</code> with <code>IS NULL</code> to find rows that have no match.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Trong một outer join, <code>ON</code> và <code>WHERE</code> không giống nhau: <code>ON</code> quyết định cái gì khớp, còn <code>WHERE</code> lọc kết quả sau khi đã join. Những dòng bên trái không khớp sẽ mang giá trị NULL ở các cột bên phải, nên một điều kiện <code>WHERE</code> đặt trên cột của bảng bên phải sẽ loại bỏ chúng và âm thầm biến một <code>LEFT JOIN</code> thành <code>INNER JOIN</code>. Cách sửa là chuyển các điều kiện lọc của bảng bên phải vào mệnh đề <code>ON</code>. Ngoại lệ cố ý duy nhất là anti-join, vốn dùng <code>WHERE</code> với <code>IS NULL</code> để tìm những dòng không có bản khớp.</p></details>
+<p>For an outer join, <strong>ON and WHERE are NOT interchangeable</strong>. ON decides what matches; WHERE filters the <em>joined result</em>. Unmatched left rows carry NULLs in all right-table columns — so any WHERE condition on a right-table column evaluates to UNKNOWN for them and throws them away, silently turning the LEFT JOIN into an INNER JOIN.</p>
+<pre>-- customers                     -- orders
+-- id | name                     -- id | customer_id | status
+--  1 | An                       -- 10 |      1      | paid
+--  2 | Bo                       -- 11 |      2      | cancelled
+--  3 | Chi                      -- (Chi has no orders)
+
+SELECT c.name, o.id, o.status
+FROM customers c
+LEFT JOIN orders o ON o.customer_id = c.id;
+-- 3 rows: An/paid, Bo/cancelled, Chi/NULL     ✅ all customers kept
+
+-- "Just show paid orders" — condition put in WHERE:
+SELECT c.name, o.id, o.status
+FROM customers c
+LEFT JOIN orders o ON o.customer_id = c.id
+WHERE o.status = 'paid';
+-- 1 row: An only! ❌ Bo fails the filter, and Chi's row is (Chi, NULL, NULL)
+-- → NULL = 'paid' is UNKNOWN → dropped. LEFT JOIN degraded to INNER JOIN.
+
+-- ✅ Fix: right-table filters belong in ON
+SELECT c.name, o.id, o.status
+FROM customers c
+LEFT JOIN orders o ON o.customer_id = c.id AND o.status = 'paid';
+-- 3 rows: An/paid, Bo/NULL, Chi/NULL — every customer, paid orders where they exist
+
+-- The one intentional exception — the anti-join pattern:
+SELECT c.* FROM customers c
+LEFT JOIN orders o ON o.customer_id = c.id
+WHERE o.id IS NULL;      -- customers with NO orders (IS NULL is the whole point here)</pre>
+<p>Why the bad habit exists: for an <strong>INNER</strong> join, ON vs WHERE placement makes no difference (the optimizer merges them), so developers learn it "doesn't matter" — until the first outer join. Interviewer follow-up: filters on the <strong>left</strong> table are safe in WHERE; only right-table conditions must move into ON.</p>
+<div class="key-point">In a LEFT JOIN, any WHERE condition on a right-table column (except IS NULL) silently converts it to an INNER JOIN — put right-side filters in the ON clause.</div>`,
       },
       {
         q: 'What is the difference between WHERE and HAVING?',
@@ -86,6 +125,107 @@ LIMIT    10;                                    -- 8. cut
 <div class="key-point">This is why you can't use a column alias from SELECT in WHERE (it hasn't been computed yet), but you CAN use it in ORDER BY.</div>`,
       },
       {
+        q: 'IN vs EXISTS vs JOIN: when do they return different results for the same question?',
+        difficulty: 'tricky',
+        a: `<div class="interview-answer"><p>All three can answer whether customers have orders, but they do not behave the same way. A <code>JOIN</code> multiplies rows on one-to-many data, so <code>DISTINCT</code> is needed, while <code>IN</code> and <code>EXISTS</code> return each row at most once. Modern optimizers often turn <code>IN</code> and <code>EXISTS</code> into the same plan, so the idea that <code>EXISTS</code> is always faster is outdated. They differ most with negation, since <code>NOT IN</code> on a nullable column can return no rows, which makes <code>NOT EXISTS</code> the safer default.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Cả ba đều có thể trả lời câu hỏi khách hàng nào có đơn hàng, nhưng chúng không hoạt động giống nhau. Một <code>JOIN</code> làm nhân đôi số dòng trên dữ liệu một-nhiều, nên cần dùng <code>DISTINCT</code>, còn <code>IN</code> và <code>EXISTS</code> trả về mỗi dòng nhiều nhất một lần. Các optimizer hiện đại thường biến <code>IN</code> và <code>EXISTS</code> thành cùng một plan, nên quan niệm rằng <code>EXISTS</code> luôn nhanh hơn đã lỗi thời. Chúng khác nhau rõ nhất khi phủ định, vì <code>NOT IN</code> trên một cột có thể chứa NULL có thể trả về không có dòng nào, khiến <code>NOT EXISTS</code> là lựa chọn mặc định an toàn hơn.</p></details>
+<p>All three can answer "customers who have orders", but they are <strong>not semantically equivalent</strong> — the differences (row multiplication and NULL handling) are exactly what interviewers probe.</p>
+<pre>-- 1) JOIN: multiplies rows on 1-to-many!
+SELECT c.name
+FROM customers c
+JOIN orders o ON o.customer_id = c.id;
+-- An has 3 orders → 'An' appears 3 TIMES. Needs DISTINCT (extra sort/hash work).
+
+-- 2) IN: semi-join — each customer at most once
+SELECT name FROM customers
+WHERE id IN (SELECT customer_id FROM orders);
+
+-- 3) EXISTS: semi-join, and NULL-proof
+SELECT name FROM customers c
+WHERE EXISTS (SELECT 1 FROM orders o WHERE o.customer_id = c.id);
+
+-- The NEGATION is where they really diverge:
+SELECT name FROM customers
+WHERE id NOT IN (SELECT customer_id FROM orders);
+-- → ZERO rows if ANY orders.customer_id is NULL (three-valued logic bomb)
+
+SELECT name FROM customers c
+WHERE NOT EXISTS (SELECT 1 FROM orders o WHERE o.customer_id = c.id);
+-- → correct answer regardless of NULLs ✅</pre>
+<ul>
+<li><strong>JOIN</strong>: use when you need columns from <em>both</em> tables; be ready to explain the duplicate-row effect.</li>
+<li><strong>IN / EXISTS</strong>: pure existence tests (semi-joins). Modern optimizers usually rewrite both to the <em>same</em> semi-join plan — "EXISTS is always faster than IN" is outdated folklore; check the plan instead.</li>
+<li><strong>NOT IN vs NOT EXISTS</strong>: never NOT IN on a nullable subquery column; NOT EXISTS is also typically planned as an efficient anti-join.</li>
+</ul>
+<div class="key-point">Choose by semantics — semi-join for existence, JOIN for data from both sides — and default to NOT EXISTS over NOT IN; the optimizer usually makes their performance identical anyway.</div>`,
+      },
+
+      // ──── 2. NULL SEMANTICS & COUNTING ────
+      {
+        q: 'How does SQL handle NULL? Why does NOT IN with a NULL return no rows?',
+        difficulty: 'tricky',
+        a: `<div class="interview-answer"><p>SQL uses three-valued logic with TRUE, FALSE, and UNKNOWN, and any comparison with NULL gives UNKNOWN, which <code>WHERE</code> drops. This is why <code>NOT IN</code> against a subquery that contains a NULL returns no rows, since one comparison becomes UNKNOWN and spoils the whole condition. A safe fix is <code>NOT EXISTS</code>. Also note that aggregates skip NULLs, so <code>COUNT(col)</code> is not the same as <code>COUNT(*)</code>.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>SQL dùng logic ba giá trị gồm TRUE, FALSE, và UNKNOWN, và bất kỳ phép so sánh nào với NULL đều cho ra UNKNOWN, thứ mà <code>WHERE</code> sẽ loại bỏ. Đây là lý do vì sao <code>NOT IN</code> với một subquery có chứa NULL lại trả về không có dòng nào, bởi vì một phép so sánh trở thành UNKNOWN và làm hỏng toàn bộ điều kiện. Một cách sửa an toàn là dùng <code>NOT EXISTS</code>. Cũng cần lưu ý rằng các hàm tổng hợp bỏ qua NULL, nên <code>COUNT(col)</code> không giống với <code>COUNT(*)</code>.</p></details>
+<p>SQL uses <strong>three-valued logic</strong>: TRUE, FALSE, <strong>UNKNOWN</strong>. Any comparison with NULL is UNKNOWN — and WHERE only keeps rows that are TRUE.</p>
+<pre>SELECT NULL = NULL;      -- UNKNOWN (not TRUE!)
+SELECT NULL <> 5;        -- UNKNOWN
+WHERE col = NULL         -- ❌ never matches → use col IS NULL
+
+-- The classic NOT IN trap:
+SELECT * FROM orders
+WHERE customer_id NOT IN (SELECT id FROM blacklist);   -- blacklist has a NULL id
+-- expands to: customer_id <> 1 AND customer_id <> 2 AND customer_id <> NULL
+--                                                        └── UNKNOWN → whole predicate UNKNOWN
+-- → returns ZERO rows, silently!
+
+-- Fixes:
+WHERE customer_id NOT IN (SELECT id FROM blacklist WHERE id IS NOT NULL);
+-- or (NULL-safe and often faster):
+WHERE NOT EXISTS (SELECT 1 FROM blacklist b WHERE b.id = o.customer_id);</pre>
+<ul>
+<li><strong>Aggregates ignore NULL</strong>: <code>AVG(col)</code> averages only non-null values; <code>COUNT(col)</code> ≠ <code>COUNT(*)</code>.</li>
+<li><strong>Helpers</strong>: <code>COALESCE(a, b, 0)</code> first non-null; <code>NULLIF(a, b)</code> NULL if equal (divide-by-zero guard).</li>
+<li><strong>NULL-safe compare</strong>: PostgreSQL <code>IS DISTINCT FROM</code>, MySQL <code>&lt;=&gt;</code>.</li>
+<li><strong>Sorting</strong>: NULLs sort last/first depending on DB — be explicit: <code>ORDER BY col NULLS LAST</code>.</li>
+</ul>
+<div class="key-point">"NOT IN + NULL returns nothing" is a favorite senior screening question — answer it with three-valued logic and offer NOT EXISTS as the fix.</div>`,
+      },
+      {
+        q: 'Why does a row match neither status = X nor status != X? COUNT(*) vs COUNT(col) vs COUNT(DISTINCT col).',
+        difficulty: 'tricky',
+        a: `<div class="interview-answer"><p>Because of three-valued logic, a NULL row fails both <code>status = X</code> and <code>status != X</code>, so opposite filters do not cover the whole table and some rows disappear from reports. A common symptom is a dashboard whose category totals do not add up to <code>COUNT(*)</code> because the NULL group is missed. The fix is to handle NULL directly with <code>OR status IS NULL</code> or <code>IS DISTINCT FROM</code>. Also note that <code>COUNT(*)</code> and <code>COUNT(1)</code> both count rows and are the same, while <code>COUNT(col)</code> skips NULLs.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Do logic ba giá trị, một dòng có giá trị NULL sẽ không thỏa cả <code>status = X</code> lẫn <code>status != X</code>, nên hai bộ lọc đối nghịch không bao phủ hết toàn bảng và một số dòng biến mất khỏi báo cáo. Một triệu chứng phổ biến là một dashboard mà tổng của các nhóm không cộng lại bằng <code>COUNT(*)</code> vì đã bỏ sót nhóm NULL. Cách sửa là xử lý NULL một cách trực tiếp bằng <code>OR status IS NULL</code> hoặc <code>IS DISTINCT FROM</code>. Cũng cần lưu ý rằng <code>COUNT(*)</code> và <code>COUNT(1)</code> đều đếm số dòng và giống hệt nhau, trong khi <code>COUNT(col)</code> bỏ qua các giá trị NULL.</p></details>
+<p>Because of three-valued logic, a NULL row fails <strong>both</strong> a condition and its negation — so complementary filters do not partition the table, and different COUNT variants disagree. This silently loses rows in reports.</p>
+<pre>-- users
+-- id | status
+--  1 | active
+--  2 | inactive
+--  3 | NULL
+
+SELECT COUNT(*)               FROM users;   -- 3  (counts ROWS)
+SELECT COUNT(status)          FROM users;   -- 2  (skips NULLs!)
+SELECT COUNT(DISTINCT status) FROM users;   -- 2  ('active','inactive' — NULL ignored)
+
+SELECT * FROM users WHERE status =  'active';   -- 1 row (id 1)
+SELECT * FROM users WHERE status != 'active';   -- 1 row (id 2) — id 3 is MISSING!
+-- NULL != 'active' → UNKNOWN, and WHERE keeps only TRUE.
+-- Row 3 matches NEITHER query: the two "opposite" filters return 2 of 3 rows.
+
+-- ✅ Fixes:
+SELECT * FROM users WHERE status != 'active' OR status IS NULL;
+
+SELECT * FROM users WHERE status IS DISTINCT FROM 'active';  -- PostgreSQL, NULL-safe
+-- MySQL: WHERE NOT (status <=> 'active');
+
+-- Same trap inside aggregates — two "averages", two answers:
+SELECT AVG(score) FROM exams;               -- NULLs excluded from numerator AND denominator
+SELECT AVG(COALESCE(score, 0)) FROM exams;  -- missing treated as 0 → lower value</pre>
+<p>Failure mode in the wild: a dashboard splits users into "active" and "not active" tabs and the totals don't add up to COUNT(*) — nobody notices the NULL bucket. Interviewer follow-up: <code>COUNT(1)</code> is identical to <code>COUNT(*)</code> (the "COUNT(1) is faster" claim is a myth).</p>
+<div class="key-point">Before writing any negative filter, ask "is this column nullable?" — and remember COUNT(col) counts non-NULL values while COUNT(*) counts rows.</div>`,
+      },
+
+      // ──── 3. WINDOW FUNCTIONS & CTEs ────
+      {
         q: 'What are window functions? Explain ROW_NUMBER, RANK, DENSE_RANK.',
         difficulty: 'hard',
         a: `<div class="interview-answer"><p>Window functions do calculations across a set of rows without combining them into one, which is how they differ from <code>GROUP BY</code>. The three ranking functions differ only in how they handle ties. <code>ROW_NUMBER</code> always gives unique numbers, <code>RANK</code> leaves a gap after a tie, and <code>DENSE_RANK</code> leaves no gap. A common use is finding the top N rows per group with <code>ROW_NUMBER</code> and <code>PARTITION BY</code>.</p></div>
@@ -102,6 +242,37 @@ FROM employees;</pre>
 <li><strong>DENSE_RANK</strong>: 1, 2, 2, 3 (no gap after tie).</li>
 </ul>
 <div class="key-point">Common pattern: "Top N per group" → use ROW_NUMBER + CTE/subquery WHERE rn <= N.</div>`,
+      },
+      {
+        q: 'Explain LAG/LEAD and window frames (running totals, moving averages).',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>Besides ranking, window functions can compare a row to nearby rows with <code>LAG</code> and <code>LEAD</code>, and can aggregate over a sliding frame for running totals and moving averages, all without combining rows. A common trap is the default frame: with <code>ORDER BY</code> it uses <code>RANGE</code>, which groups ties together, so use <code>ROWS</code> for strict row-by-row results. <code>LAST_VALUE</code> also needs an explicit full frame or it just returns the current row. These functions replace complex self-joins.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Ngoài việc xếp hạng, window function còn có thể so sánh một dòng với các dòng lân cận bằng <code>LAG</code> và <code>LEAD</code>, và có thể tính tổng hợp trên một khung trượt để làm running total và moving average, tất cả đều không gộp các dòng lại. Một cái bẫy phổ biến là khung mặc định: khi có <code>ORDER BY</code> nó dùng <code>RANGE</code>, vốn gom các giá trị bằng nhau lại với nhau, nên hãy dùng <code>ROWS</code> để có kết quả chính xác theo từng dòng. <code>LAST_VALUE</code> cũng cần một khung đầy đủ được chỉ định rõ ràng, nếu không nó chỉ trả về dòng hiện tại. Những hàm này thay thế cho các phép self-join phức tạp.</p></details>
+<p>Beyond ranking, window functions compare rows to neighbors and aggregate over a sliding <strong>frame</strong> — without collapsing rows.</p>
+<pre>-- LAG/LEAD: look at the previous / next row
+SELECT month, revenue,
+  LAG(revenue)  OVER (ORDER BY month)              AS prev_month,
+  revenue - LAG(revenue) OVER (ORDER BY month)     AS mom_change,
+  LEAD(revenue) OVER (ORDER BY month)              AS next_month
+FROM monthly_sales;
+
+-- Running total + moving average (frame clauses):
+SELECT day, amount,
+  SUM(amount) OVER (ORDER BY day
+    ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS running_total,
+  AVG(amount) OVER (ORDER BY day
+    ROWS BETWEEN 6 PRECEDING AND CURRENT ROW)         AS ma_7d
+FROM daily_sales;
+
+-- Share of group without GROUP BY:
+SELECT name, department, salary,
+  salary / SUM(salary) OVER (PARTITION BY department) AS dept_share
+FROM employees;</pre>
+<ul>
+<li><strong>Frame default gotcha</strong>: with ORDER BY, the default frame is <code>RANGE ... CURRENT ROW</code> — ties are included together; use <code>ROWS</code> for strict row-by-row totals.</li>
+<li><strong>FIRST_VALUE / LAST_VALUE</strong>: LAST_VALUE needs an explicit frame (<code>ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING</code>) or it returns the current row — classic trap.</li>
+</ul>
+<div class="key-point">LAG for month-over-month deltas and SUM OVER for running totals replace ugly self-joins — mentioning that trade-off is exactly what interviewers want to hear.</div>`,
       },
       {
         q: 'What is a CTE (Common Table Expression)? CTE vs Subquery vs Temp Table.',
@@ -122,6 +293,207 @@ GROUP BY department;</pre>
 </ul>
 <div class="key-point">CTE is NOT always materialized — the optimizer may inline it. For performance-critical paths, check the execution plan.</div>`,
       },
+      {
+        q: 'Explain recursive CTEs. Give an example.',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>A recursive CTE has an anchor part and a recursive part joined back to the CTE, combined with <code>UNION ALL</code>. It is used to walk tree or graph data such as an organization chart, and it repeats until no new rows are produced. To avoid endless recursion on cyclic data, add a depth limit or a cycle check. It replaces looping and querying from application code, which is a common source of the N+1 problem.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Một recursive CTE có phần anchor và phần đệ quy nối ngược về chính CTE, kết hợp với nhau bằng <code>UNION ALL</code>. Nó được dùng để duyệt dữ liệu dạng cây hoặc đồ thị như sơ đồ tổ chức, và lặp lại cho đến khi không còn dòng mới nào được sinh ra. Để tránh đệ quy vô hạn trên dữ liệu có chu trình, hãy thêm giới hạn độ sâu hoặc kiểm tra chu trình. Nó thay thế cho việc lặp và truy vấn từ code ứng dụng, vốn là một nguyên nhân phổ biến gây ra vấn đề N+1.</p></details>
+<p>Recursive CTEs define a base case and a recursive step. Used for hierarchical/tree data.</p>
+<pre>-- Organization hierarchy
+WITH RECURSIVE org_tree AS (
+  -- Base case: top-level managers
+  SELECT id, name, manager_id, 1 AS level
+  FROM employees WHERE manager_id IS NULL
+
+  UNION ALL
+
+  -- Recursive step: employees under current level
+  SELECT e.id, e.name, e.manager_id, t.level + 1
+  FROM employees e
+  JOIN org_tree t ON e.manager_id = t.id
+)
+SELECT * FROM org_tree ORDER BY level, name;</pre>
+<div class="key-point">Always include a termination condition or depth limit to prevent infinite recursion.</div>`,
+      },
+
+      // ──── 4. WRITE-SQL PRACTICE PROBLEMS ────
+      {
+        q: 'Write SQL: Find the Nth highest salary.',
+        difficulty: 'tricky',
+        a: `<div class="interview-answer"><p>The clearest way to find the Nth highest salary is <code>DENSE_RANK</code> in a subquery filtered to rank N, because it shows the intent and handles ties well. <code>LIMIT</code> with <code>OFFSET</code> over distinct salaries is the shortest to write, and a correlated subquery works on old databases but is slow. If there are fewer than N distinct salaries, all correct versions return no rows. It also helps to clarify whether Nth means the Nth distinct value or the Nth person.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Cách rõ ràng nhất để tìm mức lương cao thứ N là dùng <code>DENSE_RANK</code> trong một subquery lọc theo rank N, vì nó thể hiện rõ ý định và xử lý tốt các giá trị bằng nhau. <code>LIMIT</code> kết hợp <code>OFFSET</code> trên các mức lương distinct là cách viết ngắn nhất, còn correlated subquery thì chạy được trên các database cũ nhưng chậm. Nếu có ít hơn N mức lương khác nhau, tất cả các phiên bản đúng đều trả về không có dòng nào. Cũng nên làm rõ liệu 'thứ N' nghĩa là giá trị distinct thứ N hay người thứ N.</p></details>
+<p>"Nth highest" hinges on how you treat <strong>ties</strong>. All three methods below find the 3rd-highest <em>distinct</em> salary — the version interviewers usually want.</p>
+<pre>-- Method 1: DENSE_RANK ← preferred (clear, standard, tie-correct)
+SELECT salary FROM (
+  SELECT salary, DENSE_RANK() OVER (ORDER BY salary DESC) AS rnk
+  FROM employees
+) ranked
+WHERE rnk = 3;              -- 3rd highest DISTINCT salary
+-- DENSE_RANK gives ties the same rank with NO gaps, so "3rd distinct value" = rnk 3.
+-- (Use RANK if you want gaps after ties; ROW_NUMBER if every row must be unique.)
+
+-- Method 2: OFFSET ← simplest to write
+SELECT DISTINCT salary
+FROM employees
+ORDER BY salary DESC
+LIMIT 1 OFFSET 2;          -- skip the top 2 distinct salaries, take the next (0-indexed)
+
+-- Method 3: Correlated subquery ← works without window functions (older DBs)
+SELECT DISTINCT salary
+FROM employees e1
+WHERE 3 = (SELECT COUNT(DISTINCT salary)
+           FROM employees e2 WHERE e2.salary >= e1.salary);
+-- "salary such that exactly 3 distinct salaries are >= it". O(n²) — avoid on big tables.</pre>
+<ul>
+<li><strong>Edge case</strong>: if fewer than N distinct salaries exist, all three correctly return <strong>no rows</strong> (interviewers love "what if N=10 but there are only 4 salaries?").</li>
+<li><strong>Ties</strong>: keep <code>DISTINCT</code> / use <code>DENSE_RANK</code> to rank by <em>value</em>; drop <code>DISTINCT</code> and use <code>ROW_NUMBER</code> if you mean the Nth <em>row/person</em>.</li>
+</ul>
+<div class="key-point">Reach for <strong>DENSE_RANK</strong> in the interview: it states intent, handles ties correctly, and generalizes to "top-N per group" with <code>PARTITION BY</code>. The correlated subquery is the "no window functions available" fallback — mention its O(n²) cost.</div>`,
+      },
+      {
+        q: 'Write SQL: Find duplicate records in a table.',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>Finding duplicates and removing them are two separate tasks. To detect them, use <code>GROUP BY</code> on the duplicate key with <code>HAVING COUNT(*) &gt; 1</code>. To delete while keeping one row, use <code>ROW_NUMBER</code> partitioned by the key and remove rows where the number is greater than 1, which is safer than the <code>NOT IN</code> trick that fails when an id is NULL. After cleanup, add a <code>UNIQUE</code> constraint so duplicates cannot return.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Tìm bản ghi trùng và xóa chúng là hai công việc riêng biệt. Để phát hiện, dùng <code>GROUP BY</code> trên khóa trùng lặp kèm <code>HAVING COUNT(*) &gt; 1</code>. Để xóa mà vẫn giữ lại một dòng, dùng <code>ROW_NUMBER</code> phân vùng theo khóa và xóa các dòng có số thứ tự lớn hơn 1, cách này an toàn hơn mẹo dùng <code>NOT IN</code> vốn bị lỗi khi có id là NULL. Sau khi dọn dẹp, hãy thêm ràng buộc <code>UNIQUE</code> để bản ghi trùng không thể quay lại.</p></details>
+<p>Two separate tasks: <strong>detecting</strong> duplicates, and <strong>deleting</strong> them while keeping one copy.</p>
+<pre>-- 1. DETECT: group by the "duplicate key", keep groups with more than one row
+SELECT email, COUNT(*) AS cnt
+FROM users
+GROUP BY email
+HAVING COUNT(*) > 1;          -- HAVING filters groups (WHERE can't see COUNT)
+
+-- 2. DELETE keeping the lowest id — simple, but has a NULL trap:
+DELETE FROM users
+WHERE id NOT IN (SELECT MIN(id) FROM users GROUP BY email);
+-- ⚠️ if any id could be NULL, NOT IN returns nothing (three-valued logic — see the NULL question)
+
+-- 3. DELETE with CTE + ROW_NUMBER ← safest and most flexible
+WITH cte AS (
+  SELECT id, ROW_NUMBER() OVER (PARTITION BY email ORDER BY id) AS rn
+  FROM users                  -- rn = 1 for the row to KEEP, 2,3… for duplicates
+)
+DELETE FROM users WHERE id IN (SELECT id FROM cte WHERE rn > 1);</pre>
+<ul>
+<li><strong>Why ROW_NUMBER is safest</strong>: no <code>NOT IN</code>/NULL pitfall, and the window's <code>ORDER BY</code> lets you choose exactly which row survives (lowest id, newest <code>updated_at</code>, etc.).</li>
+<li><strong>Prevent recurrence</strong>: after cleanup, add a <code>UNIQUE</code> constraint on the key — <code>ALTER TABLE users ADD CONSTRAINT uq_email UNIQUE(email);</code> — so duplicates can't reappear.</li>
+</ul>
+<div class="key-point">Detect with <code>GROUP BY … HAVING COUNT(*) &gt; 1</code>; delete with <code>ROW_NUMBER() OVER (PARTITION BY key ORDER BY …)</code> and remove <code>rn &gt; 1</code>. Then enforce a UNIQUE index so the bug is fixed for good.</div>`,
+      },
+      {
+        q: 'Write SQL: Find users who logged in 3 or more consecutive days (gaps and islands).',
+        difficulty: 'tricky',
+        a: `<div class="interview-answer"><p>This is the gaps-and-islands pattern. Within a run of consecutive dates, the value of the date minus <code>ROW_NUMBER()</code> stays constant, so it can be used as a group key with <code>GROUP BY</code> and then <code>HAVING COUNT(*) &gt;= 3</code>. Duplicate logins on the same day should be removed first with <code>DISTINCT</code>. The same method solves many problems such as longest streak, consecutive absences, and grouping events into sessions.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Đây là mẫu gaps-and-islands. Trong một chuỗi các ngày liên tiếp, giá trị của ngày trừ đi <code>ROW_NUMBER()</code> luôn không đổi, nên có thể dùng làm khóa gom nhóm với <code>GROUP BY</code> rồi <code>HAVING COUNT(*) &gt;= 3</code>. Các lần đăng nhập trùng trong cùng một ngày nên được loại bỏ trước bằng <code>DISTINCT</code>. Cùng phương pháp này giải quyết được nhiều bài toán như chuỗi dài nhất, số ngày vắng mặt liên tiếp, và gom các sự kiện thành phiên (session).</p></details>
+<p>The <strong>gaps-and-islands</strong> trick: <code>date - ROW_NUMBER()</code> is constant within a consecutive run, so it becomes a group key.</p>
+<pre>WITH days AS (                       -- dedupe multiple logins per day
+  SELECT DISTINCT user_id, login_date
+  FROM logins
+),
+grp AS (
+  SELECT user_id, login_date,
+    login_date - ROW_NUMBER() OVER (
+      PARTITION BY user_id ORDER BY login_date
+    ) * INTERVAL '1 day' AS island   -- constant per consecutive streak
+  FROM days
+)
+SELECT user_id,
+       MIN(login_date) AS streak_start,
+       MAX(login_date) AS streak_end,
+       COUNT(*)        AS streak_len
+FROM grp
+GROUP BY user_id, island
+HAVING COUNT(*) >= 3;
+
+-- Why it works:
+-- date        row_number   date - rn
+-- 2024-01-01  1            2023-12-31 ┐
+-- 2024-01-02  2            2023-12-31 ├ same value → same island
+-- 2024-01-03  3            2023-12-31 ┘
+-- 2024-01-07  4            2024-01-03 ← gap → new island</pre>
+<div class="key-point">This pattern also answers "longest winning streak", "consecutive absent days", "sessions from click events" — one technique, many interview questions.</div>`,
+      },
+      {
+        q: 'Write SQL: Pivot rows to columns (conditional aggregation).',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>Pivoting rows into columns is done with conditional aggregation, which is an aggregate over a <code>CASE</code>, or <code>FILTER</code> in PostgreSQL. This works in every database without special <code>PIVOT</code> syntax. A common use is counting by status in a single pass instead of running several separate queries. It also keeps the SQL portable across databases.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Xoay dòng thành cột được thực hiện bằng conditional aggregation, tức là một hàm tổng hợp áp lên <code>CASE</code>, hoặc dùng <code>FILTER</code> trong PostgreSQL. Cách này chạy được trên mọi database mà không cần cú pháp <code>PIVOT</code> đặc biệt. Một ứng dụng phổ biến là đếm theo trạng thái chỉ trong một lần quét thay vì chạy nhiều truy vấn riêng lẻ. Nó cũng giúp câu SQL dễ dàng chuyển đổi giữa các database.</p></details>
+<p><strong>Conditional aggregation</strong> — an aggregate over a CASE (or FILTER) turns row values into columns. Works in every database, no vendor PIVOT syntax needed.</p>
+<pre>-- sales(product, quarter, amount) → one row per product, quarters as columns
+SELECT product,
+  SUM(CASE WHEN quarter = 'Q1' THEN amount ELSE 0 END) AS q1,
+  SUM(CASE WHEN quarter = 'Q2' THEN amount ELSE 0 END) AS q2,
+  SUM(CASE WHEN quarter = 'Q3' THEN amount ELSE 0 END) AS q3,
+  SUM(CASE WHEN quarter = 'Q4' THEN amount ELSE 0 END) AS q4
+FROM sales
+GROUP BY product;
+
+-- PostgreSQL FILTER syntax (cleaner, same plan):
+SELECT product,
+  SUM(amount) FILTER (WHERE quarter = 'Q1') AS q1,
+  COUNT(*)    FILTER (WHERE amount > 1000)  AS big_sales
+FROM sales
+GROUP BY product;
+
+-- Same trick for "count by status in one pass" (very common in real code):
+SELECT
+  COUNT(*) FILTER (WHERE status = 'active')   AS active,
+  COUNT(*) FILTER (WHERE status = 'pending')  AS pending,
+  COUNT(*) FILTER (WHERE status = 'deleted')  AS deleted
+FROM users;   -- one scan instead of three queries</pre>
+<div class="key-point">Interviewers use pivots to test whether you reach for one-pass conditional aggregation or naively run N separate queries / self-joins.</div>`,
+      },
+
+      // ──── 5. SCHEMA DESIGN & INDEX BASICS ────
+      {
+        q: 'What is normalization? Explain 1NF, 2NF, 3NF, BCNF.',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>Normalization removes redundant data so each fact is stored in only one place, which prevents update problems. 1NF requires atomic values, 2NF removes partial dependency on part of a composite key, 3NF removes dependency between non-key columns, and BCNF requires every determinant to be a candidate key. A common approach is to normalize to 3NF, then denormalize on purpose for read speed when needed.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Chuẩn hóa loại bỏ dữ liệu dư thừa để mỗi thông tin chỉ được lưu ở một nơi duy nhất, nhờ đó tránh được các lỗi khi cập nhật. 1NF yêu cầu giá trị nguyên tử, 2NF loại bỏ phụ thuộc một phần vào một phần của khóa tổ hợp, 3NF loại bỏ phụ thuộc giữa các cột không phải khóa, còn BCNF yêu cầu mọi định thức đều phải là một khóa dự tuyển. Cách làm phổ biến là chuẩn hóa tới 3NF, rồi cố ý phi chuẩn hóa để tăng tốc độ đọc khi cần.</p></details>
+<ul>
+<li><strong>1NF</strong>: atomic values, no repeating groups, primary key exists.</li>
+<li><strong>2NF</strong>: 1NF + no partial dependency (all non-key columns depend on the FULL primary key).</li>
+<li><strong>3NF</strong>: 2NF + no transitive dependency (non-key column doesn't depend on another non-key column).</li>
+<li><strong>BCNF</strong>: every determinant is a candidate key.</li>
+</ul>
+<pre>-- Unnormalized: everything in one row
+orders(id, customer_name, customer_email, product_names, total)
+  1, 'An', 'an@x.com', 'Mouse, Keyboard', 45        -- ❌ list in one cell (violates 1NF)
+
+-- 1NF: atomic values → one row per order line
+order_lines(order_id, product_name, product_price, customer_name, customer_email)
+
+-- 2NF/3NF: remove partial + transitive dependencies → separate entities
+customers(id, name, email)                 -- customer facts live once
+products(id, name, price)                  -- product facts live once
+orders(id, customer_id, created_at)
+order_lines(order_id, product_id, qty)     -- pure relationships
+
+-- Result: updating a customer's email = 1 row, no anomalies</pre>
+<div class="key-point">In practice: normalize to 3NF, then selectively denormalize for read performance (reporting tables, caching).</div>`,
+      },
+      {
+        q: 'What is the difference between clustered and non-clustered indexes?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>A clustered index sets the physical order of the rows, so its leaf level is the data itself, and there can be only one per table, usually the primary key. A non-clustered index is a separate structure whose leaves point back to the row, so a table can have many of them. A non-clustered lookup needs an extra step to fetch the row unless the index is covering. InnoDB always clusters on the primary key, while SQL Server lets you choose.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Clustered index quy định thứ tự vật lý của các dòng, nên tầng lá của nó chính là dữ liệu, và mỗi bảng chỉ có được một clustered index, thường là primary key. Non-clustered index là một cấu trúc riêng biệt mà các lá của nó trỏ ngược về dòng dữ liệu, nên một bảng có thể có nhiều loại này. Một lần tra cứu qua non-clustered cần thêm một bước để lấy dòng dữ liệu, trừ khi index đã bao phủ (covering). InnoDB luôn cluster theo primary key, trong khi SQL Server cho phép bạn tự chọn.</p></details>
+<ul>
+<li><strong>Clustered index</strong>: determines physical order of rows. <strong>Only one per table</strong>. Usually the primary key. Leaf nodes = actual data rows.</li>
+<li><strong>Non-clustered index</strong>: separate structure pointing to data rows. Multiple per table. Leaf nodes = pointers (row locators).</li>
+</ul>
+<pre>-- Clustered (the table IS the index, sorted by key):
+B-tree on id → leaf = the full row      [1|An|an@x.com] [2|Bo|bo@x.com] ...
+
+-- Non-clustered (separate structure, points back to the row):
+B-tree on email → leaf = email + row locator
+  'an@x.com' → (page 12, slot 3)   -- extra hop ("key lookup") to fetch the row
+
+SELECT * FROM users WHERE email = 'an@x.com';
+-- seek non-clustered index (fast) + 1 lookup to the clustered data (extra I/O)
+-- range scan on id (clustered) reads rows already in order — no lookups</pre>
+<div class="key-point">When a query is covered entirely by a non-clustered index (covering index), it avoids the extra lookup to the data pages → much faster.</div>`,
+      },
+
+      // ──── 6. TRANSACTIONS & CONCURRENCY ────
       {
         q: 'What are isolation levels? Explain dirty read, non-repeatable read, phantom read.',
         difficulty: 'hard',
@@ -153,31 +525,61 @@ COMMIT;
 <div class="key-point">Default: PostgreSQL = Read Committed, MySQL InnoDB = Repeatable Read. Higher isolation = fewer anomalies but more locking/aborts — choose per use case, not globally.</div>`,
       },
       {
-        q: 'What is normalization? Explain 1NF, 2NF, 3NF, BCNF.',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p>Normalization removes redundant data so each fact is stored in only one place, which prevents update problems. 1NF requires atomic values, 2NF removes partial dependency on part of a composite key, 3NF removes dependency between non-key columns, and BCNF requires every determinant to be a candidate key. A common approach is to normalize to 3NF, then denormalize on purpose for read speed when needed.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Chuẩn hóa loại bỏ dữ liệu dư thừa để mỗi thông tin chỉ được lưu ở một nơi duy nhất, nhờ đó tránh được các lỗi khi cập nhật. 1NF yêu cầu giá trị nguyên tử, 2NF loại bỏ phụ thuộc một phần vào một phần của khóa tổ hợp, 3NF loại bỏ phụ thuộc giữa các cột không phải khóa, còn BCNF yêu cầu mọi định thức đều phải là một khóa dự tuyển. Cách làm phổ biến là chuẩn hóa tới 3NF, rồi cố ý phi chuẩn hóa để tăng tốc độ đọc khi cần.</p></details>
+        q: 'What is MVCC (Multi-Version Concurrency Control)? Why do readers not block writers?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>MVCC keeps several versions of each row so every transaction reads a consistent snapshot from its start, which is why readers do not block writers and writers do not block readers. An <code>UPDATE</code> does not overwrite; it writes a new version and marks the old one as dead. In PostgreSQL these dead versions stay in the table and must be cleaned by <code>VACUUM</code>, so a long transaction causes bloat and makes <code>COUNT(*)</code> slow. Write-write conflicts still cause locking.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>MVCC lưu nhiều phiên bản của mỗi dòng để mỗi transaction đọc được một snapshot nhất quán tính từ lúc nó bắt đầu, đó là lý do vì sao reader không chặn writer và writer không chặn reader. Một câu <code>UPDATE</code> không ghi đè; nó tạo ra một phiên bản mới và đánh dấu phiên bản cũ là đã chết. Trong PostgreSQL, những phiên bản chết này vẫn nằm lại trong bảng và phải được dọn dẹp bằng <code>VACUUM</code>, nên một transaction chạy lâu sẽ gây phình bảng (bloat) và làm <code>COUNT(*)</code> chậm. Các xung đột ghi-ghi thì vẫn gây ra khóa.</p></details>
+<p><strong>MVCC</strong>: instead of locking rows for reads, the database keeps <strong>multiple versions</strong> of each row. Every transaction sees a consistent <strong>snapshot</strong> as of its start — readers never block writers and writers never block readers.</p>
+<pre>-- UPDATE does not overwrite — it creates a new version:
+row v1: (id=1, balance=100)  xmin=90, xmax=95   ← old TX sees this
+row v2: (id=1, balance=50)   xmin=95            ← new TX sees this
+
+-- Each transaction filters versions by its snapshot:
+-- "visible if created before my snapshot AND not deleted before it"</pre>
 <ul>
-<li><strong>1NF</strong>: atomic values, no repeating groups, primary key exists.</li>
-<li><strong>2NF</strong>: 1NF + no partial dependency (all non-key columns depend on the FULL primary key).</li>
-<li><strong>3NF</strong>: 2NF + no transitive dependency (non-key column doesn't depend on another non-key column).</li>
-<li><strong>BCNF</strong>: every determinant is a candidate key.</li>
+<li><strong>PostgreSQL</strong>: old versions live in the table itself → dead tuples must be cleaned by <strong>VACUUM</strong> (autovacuum). Long-running transactions block cleanup → table bloat.</li>
+<li><strong>MySQL InnoDB / Oracle</strong>: old versions reconstructed from the <strong>undo log</strong>.</li>
+<li>Write-write conflicts still lock: two UPDATEs on the same row → second waits, then (in REPEATABLE READ+) may abort with a serialization error.</li>
 </ul>
-<pre>-- Unnormalized: everything in one row
-orders(id, customer_name, customer_email, product_names, total)
-  1, 'An', 'an@x.com', 'Mouse, Keyboard', 45        -- ❌ list in one cell (violates 1NF)
+<div class="key-point">Senior follow-ups to expect: "why does a long transaction cause bloat?" (VACUUM can't remove versions it might still need) and "why is COUNT(*) slow in PostgreSQL?" (must scan versions to check visibility).</div>`,
+      },
+      {
+        q: 'Two transactions read the same balance and both write back — one update vanishes. How do you prevent lost updates?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>A lost update happens when two transactions read the same value, change it, and write it back, so the second write overwrites the first, because plain SELECTs take no locks under Read Committed. The best fix is to make the write atomic in one statement, such as <code>UPDATE ... SET balance = balance - 30</code>. A pessimistic <code>SELECT ... FOR UPDATE</code> locks the row for short, high-conflict transactions, while an optimistic version column suits edits that span user think-time. Note that MySQL Repeatable Read does not prevent lost updates.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Lost update xảy ra khi hai transaction cùng đọc một giá trị, thay đổi nó, rồi ghi lại, nên lần ghi thứ hai ghi đè lên lần ghi thứ nhất, bởi vì các câu SELECT thông thường không lấy khóa dưới mức Read Committed. Cách sửa tốt nhất là làm cho việc ghi trở nên nguyên tử trong một câu lệnh duy nhất, ví dụ <code>UPDATE ... SET balance = balance - 30</code>. Cách bi quan (pessimistic) dùng <code>SELECT ... FOR UPDATE</code> để khóa dòng, phù hợp cho các transaction ngắn và tranh chấp cao, còn cách lạc quan (optimistic) với cột version phù hợp cho các thao tác chỉnh sửa kéo dài qua thời gian người dùng suy nghĩ. Lưu ý rằng Repeatable Read của MySQL không ngăn được lost update.</p></details>
+<p>The <strong>lost update</strong> anomaly: read–modify–write done in the application means the second writer overwrites the first, because plain SELECTs take no locks under READ COMMITTED (the default in PostgreSQL, Oracle, SQL Server).</p>
+<pre>-- Session A                                 -- Session B
+BEGIN;                                       BEGIN;
+SELECT balance FROM acc WHERE id=1;  --100   SELECT balance FROM acc WHERE id=1;  --100
+-- app computes 100 - 30 = 70                -- app computes 100 - 50 = 50
+UPDATE acc SET balance=70 WHERE id=1;
+COMMIT;
+                                             UPDATE acc SET balance=50 WHERE id=1;
+                                             COMMIT;
+-- Final balance = 50. A's withdrawal vanished: 80 was spent from 100. ❌
 
--- 1NF: atomic values → one row per order line
-order_lines(order_id, product_name, product_price, customer_name, customer_email)
+-- ✅ Fix 1: make the write atomic (best when the logic fits in SQL)
+UPDATE acc SET balance = balance - 30
+WHERE id = 1 AND balance >= 30;        -- also enforces the invariant
 
--- 2NF/3NF: remove partial + transitive dependencies → separate entities
-customers(id, name, email)                 -- customer facts live once
-products(id, name, price)                  -- product facts live once
-orders(id, customer_id, created_at)
-order_lines(order_id, product_id, qty)     -- pure relationships
+-- ✅ Fix 2: pessimistic — SELECT ... FOR UPDATE locks the row until COMMIT
+BEGIN;
+SELECT balance FROM acc WHERE id = 1 FOR UPDATE;   -- Session B blocks HERE
+UPDATE acc SET balance = 70 WHERE id = 1;
+COMMIT;                                            -- B wakes and reads 70
+-- Variants: FOR UPDATE NOWAIT (fail fast), FOR UPDATE SKIP LOCKED (job queues)
 
--- Result: updating a customer's email = 1 row, no anomalies</pre>
-<div class="key-point">In practice: normalize to 3NF, then selectively denormalize for read performance (reporting tables, caching).</div>`,
+-- ✅ Fix 3: optimistic — version column, no lock held while the user thinks
+UPDATE acc SET balance = 70, version = version + 1
+WHERE id = 1 AND version = 41;         -- the version you originally read
+-- 0 rows affected → someone else won → reload and retry (JPA @Version does this)</pre>
+<ul>
+<li><strong>Pessimistic</strong> (FOR UPDATE): short transactions, frequent conflicts; risk = lock waits and deadlocks.</li>
+<li><strong>Optimistic</strong> (version check): edits spanning user think-time or HTTP requests, where holding a DB lock is impossible; risk = retries under contention.</li>
+<li><strong>Trick follow-up</strong>: MySQL REPEATABLE READ does <em>not</em> prevent lost updates (snapshot reads + last-write-wins); PostgreSQL REPEATABLE READ aborts one transaction with a serialization error — your code must retry.</li>
+</ul>
+<div class="key-point">Never do read–modify–write across statements without a strategy: atomic UPDATE, SELECT ... FOR UPDATE, or a version column — and know that isolation levels alone do not save you in MySQL.</div>`,
       },
       {
         q: 'What is a deadlock? How to prevent it?',
@@ -204,27 +606,8 @@ UPDATE accounts SET ... WHERE id = GREATEST(:a, :b);</pre></li>
 </ul>
 <div class="key-point">Deadlock (a cycle, auto-resolved by the DB killing a victim) ≠ lock wait/timeout (one TX simply waits and eventually times out). The senior answer pairs a <strong>prevention</strong> strategy (consistent lock order, short TXs) with a <strong>recovery</strong> strategy (detect the deadlock error code and retry) — you need both.</div>`,
       },
-      {
-        q: 'What is the difference between clustered and non-clustered indexes?',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p>A clustered index sets the physical order of the rows, so its leaf level is the data itself, and there can be only one per table, usually the primary key. A non-clustered index is a separate structure whose leaves point back to the row, so a table can have many of them. A non-clustered lookup needs an extra step to fetch the row unless the index is covering. InnoDB always clusters on the primary key, while SQL Server lets you choose.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Clustered index quy định thứ tự vật lý của các dòng, nên tầng lá của nó chính là dữ liệu, và mỗi bảng chỉ có được một clustered index, thường là primary key. Non-clustered index là một cấu trúc riêng biệt mà các lá của nó trỏ ngược về dòng dữ liệu, nên một bảng có thể có nhiều loại này. Một lần tra cứu qua non-clustered cần thêm một bước để lấy dòng dữ liệu, trừ khi index đã bao phủ (covering). InnoDB luôn cluster theo primary key, trong khi SQL Server cho phép bạn tự chọn.</p></details>
-<ul>
-<li><strong>Clustered index</strong>: determines physical order of rows. <strong>Only one per table</strong>. Usually the primary key. Leaf nodes = actual data rows.</li>
-<li><strong>Non-clustered index</strong>: separate structure pointing to data rows. Multiple per table. Leaf nodes = pointers (row locators).</li>
-</ul>
-<pre>-- Clustered (the table IS the index, sorted by key):
-B-tree on id → leaf = the full row      [1|An|an@x.com] [2|Bo|bo@x.com] ...
 
--- Non-clustered (separate structure, points back to the row):
-B-tree on email → leaf = email + row locator
-  'an@x.com' → (page 12, slot 3)   -- extra hop ("key lookup") to fetch the row
-
-SELECT * FROM users WHERE email = 'an@x.com';
--- seek non-clustered index (fast) + 1 lookup to the clustered data (extra I/O)
--- range scan on id (clustered) reads rows already in order — no lookups</pre>
-<div class="key-point">When a query is covered entirely by a non-clustered index (covering index), it avoids the extra lookup to the data pages → much faster.</div>`,
-      },
+      // ──── 7. PROCEDURAL SQL — PROCEDURES, FUNCTIONS & TRIGGERS ────
       {
         q: 'Explain stored procedures vs functions. When to use each?',
         difficulty: 'medium',
@@ -769,376 +1152,6 @@ EXEC sp_executesql @sql, N'@Status NVARCHAR(20), @Cnt INT OUTPUT', @Status=@Stat
 </ul>
 <div class="key-point">Memorize the four rows that matter most: <strong>assign</strong> (<code>:=</code> / <code>SET @x</code>), <strong>catch</strong> (<code>EXCEPTION WHEN</code> / <code>TRY…CATCH</code>), <strong>raise</strong> (<code>RAISE EXCEPTION</code> / <code>THROW</code>), and <strong>dynamic SQL</strong> (<code>EXECUTE format() USING</code> / <code>sp_executesql</code>). Everything else is syntax you can look up — but writing dynamic SQL by concatenating values, or a cursor where a single UPDATE would do, is what actually gets flagged in review.</div>`,
       },
-      {
-        q: 'Write SQL: Find the Nth highest salary.',
-        difficulty: 'tricky',
-        a: `<div class="interview-answer"><p>The clearest way to find the Nth highest salary is <code>DENSE_RANK</code> in a subquery filtered to rank N, because it shows the intent and handles ties well. <code>LIMIT</code> with <code>OFFSET</code> over distinct salaries is the shortest to write, and a correlated subquery works on old databases but is slow. If there are fewer than N distinct salaries, all correct versions return no rows. It also helps to clarify whether Nth means the Nth distinct value or the Nth person.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Cách rõ ràng nhất để tìm mức lương cao thứ N là dùng <code>DENSE_RANK</code> trong một subquery lọc theo rank N, vì nó thể hiện rõ ý định và xử lý tốt các giá trị bằng nhau. <code>LIMIT</code> kết hợp <code>OFFSET</code> trên các mức lương distinct là cách viết ngắn nhất, còn correlated subquery thì chạy được trên các database cũ nhưng chậm. Nếu có ít hơn N mức lương khác nhau, tất cả các phiên bản đúng đều trả về không có dòng nào. Cũng nên làm rõ liệu 'thứ N' nghĩa là giá trị distinct thứ N hay người thứ N.</p></details>
-<p>"Nth highest" hinges on how you treat <strong>ties</strong>. All three methods below find the 3rd-highest <em>distinct</em> salary — the version interviewers usually want.</p>
-<pre>-- Method 1: DENSE_RANK ← preferred (clear, standard, tie-correct)
-SELECT salary FROM (
-  SELECT salary, DENSE_RANK() OVER (ORDER BY salary DESC) AS rnk
-  FROM employees
-) ranked
-WHERE rnk = 3;              -- 3rd highest DISTINCT salary
--- DENSE_RANK gives ties the same rank with NO gaps, so "3rd distinct value" = rnk 3.
--- (Use RANK if you want gaps after ties; ROW_NUMBER if every row must be unique.)
-
--- Method 2: OFFSET ← simplest to write
-SELECT DISTINCT salary
-FROM employees
-ORDER BY salary DESC
-LIMIT 1 OFFSET 2;          -- skip the top 2 distinct salaries, take the next (0-indexed)
-
--- Method 3: Correlated subquery ← works without window functions (older DBs)
-SELECT DISTINCT salary
-FROM employees e1
-WHERE 3 = (SELECT COUNT(DISTINCT salary)
-           FROM employees e2 WHERE e2.salary >= e1.salary);
--- "salary such that exactly 3 distinct salaries are >= it". O(n²) — avoid on big tables.</pre>
-<ul>
-<li><strong>Edge case</strong>: if fewer than N distinct salaries exist, all three correctly return <strong>no rows</strong> (interviewers love "what if N=10 but there are only 4 salaries?").</li>
-<li><strong>Ties</strong>: keep <code>DISTINCT</code> / use <code>DENSE_RANK</code> to rank by <em>value</em>; drop <code>DISTINCT</code> and use <code>ROW_NUMBER</code> if you mean the Nth <em>row/person</em>.</li>
-</ul>
-<div class="key-point">Reach for <strong>DENSE_RANK</strong> in the interview: it states intent, handles ties correctly, and generalizes to "top-N per group" with <code>PARTITION BY</code>. The correlated subquery is the "no window functions available" fallback — mention its O(n²) cost.</div>`,
-      },
-      {
-        q: 'Write SQL: Find duplicate records in a table.',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p>Finding duplicates and removing them are two separate tasks. To detect them, use <code>GROUP BY</code> on the duplicate key with <code>HAVING COUNT(*) &gt; 1</code>. To delete while keeping one row, use <code>ROW_NUMBER</code> partitioned by the key and remove rows where the number is greater than 1, which is safer than the <code>NOT IN</code> trick that fails when an id is NULL. After cleanup, add a <code>UNIQUE</code> constraint so duplicates cannot return.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Tìm bản ghi trùng và xóa chúng là hai công việc riêng biệt. Để phát hiện, dùng <code>GROUP BY</code> trên khóa trùng lặp kèm <code>HAVING COUNT(*) &gt; 1</code>. Để xóa mà vẫn giữ lại một dòng, dùng <code>ROW_NUMBER</code> phân vùng theo khóa và xóa các dòng có số thứ tự lớn hơn 1, cách này an toàn hơn mẹo dùng <code>NOT IN</code> vốn bị lỗi khi có id là NULL. Sau khi dọn dẹp, hãy thêm ràng buộc <code>UNIQUE</code> để bản ghi trùng không thể quay lại.</p></details>
-<p>Two separate tasks: <strong>detecting</strong> duplicates, and <strong>deleting</strong> them while keeping one copy.</p>
-<pre>-- 1. DETECT: group by the "duplicate key", keep groups with more than one row
-SELECT email, COUNT(*) AS cnt
-FROM users
-GROUP BY email
-HAVING COUNT(*) > 1;          -- HAVING filters groups (WHERE can't see COUNT)
-
--- 2. DELETE keeping the lowest id — simple, but has a NULL trap:
-DELETE FROM users
-WHERE id NOT IN (SELECT MIN(id) FROM users GROUP BY email);
--- ⚠️ if any id could be NULL, NOT IN returns nothing (three-valued logic — see the NULL question)
-
--- 3. DELETE with CTE + ROW_NUMBER ← safest and most flexible
-WITH cte AS (
-  SELECT id, ROW_NUMBER() OVER (PARTITION BY email ORDER BY id) AS rn
-  FROM users                  -- rn = 1 for the row to KEEP, 2,3… for duplicates
-)
-DELETE FROM users WHERE id IN (SELECT id FROM cte WHERE rn > 1);</pre>
-<ul>
-<li><strong>Why ROW_NUMBER is safest</strong>: no <code>NOT IN</code>/NULL pitfall, and the window's <code>ORDER BY</code> lets you choose exactly which row survives (lowest id, newest <code>updated_at</code>, etc.).</li>
-<li><strong>Prevent recurrence</strong>: after cleanup, add a <code>UNIQUE</code> constraint on the key — <code>ALTER TABLE users ADD CONSTRAINT uq_email UNIQUE(email);</code> — so duplicates can't reappear.</li>
-</ul>
-<div class="key-point">Detect with <code>GROUP BY … HAVING COUNT(*) &gt; 1</code>; delete with <code>ROW_NUMBER() OVER (PARTITION BY key ORDER BY …)</code> and remove <code>rn &gt; 1</code>. Then enforce a UNIQUE index so the bug is fixed for good.</div>`,
-      },
-      {
-        q: 'Explain recursive CTEs. Give an example.',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p>A recursive CTE has an anchor part and a recursive part joined back to the CTE, combined with <code>UNION ALL</code>. It is used to walk tree or graph data such as an organization chart, and it repeats until no new rows are produced. To avoid endless recursion on cyclic data, add a depth limit or a cycle check. It replaces looping and querying from application code, which is a common source of the N+1 problem.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Một recursive CTE có phần anchor và phần đệ quy nối ngược về chính CTE, kết hợp với nhau bằng <code>UNION ALL</code>. Nó được dùng để duyệt dữ liệu dạng cây hoặc đồ thị như sơ đồ tổ chức, và lặp lại cho đến khi không còn dòng mới nào được sinh ra. Để tránh đệ quy vô hạn trên dữ liệu có chu trình, hãy thêm giới hạn độ sâu hoặc kiểm tra chu trình. Nó thay thế cho việc lặp và truy vấn từ code ứng dụng, vốn là một nguyên nhân phổ biến gây ra vấn đề N+1.</p></details>
-<p>Recursive CTEs define a base case and a recursive step. Used for hierarchical/tree data.</p>
-<pre>-- Organization hierarchy
-WITH RECURSIVE org_tree AS (
-  -- Base case: top-level managers
-  SELECT id, name, manager_id, 1 AS level
-  FROM employees WHERE manager_id IS NULL
-
-  UNION ALL
-
-  -- Recursive step: employees under current level
-  SELECT e.id, e.name, e.manager_id, t.level + 1
-  FROM employees e
-  JOIN org_tree t ON e.manager_id = t.id
-)
-SELECT * FROM org_tree ORDER BY level, name;</pre>
-<div class="key-point">Always include a termination condition or depth limit to prevent infinite recursion.</div>`,
-      },
-      {
-        q: 'How does SQL handle NULL? Why does NOT IN with a NULL return no rows?',
-        difficulty: 'tricky',
-        a: `<div class="interview-answer"><p>SQL uses three-valued logic with TRUE, FALSE, and UNKNOWN, and any comparison with NULL gives UNKNOWN, which <code>WHERE</code> drops. This is why <code>NOT IN</code> against a subquery that contains a NULL returns no rows, since one comparison becomes UNKNOWN and spoils the whole condition. A safe fix is <code>NOT EXISTS</code>. Also note that aggregates skip NULLs, so <code>COUNT(col)</code> is not the same as <code>COUNT(*)</code>.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>SQL dùng logic ba giá trị gồm TRUE, FALSE, và UNKNOWN, và bất kỳ phép so sánh nào với NULL đều cho ra UNKNOWN, thứ mà <code>WHERE</code> sẽ loại bỏ. Đây là lý do vì sao <code>NOT IN</code> với một subquery có chứa NULL lại trả về không có dòng nào, bởi vì một phép so sánh trở thành UNKNOWN và làm hỏng toàn bộ điều kiện. Một cách sửa an toàn là dùng <code>NOT EXISTS</code>. Cũng cần lưu ý rằng các hàm tổng hợp bỏ qua NULL, nên <code>COUNT(col)</code> không giống với <code>COUNT(*)</code>.</p></details>
-<p>SQL uses <strong>three-valued logic</strong>: TRUE, FALSE, <strong>UNKNOWN</strong>. Any comparison with NULL is UNKNOWN — and WHERE only keeps rows that are TRUE.</p>
-<pre>SELECT NULL = NULL;      -- UNKNOWN (not TRUE!)
-SELECT NULL <> 5;        -- UNKNOWN
-WHERE col = NULL         -- ❌ never matches → use col IS NULL
-
--- The classic NOT IN trap:
-SELECT * FROM orders
-WHERE customer_id NOT IN (SELECT id FROM blacklist);   -- blacklist has a NULL id
--- expands to: customer_id <> 1 AND customer_id <> 2 AND customer_id <> NULL
---                                                        └── UNKNOWN → whole predicate UNKNOWN
--- → returns ZERO rows, silently!
-
--- Fixes:
-WHERE customer_id NOT IN (SELECT id FROM blacklist WHERE id IS NOT NULL);
--- or (NULL-safe and often faster):
-WHERE NOT EXISTS (SELECT 1 FROM blacklist b WHERE b.id = o.customer_id);</pre>
-<ul>
-<li><strong>Aggregates ignore NULL</strong>: <code>AVG(col)</code> averages only non-null values; <code>COUNT(col)</code> ≠ <code>COUNT(*)</code>.</li>
-<li><strong>Helpers</strong>: <code>COALESCE(a, b, 0)</code> first non-null; <code>NULLIF(a, b)</code> NULL if equal (divide-by-zero guard).</li>
-<li><strong>NULL-safe compare</strong>: PostgreSQL <code>IS DISTINCT FROM</code>, MySQL <code>&lt;=&gt;</code>.</li>
-<li><strong>Sorting</strong>: NULLs sort last/first depending on DB — be explicit: <code>ORDER BY col NULLS LAST</code>.</li>
-</ul>
-<div class="key-point">"NOT IN + NULL returns nothing" is a favorite senior screening question — answer it with three-valued logic and offer NOT EXISTS as the fix.</div>`,
-      },
-      {
-        q: 'Explain LAG/LEAD and window frames (running totals, moving averages).',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p>Besides ranking, window functions can compare a row to nearby rows with <code>LAG</code> and <code>LEAD</code>, and can aggregate over a sliding frame for running totals and moving averages, all without combining rows. A common trap is the default frame: with <code>ORDER BY</code> it uses <code>RANGE</code>, which groups ties together, so use <code>ROWS</code> for strict row-by-row results. <code>LAST_VALUE</code> also needs an explicit full frame or it just returns the current row. These functions replace complex self-joins.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Ngoài việc xếp hạng, window function còn có thể so sánh một dòng với các dòng lân cận bằng <code>LAG</code> và <code>LEAD</code>, và có thể tính tổng hợp trên một khung trượt để làm running total và moving average, tất cả đều không gộp các dòng lại. Một cái bẫy phổ biến là khung mặc định: khi có <code>ORDER BY</code> nó dùng <code>RANGE</code>, vốn gom các giá trị bằng nhau lại với nhau, nên hãy dùng <code>ROWS</code> để có kết quả chính xác theo từng dòng. <code>LAST_VALUE</code> cũng cần một khung đầy đủ được chỉ định rõ ràng, nếu không nó chỉ trả về dòng hiện tại. Những hàm này thay thế cho các phép self-join phức tạp.</p></details>
-<p>Beyond ranking, window functions compare rows to neighbors and aggregate over a sliding <strong>frame</strong> — without collapsing rows.</p>
-<pre>-- LAG/LEAD: look at the previous / next row
-SELECT month, revenue,
-  LAG(revenue)  OVER (ORDER BY month)              AS prev_month,
-  revenue - LAG(revenue) OVER (ORDER BY month)     AS mom_change,
-  LEAD(revenue) OVER (ORDER BY month)              AS next_month
-FROM monthly_sales;
-
--- Running total + moving average (frame clauses):
-SELECT day, amount,
-  SUM(amount) OVER (ORDER BY day
-    ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS running_total,
-  AVG(amount) OVER (ORDER BY day
-    ROWS BETWEEN 6 PRECEDING AND CURRENT ROW)         AS ma_7d
-FROM daily_sales;
-
--- Share of group without GROUP BY:
-SELECT name, department, salary,
-  salary / SUM(salary) OVER (PARTITION BY department) AS dept_share
-FROM employees;</pre>
-<ul>
-<li><strong>Frame default gotcha</strong>: with ORDER BY, the default frame is <code>RANGE ... CURRENT ROW</code> — ties are included together; use <code>ROWS</code> for strict row-by-row totals.</li>
-<li><strong>FIRST_VALUE / LAST_VALUE</strong>: LAST_VALUE needs an explicit frame (<code>ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING</code>) or it returns the current row — classic trap.</li>
-</ul>
-<div class="key-point">LAG for month-over-month deltas and SUM OVER for running totals replace ugly self-joins — mentioning that trade-off is exactly what interviewers want to hear.</div>`,
-      },
-      {
-        q: 'Write SQL: Find users who logged in 3 or more consecutive days (gaps and islands).',
-        difficulty: 'tricky',
-        a: `<div class="interview-answer"><p>This is the gaps-and-islands pattern. Within a run of consecutive dates, the value of the date minus <code>ROW_NUMBER()</code> stays constant, so it can be used as a group key with <code>GROUP BY</code> and then <code>HAVING COUNT(*) &gt;= 3</code>. Duplicate logins on the same day should be removed first with <code>DISTINCT</code>. The same method solves many problems such as longest streak, consecutive absences, and grouping events into sessions.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Đây là mẫu gaps-and-islands. Trong một chuỗi các ngày liên tiếp, giá trị của ngày trừ đi <code>ROW_NUMBER()</code> luôn không đổi, nên có thể dùng làm khóa gom nhóm với <code>GROUP BY</code> rồi <code>HAVING COUNT(*) &gt;= 3</code>. Các lần đăng nhập trùng trong cùng một ngày nên được loại bỏ trước bằng <code>DISTINCT</code>. Cùng phương pháp này giải quyết được nhiều bài toán như chuỗi dài nhất, số ngày vắng mặt liên tiếp, và gom các sự kiện thành phiên (session).</p></details>
-<p>The <strong>gaps-and-islands</strong> trick: <code>date - ROW_NUMBER()</code> is constant within a consecutive run, so it becomes a group key.</p>
-<pre>WITH days AS (                       -- dedupe multiple logins per day
-  SELECT DISTINCT user_id, login_date
-  FROM logins
-),
-grp AS (
-  SELECT user_id, login_date,
-    login_date - ROW_NUMBER() OVER (
-      PARTITION BY user_id ORDER BY login_date
-    ) * INTERVAL '1 day' AS island   -- constant per consecutive streak
-  FROM days
-)
-SELECT user_id,
-       MIN(login_date) AS streak_start,
-       MAX(login_date) AS streak_end,
-       COUNT(*)        AS streak_len
-FROM grp
-GROUP BY user_id, island
-HAVING COUNT(*) >= 3;
-
--- Why it works:
--- date        row_number   date - rn
--- 2024-01-01  1            2023-12-31 ┐
--- 2024-01-02  2            2023-12-31 ├ same value → same island
--- 2024-01-03  3            2023-12-31 ┘
--- 2024-01-07  4            2024-01-03 ← gap → new island</pre>
-<div class="key-point">This pattern also answers "longest winning streak", "consecutive absent days", "sessions from click events" — one technique, many interview questions.</div>`,
-      },
-      {
-        q: 'What is MVCC (Multi-Version Concurrency Control)? Why do readers not block writers?',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p>MVCC keeps several versions of each row so every transaction reads a consistent snapshot from its start, which is why readers do not block writers and writers do not block readers. An <code>UPDATE</code> does not overwrite; it writes a new version and marks the old one as dead. In PostgreSQL these dead versions stay in the table and must be cleaned by <code>VACUUM</code>, so a long transaction causes bloat and makes <code>COUNT(*)</code> slow. Write-write conflicts still cause locking.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>MVCC lưu nhiều phiên bản của mỗi dòng để mỗi transaction đọc được một snapshot nhất quán tính từ lúc nó bắt đầu, đó là lý do vì sao reader không chặn writer và writer không chặn reader. Một câu <code>UPDATE</code> không ghi đè; nó tạo ra một phiên bản mới và đánh dấu phiên bản cũ là đã chết. Trong PostgreSQL, những phiên bản chết này vẫn nằm lại trong bảng và phải được dọn dẹp bằng <code>VACUUM</code>, nên một transaction chạy lâu sẽ gây phình bảng (bloat) và làm <code>COUNT(*)</code> chậm. Các xung đột ghi-ghi thì vẫn gây ra khóa.</p></details>
-<p><strong>MVCC</strong>: instead of locking rows for reads, the database keeps <strong>multiple versions</strong> of each row. Every transaction sees a consistent <strong>snapshot</strong> as of its start — readers never block writers and writers never block readers.</p>
-<pre>-- UPDATE does not overwrite — it creates a new version:
-row v1: (id=1, balance=100)  xmin=90, xmax=95   ← old TX sees this
-row v2: (id=1, balance=50)   xmin=95            ← new TX sees this
-
--- Each transaction filters versions by its snapshot:
--- "visible if created before my snapshot AND not deleted before it"</pre>
-<ul>
-<li><strong>PostgreSQL</strong>: old versions live in the table itself → dead tuples must be cleaned by <strong>VACUUM</strong> (autovacuum). Long-running transactions block cleanup → table bloat.</li>
-<li><strong>MySQL InnoDB / Oracle</strong>: old versions reconstructed from the <strong>undo log</strong>.</li>
-<li>Write-write conflicts still lock: two UPDATEs on the same row → second waits, then (in REPEATABLE READ+) may abort with a serialization error.</li>
-</ul>
-<div class="key-point">Senior follow-ups to expect: "why does a long transaction cause bloat?" (VACUUM can't remove versions it might still need) and "why is COUNT(*) slow in PostgreSQL?" (must scan versions to check visibility).</div>`,
-      },
-      {
-        q: 'Write SQL: Pivot rows to columns (conditional aggregation).',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p>Pivoting rows into columns is done with conditional aggregation, which is an aggregate over a <code>CASE</code>, or <code>FILTER</code> in PostgreSQL. This works in every database without special <code>PIVOT</code> syntax. A common use is counting by status in a single pass instead of running several separate queries. It also keeps the SQL portable across databases.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Xoay dòng thành cột được thực hiện bằng conditional aggregation, tức là một hàm tổng hợp áp lên <code>CASE</code>, hoặc dùng <code>FILTER</code> trong PostgreSQL. Cách này chạy được trên mọi database mà không cần cú pháp <code>PIVOT</code> đặc biệt. Một ứng dụng phổ biến là đếm theo trạng thái chỉ trong một lần quét thay vì chạy nhiều truy vấn riêng lẻ. Nó cũng giúp câu SQL dễ dàng chuyển đổi giữa các database.</p></details>
-<p><strong>Conditional aggregation</strong> — an aggregate over a CASE (or FILTER) turns row values into columns. Works in every database, no vendor PIVOT syntax needed.</p>
-<pre>-- sales(product, quarter, amount) → one row per product, quarters as columns
-SELECT product,
-  SUM(CASE WHEN quarter = 'Q1' THEN amount ELSE 0 END) AS q1,
-  SUM(CASE WHEN quarter = 'Q2' THEN amount ELSE 0 END) AS q2,
-  SUM(CASE WHEN quarter = 'Q3' THEN amount ELSE 0 END) AS q3,
-  SUM(CASE WHEN quarter = 'Q4' THEN amount ELSE 0 END) AS q4
-FROM sales
-GROUP BY product;
-
--- PostgreSQL FILTER syntax (cleaner, same plan):
-SELECT product,
-  SUM(amount) FILTER (WHERE quarter = 'Q1') AS q1,
-  COUNT(*)    FILTER (WHERE amount > 1000)  AS big_sales
-FROM sales
-GROUP BY product;
-
--- Same trick for "count by status in one pass" (very common in real code):
-SELECT
-  COUNT(*) FILTER (WHERE status = 'active')   AS active,
-  COUNT(*) FILTER (WHERE status = 'pending')  AS pending,
-  COUNT(*) FILTER (WHERE status = 'deleted')  AS deleted
-FROM users;   -- one scan instead of three queries</pre>
-<div class="key-point">Interviewers use pivots to test whether you reach for one-pass conditional aggregation or naively run N separate queries / self-joins.</div>`,
-      },
-      {
-        q: 'Why did my LEFT JOIN return fewer rows after adding a WHERE filter? (the LEFT JOIN that silently becomes an INNER JOIN)',
-        difficulty: 'tricky',
-        a: `<div class="interview-answer"><p>In an outer join, <code>ON</code> and <code>WHERE</code> are not the same: <code>ON</code> decides what matches, while <code>WHERE</code> filters the joined result. Unmatched left rows have NULLs in the right columns, so a <code>WHERE</code> condition on a right-table column drops them and quietly turns a <code>LEFT JOIN</code> into an <code>INNER JOIN</code>. The fix is to move right-table filters into the <code>ON</code> clause. The one intended exception is the anti-join, which uses <code>WHERE</code> with <code>IS NULL</code> to find rows that have no match.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Trong một outer join, <code>ON</code> và <code>WHERE</code> không giống nhau: <code>ON</code> quyết định cái gì khớp, còn <code>WHERE</code> lọc kết quả sau khi đã join. Những dòng bên trái không khớp sẽ mang giá trị NULL ở các cột bên phải, nên một điều kiện <code>WHERE</code> đặt trên cột của bảng bên phải sẽ loại bỏ chúng và âm thầm biến một <code>LEFT JOIN</code> thành <code>INNER JOIN</code>. Cách sửa là chuyển các điều kiện lọc của bảng bên phải vào mệnh đề <code>ON</code>. Ngoại lệ cố ý duy nhất là anti-join, vốn dùng <code>WHERE</code> với <code>IS NULL</code> để tìm những dòng không có bản khớp.</p></details>
-<p>For an outer join, <strong>ON and WHERE are NOT interchangeable</strong>. ON decides what matches; WHERE filters the <em>joined result</em>. Unmatched left rows carry NULLs in all right-table columns — so any WHERE condition on a right-table column evaluates to UNKNOWN for them and throws them away, silently turning the LEFT JOIN into an INNER JOIN.</p>
-<pre>-- customers                     -- orders
--- id | name                     -- id | customer_id | status
---  1 | An                       -- 10 |      1      | paid
---  2 | Bo                       -- 11 |      2      | cancelled
---  3 | Chi                      -- (Chi has no orders)
-
-SELECT c.name, o.id, o.status
-FROM customers c
-LEFT JOIN orders o ON o.customer_id = c.id;
--- 3 rows: An/paid, Bo/cancelled, Chi/NULL     ✅ all customers kept
-
--- "Just show paid orders" — condition put in WHERE:
-SELECT c.name, o.id, o.status
-FROM customers c
-LEFT JOIN orders o ON o.customer_id = c.id
-WHERE o.status = 'paid';
--- 1 row: An only! ❌ Bo fails the filter, and Chi's row is (Chi, NULL, NULL)
--- → NULL = 'paid' is UNKNOWN → dropped. LEFT JOIN degraded to INNER JOIN.
-
--- ✅ Fix: right-table filters belong in ON
-SELECT c.name, o.id, o.status
-FROM customers c
-LEFT JOIN orders o ON o.customer_id = c.id AND o.status = 'paid';
--- 3 rows: An/paid, Bo/NULL, Chi/NULL — every customer, paid orders where they exist
-
--- The one intentional exception — the anti-join pattern:
-SELECT c.* FROM customers c
-LEFT JOIN orders o ON o.customer_id = c.id
-WHERE o.id IS NULL;      -- customers with NO orders (IS NULL is the whole point here)</pre>
-<p>Why the bad habit exists: for an <strong>INNER</strong> join, ON vs WHERE placement makes no difference (the optimizer merges them), so developers learn it "doesn't matter" — until the first outer join. Interviewer follow-up: filters on the <strong>left</strong> table are safe in WHERE; only right-table conditions must move into ON.</p>
-<div class="key-point">In a LEFT JOIN, any WHERE condition on a right-table column (except IS NULL) silently converts it to an INNER JOIN — put right-side filters in the ON clause.</div>`,
-      },
-      {
-        q: 'Why does a row match neither status = X nor status != X? COUNT(*) vs COUNT(col) vs COUNT(DISTINCT col).',
-        difficulty: 'tricky',
-        a: `<div class="interview-answer"><p>Because of three-valued logic, a NULL row fails both <code>status = X</code> and <code>status != X</code>, so opposite filters do not cover the whole table and some rows disappear from reports. A common symptom is a dashboard whose category totals do not add up to <code>COUNT(*)</code> because the NULL group is missed. The fix is to handle NULL directly with <code>OR status IS NULL</code> or <code>IS DISTINCT FROM</code>. Also note that <code>COUNT(*)</code> and <code>COUNT(1)</code> both count rows and are the same, while <code>COUNT(col)</code> skips NULLs.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Do logic ba giá trị, một dòng có giá trị NULL sẽ không thỏa cả <code>status = X</code> lẫn <code>status != X</code>, nên hai bộ lọc đối nghịch không bao phủ hết toàn bảng và một số dòng biến mất khỏi báo cáo. Một triệu chứng phổ biến là một dashboard mà tổng của các nhóm không cộng lại bằng <code>COUNT(*)</code> vì đã bỏ sót nhóm NULL. Cách sửa là xử lý NULL một cách trực tiếp bằng <code>OR status IS NULL</code> hoặc <code>IS DISTINCT FROM</code>. Cũng cần lưu ý rằng <code>COUNT(*)</code> và <code>COUNT(1)</code> đều đếm số dòng và giống hệt nhau, trong khi <code>COUNT(col)</code> bỏ qua các giá trị NULL.</p></details>
-<p>Because of three-valued logic, a NULL row fails <strong>both</strong> a condition and its negation — so complementary filters do not partition the table, and different COUNT variants disagree. This silently loses rows in reports.</p>
-<pre>-- users
--- id | status
---  1 | active
---  2 | inactive
---  3 | NULL
-
-SELECT COUNT(*)               FROM users;   -- 3  (counts ROWS)
-SELECT COUNT(status)          FROM users;   -- 2  (skips NULLs!)
-SELECT COUNT(DISTINCT status) FROM users;   -- 2  ('active','inactive' — NULL ignored)
-
-SELECT * FROM users WHERE status =  'active';   -- 1 row (id 1)
-SELECT * FROM users WHERE status != 'active';   -- 1 row (id 2) — id 3 is MISSING!
--- NULL != 'active' → UNKNOWN, and WHERE keeps only TRUE.
--- Row 3 matches NEITHER query: the two "opposite" filters return 2 of 3 rows.
-
--- ✅ Fixes:
-SELECT * FROM users WHERE status != 'active' OR status IS NULL;
-
-SELECT * FROM users WHERE status IS DISTINCT FROM 'active';  -- PostgreSQL, NULL-safe
--- MySQL: WHERE NOT (status <=> 'active');
-
--- Same trap inside aggregates — two "averages", two answers:
-SELECT AVG(score) FROM exams;               -- NULLs excluded from numerator AND denominator
-SELECT AVG(COALESCE(score, 0)) FROM exams;  -- missing treated as 0 → lower value</pre>
-<p>Failure mode in the wild: a dashboard splits users into "active" and "not active" tabs and the totals don't add up to COUNT(*) — nobody notices the NULL bucket. Interviewer follow-up: <code>COUNT(1)</code> is identical to <code>COUNT(*)</code> (the "COUNT(1) is faster" claim is a myth).</p>
-<div class="key-point">Before writing any negative filter, ask "is this column nullable?" — and remember COUNT(col) counts non-NULL values while COUNT(*) counts rows.</div>`,
-      },
-      {
-        q: 'IN vs EXISTS vs JOIN: when do they return different results for the same question?',
-        difficulty: 'tricky',
-        a: `<div class="interview-answer"><p>All three can answer whether customers have orders, but they do not behave the same way. A <code>JOIN</code> multiplies rows on one-to-many data, so <code>DISTINCT</code> is needed, while <code>IN</code> and <code>EXISTS</code> return each row at most once. Modern optimizers often turn <code>IN</code> and <code>EXISTS</code> into the same plan, so the idea that <code>EXISTS</code> is always faster is outdated. They differ most with negation, since <code>NOT IN</code> on a nullable column can return no rows, which makes <code>NOT EXISTS</code> the safer default.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Cả ba đều có thể trả lời câu hỏi khách hàng nào có đơn hàng, nhưng chúng không hoạt động giống nhau. Một <code>JOIN</code> làm nhân đôi số dòng trên dữ liệu một-nhiều, nên cần dùng <code>DISTINCT</code>, còn <code>IN</code> và <code>EXISTS</code> trả về mỗi dòng nhiều nhất một lần. Các optimizer hiện đại thường biến <code>IN</code> và <code>EXISTS</code> thành cùng một plan, nên quan niệm rằng <code>EXISTS</code> luôn nhanh hơn đã lỗi thời. Chúng khác nhau rõ nhất khi phủ định, vì <code>NOT IN</code> trên một cột có thể chứa NULL có thể trả về không có dòng nào, khiến <code>NOT EXISTS</code> là lựa chọn mặc định an toàn hơn.</p></details>
-<p>All three can answer "customers who have orders", but they are <strong>not semantically equivalent</strong> — the differences (row multiplication and NULL handling) are exactly what interviewers probe.</p>
-<pre>-- 1) JOIN: multiplies rows on 1-to-many!
-SELECT c.name
-FROM customers c
-JOIN orders o ON o.customer_id = c.id;
--- An has 3 orders → 'An' appears 3 TIMES. Needs DISTINCT (extra sort/hash work).
-
--- 2) IN: semi-join — each customer at most once
-SELECT name FROM customers
-WHERE id IN (SELECT customer_id FROM orders);
-
--- 3) EXISTS: semi-join, and NULL-proof
-SELECT name FROM customers c
-WHERE EXISTS (SELECT 1 FROM orders o WHERE o.customer_id = c.id);
-
--- The NEGATION is where they really diverge:
-SELECT name FROM customers
-WHERE id NOT IN (SELECT customer_id FROM orders);
--- → ZERO rows if ANY orders.customer_id is NULL (three-valued logic bomb)
-
-SELECT name FROM customers c
-WHERE NOT EXISTS (SELECT 1 FROM orders o WHERE o.customer_id = c.id);
--- → correct answer regardless of NULLs ✅</pre>
-<ul>
-<li><strong>JOIN</strong>: use when you need columns from <em>both</em> tables; be ready to explain the duplicate-row effect.</li>
-<li><strong>IN / EXISTS</strong>: pure existence tests (semi-joins). Modern optimizers usually rewrite both to the <em>same</em> semi-join plan — "EXISTS is always faster than IN" is outdated folklore; check the plan instead.</li>
-<li><strong>NOT IN vs NOT EXISTS</strong>: never NOT IN on a nullable subquery column; NOT EXISTS is also typically planned as an efficient anti-join.</li>
-</ul>
-<div class="key-point">Choose by semantics — semi-join for existence, JOIN for data from both sides — and default to NOT EXISTS over NOT IN; the optimizer usually makes their performance identical anyway.</div>`,
-      },
-      {
-        q: 'Two transactions read the same balance and both write back — one update vanishes. How do you prevent lost updates?',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p>A lost update happens when two transactions read the same value, change it, and write it back, so the second write overwrites the first, because plain SELECTs take no locks under Read Committed. The best fix is to make the write atomic in one statement, such as <code>UPDATE ... SET balance = balance - 30</code>. A pessimistic <code>SELECT ... FOR UPDATE</code> locks the row for short, high-conflict transactions, while an optimistic version column suits edits that span user think-time. Note that MySQL Repeatable Read does not prevent lost updates.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Lost update xảy ra khi hai transaction cùng đọc một giá trị, thay đổi nó, rồi ghi lại, nên lần ghi thứ hai ghi đè lên lần ghi thứ nhất, bởi vì các câu SELECT thông thường không lấy khóa dưới mức Read Committed. Cách sửa tốt nhất là làm cho việc ghi trở nên nguyên tử trong một câu lệnh duy nhất, ví dụ <code>UPDATE ... SET balance = balance - 30</code>. Cách bi quan (pessimistic) dùng <code>SELECT ... FOR UPDATE</code> để khóa dòng, phù hợp cho các transaction ngắn và tranh chấp cao, còn cách lạc quan (optimistic) với cột version phù hợp cho các thao tác chỉnh sửa kéo dài qua thời gian người dùng suy nghĩ. Lưu ý rằng Repeatable Read của MySQL không ngăn được lost update.</p></details>
-<p>The <strong>lost update</strong> anomaly: read–modify–write done in the application means the second writer overwrites the first, because plain SELECTs take no locks under READ COMMITTED (the default in PostgreSQL, Oracle, SQL Server).</p>
-<pre>-- Session A                                 -- Session B
-BEGIN;                                       BEGIN;
-SELECT balance FROM acc WHERE id=1;  --100   SELECT balance FROM acc WHERE id=1;  --100
--- app computes 100 - 30 = 70                -- app computes 100 - 50 = 50
-UPDATE acc SET balance=70 WHERE id=1;
-COMMIT;
-                                             UPDATE acc SET balance=50 WHERE id=1;
-                                             COMMIT;
--- Final balance = 50. A's withdrawal vanished: 80 was spent from 100. ❌
-
--- ✅ Fix 1: make the write atomic (best when the logic fits in SQL)
-UPDATE acc SET balance = balance - 30
-WHERE id = 1 AND balance >= 30;        -- also enforces the invariant
-
--- ✅ Fix 2: pessimistic — SELECT ... FOR UPDATE locks the row until COMMIT
-BEGIN;
-SELECT balance FROM acc WHERE id = 1 FOR UPDATE;   -- Session B blocks HERE
-UPDATE acc SET balance = 70 WHERE id = 1;
-COMMIT;                                            -- B wakes and reads 70
--- Variants: FOR UPDATE NOWAIT (fail fast), FOR UPDATE SKIP LOCKED (job queues)
-
--- ✅ Fix 3: optimistic — version column, no lock held while the user thinks
-UPDATE acc SET balance = 70, version = version + 1
-WHERE id = 1 AND version = 41;         -- the version you originally read
--- 0 rows affected → someone else won → reload and retry (JPA @Version does this)</pre>
-<ul>
-<li><strong>Pessimistic</strong> (FOR UPDATE): short transactions, frequent conflicts; risk = lock waits and deadlocks.</li>
-<li><strong>Optimistic</strong> (version check): edits spanning user think-time or HTTP requests, where holding a DB lock is impossible; risk = retries under contention.</li>
-<li><strong>Trick follow-up</strong>: MySQL REPEATABLE READ does <em>not</em> prevent lost updates (snapshot reads + last-write-wins); PostgreSQL REPEATABLE READ aborts one transaction with a serialization error — your code must retry.</li>
-</ul>
-<div class="key-point">Never do read–modify–write across statements without a strategy: atomic UPDATE, SELECT ... FOR UPDATE, or a version column — and know that isolation levels alone do not save you in MySQL.</div>`,
-      },
     ],
   },
 
@@ -1148,6 +1161,7 @@ WHERE id = 1 AND version = 41;         -- the version you originally read
     name: 'Optimize SQL',
     icon: '⚡',
     questions: [
+      // ──── 1. READING EXECUTION PLANS ────
       {
         q: 'How to read and interpret an EXPLAIN / Execution Plan?',
         difficulty: 'hard',
@@ -1179,32 +1193,98 @@ SELECT * FROM orders WHERE customer_id = 42;
 <div class="key-point">Workflow: run <code>EXPLAIN (ANALYZE, BUFFERS)</code>, then scan every node for <strong>estimated vs actual rows diverging</strong> — that node is where the plan went wrong. Fix statistics first (<code>ANALYZE</code>), then indexing, and rewrite the query only as a last resort. MySQL equivalent: <code>EXPLAIN ANALYZE</code> (8.0+) or <code>EXPLAIN FORMAT=JSON</code>.</div>`,
       },
       {
-        q: 'What are the most common causes of slow SQL queries?',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p>Slow SQL queries usually come from a few common problems. Frequent causes are missing indexes on filtered or joined columns, <code>SELECT *</code> reading more data than needed, and wrapping an indexed column in a function so the index cannot be used. Other causes include the N+1 pattern, implicit type conversion, large <code>OFFSET</code> paging, correlated subqueries, lock contention, and old table statistics. The best approach is to read the query plan and fix the real cause instead of guessing.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Truy vấn SQL chậm thường bắt nguồn từ một vài vấn đề phổ biến. Các nguyên nhân hay gặp là thiếu index trên các cột dùng để lọc hoặc join, <code>SELECT *</code> đọc nhiều dữ liệu hơn cần thiết, và bọc một cột đã có index trong một hàm khiến index không dùng được. Các nguyên nhân khác gồm mẫu N+1, ép kiểu ngầm định, phân trang với <code>OFFSET</code> lớn, correlated subquery, tranh chấp khóa, và thống kê bảng đã cũ. Cách tốt nhất là đọc query plan và sửa đúng nguyên nhân thực sự thay vì đoán mò.</p></details>
-<ul>
-<li><strong>Missing indexes</strong> on WHERE, JOIN, ORDER BY columns.</li>
-<li><strong>SELECT *</strong> instead of specific columns → more I/O, no covering index.</li>
-<li><strong>N+1 query problem</strong>: executing one query per row instead of a JOIN or batch.</li>
-<li><strong>Functions on indexed columns</strong>: <code>WHERE YEAR(created_at) = 2024</code> → can't use index.</li>
-<li><strong>Implicit type conversion</strong>: <code>WHERE varchar_col = 123</code> → index bypass.</li>
-<li><strong>Large OFFSET pagination</strong>: <code>OFFSET 1000000</code> still scans all skipped rows.</li>
-<li><strong>Correlated subqueries</strong>: subquery runs once per row.</li>
-<li><strong>Lock contention / blocking queries</strong>.</li>
-<li><strong>Stale statistics</strong>: optimizer makes bad decisions.</li>
-</ul>
-<pre>-- Typical slow query with 3 of these problems at once:
-SELECT * FROM orders                          -- ❌ SELECT *
-WHERE YEAR(created_at) = 2024                 -- ❌ function kills the index
-  AND customer_ref = 12345;                   -- ❌ varchar col vs number → cast
+        q: 'EXPLAIN says rows=12 but the step actually returned 480,000 — why are estimates wrong and how do you fix the plan?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>The optimizer chooses the join type, join order, and memory from row estimates, so an estimate that is far off produces a bad plan, such as a Nested Loop chosen for half a million rows. The most common cause is old statistics after a bulk load or large delete, so <code>ANALYZE</code> should be run first. A subtler cause is correlated columns, because the planner assumes columns are independent and multiplies their selectivity; PostgreSQL extended statistics fixes this. To spot it, compare estimated and actual rows node by node, and treat query hints as a last resort because they go stale as data changes.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Optimizer chọn kiểu join, thứ tự join, và bộ nhớ dựa trên số dòng ước lượng, nên một ước lượng sai lệch lớn sẽ tạo ra một plan tệ, chẳng hạn chọn Nested Loop cho nửa triệu dòng. Nguyên nhân phổ biến nhất là thống kê cũ sau một lần nạp hàng loạt hoặc xóa lớn, nên nên chạy <code>ANALYZE</code> trước tiên. Một nguyên nhân tinh vi hơn là các cột có tương quan, vì bộ lập kế hoạch giả định các cột độc lập với nhau và nhân các độ chọn lọc của chúng lại; extended statistics của PostgreSQL sẽ khắc phục điều này. Để phát hiện, hãy so sánh số dòng ước lượng và thực tế theo từng nút, và chỉ coi query hint là biện pháp cuối cùng vì chúng sẽ lỗi thời khi dữ liệu thay đổi.</p></details>
+<p>Join strategy, join order, and memory grants are all chosen from <strong>row estimates</strong>. When the estimate is off by orders of magnitude, the optimizer picks a plan that is catastrophic at the real size — the classic symptom is a Nested Loop chosen for half a million rows.</p>
+<pre>EXPLAIN ANALYZE
+SELECT * FROM addresses WHERE city = 'Hanoi' AND country = 'VN';
+-- Nested Loop  (estimated rows=12)  (actual rows=480000)   ← 40,000× off!
+-- Cause: the planner multiplies selectivities as if columns were independent:
+--   sel(city='Hanoi') × sel(country='VN') = tiny → wrong join strategy → minutes.
 
--- Fixed:
-SELECT id, status, total FROM orders          -- ✅ needed columns only
-WHERE created_at >= '2024-01-01'
-  AND created_at <  '2025-01-01'              -- ✅ index range scan
-  AND customer_ref = '12345';                 -- ✅ matching type</pre>`,
+-- Fix 1: stale statistics (classic right after a bulk load / big DELETE)
+ANALYZE addresses;                  -- MySQL: ANALYZE TABLE addresses;
+-- autovacuum/auto-analyze has thresholds — a 10M-row COPY may not have triggered it yet
+
+-- Fix 2: correlated columns → extended statistics (PostgreSQL 10+)
+CREATE STATISTICS addr_city_country (dependencies)
+  ON city, country FROM addresses;
+ANALYZE addresses;
+-- Planner now knows city implies country → realistic estimate → Hash Join ✅
+
+-- Fix 3: skewed data + prepared statements reusing one generic plan
+-- (fast for 'rare_value', terrible for 'common_value')
+SET plan_cache_mode = force_custom_plan;   -- PostgreSQL: re-plan per parameter</pre>
+<ul>
+<li><strong>How to spot it</strong>: in EXPLAIN ANALYZE, scan every node for estimated vs actual rows diverging by 100× or more — that node is where the plan went wrong, regardless of where time is spent.</li>
+<li><strong>Why hints are the last resort</strong>: forcing a join type fixes today's query and breaks next year's data distribution; fixing statistics fixes the whole workload.</li>
+</ul>
+<div class="key-point">A bad plan is almost always a bad estimate — compare estimated vs actual rows node by node, then repair statistics (ANALYZE, extended statistics for correlated columns) before rewriting the query.</div>`,
       },
+      {
+        q: 'MySQL EXPLAIN shows "Using filesort" and "Using temporary" — what do they mean and how do you eliminate them?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>Both flags mean no index can return rows in the order the query needs. Using filesort is a separate sort step that may run in memory or spill to disk, and Using temporary is an implicit temp table used for <code>GROUP BY</code>, <code>DISTINCT</code>, or some unions. They are costly under <code>LIMIT</code> because the whole result is built before the <code>LIMIT</code> is applied. The fix is a composite index with equality-filter columns first, then the <code>ORDER BY</code> or <code>GROUP BY</code> columns in matching direction, so the index feeds rows already sorted.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Cả hai cờ đều có nghĩa là không có index nào trả về các dòng theo đúng thứ tự mà truy vấn cần. Using filesort là một bước sort riêng biệt có thể chạy trong bộ nhớ hoặc tràn xuống đĩa, còn Using temporary là một bảng tạm ngầm định dùng cho <code>GROUP BY</code>, <code>DISTINCT</code>, hoặc một số phép union. Chúng tốn kém khi có <code>LIMIT</code> vì toàn bộ kết quả được dựng lên trước khi <code>LIMIT</code> được áp dụng. Cách sửa là một composite index với các cột lọc bằng đứng trước, rồi tới các cột <code>ORDER BY</code> hoặc <code>GROUP BY</code> theo đúng chiều, để index cung cấp các dòng đã được sắp xếp sẵn.</p></details>
+<p>Both flags mean "no index delivers rows in theorder I need". <strong>Using filesort</strong> = an explicit sort step (despite the name it may be in-memory; it spills to disk past sort_buffer_size). <strong>Using temporary</strong> = an implicit temp table, typically for GROUP BY / DISTINCT / some UNIONs. On big tables under LIMIT they are performance killers, because the whole set is materialized before the LIMIT applies.</p>
+<pre>EXPLAIN SELECT * FROM orders
+WHERE  customer_id = 42
+ORDER  BY created_at DESC
+LIMIT  10;
+-- Extra: Using where; Using filesort
+-- → reads ALL of customer 42's orders, sorts them, keeps 10
+
+CREATE INDEX idx_cust_created ON orders (customer_id, created_at);
+-- Extra: Using where
+-- → index delivers rows already sorted (backward scan) — touches ~10 rows ✅
+
+-- Mixed sort directions defeat a normal index:
+-- ORDER BY created_at DESC, id ASC          → filesort is back
+CREATE INDEX idx_mixed ON orders (customer_id, created_at DESC, id ASC);  -- MySQL 8.0+
+
+-- "Using temporary": GROUP BY that no index can feed in order
+EXPLAIN SELECT status, COUNT(*) FROM orders GROUP BY status;
+-- Extra: Using temporary
+CREATE INDEX idx_status ON orders (status);
+-- Extra: Using index   → streams groups straight off the index, no temp table ✅</pre>
+<p>Design rule for the supporting composite index: <strong>equality-filter columns first, then the ORDER BY / GROUP BY columns</strong>, matching direction. Interviewer follow-up: a range predicate (<code>created_at > ?</code>) before the sort column breaks the ordering guarantee — the index can filter or sort, not both, past the range column.</p>
+<div class="key-point">filesort/temporary do not mean "on disk" — they mean the index is not providing the required order; fix by shaping a composite index as (equality columns..., order-by columns) in matching directions.</div>`,
+      },
+      {
+        q: 'The column is indexed and the predicate is SARGable — why does the optimizer still choose a full table scan?',
+        difficulty: 'tricky',
+        a: `<div class="interview-answer"><p>Often the optimizer is correct to skip the index. Index access costs about one random read per matching row, while a sequential scan reads pages in bulk, so past a few percent of rows a full scan is genuinely cheaper. Other causes are an <code>OR</code> across different columns, which one B-tree cannot serve, and tiny tables that always scan. To prove it is a cost decision, the index can be forced with <code>enable_seqscan = off</code> or <code>FORCE INDEX</code> and compared; if the forced plan is slower, the planner was right.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Thường thì optimizer đúng khi bỏ qua index. Truy cập qua index tốn khoảng một lần đọc ngẫu nhiên cho mỗi dòng khớp, trong khi một sequential scan đọc các trang theo lô, nên vượt qua vài phần trăm số dòng thì quét toàn bảng thực sự rẻ hơn. Các nguyên nhân khác là một <code>OR</code> trải trên các cột khác nhau, thứ mà một B-tree không phục vụ được, và các bảng nhỏ vốn luôn bị quét toàn bộ. Để chứng minh đây là một quyết định dựa trên chi phí, có thể ép dùng index bằng <code>enable_seqscan = off</code> hoặc <code>FORCE INDEX</code> rồi so sánh; nếu plan bị ép buộc chậm hơn thì bộ lập kế hoạch đã đúng.</p></details>
+<p>Because index access costs roughly <strong>onerandom I/O per matching row</strong> (index leaf → heap lookup), while a sequential scan reads pages in bulk. Past a few percent selectivity, the full scan is genuinely <em>cheaper</em> — the optimizer ignoring your index is often the optimizer being right.</p>
+<pre>-- 1) Low selectivity: the index is used only when it pays off
+SELECT * FROM orders WHERE status = 'done';     -- 95% of rows
+-- → Seq Scan ✅ correct: index access = millions of random heap lookups
+
+SELECT * FROM orders WHERE status = 'failed';   -- 0.1% of rows
+-- → Index Scan ✅ same index, now worth it
+
+-- 2) OR across DIFFERENT columns cannot use one B-tree
+SELECT * FROM users WHERE email = 'an@x.com' OR phone = '555-1234';
+-- Fix: index BOTH columns (PostgreSQL combines them via BitmapOr),
+-- or rewrite as UNION so each branch seeks its own index:
+SELECT * FROM users WHERE email = 'an@x.com'
+UNION
+SELECT * FROM users WHERE phone = '555-1234';
+
+-- 3) Tiny table: everything fits in a few pages → scan always wins. Not a bug.
+
+-- 4) Prove it is a COST decision, not a broken index (PostgreSQL):
+SET enable_seqscan = off;    -- session-level experiment only!
+EXPLAIN ANALYZE SELECT * FROM orders WHERE status = 'done';
+-- If the forced index plan is SLOWER, the optimizer was right all along.
+-- MySQL equivalent: SELECT * FROM orders FORCE INDEX (idx_status) WHERE ...</pre>
+<p>Failure mode to mention: a partial index (<code>WHERE status IN ('new','processing')</code>) often beats a full index on a skewed column — you index only the selective slice you actually query.</p>
+<div class="key-point">An ignored index is usually a cost-based decision — estimate the selectivity first, verify with enable_seqscan=off / FORCE INDEX, and only then blame statistics or the index design.</div>`,
+      },
+
+      // ──── 2. INDEXING STRATEGY ────
       {
         q: 'When should you create an index? When should you NOT?',
         difficulty: 'medium',
@@ -1279,288 +1359,6 @@ CREATE INDEX idx_b ON users(status, name) INCLUDE (email);</pre>
 <div class="key-point">Covering index = "the index answers the whole query." Order key columns as <strong>equality filters → sort columns → range filters</strong>, and push return-only columns into <code>INCLUDE</code> to keep the index lean. MySQL/InnoDB: every secondary index implicitly includes the primary key, and covering shows as "Using index" in EXPLAIN.</div>`,
       },
       {
-        q: 'How to optimize pagination for large datasets?',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p><code>OFFSET</code> paging is slow because <code>OFFSET 1000000</code> still reads and skips a million rows. Keyset (cursor) paging uses a condition like <code>id &gt; last_seen_id</code> on an indexed column and stays fast no matter how deep the page is. A deferred join can help when <code>OFFSET</code> must be used. Keyset paging needs a stable, unique sort key and works well for APIs.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Phân trang bằng <code>OFFSET</code> chậm vì <code>OFFSET 1000000</code> vẫn phải đọc và bỏ qua một triệu dòng. Phân trang kiểu keyset (con trỏ) dùng một điều kiện như <code>id &gt; last_seen_id</code> trên một cột đã có index và luôn nhanh bất kể trang nằm sâu tới đâu. Một deferred join có thể hữu ích khi buộc phải dùng <code>OFFSET</code>. Phân trang keyset cần một khóa sắp xếp ổn định và duy nhất, và rất phù hợp cho các API.</p></details>
-<p><strong>Problem</strong>: <code>OFFSET 1000000LIMIT 10</code> scans 1,000,010 rows.</p>
-<p><strong>Solutions</strong>:</p>
-<pre>-- 1. Keyset pagination (cursor-based) ← BEST
-SELECT * FROM orders
-WHERE id > :last_seen_id   -- indexed!
-ORDER BY id
-LIMIT 10;
-
--- 2. Deferred join
-SELECT o.* FROM orders o
-JOIN (
-  SELECT id FROM orders ORDER BY id LIMIT 10 OFFSET 1000000
-) sub ON o.id = sub.id;
-
--- 3. Remember total count separately (avoid COUNT(*))</pre>
-<div class="key-point">Keyset pagination is O(1) regardless of page number. OFFSET pagination is O(n). Always prefer keyset for APIs.</div>`,
-      },
-      {
-        q: 'Explain the N+1 query problem and how to solve it.',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p>The N+1 problem is one query for the parent rows plus one more query for each parent's children, which means many round trips. It is usually caused by an ORM loading related data one row at a time. The fix is to batch the work with a single <code>JOIN</code>, a <code>WHERE ... IN</code> over the collected parent ids, or the ORM's eager fetch such as <code>JOIN FETCH</code>. It often looks fine with small data and only fails in production.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Vấn đề N+1 là một truy vấn để lấy các dòng cha cộng thêm một truy vấn cho mỗi dòng con của từng cha, nghĩa là rất nhiều lần đi lại tới database. Nó thường do một ORM tải dữ liệu liên quan theo từng dòng một. Cách sửa là gộp công việc lại bằng một <code>JOIN</code> duy nhất, một <code>WHERE ... IN</code> trên tập id cha đã thu thập, hoặc dùng cơ chế eager fetch của ORM như <code>JOIN FETCH</code>. Nó thường trông có vẻ ổn khi dữ liệu nhỏ và chỉ lộ vấn đề khi lên production.</p></details>
-<p><strong>Problem</strong>: 1 query to fetch parents + N queries to fetch each parent's children.</p>
-<pre>-- N+1 Problem:
-SELECT * FROM orders;                    -- 1 query
-SELECT * FROM items WHERE order_id = ?;  -- N queries (one per order!)
-
--- Solution 1: JOIN
-SELECT o.*, i.*
-FROM orders o
-LEFT JOIN items i ON o.id = i.order_id;
-
--- Solution 2: Batch IN query
-SELECT * FROM items WHERE order_id IN (1, 2, 3, ...);
-
--- Solution 3: ORM eager loading
-// JPA: @EntityGraph or JOIN FETCH
-// Hibernate: FetchType.EAGER or Hibernate.initialize()</pre>`,
-      },
-      {
-        q: 'How to optimize JOINs for better performance?',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p>The biggest win is indexing both columns in the join condition. Filtering early so fewer rows are joined also helps, for example pre-filtering in a CTE before touching a large table. Joining on a function such as <code>UPPER</code> on both sides should be avoided because it blocks the index; a functional index or computed column is better. Selecting only the needed columns keeps covering plans possible and reduces I/O.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Cải thiện lớn nhất là đánh index cho cả hai cột trong điều kiện join. Lọc sớm để giảm số dòng cần join cũng có ích, ví dụ lọc trước trong một CTE trước khi động tới bảng lớn. Nên tránh join trên một hàm như <code>UPPER</code> ở cả hai vế vì nó chặn việc dùng index; một functional index hoặc cột được tính sẵn thì tốt hơn. Chỉ chọn những cột cần thiết giúp giữ khả năng dùng plan covering và giảm I/O.</p></details>
-<ul>
-<li><strong>Index JOIN columns</strong>: both sides of the join condition should be indexed.</li>
-<li><strong>Use appropriate JOIN type</strong>: INNER JOIN is faster than LEFT JOIN (fewer rows).</li>
-<li><strong>Filter early</strong>: apply WHERE conditions before joining large tables.</li>
-<li><strong>Avoid joining on functions</strong>: <code>ON UPPER(a.name) = UPPER(b.name)</code> → can't use index. Use computed columns or functional indexes.</li>
-<li><strong>Reduce dataset size</strong>: use CTEs or subqueries to pre-filter.</li>
-</ul>
-<pre>-- Bad: joins full tables then filters
-SELECT * FROM orders o JOIN items i ON o.id = i.order_id
-WHERE o.date > '2024-01-01';
-
--- Better: filter first
-WITH recent_orders AS (
-  SELECT id FROM orders WHERE date > '2024-01-01'
-)
-SELECT o.*, i.* FROM recent_orders ro
-JOIN orders o ON o.id = ro.id
-JOIN items i ON o.id = i.order_id;</pre>`,
-      },
-      {
-        q: 'What is query plan caching? How do parameterized queries help?',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p>Query plan caching lets the database compile a plan once and reuse it instead of parsing the same query again. Parameterized (prepared) statements make this possible by keeping the query text fixed and passing values separately, which also prevents SQL injection. One downside is that a single reused generic plan can be good for one value and poor for another when the data is skewed. PostgreSQL can force a fresh plan per parameter with <code>plan_cache_mode</code>.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Query plan caching cho phép database biên dịch một plan một lần rồi tái sử dụng thay vì phân tích lại cùng một truy vấn. Câu lệnh có tham số (prepared statement) làm điều này khả thi bằng cách giữ nguyên phần text của truy vấn và truyền các giá trị riêng, đồng thời cũng ngăn chặn SQL injection. Một nhược điểm là một plan tổng quát dùng lại có thể tốt cho giá trị này nhưng lại kém cho giá trị khác khi dữ liệu bị lệch. PostgreSQL có thể buộc lập plan mới cho mỗi tham số bằng <code>plan_cache_mode</code>.</p></details>
-<ul>
-<li><strong>Prepared statements / parameterized queries</strong>: DB compiles the plan once and reuses it for different parameter values.</li>
-<li>Prevents <strong>SQL injection</strong> (security benefit).</li>
-<li>Reduces <strong>hard parsing</strong> (plan compilation is expensive).</li>
-</ul>
-<pre>-- Bad: new plan for each query
-"SELECT * FROM users WHERE id = " + userId  // SQL injection risk!
-
--- Good: plan cached and reused
-PreparedStatement ps = conn.prepareStatement("SELECT * FROM users WHERE id = ?");
-ps.setInt(1, userId);</pre>
-<div class="key-point">In PostgreSQL: use <code>pg_stat_statements</code> to find frequently executed queries and optimize them.</div>`,
-      },
-      {
-        q: 'What is table partitioning? When to use it?',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p>Partitioning splits one large table into smaller physical pieces while it stays logically one table, usually by date range, and sometimes by list or hash. The benefits are partition pruning, where queries that filter on the partition key skip whole partitions, plus fast data removal by dropping a partition instead of a large <code>DELETE</code>. It only pays off on very large tables, around 10 million rows or more. The partition key must appear in the queries or pruning cannot happen.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Phân mảnh (partitioning) chia một bảng lớn thành nhiều phần vật lý nhỏ hơn trong khi về mặt logic nó vẫn là một bảng, thường theo khoảng ngày, và đôi khi theo danh sách hoặc hash. Lợi ích là partition pruning, nơi các truy vấn lọc theo khóa phân mảnh có thể bỏ qua cả những partition không liên quan, cùng với việc xóa dữ liệu nhanh bằng cách drop một partition thay vì một câu <code>DELETE</code> lớn. Nó chỉ đáng dùng trên các bảng rất lớn, khoảng 10 triệu dòng trở lên. Khóa phân mảnh phải xuất hiện trong truy vấn, nếu không thì việc pruning không thể diễn ra.</p></details>
-<p>Partitioning splits a large table into smallerphysical pieces while keeping it logically one table.</p>
-<ul>
-<li><strong>Range partitioning</strong>: by date range (most common). E.g., monthly partitions.</li>
-<li><strong>List partitioning</strong>: by discrete values (country, status).</li>
-<li><strong>Hash partitioning</strong>: distribute evenly by hash.</li>
-</ul>
-<pre>-- PostgreSQL range partitioning
-CREATE TABLE orders (
-  id SERIAL, created_at DATE, amount DECIMAL
-) PARTITION BY RANGE (created_at);
-
-CREATE TABLE orders_2024_q1 PARTITION OF orders
-  FOR VALUES FROM ('2024-01-01') TO ('2024-04-01');</pre>
-<p><strong>Benefits</strong>: partition pruning (skip irrelevant partitions), faster deletes (drop partition), parallel scans.</p>
-<div class="key-point">Only partition tables with 10M+ rows where queries naturally filter on the partition key.</div>`,
-      },
-      {
-        q: 'How to optimize COUNT(*) on large tables?',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p><code>COUNT(*)</code> is slow on large tables in an MVCC database because visibility is per-transaction, so it must scan every row instead of reading a stored counter. The first question is whether an exact live total is really needed, since an estimate from <code>pg_class</code> is often good enough. A filtered count backed by an index is fast when the slice is small, and an exact fast count needs a summary table kept current by triggers. For paging, the total can be replaced with a check for whether a next page exists.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><code>COUNT(*)</code> chậm trên các bảng lớn trong database dùng MVCC vì tính hiển thị (visibility) là theo từng transaction, nên nó phải quét mọi dòng thay vì đọc một bộ đếm đã lưu sẵn. Câu hỏi đầu tiên là liệu có thực sự cần một tổng chính xác theo thời gian thực hay không, vì một con số ước lượng từ <code>pg_class</code> thường đã đủ dùng. Một phép đếm có lọc được hỗ trợ bởi index sẽ nhanh khi phần dữ liệu nhỏ, còn một phép đếm chính xác mà nhanh thì cần một bảng tổng hợp được cập nhật liên tục bằng trigger. Với phân trang, có thể thay tổng số bằng việc kiểm tra xem có trang tiếp theo hay không.</p></details>
-<p><strong>Why it's slow:</strong> in an MVCC database (PostgreSQL), a row's visibility depends on the querying transaction, so <code>COUNT(*)</code> can't read a single stored counter — it must scan every row (or at least a full index) to check which versions are visible. On tens of millions of rows that's seconds.</p>
-<pre>-- 1) Approximate total — instant, good enough for "≈ 12M results"
-SELECT reltuples::bigint AS estimate
-FROM pg_class WHERE relname = 'orders';         -- maintained by ANALYZE/autovacuum
-
--- 2) Filtered count backed by an index (fast when the slice is small)
-CREATE INDEX idx_orders_status ON orders(status);
-SELECT COUNT(*) FROM orders WHERE status = 'active';    -- index scan, not full table
-
--- 3) Maintained counter — exact and O(1) to read; cost moves to write time
-CREATE TABLE order_counts (status text PRIMARY KEY, n bigint);
--- keep current with a trigger on INSERT/DELETE, or a scheduled refresh
-
--- 4) Pagination: replace "total pages" with "is there a next page?"
-SELECT * FROM orders WHERE id > :last ORDER BY id LIMIT :size + 1;
--- fetched size+1 rows? → a next page exists. No COUNT(*) needed at all.</pre>
-<ul>
-<li><strong>Exact + fast is a trade-off</strong>: cheap-to-read exact counts cost you either at write time (trigger/summary table) or in freshness (a materialized view refreshed on a schedule).</li>
-<li><strong>COUNT(*) vs COUNT(1) vs COUNT(col)</strong>: <code>COUNT(*)</code> and <code>COUNT(1)</code> are identical (both count rows — "COUNT(1) is faster" is a myth); <code>COUNT(col)</code> counts only non-NULL values, so it can return a smaller number.</li>
-</ul>
-<div class="key-point">Ask first: does the feature actually need an <em>exact</em> total? "Showing 1–20 of ~12M" is fine with <code>reltuples</code>; most APIs need no total at all (use the "has next page" pattern). Reserve exact live counts for a maintained summary table.</div>`,
-      },
-      {
-        q: 'What are the differences between EXIST vs IN vs JOIN for subqueries?',
-        difficulty: 'tricky',
-        a: `<div class="interview-answer"><p><code>EXISTS</code> stops at the first match, so it works well when the subquery returns many rows. <code>IN</code> builds a list or hash and suits small value sets. <code>JOIN</code> is used when columns are needed from both tables, but a one-to-many join multiplies rows and needs <code>DISTINCT</code>. Modern optimizers often turn <code>IN</code> and <code>EXISTS</code> into the same plan, so the choice should be based on meaning, and <code>NOT EXISTS</code> is safer than <code>NOT IN</code> because of the NULL trap.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><code>EXISTS</code> dừng lại ngay ở bản khớp đầu tiên, nên nó hoạt động tốt khi subquery trả về nhiều dòng. <code>IN</code> xây một danh sách hoặc hash và phù hợp với các tập giá trị nhỏ. <code>JOIN</code> được dùng khi cần các cột từ cả hai bảng, nhưng một join một-nhiều làm nhân đôi số dòng và cần <code>DISTINCT</code>. Các optimizer hiện đại thường biến <code>IN</code> và <code>EXISTS</code> thành cùng một plan, nên nên chọn dựa trên ý nghĩa, và <code>NOT EXISTS</code> an toàn hơn <code>NOT IN</code> vì cái bẫy NULL.</p></details>
-<pre>-- EXISTS: stops at first match (short-circuit). Best when subquery returns MANY rows.
-SELECT * FROM orders o
-WHERE EXISTS (SELECT 1 FROM items i WHERE i.order_id = o.id);
-
--- IN: builds a hash/list. Good for small subquery results.
-SELECT * FROM orders
-WHERE customer_id IN (SELECT id FROM customers WHERE vip = true);
-
--- JOIN: can return duplicates if 1-to-many. Use DISTINCT or aggregate.
-SELECT DISTINCT o.*
-FROM orders o
-JOIN items i ON o.id = i.order_id;</pre>
-<div class="key-point">Rule of thumb: EXISTS for "does it have related rows?", JOIN when you need data from both tables, IN for small value lists.</div>`,
-      },
-      {
-        q: 'How to identify and fix slow queries in production?',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p>This works best in three evidence-based steps. First, find the worst queries by turning on the slow query log and ranking by total time in <code>pg_stat_statements</code>, since a fast query run millions of times can hurt more than one slow query. Second, get the real plan for the top offenders with <code>EXPLAIN (ANALYZE, BUFFERS)</code> and look for full scans, bad estimates, and sorts spilling to disk. Third, fix the cheapest thing first, such as refreshing statistics, adding a missing index, and rewriting the query, and only then scale out with pooling or read replicas.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Cách này hiệu quả nhất khi làm theo ba bước dựa trên bằng chứng. Đầu tiên, tìm những truy vấn tệ nhất bằng cách bật slow query log và xếp hạng theo tổng thời gian trong <code>pg_stat_statements</code>, vì một truy vấn nhanh chạy hàng triệu lần có thể gây hại nhiều hơn một truy vấn chậm chạy một lần. Thứ hai, lấy plan thực tế cho các truy vấn tệ nhất bằng <code>EXPLAIN (ANALYZE, BUFFERS)</code> và tìm các full scan, ước lượng sai, và các bước sort tràn xuống đĩa. Thứ ba, sửa thứ rẻ nhất trước, như làm mới thống kê, thêm index còn thiếu, và viết lại truy vấn, rồi mới mở rộng quy mô bằng connection pooling hoặc read replica.</p></details>
-<p>Work in three phases: <strong>find</strong> the worst queries with data (not guesses), <strong>diagnose</strong> each with its plan, then <strong>fix and verify</strong>.</p>
-<p><strong>1. Find — turn on the slow query log and query the stats view:</strong></p>
-<pre>-- PostgreSQL: log any statement slower than 500ms
-ALTER SYSTEM SET log_min_duration_statement = '500ms';   -- then SELECT pg_reload_conf();
-
--- pg_stat_statements: the goldmine — rank by TOTAL time, not per-call time
---   (a 5ms query run 2M times hurts more than a 3s query run once)
-SELECT query, calls, mean_exec_time, total_exec_time
-FROM pg_stat_statements
-ORDER BY total_exec_time DESC
-LIMIT 20;
-
--- MySQL equivalent:
-SET GLOBAL slow_query_log = 'ON';
-SET GLOBAL long_query_time = 0.5;
--- then aggregate with pt-query-digest / performance_schema</pre>
-<p><strong>2. Diagnose — get the real plan for the top offenders:</strong></p>
-<pre>EXPLAIN (ANALYZE, BUFFERS) &lt;the slow query&gt;;
--- look for: Seq Scans on big tables, estimated-vs-actual row blowups,
---           Nested Loops over large sets, Sort/Hash spilling to disk</pre>
-<p><strong>3. Fix — cheapest, most-targeted change first, then re-measure:</strong></p>
-<ul>
-<li>Refresh statistics (<code>ANALYZE table;</code>) — a stale estimate is the most common root cause after a bulk load or big DELETE.</li>
-<li>Add the missing index (find culprits via <code>pg_stat_user_tables.seq_scan</code>); build it with <code>CREATE INDEX CONCURRENTLY</code> to avoid locking writes.</li>
-<li>Rewrite the query — kill correlated subqueries, make predicates SARGable, fix ORM N+1.</li>
-<li>Scale out only after the query itself is sound: connection pooling (PgBouncer/HikariCP), read replicas for read-heavy load, caching.</li>
-</ul>
-<div class="key-point">The senior signal is <strong>evidence-driven order</strong>: rank by total time in <code>pg_stat_statements</code> → read the plan → fix statistics/index/query → verify with the same measurement. Adding indexes by guesswork (and never dropping the unused ones) is the anti-pattern.</div>`,
-      },
-      {
-        q: 'What is database connection pooling and why is it important?',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p>Opening a database connection is expensive because of the handshake, authentication, and memory setup, so a connection pool keeps live connections ready and reuses them. This avoids the cost of creating a new connection for every request and greatly improves throughput. A common size guide is cores times two plus disk spindles, and a tool such as PgBouncer or HikariCP manages the pool. Too few connections makes clients wait, while too many strains the database with memory pressure and context switching.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Mở một kết nối tới database rất tốn kém vì phải bắt tay, xác thực, và cấp phát bộ nhớ, nên một connection pool giữ sẵn các kết nối đang hoạt động và tái sử dụng chúng. Điều này tránh được chi phí tạo một kết nối mới cho mỗi request và cải thiện đáng kể thông lượng. Một hướng dẫn phổ biến về kích thước là số nhân (core) nhân hai cộng số ổ đĩa, và một công cụ như PgBouncer hoặc HikariCP sẽ quản lý pool. Quá ít kết nối khiến client phải chờ, còn quá nhiều lại gây áp lực lên database với sức ép bộ nhớ và chuyển ngữ cảnh.</p></details>
-<p>Creating a DB connection is expensive (TCP handshake, authentication, memory allocation). A <strong>connection pool</strong> maintains a cache of reusable connections.</p>
-<ul>
-<li><strong>HikariCP</strong> (Java): fastest, default in Spring Boot. Typical pool size: CPU cores × 2 + disk spindles.</li>
-<li><strong>PgBouncer</strong> (PostgreSQL): external pooler, supports transaction/session pooling.</li>
-</ul>
-<pre># HikariCP config
-spring.datasource.hikari.maximum-pool-size=10
-spring.datasource.hikari.minimum-idle=5
-spring.datasource.hikari.connection-timeout=30000</pre>
-<div class="key-point">Pool too small → connection wait timeouts. Pool too large → excessive memory and context switching. Formula: <code>connections = (core_count * 2) + effective_spindle_count</code>.</div>`,
-      },
-      {
-        q: 'What is the difference between DELETE, TRUNCATE, and DROP?',
-        difficulty: 'tricky',
-        a: `<div class="interview-answer"><p><code>DELETE</code> removes rows, can use a <code>WHERE</code> clause, logs each row, fires triggers, and can be rolled back. <code>TRUNCATE</code> removes all rows quickly by deallocating pages, resets the identity counter, and skips triggers. <code>DROP</code> removes the whole table including its structure. A common trick is rollback behavior: in PostgreSQL <code>TRUNCATE</code> can be rolled back, but in MySQL it cannot, so the answer depends on the database.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><code>DELETE</code> xóa các dòng, có thể dùng mệnh đề <code>WHERE</code>, ghi log từng dòng, kích hoạt trigger, và có thể rollback. <code>TRUNCATE</code> xóa toàn bộ dòng một cách nhanh chóng bằng cách giải phóng các trang (page), reset lại bộ đếm identity, và bỏ qua trigger. <code>DROP</code> xóa cả bảng bao gồm cả cấu trúc của nó. Một câu hỏi mẹo phổ biến là về khả năng rollback: trong PostgreSQL, <code>TRUNCATE</code> có thể rollback, nhưng trong MySQL thì không, nên câu trả lời phụ thuộc vào database.</p></details>
-<table><tr><th>Aspect</th><th>DELETE</th><th>TRUNCATE</th><th>DROP</th></tr>
-<tr><td>What it does</td><td>Removes rows (with WHERE)</td><td>Removes ALL rows</td><td>Removes entire table</td></tr>
-<tr><td>WHERE clause</td><td>✅ Yes</td><td>❌ No</td><td>❌ No</td></tr>
-<tr><td>Rollback</td><td>✅ Can rollback</td><td>⚠️ Depends on DB</td><td>⚠️ Depends on DB</td></tr>
-<tr><td>Triggers</td><td>✅ Fires triggers</td><td>❌ No triggers</td><td>❌ No triggers</td></tr>
-<tr><td>Speed</td><td>Slow (row by row)</td><td>Fast (deallocates pages)</td><td>Fastest</td></tr>
-<tr><td>Auto-increment</td><td>Keeps counter</td><td>Resets counter</td><td>Table gone</td></tr>
-<tr><td>Logging</td><td>Full row logging</td><td>Minimal logging</td><td>Minimal</td></tr></table>
-<pre>-- DELETE: removes specific rows, logs each row, can rollback
-DELETE FROM orders WHERE status = 'cancelled';
-
--- TRUNCATE: removes ALL rows fast, resets identity
-TRUNCATE TABLE temp_data;
-
--- DROP: removes table + schema + data permanently
-DROP TABLE IF EXISTS temp_data;</pre>
-<div class="key-point">Trick: In PostgreSQL, TRUNCATE IS transactional (can rollback). In MySQL, TRUNCATE cannot be rolled back. This is a common interview trick question — the answer depends on the database!</div>`,
-      },
-      {
-        q: 'What is the difference between UNION and UNION ALL? When does UNION give wrong results?',
-        difficulty: 'tricky',
-        a: `<div class="interview-answer"><p><code>UNION</code> removes duplicates, which adds an implicit sort or hash step that is slow on large sets, while <code>UNION ALL</code> just joins the results together and is always faster. <code>UNION</code> gives wrong results when the data has real duplicates that must be kept, such as summing a matching amount from two accounts, because it silently drops one. The safe default is <code>UNION ALL</code>, using <code>UNION</code> only when duplicates truly need to be removed.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><code>UNION</code> loại bỏ các dòng trùng, việc này thêm một bước sort hoặc hash ngầm định vốn chậm trên các tập dữ liệu lớn, còn <code>UNION ALL</code> chỉ nối các kết quả lại với nhau và luôn nhanh hơn. <code>UNION</code> cho kết quả sai khi dữ liệu có những dòng trùng thực sự cần được giữ lại, ví dụ như cộng một số tiền giống nhau từ hai tài khoản, bởi vì nó âm thầm bỏ đi một dòng. Lựa chọn mặc định an toàn là <code>UNION ALL</code>, chỉ dùng <code>UNION</code> khi thực sự cần loại bỏ trùng lặp.</p></details>
-<pre>-- UNION: combines results and REMOVES duplicates (slower — sorts/hashes)
-SELECT name FROM employees
-UNION
-SELECT name FROM contractors;
--- If "John" exists in both → appears ONCE
-
--- UNION ALL: combines results and KEEPS duplicates (faster — no dedup)
-SELECT name FROM employees
-UNION ALL
-SELECT name FROM contractors;
--- If "John" exists in both → appears TWICE
-
--- Trick question: When does UNION give WRONG results?
--- When you actually NEED duplicates!
-
--- Example: count total transactions
-SELECT amount FROM checking_account
-UNION
-SELECT amount FROM savings_account;
--- If both accounts have a $100 transaction, UNION removes one!
--- Use UNION ALL to get the correct total
-
--- Performance: UNION ALL is always faster.
--- Only use UNION when you specifically need deduplication.</pre>
-<div class="key-point">Default to <code>UNION ALL</code> unless you explicitly need deduplication. <code>UNION</code> performs an implicit <code>DISTINCT</code> which requires sorting — expensive on large datasets.</div>`,
-      },
-      {
-        q: 'What makes a WHERE clause non-SARGable? How do you fix it?',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p>SARGable means a condition can use an index seek. Wrapping the column in a function or expression, such as <code>YEAR(created_at) = 2024</code> or an implicit type cast, makes it non-SARGable and forces a full scan. The fix is to keep the column bare and move all computation to the constant side, for example rewriting the year filter as a date range. When the function is truly needed, a functional index that matches the exact expression can be created, and a leading wildcard such as <code>LIKE '%x'</code> needs a trigram or full-text index.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>SARGable nghĩa là một điều kiện có thể dùng index seek. Bọc cột trong một hàm hoặc biểu thức, ví dụ <code>YEAR(created_at) = 2024</code> hoặc một phép ép kiểu ngầm định, sẽ khiến nó không còn SARGable và buộc phải quét toàn bảng. Cách sửa là giữ cột ở dạng nguyên và chuyển mọi phép tính sang phía hằng số, chẳng hạn viết lại điều kiện lọc theo năm thành một khoảng ngày. Khi thực sự cần dùng hàm, có thể tạo một functional index khớp đúng với biểu thức đó, còn một ký tự đại diện đứng đầu như <code>LIKE '%x'</code> thì cần một index trigram hoặc full-text.</p></details>
-<p><strong>SARGable</strong> (Search ARGument able) = the predicate can use an index seek. Wrapping the <strong>column</strong> in a function or expression makes it non-SARGable — the DB must compute it for every row (full scan).</p>
-<pre>-- ❌ Non-SARGable                          → ✅ SARGable rewrite
-WHERE YEAR(created_at) = 2024               WHERE created_at >= '2024-01-01'
-                                              AND created_at <  '2025-01-01'
-
-WHERE UPPER(email) = 'AN@X.COM'             WHERE email = 'an@x.com'  -- store normalized
-                                            -- or: functional index (see below)
-
-WHERE salary * 12 > 60000                   WHERE salary > 60000 / 12
-
-WHERE name LIKE '%son'                      -- leading wildcard: no B-tree seek
-                                            -- → full-text / trigram (GIN) index
-
-WHERE varchar_id = 12345                    WHERE varchar_id = '12345'  -- no implicit cast
-
--- When the function is genuinely needed → index the EXPRESSION:
-CREATE INDEX idx_users_email_lower ON users (LOWER(email));
-SELECT * FROM users WHERE LOWER(email) = 'an@x.com';   -- ✅ uses the index</pre>
-<div class="key-point">Rule: keep the column bare on one side of the operator; move all computation to the constant side. If you can't, create a functional index matching the exact expression.</div>`,
-      },
-      {
         q: 'What are partial, functional, and other special index types? When do you use them?',
         difficulty: 'hard',
         a: `<div class="interview-answer"><p>Beyond a plain B-tree there are several special index types. A partial index covers only rows that match a condition, giving a small index when queries always target a subset, and a partial unique index can enforce rules such as one active session per user. A functional index indexes an expression like <code>LOWER(email)</code> for case-insensitive lookup, and <code>INCLUDE</code> adds return-only columns for covering scans. GIN and trigram indexes handle contains-style and full-text search, while a hash index is equality only. Partial indexes are often underused because a smaller index fits in memory and keeps writes cheap.</p></div>
@@ -1589,162 +1387,6 @@ CREATE INDEX idx_orders_cust ON orders(customer_id) INCLUDE (status, total);
 -- Trigram (PostgreSQL pg_trgm): makes '%phone%' searchable
 CREATE INDEX idx_products_name ON products USING GIN (name gin_trgm_ops);</pre>
 <div class="key-point">Partial indexes are the most underused optimization: smaller index = fits in memory = faster seeks AND cheaper writes. A partial unique index also encodes business rules the schema alone can't.</div>`,
-      },
-      {
-        q: 'How do you optimize bulk INSERT / UPDATE / DELETE operations?',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p>The bottleneck in bulk work is the per-row round trips and per-statement overhead, not the amount of data, so batching is the fix. Multi-row inserts are far faster than row-by-row, and <code>COPY</code> or <code>LOAD DATA</code> is faster still. In Java, JDBC <code>executeBatch</code> with the <code>rewriteBatchedStatements</code> driver flag is needed for real batching. Large deletes should be done in chunks to avoid one big lock and bloat, and a one-time massive load is fastest with indexes dropped first and rebuilt after loading.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Điểm nghẽn trong các thao tác hàng loạt là chi phí đi lại theo từng dòng và chi phí trên mỗi câu lệnh, chứ không phải lượng dữ liệu, nên gộp lô (batching) là cách sửa. Insert nhiều dòng cùng lúc nhanh hơn hẳn insert từng dòng, và <code>COPY</code> hoặc <code>LOAD DATA</code> còn nhanh hơn nữa. Trong Java, cần dùng <code>executeBatch</code> của JDBC kèm cờ driver <code>rewriteBatchedStatements</code> để thực sự gộp lô. Các phép xóa lớn nên được chia thành từng khối để tránh một khóa lớn và tránh phình dữ liệu, còn một lần nạp dữ liệu khổng lồ một lần thì nhanh nhất khi drop index trước rồi dựng lại sau khi nạp xong.</p></details>
-<p><strong>Batching</strong>: the killer is per-row round trips and per-statement overhead — not the data volume itself.</p>
-<pre>-- ❌ 10,000 round trips
-INSERT INTO items VALUES (1, 'a');
-INSERT INTO items VALUES (2, 'b');   -- ... × 10,000
-
--- ✅ Multi-row insert (one statement, one round trip per batch)
-INSERT INTO items VALUES (1,'a'), (2,'b'), (3,'c'), ...;   -- batches of ~1000
-
--- ✅ Fastest bulk load: COPY (PostgreSQL) / LOAD DATA (MySQL)
-COPY items FROM '/data/items.csv' WITH (FORMAT csv);
-
--- ✅ JDBC batching (Java) — also needs the driver flag to really batch:
--- jdbc:mysql://...?rewriteBatchedStatements=true
-ps.addBatch();  ...  ps.executeBatch();   // every 1000 rows
--- JPA: spring.jpa.properties.hibernate.jdbc.batch_size=50
-
--- ✅ Chunked DELETE — one giant delete = long lock + huge WAL/undo:
-DELETE FROM logs WHERE created_at < '2024-01-01' LIMIT 10000;  -- repeat until 0 rows
--- (PostgreSQL: DELETE ... WHERE id IN (SELECT id ... LIMIT 10000))
-
--- ✅ UPDATE from a staging table instead of 10k single updates:
-UPDATE products p SET price = s.price
-FROM   staging_prices s WHERE s.product_id = p.id;</pre>
-<ul>
-<li>For massive one-time loads: drop/disable secondary indexes and constraints, load, rebuild.</li>
-<li>Keep transactions bounded — a 10M-row transaction blocks VACUUM and replication.</li>
-</ul>
-<div class="key-point">Numbers interviewers like: row-by-row ≈ thousands/min; multi-row batches ≈ tens of thousands/sec; COPY ≈ hundreds of thousands/sec. Know why each step is faster (fewer round trips, less parsing, less WAL).</div>`,
-      },
-      {
-        q: 'What is the difference between a view and a materialized view? When do you use each?',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p>A view is just a saved query with no stored data, so it is always fresh but pays the full query cost on every read; it is useful for abstraction and security. A materialized view stores the result physically and can be indexed, so reads are fast, but the data is stale until a <code>REFRESH</code> runs. Use a view for simplifying access, and a materialized view for expensive aggregations such as dashboards and reports. This is the same freshness-versus-speed trade-off as a cache, except it lives in the database.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Một view chỉ là một truy vấn được lưu lại mà không lưu dữ liệu, nên nó luôn mới nhưng phải trả toàn bộ chi phí truy vấn ở mỗi lần đọc; nó hữu ích cho việc trừu tượng hóa và bảo mật. Một materialized view lưu kết quả một cách vật lý và có thể đánh index, nên đọc rất nhanh, nhưng dữ liệu sẽ cũ cho đến khi chạy <code>REFRESH</code>. Dùng view để đơn giản hóa việc truy cập, và dùng materialized view cho các phép tổng hợp tốn kém như dashboard và báo cáo. Đây chính là sự đánh đổi giữa độ mới và tốc độ giống như một cache, chỉ khác là nó nằm trong database.</p></details>
-<ul>
-<li><strong>View</strong>: a saved query — no data stored. Every SELECT re-runs the underlying query. Always fresh, costs full query time.</li>
-<li><strong>Materialized view</strong>: the query result is <strong>physically stored</strong> (and can be indexed!). Reads are instant; data is stale until refreshed.</li>
-</ul>
-<pre>-- View: abstraction / security layer (hide columns, fix joins)
-CREATE VIEW active_users AS
-  SELECT id, name, email FROM users WHERE status = 'active';
-
--- Materialized view: precomputed aggregation for dashboards/reports
-CREATE MATERIALIZED VIEW daily_revenue AS
-  SELECT day, SUM(amount) AS revenue, COUNT(*) AS orders
-  FROM sales GROUP BY day;
-
-CREATE INDEX idx_daily_revenue_day ON daily_revenue(day);  -- ✅ indexable
-
--- Refresh strategies:
-REFRESH MATERIALIZED VIEW daily_revenue;                -- locks reads
-REFRESH MATERIALIZED VIEW CONCURRENTLY daily_revenue;   -- no read lock
---   (needs a unique index; run from cron / after ETL)</pre>
-<table><tr><th></th><th>View</th><th>Materialized view</th></tr>
-<tr><td>Storage</td><td>None</td><td>Full result stored</td></tr>
-<tr><td>Freshness</td><td>Always current</td><td>Stale until REFRESH</td></tr>
-<tr><td>Read cost</td><td>Underlying query each time</td><td>Like reading a table</td></tr>
-<tr><td>Use case</td><td>Abstraction, security</td><td>Expensive aggregations, dashboards</td></tr></table>
-<div class="key-point">Materialized views trade freshness for read speed — the same trade-off as a cache, but inside the database and queryable with SQL. Say that sentence in an interview.</div>`,
-      },
-      {
-        q: 'The column is indexed and the predicate is SARGable — why does the optimizer still choose a full table scan?',
-        difficulty: 'tricky',
-        a: `<div class="interview-answer"><p>Often the optimizer is correct to skip the index. Index access costs about one random read per matching row, while a sequential scan reads pages in bulk, so past a few percent of rows a full scan is genuinely cheaper. Other causes are an <code>OR</code> across different columns, which one B-tree cannot serve, and tiny tables that always scan. To prove it is a cost decision, the index can be forced with <code>enable_seqscan = off</code> or <code>FORCE INDEX</code> and compared; if the forced plan is slower, the planner was right.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Thường thì optimizer đúng khi bỏ qua index. Truy cập qua index tốn khoảng một lần đọc ngẫu nhiên cho mỗi dòng khớp, trong khi một sequential scan đọc các trang theo lô, nên vượt qua vài phần trăm số dòng thì quét toàn bảng thực sự rẻ hơn. Các nguyên nhân khác là một <code>OR</code> trải trên các cột khác nhau, thứ mà một B-tree không phục vụ được, và các bảng nhỏ vốn luôn bị quét toàn bộ. Để chứng minh đây là một quyết định dựa trên chi phí, có thể ép dùng index bằng <code>enable_seqscan = off</code> hoặc <code>FORCE INDEX</code> rồi so sánh; nếu plan bị ép buộc chậm hơn thì bộ lập kế hoạch đã đúng.</p></details>
-<p>Because index access costs roughly <strong>onerandom I/O per matching row</strong> (index leaf → heap lookup), while a sequential scan reads pages in bulk. Past a few percent selectivity, the full scan is genuinely <em>cheaper</em> — the optimizer ignoring your index is often the optimizer being right.</p>
-<pre>-- 1) Low selectivity: the index is used only when it pays off
-SELECT * FROM orders WHERE status = 'done';     -- 95% of rows
--- → Seq Scan ✅ correct: index access = millions of random heap lookups
-
-SELECT * FROM orders WHERE status = 'failed';   -- 0.1% of rows
--- → Index Scan ✅ same index, now worth it
-
--- 2) OR across DIFFERENT columns cannot use one B-tree
-SELECT * FROM users WHERE email = 'an@x.com' OR phone = '555-1234';
--- Fix: index BOTH columns (PostgreSQL combines them via BitmapOr),
--- or rewrite as UNION so each branch seeks its own index:
-SELECT * FROM users WHERE email = 'an@x.com'
-UNION
-SELECT * FROM users WHERE phone = '555-1234';
-
--- 3) Tiny table: everything fits in a few pages → scan always wins. Not a bug.
-
--- 4) Prove it is a COST decision, not a broken index (PostgreSQL):
-SET enable_seqscan = off;    -- session-level experiment only!
-EXPLAIN ANALYZE SELECT * FROM orders WHERE status = 'done';
--- If the forced index plan is SLOWER, the optimizer was right all along.
--- MySQL equivalent: SELECT * FROM orders FORCE INDEX (idx_status) WHERE ...</pre>
-<p>Failure mode to mention: a partial index (<code>WHERE status IN ('new','processing')</code>) often beats a full index on a skewed column — you index only the selective slice you actually query.</p>
-<div class="key-point">An ignored index is usually a cost-based decision — estimate the selectivity first, verify with enable_seqscan=off / FORCE INDEX, and only then blame statistics or the index design.</div>`,
-      },
-      {
-        q: 'EXPLAIN says rows=12 but the step actually returned 480,000 — why are estimates wrong and how do you fix the plan?',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p>The optimizer chooses the join type, join order, and memory from row estimates, so an estimate that is far off produces a bad plan, such as a Nested Loop chosen for half a million rows. The most common cause is old statistics after a bulk load or large delete, so <code>ANALYZE</code> should be run first. A subtler cause is correlated columns, because the planner assumes columns are independent and multiplies their selectivity; PostgreSQL extended statistics fixes this. To spot it, compare estimated and actual rows node by node, and treat query hints as a last resort because they go stale as data changes.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Optimizer chọn kiểu join, thứ tự join, và bộ nhớ dựa trên số dòng ước lượng, nên một ước lượng sai lệch lớn sẽ tạo ra một plan tệ, chẳng hạn chọn Nested Loop cho nửa triệu dòng. Nguyên nhân phổ biến nhất là thống kê cũ sau một lần nạp hàng loạt hoặc xóa lớn, nên nên chạy <code>ANALYZE</code> trước tiên. Một nguyên nhân tinh vi hơn là các cột có tương quan, vì bộ lập kế hoạch giả định các cột độc lập với nhau và nhân các độ chọn lọc của chúng lại; extended statistics của PostgreSQL sẽ khắc phục điều này. Để phát hiện, hãy so sánh số dòng ước lượng và thực tế theo từng nút, và chỉ coi query hint là biện pháp cuối cùng vì chúng sẽ lỗi thời khi dữ liệu thay đổi.</p></details>
-<p>Join strategy, join order, and memory grants are all chosen from <strong>row estimates</strong>. When the estimate is off by orders of magnitude, the optimizer picks a plan that is catastrophic at the real size — the classic symptom is a Nested Loop chosen for half a million rows.</p>
-<pre>EXPLAIN ANALYZE
-SELECT * FROM addresses WHERE city = 'Hanoi' AND country = 'VN';
--- Nested Loop  (estimated rows=12)  (actual rows=480000)   ← 40,000× off!
--- Cause: the planner multiplies selectivities as if columns were independent:
---   sel(city='Hanoi') × sel(country='VN') = tiny → wrong join strategy → minutes.
-
--- Fix 1: stale statistics (classic right after a bulk load / big DELETE)
-ANALYZE addresses;                  -- MySQL: ANALYZE TABLE addresses;
--- autovacuum/auto-analyze has thresholds — a 10M-row COPY may not have triggered it yet
-
--- Fix 2: correlated columns → extended statistics (PostgreSQL 10+)
-CREATE STATISTICS addr_city_country (dependencies)
-  ON city, country FROM addresses;
-ANALYZE addresses;
--- Planner now knows city implies country → realistic estimate → Hash Join ✅
-
--- Fix 3: skewed data + prepared statements reusing one generic plan
--- (fast for 'rare_value', terrible for 'common_value')
-SET plan_cache_mode = force_custom_plan;   -- PostgreSQL: re-plan per parameter</pre>
-<ul>
-<li><strong>How to spot it</strong>: in EXPLAIN ANALYZE, scan every node for estimated vs actual rows diverging by 100× or more — that node is where the plan went wrong, regardless of where time is spent.</li>
-<li><strong>Why hints are the last resort</strong>: forcing a join type fixes today's query and breaks next year's data distribution; fixing statistics fixes the whole workload.</li>
-</ul>
-<div class="key-point">A bad plan is almost always a bad estimate — compare estimated vs actual rows node by node, then repair statistics (ANALYZE, extended statistics for correlated columns) before rewriting the query.</div>`,
-      },
-      {
-        q: 'MySQL EXPLAIN shows "Using filesort" and "Using temporary" — what do they mean and how do you eliminate them?',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p>Both flags mean no index can return rows in the order the query needs. Using filesort is a separate sort step that may run in memory or spill to disk, and Using temporary is an implicit temp table used for <code>GROUP BY</code>, <code>DISTINCT</code>, or some unions. They are costly under <code>LIMIT</code> because the whole result is built before the <code>LIMIT</code> is applied. The fix is a composite index with equality-filter columns first, then the <code>ORDER BY</code> or <code>GROUP BY</code> columns in matching direction, so the index feeds rows already sorted.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Cả hai cờ đều có nghĩa là không có index nào trả về các dòng theo đúng thứ tự mà truy vấn cần. Using filesort là một bước sort riêng biệt có thể chạy trong bộ nhớ hoặc tràn xuống đĩa, còn Using temporary là một bảng tạm ngầm định dùng cho <code>GROUP BY</code>, <code>DISTINCT</code>, hoặc một số phép union. Chúng tốn kém khi có <code>LIMIT</code> vì toàn bộ kết quả được dựng lên trước khi <code>LIMIT</code> được áp dụng. Cách sửa là một composite index với các cột lọc bằng đứng trước, rồi tới các cột <code>ORDER BY</code> hoặc <code>GROUP BY</code> theo đúng chiều, để index cung cấp các dòng đã được sắp xếp sẵn.</p></details>
-<p>Both flags mean "no index delivers rows in theorder I need". <strong>Using filesort</strong> = an explicit sort step (despite the name it may be in-memory; it spills to disk past sort_buffer_size). <strong>Using temporary</strong> = an implicit temp table, typically for GROUP BY / DISTINCT / some UNIONs. On big tables under LIMIT they are performance killers, because the whole set is materialized before the LIMIT applies.</p>
-<pre>EXPLAIN SELECT * FROM orders
-WHERE  customer_id = 42
-ORDER  BY created_at DESC
-LIMIT  10;
--- Extra: Using where; Using filesort
--- → reads ALL of customer 42's orders, sorts them, keeps 10
-
-CREATE INDEX idx_cust_created ON orders (customer_id, created_at);
--- Extra: Using where
--- → index delivers rows already sorted (backward scan) — touches ~10 rows ✅
-
--- Mixed sort directions defeat a normal index:
--- ORDER BY created_at DESC, id ASC          → filesort is back
-CREATE INDEX idx_mixed ON orders (customer_id, created_at DESC, id ASC);  -- MySQL 8.0+
-
--- "Using temporary": GROUP BY that no index can feed in order
-EXPLAIN SELECT status, COUNT(*) FROM orders GROUP BY status;
--- Extra: Using temporary
-CREATE INDEX idx_status ON orders (status);
--- Extra: Using index   → streams groups straight off the index, no temp table ✅</pre>
-<p>Design rule for the supporting composite index: <strong>equality-filter columns first, then the ORDER BY / GROUP BY columns</strong>, matching direction. Interviewer follow-up: a range predicate (<code>created_at > ?</code>) before the sort column breaks the ordering guarantee — the index can filter or sort, not both, past the range column.</p>
-<div class="key-point">filesort/temporary do not mean "on disk" — they mean the index is not providing the required order; fix by shaping a composite index as (equality columns..., order-by columns) in matching directions.</div>`,
       },
       {
         q: 'How exactly does each extra index slow down writes? (write amplification, HOT updates, index bloat)',
@@ -1781,6 +1423,386 @@ REINDEX INDEX CONCURRENTLY idx_orders_status;</pre>
 <li><strong>Bloat</strong>: deleted/updated entries leave dead space in index pages; range scans read the dead pages too, so a bloated index makes <em>reads</em> slower as well.</li>
 </ul>
 <div class="key-point">Before adding an index ask two questions: does it break HOT updates on a hot column, and will anyone actually use it — and audit pg_stat_user_indexes regularly to drop the ones nobody does.</div>`,
+      },
+
+      // ──── 3. WRITING FASTER QUERIES ────
+      {
+        q: 'What are the most common causes of slow SQL queries?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>Slow SQL queries usually come from a few common problems. Frequent causes are missing indexes on filtered or joined columns, <code>SELECT *</code> reading more data than needed, and wrapping an indexed column in a function so the index cannot be used. Other causes include the N+1 pattern, implicit type conversion, large <code>OFFSET</code> paging, correlated subqueries, lock contention, and old table statistics. The best approach is to read the query plan and fix the real cause instead of guessing.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Truy vấn SQL chậm thường bắt nguồn từ một vài vấn đề phổ biến. Các nguyên nhân hay gặp là thiếu index trên các cột dùng để lọc hoặc join, <code>SELECT *</code> đọc nhiều dữ liệu hơn cần thiết, và bọc một cột đã có index trong một hàm khiến index không dùng được. Các nguyên nhân khác gồm mẫu N+1, ép kiểu ngầm định, phân trang với <code>OFFSET</code> lớn, correlated subquery, tranh chấp khóa, và thống kê bảng đã cũ. Cách tốt nhất là đọc query plan và sửa đúng nguyên nhân thực sự thay vì đoán mò.</p></details>
+<ul>
+<li><strong>Missing indexes</strong> on WHERE, JOIN, ORDER BY columns.</li>
+<li><strong>SELECT *</strong> instead of specific columns → more I/O, no covering index.</li>
+<li><strong>N+1 query problem</strong>: executing one query per row instead of a JOIN or batch.</li>
+<li><strong>Functions on indexed columns</strong>: <code>WHERE YEAR(created_at) = 2024</code> → can't use index.</li>
+<li><strong>Implicit type conversion</strong>: <code>WHERE varchar_col = 123</code> → index bypass.</li>
+<li><strong>Large OFFSET pagination</strong>: <code>OFFSET 1000000</code> still scans all skipped rows.</li>
+<li><strong>Correlated subqueries</strong>: subquery runs once per row.</li>
+<li><strong>Lock contention / blocking queries</strong>.</li>
+<li><strong>Stale statistics</strong>: optimizer makes bad decisions.</li>
+</ul>
+<pre>-- Typical slow query with 3 of these problems at once:
+SELECT * FROM orders                          -- ❌ SELECT *
+WHERE YEAR(created_at) = 2024                 -- ❌ function kills the index
+  AND customer_ref = 12345;                   -- ❌ varchar col vs number → cast
+
+-- Fixed:
+SELECT id, status, total FROM orders          -- ✅ needed columns only
+WHERE created_at >= '2024-01-01'
+  AND created_at <  '2025-01-01'              -- ✅ index range scan
+  AND customer_ref = '12345';                 -- ✅ matching type</pre>`,
+      },
+      {
+        q: 'What makes a WHERE clause non-SARGable? How do you fix it?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>SARGable means a condition can use an index seek. Wrapping the column in a function or expression, such as <code>YEAR(created_at) = 2024</code> or an implicit type cast, makes it non-SARGable and forces a full scan. The fix is to keep the column bare and move all computation to the constant side, for example rewriting the year filter as a date range. When the function is truly needed, a functional index that matches the exact expression can be created, and a leading wildcard such as <code>LIKE '%x'</code> needs a trigram or full-text index.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>SARGable nghĩa là một điều kiện có thể dùng index seek. Bọc cột trong một hàm hoặc biểu thức, ví dụ <code>YEAR(created_at) = 2024</code> hoặc một phép ép kiểu ngầm định, sẽ khiến nó không còn SARGable và buộc phải quét toàn bảng. Cách sửa là giữ cột ở dạng nguyên và chuyển mọi phép tính sang phía hằng số, chẳng hạn viết lại điều kiện lọc theo năm thành một khoảng ngày. Khi thực sự cần dùng hàm, có thể tạo một functional index khớp đúng với biểu thức đó, còn một ký tự đại diện đứng đầu như <code>LIKE '%x'</code> thì cần một index trigram hoặc full-text.</p></details>
+<p><strong>SARGable</strong> (Search ARGument able) = the predicate can use an index seek. Wrapping the <strong>column</strong> in a function or expression makes it non-SARGable — the DB must compute it for every row (full scan).</p>
+<pre>-- ❌ Non-SARGable                          → ✅ SARGable rewrite
+WHERE YEAR(created_at) = 2024               WHERE created_at >= '2024-01-01'
+                                              AND created_at <  '2025-01-01'
+
+WHERE UPPER(email) = 'AN@X.COM'             WHERE email = 'an@x.com'  -- store normalized
+                                            -- or: functional index (see below)
+
+WHERE salary * 12 > 60000                   WHERE salary > 60000 / 12
+
+WHERE name LIKE '%son'                      -- leading wildcard: no B-tree seek
+                                            -- → full-text / trigram (GIN) index
+
+WHERE varchar_id = 12345                    WHERE varchar_id = '12345'  -- no implicit cast
+
+-- When the function is genuinely needed → index the EXPRESSION:
+CREATE INDEX idx_users_email_lower ON users (LOWER(email));
+SELECT * FROM users WHERE LOWER(email) = 'an@x.com';   -- ✅ uses the index</pre>
+<div class="key-point">Rule: keep the column bare on one side of the operator; move all computation to the constant side. If you can't, create a functional index matching the exact expression.</div>`,
+      },
+      {
+        q: 'What are the differences between EXIST vs IN vs JOIN for subqueries?',
+        difficulty: 'tricky',
+        a: `<div class="interview-answer"><p><code>EXISTS</code> stops at the first match, so it works well when the subquery returns many rows. <code>IN</code> builds a list or hash and suits small value sets. <code>JOIN</code> is used when columns are needed from both tables, but a one-to-many join multiplies rows and needs <code>DISTINCT</code>. Modern optimizers often turn <code>IN</code> and <code>EXISTS</code> into the same plan, so the choice should be based on meaning, and <code>NOT EXISTS</code> is safer than <code>NOT IN</code> because of the NULL trap.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><code>EXISTS</code> dừng lại ngay ở bản khớp đầu tiên, nên nó hoạt động tốt khi subquery trả về nhiều dòng. <code>IN</code> xây một danh sách hoặc hash và phù hợp với các tập giá trị nhỏ. <code>JOIN</code> được dùng khi cần các cột từ cả hai bảng, nhưng một join một-nhiều làm nhân đôi số dòng và cần <code>DISTINCT</code>. Các optimizer hiện đại thường biến <code>IN</code> và <code>EXISTS</code> thành cùng một plan, nên nên chọn dựa trên ý nghĩa, và <code>NOT EXISTS</code> an toàn hơn <code>NOT IN</code> vì cái bẫy NULL.</p></details>
+<pre>-- EXISTS: stops at first match (short-circuit). Best when subquery returns MANY rows.
+SELECT * FROM orders o
+WHERE EXISTS (SELECT 1 FROM items i WHERE i.order_id = o.id);
+
+-- IN: builds a hash/list. Good for small subquery results.
+SELECT * FROM orders
+WHERE customer_id IN (SELECT id FROM customers WHERE vip = true);
+
+-- JOIN: can return duplicates if 1-to-many. Use DISTINCT or aggregate.
+SELECT DISTINCT o.*
+FROM orders o
+JOIN items i ON o.id = i.order_id;</pre>
+<div class="key-point">Rule of thumb: EXISTS for "does it have related rows?", JOIN when you need data from both tables, IN for small value lists.</div>`,
+      },
+      {
+        q: 'What is the difference between UNION and UNION ALL? When does UNION give wrong results?',
+        difficulty: 'tricky',
+        a: `<div class="interview-answer"><p><code>UNION</code> removes duplicates, which adds an implicit sort or hash step that is slow on large sets, while <code>UNION ALL</code> just joins the results together and is always faster. <code>UNION</code> gives wrong results when the data has real duplicates that must be kept, such as summing a matching amount from two accounts, because it silently drops one. The safe default is <code>UNION ALL</code>, using <code>UNION</code> only when duplicates truly need to be removed.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><code>UNION</code> loại bỏ các dòng trùng, việc này thêm một bước sort hoặc hash ngầm định vốn chậm trên các tập dữ liệu lớn, còn <code>UNION ALL</code> chỉ nối các kết quả lại với nhau và luôn nhanh hơn. <code>UNION</code> cho kết quả sai khi dữ liệu có những dòng trùng thực sự cần được giữ lại, ví dụ như cộng một số tiền giống nhau từ hai tài khoản, bởi vì nó âm thầm bỏ đi một dòng. Lựa chọn mặc định an toàn là <code>UNION ALL</code>, chỉ dùng <code>UNION</code> khi thực sự cần loại bỏ trùng lặp.</p></details>
+<pre>-- UNION: combines results and REMOVES duplicates (slower — sorts/hashes)
+SELECT name FROM employees
+UNION
+SELECT name FROM contractors;
+-- If "John" exists in both → appears ONCE
+
+-- UNION ALL: combines results and KEEPS duplicates (faster — no dedup)
+SELECT name FROM employees
+UNION ALL
+SELECT name FROM contractors;
+-- If "John" exists in both → appears TWICE
+
+-- Trick question: When does UNION give WRONG results?
+-- When you actually NEED duplicates!
+
+-- Example: count total transactions
+SELECT amount FROM checking_account
+UNION
+SELECT amount FROM savings_account;
+-- If both accounts have a $100 transaction, UNION removes one!
+-- Use UNION ALL to get the correct total
+
+-- Performance: UNION ALL is always faster.
+-- Only use UNION when you specifically need deduplication.</pre>
+<div class="key-point">Default to <code>UNION ALL</code> unless you explicitly need deduplication. <code>UNION</code> performs an implicit <code>DISTINCT</code> which requires sorting — expensive on large datasets.</div>`,
+      },
+      {
+        q: 'How to optimize JOINs for better performance?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>The biggest win is indexing both columns in the join condition. Filtering early so fewer rows are joined also helps, for example pre-filtering in a CTE before touching a large table. Joining on a function such as <code>UPPER</code> on both sides should be avoided because it blocks the index; a functional index or computed column is better. Selecting only the needed columns keeps covering plans possible and reduces I/O.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Cải thiện lớn nhất là đánh index cho cả hai cột trong điều kiện join. Lọc sớm để giảm số dòng cần join cũng có ích, ví dụ lọc trước trong một CTE trước khi động tới bảng lớn. Nên tránh join trên một hàm như <code>UPPER</code> ở cả hai vế vì nó chặn việc dùng index; một functional index hoặc cột được tính sẵn thì tốt hơn. Chỉ chọn những cột cần thiết giúp giữ khả năng dùng plan covering và giảm I/O.</p></details>
+<ul>
+<li><strong>Index JOIN columns</strong>: both sides of the join condition should be indexed.</li>
+<li><strong>Use appropriate JOIN type</strong>: INNER JOIN is faster than LEFT JOIN (fewer rows).</li>
+<li><strong>Filter early</strong>: apply WHERE conditions before joining large tables.</li>
+<li><strong>Avoid joining on functions</strong>: <code>ON UPPER(a.name) = UPPER(b.name)</code> → can't use index. Use computed columns or functional indexes.</li>
+<li><strong>Reduce dataset size</strong>: use CTEs or subqueries to pre-filter.</li>
+</ul>
+<pre>-- Bad: joins full tables then filters
+SELECT * FROM orders o JOIN items i ON o.id = i.order_id
+WHERE o.date > '2024-01-01';
+
+-- Better: filter first
+WITH recent_orders AS (
+  SELECT id FROM orders WHERE date > '2024-01-01'
+)
+SELECT o.*, i.* FROM recent_orders ro
+JOIN orders o ON o.id = ro.id
+JOIN items i ON o.id = i.order_id;</pre>`,
+      },
+      {
+        q: 'Explain the N+1 query problem and how to solve it.',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>The N+1 problem is one query for the parent rows plus one more query for each parent's children, which means many round trips. It is usually caused by an ORM loading related data one row at a time. The fix is to batch the work with a single <code>JOIN</code>, a <code>WHERE ... IN</code> over the collected parent ids, or the ORM's eager fetch such as <code>JOIN FETCH</code>. It often looks fine with small data and only fails in production.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Vấn đề N+1 là một truy vấn để lấy các dòng cha cộng thêm một truy vấn cho mỗi dòng con của từng cha, nghĩa là rất nhiều lần đi lại tới database. Nó thường do một ORM tải dữ liệu liên quan theo từng dòng một. Cách sửa là gộp công việc lại bằng một <code>JOIN</code> duy nhất, một <code>WHERE ... IN</code> trên tập id cha đã thu thập, hoặc dùng cơ chế eager fetch của ORM như <code>JOIN FETCH</code>. Nó thường trông có vẻ ổn khi dữ liệu nhỏ và chỉ lộ vấn đề khi lên production.</p></details>
+<p><strong>Problem</strong>: 1 query to fetch parents + N queries to fetch each parent's children.</p>
+<pre>-- N+1 Problem:
+SELECT * FROM orders;                    -- 1 query
+SELECT * FROM items WHERE order_id = ?;  -- N queries (one per order!)
+
+-- Solution 1: JOIN
+SELECT o.*, i.*
+FROM orders o
+LEFT JOIN items i ON o.id = i.order_id;
+
+-- Solution 2: Batch IN query
+SELECT * FROM items WHERE order_id IN (1, 2, 3, ...);
+
+-- Solution 3: ORM eager loading
+// JPA: @EntityGraph or JOIN FETCH
+// Hibernate: FetchType.EAGER or Hibernate.initialize()</pre>`,
+      },
+      {
+        q: 'How to optimize pagination for large datasets?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p><code>OFFSET</code> paging is slow because <code>OFFSET 1000000</code> still reads and skips a million rows. Keyset (cursor) paging uses a condition like <code>id &gt; last_seen_id</code> on an indexed column and stays fast no matter how deep the page is. A deferred join can help when <code>OFFSET</code> must be used. Keyset paging needs a stable, unique sort key and works well for APIs.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Phân trang bằng <code>OFFSET</code> chậm vì <code>OFFSET 1000000</code> vẫn phải đọc và bỏ qua một triệu dòng. Phân trang kiểu keyset (con trỏ) dùng một điều kiện như <code>id &gt; last_seen_id</code> trên một cột đã có index và luôn nhanh bất kể trang nằm sâu tới đâu. Một deferred join có thể hữu ích khi buộc phải dùng <code>OFFSET</code>. Phân trang keyset cần một khóa sắp xếp ổn định và duy nhất, và rất phù hợp cho các API.</p></details>
+<p><strong>Problem</strong>: <code>OFFSET 1000000LIMIT 10</code> scans 1,000,010 rows.</p>
+<p><strong>Solutions</strong>:</p>
+<pre>-- 1. Keyset pagination (cursor-based) ← BEST
+SELECT * FROM orders
+WHERE id > :last_seen_id   -- indexed!
+ORDER BY id
+LIMIT 10;
+
+-- 2. Deferred join
+SELECT o.* FROM orders o
+JOIN (
+  SELECT id FROM orders ORDER BY id LIMIT 10 OFFSET 1000000
+) sub ON o.id = sub.id;
+
+-- 3. Remember total count separately (avoid COUNT(*))</pre>
+<div class="key-point">Keyset pagination is O(1) regardless of page number. OFFSET pagination is O(n). Always prefer keyset for APIs.</div>`,
+      },
+      {
+        q: 'How to optimize COUNT(*) on large tables?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p><code>COUNT(*)</code> is slow on large tables in an MVCC database because visibility is per-transaction, so it must scan every row instead of reading a stored counter. The first question is whether an exact live total is really needed, since an estimate from <code>pg_class</code> is often good enough. A filtered count backed by an index is fast when the slice is small, and an exact fast count needs a summary table kept current by triggers. For paging, the total can be replaced with a check for whether a next page exists.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><code>COUNT(*)</code> chậm trên các bảng lớn trong database dùng MVCC vì tính hiển thị (visibility) là theo từng transaction, nên nó phải quét mọi dòng thay vì đọc một bộ đếm đã lưu sẵn. Câu hỏi đầu tiên là liệu có thực sự cần một tổng chính xác theo thời gian thực hay không, vì một con số ước lượng từ <code>pg_class</code> thường đã đủ dùng. Một phép đếm có lọc được hỗ trợ bởi index sẽ nhanh khi phần dữ liệu nhỏ, còn một phép đếm chính xác mà nhanh thì cần một bảng tổng hợp được cập nhật liên tục bằng trigger. Với phân trang, có thể thay tổng số bằng việc kiểm tra xem có trang tiếp theo hay không.</p></details>
+<p><strong>Why it's slow:</strong> in an MVCC database (PostgreSQL), a row's visibility depends on the querying transaction, so <code>COUNT(*)</code> can't read a single stored counter — it must scan every row (or at least a full index) to check which versions are visible. On tens of millions of rows that's seconds.</p>
+<pre>-- 1) Approximate total — instant, good enough for "≈ 12M results"
+SELECT reltuples::bigint AS estimate
+FROM pg_class WHERE relname = 'orders';         -- maintained by ANALYZE/autovacuum
+
+-- 2) Filtered count backed by an index (fast when the slice is small)
+CREATE INDEX idx_orders_status ON orders(status);
+SELECT COUNT(*) FROM orders WHERE status = 'active';    -- index scan, not full table
+
+-- 3) Maintained counter — exact and O(1) to read; cost moves to write time
+CREATE TABLE order_counts (status text PRIMARY KEY, n bigint);
+-- keep current with a trigger on INSERT/DELETE, or a scheduled refresh
+
+-- 4) Pagination: replace "total pages" with "is there a next page?"
+SELECT * FROM orders WHERE id > :last ORDER BY id LIMIT :size + 1;
+-- fetched size+1 rows? → a next page exists. No COUNT(*) needed at all.</pre>
+<ul>
+<li><strong>Exact + fast is a trade-off</strong>: cheap-to-read exact counts cost you either at write time (trigger/summary table) or in freshness (a materialized view refreshed on a schedule).</li>
+<li><strong>COUNT(*) vs COUNT(1) vs COUNT(col)</strong>: <code>COUNT(*)</code> and <code>COUNT(1)</code> are identical (both count rows — "COUNT(1) is faster" is a myth); <code>COUNT(col)</code> counts only non-NULL values, so it can return a smaller number.</li>
+</ul>
+<div class="key-point">Ask first: does the feature actually need an <em>exact</em> total? "Showing 1–20 of ~12M" is fine with <code>reltuples</code>; most APIs need no total at all (use the "has next page" pattern). Reserve exact live counts for a maintained summary table.</div>`,
+      },
+
+      // ──── 4. LARGE DATA — BULK OPERATIONS, PARTITIONING, VIEWS ────
+      {
+        q: 'How do you optimize bulk INSERT / UPDATE / DELETE operations?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>The bottleneck in bulk work is the per-row round trips and per-statement overhead, not the amount of data, so batching is the fix. Multi-row inserts are far faster than row-by-row, and <code>COPY</code> or <code>LOAD DATA</code> is faster still. In Java, JDBC <code>executeBatch</code> with the <code>rewriteBatchedStatements</code> driver flag is needed for real batching. Large deletes should be done in chunks to avoid one big lock and bloat, and a one-time massive load is fastest with indexes dropped first and rebuilt after loading.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Điểm nghẽn trong các thao tác hàng loạt là chi phí đi lại theo từng dòng và chi phí trên mỗi câu lệnh, chứ không phải lượng dữ liệu, nên gộp lô (batching) là cách sửa. Insert nhiều dòng cùng lúc nhanh hơn hẳn insert từng dòng, và <code>COPY</code> hoặc <code>LOAD DATA</code> còn nhanh hơn nữa. Trong Java, cần dùng <code>executeBatch</code> của JDBC kèm cờ driver <code>rewriteBatchedStatements</code> để thực sự gộp lô. Các phép xóa lớn nên được chia thành từng khối để tránh một khóa lớn và tránh phình dữ liệu, còn một lần nạp dữ liệu khổng lồ một lần thì nhanh nhất khi drop index trước rồi dựng lại sau khi nạp xong.</p></details>
+<p><strong>Batching</strong>: the killer is per-row round trips and per-statement overhead — not the data volume itself.</p>
+<pre>-- ❌ 10,000 round trips
+INSERT INTO items VALUES (1, 'a');
+INSERT INTO items VALUES (2, 'b');   -- ... × 10,000
+
+-- ✅ Multi-row insert (one statement, one round trip per batch)
+INSERT INTO items VALUES (1,'a'), (2,'b'), (3,'c'), ...;   -- batches of ~1000
+
+-- ✅ Fastest bulk load: COPY (PostgreSQL) / LOAD DATA (MySQL)
+COPY items FROM '/data/items.csv' WITH (FORMAT csv);
+
+-- ✅ JDBC batching (Java) — also needs the driver flag to really batch:
+-- jdbc:mysql://...?rewriteBatchedStatements=true
+ps.addBatch();  ...  ps.executeBatch();   // every 1000 rows
+-- JPA: spring.jpa.properties.hibernate.jdbc.batch_size=50
+
+-- ✅ Chunked DELETE — one giant delete = long lock + huge WAL/undo:
+DELETE FROM logs WHERE created_at < '2024-01-01' LIMIT 10000;  -- repeat until 0 rows
+-- (PostgreSQL: DELETE ... WHERE id IN (SELECT id ... LIMIT 10000))
+
+-- ✅ UPDATE from a staging table instead of 10k single updates:
+UPDATE products p SET price = s.price
+FROM   staging_prices s WHERE s.product_id = p.id;</pre>
+<ul>
+<li>For massive one-time loads: drop/disable secondary indexes and constraints, load, rebuild.</li>
+<li>Keep transactions bounded — a 10M-row transaction blocks VACUUM and replication.</li>
+</ul>
+<div class="key-point">Numbers interviewers like: row-by-row ≈ thousands/min; multi-row batches ≈ tens of thousands/sec; COPY ≈ hundreds of thousands/sec. Know why each step is faster (fewer round trips, less parsing, less WAL).</div>`,
+      },
+      {
+        q: 'What is the difference between DELETE, TRUNCATE, and DROP?',
+        difficulty: 'tricky',
+        a: `<div class="interview-answer"><p><code>DELETE</code> removes rows, can use a <code>WHERE</code> clause, logs each row, fires triggers, and can be rolled back. <code>TRUNCATE</code> removes all rows quickly by deallocating pages, resets the identity counter, and skips triggers. <code>DROP</code> removes the whole table including its structure. A common trick is rollback behavior: in PostgreSQL <code>TRUNCATE</code> can be rolled back, but in MySQL it cannot, so the answer depends on the database.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><code>DELETE</code> xóa các dòng, có thể dùng mệnh đề <code>WHERE</code>, ghi log từng dòng, kích hoạt trigger, và có thể rollback. <code>TRUNCATE</code> xóa toàn bộ dòng một cách nhanh chóng bằng cách giải phóng các trang (page), reset lại bộ đếm identity, và bỏ qua trigger. <code>DROP</code> xóa cả bảng bao gồm cả cấu trúc của nó. Một câu hỏi mẹo phổ biến là về khả năng rollback: trong PostgreSQL, <code>TRUNCATE</code> có thể rollback, nhưng trong MySQL thì không, nên câu trả lời phụ thuộc vào database.</p></details>
+<table><tr><th>Aspect</th><th>DELETE</th><th>TRUNCATE</th><th>DROP</th></tr>
+<tr><td>What it does</td><td>Removes rows (with WHERE)</td><td>Removes ALL rows</td><td>Removes entire table</td></tr>
+<tr><td>WHERE clause</td><td>✅ Yes</td><td>❌ No</td><td>❌ No</td></tr>
+<tr><td>Rollback</td><td>✅ Can rollback</td><td>⚠️ Depends on DB</td><td>⚠️ Depends on DB</td></tr>
+<tr><td>Triggers</td><td>✅ Fires triggers</td><td>❌ No triggers</td><td>❌ No triggers</td></tr>
+<tr><td>Speed</td><td>Slow (row by row)</td><td>Fast (deallocates pages)</td><td>Fastest</td></tr>
+<tr><td>Auto-increment</td><td>Keeps counter</td><td>Resets counter</td><td>Table gone</td></tr>
+<tr><td>Logging</td><td>Full row logging</td><td>Minimal logging</td><td>Minimal</td></tr></table>
+<pre>-- DELETE: removes specific rows, logs each row, can rollback
+DELETE FROM orders WHERE status = 'cancelled';
+
+-- TRUNCATE: removes ALL rows fast, resets identity
+TRUNCATE TABLE temp_data;
+
+-- DROP: removes table + schema + data permanently
+DROP TABLE IF EXISTS temp_data;</pre>
+<div class="key-point">Trick: In PostgreSQL, TRUNCATE IS transactional (can rollback). In MySQL, TRUNCATE cannot be rolled back. This is a common interview trick question — the answer depends on the database!</div>`,
+      },
+      {
+        q: 'What is table partitioning? When to use it?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>Partitioning splits one large table into smaller physical pieces while it stays logically one table, usually by date range, and sometimes by list or hash. The benefits are partition pruning, where queries that filter on the partition key skip whole partitions, plus fast data removal by dropping a partition instead of a large <code>DELETE</code>. It only pays off on very large tables, around 10 million rows or more. The partition key must appear in the queries or pruning cannot happen.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Phân mảnh (partitioning) chia một bảng lớn thành nhiều phần vật lý nhỏ hơn trong khi về mặt logic nó vẫn là một bảng, thường theo khoảng ngày, và đôi khi theo danh sách hoặc hash. Lợi ích là partition pruning, nơi các truy vấn lọc theo khóa phân mảnh có thể bỏ qua cả những partition không liên quan, cùng với việc xóa dữ liệu nhanh bằng cách drop một partition thay vì một câu <code>DELETE</code> lớn. Nó chỉ đáng dùng trên các bảng rất lớn, khoảng 10 triệu dòng trở lên. Khóa phân mảnh phải xuất hiện trong truy vấn, nếu không thì việc pruning không thể diễn ra.</p></details>
+<p>Partitioning splits a large table into smallerphysical pieces while keeping it logically one table.</p>
+<ul>
+<li><strong>Range partitioning</strong>: by date range (most common). E.g., monthly partitions.</li>
+<li><strong>List partitioning</strong>: by discrete values (country, status).</li>
+<li><strong>Hash partitioning</strong>: distribute evenly by hash.</li>
+</ul>
+<pre>-- PostgreSQL range partitioning
+CREATE TABLE orders (
+  id SERIAL, created_at DATE, amount DECIMAL
+) PARTITION BY RANGE (created_at);
+
+CREATE TABLE orders_2024_q1 PARTITION OF orders
+  FOR VALUES FROM ('2024-01-01') TO ('2024-04-01');</pre>
+<p><strong>Benefits</strong>: partition pruning (skip irrelevant partitions), faster deletes (drop partition), parallel scans.</p>
+<div class="key-point">Only partition tables with 10M+ rows where queries naturally filter on the partition key.</div>`,
+      },
+      {
+        q: 'What is the difference between a view and a materialized view? When do you use each?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>A view is just a saved query with no stored data, so it is always fresh but pays the full query cost on every read; it is useful for abstraction and security. A materialized view stores the result physically and can be indexed, so reads are fast, but the data is stale until a <code>REFRESH</code> runs. Use a view for simplifying access, and a materialized view for expensive aggregations such as dashboards and reports. This is the same freshness-versus-speed trade-off as a cache, except it lives in the database.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Một view chỉ là một truy vấn được lưu lại mà không lưu dữ liệu, nên nó luôn mới nhưng phải trả toàn bộ chi phí truy vấn ở mỗi lần đọc; nó hữu ích cho việc trừu tượng hóa và bảo mật. Một materialized view lưu kết quả một cách vật lý và có thể đánh index, nên đọc rất nhanh, nhưng dữ liệu sẽ cũ cho đến khi chạy <code>REFRESH</code>. Dùng view để đơn giản hóa việc truy cập, và dùng materialized view cho các phép tổng hợp tốn kém như dashboard và báo cáo. Đây chính là sự đánh đổi giữa độ mới và tốc độ giống như một cache, chỉ khác là nó nằm trong database.</p></details>
+<ul>
+<li><strong>View</strong>: a saved query — no data stored. Every SELECT re-runs the underlying query. Always fresh, costs full query time.</li>
+<li><strong>Materialized view</strong>: the query result is <strong>physically stored</strong> (and can be indexed!). Reads are instant; data is stale until refreshed.</li>
+</ul>
+<pre>-- View: abstraction / security layer (hide columns, fix joins)
+CREATE VIEW active_users AS
+  SELECT id, name, email FROM users WHERE status = 'active';
+
+-- Materialized view: precomputed aggregation for dashboards/reports
+CREATE MATERIALIZED VIEW daily_revenue AS
+  SELECT day, SUM(amount) AS revenue, COUNT(*) AS orders
+  FROM sales GROUP BY day;
+
+CREATE INDEX idx_daily_revenue_day ON daily_revenue(day);  -- ✅ indexable
+
+-- Refresh strategies:
+REFRESH MATERIALIZED VIEW daily_revenue;                -- locks reads
+REFRESH MATERIALIZED VIEW CONCURRENTLY daily_revenue;   -- no read lock
+--   (needs a unique index; run from cron / after ETL)</pre>
+<table><tr><th></th><th>View</th><th>Materialized view</th></tr>
+<tr><td>Storage</td><td>None</td><td>Full result stored</td></tr>
+<tr><td>Freshness</td><td>Always current</td><td>Stale until REFRESH</td></tr>
+<tr><td>Read cost</td><td>Underlying query each time</td><td>Like reading a table</td></tr>
+<tr><td>Use case</td><td>Abstraction, security</td><td>Expensive aggregations, dashboards</td></tr></table>
+<div class="key-point">Materialized views trade freshness for read speed — the same trade-off as a cache, but inside the database and queryable with SQL. Say that sentence in an interview.</div>`,
+      },
+
+      // ──── 5. RUNTIME & INFRASTRUCTURE ────
+      {
+        q: 'What is query plan caching? How do parameterized queries help?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>Query plan caching lets the database compile a plan once and reuse it instead of parsing the same query again. Parameterized (prepared) statements make this possible by keeping the query text fixed and passing values separately, which also prevents SQL injection. One downside is that a single reused generic plan can be good for one value and poor for another when the data is skewed. PostgreSQL can force a fresh plan per parameter with <code>plan_cache_mode</code>.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Query plan caching cho phép database biên dịch một plan một lần rồi tái sử dụng thay vì phân tích lại cùng một truy vấn. Câu lệnh có tham số (prepared statement) làm điều này khả thi bằng cách giữ nguyên phần text của truy vấn và truyền các giá trị riêng, đồng thời cũng ngăn chặn SQL injection. Một nhược điểm là một plan tổng quát dùng lại có thể tốt cho giá trị này nhưng lại kém cho giá trị khác khi dữ liệu bị lệch. PostgreSQL có thể buộc lập plan mới cho mỗi tham số bằng <code>plan_cache_mode</code>.</p></details>
+<ul>
+<li><strong>Prepared statements / parameterized queries</strong>: DB compiles the plan once and reuses it for different parameter values.</li>
+<li>Prevents <strong>SQL injection</strong> (security benefit).</li>
+<li>Reduces <strong>hard parsing</strong> (plan compilation is expensive).</li>
+</ul>
+<pre>-- Bad: new plan for each query
+"SELECT * FROM users WHERE id = " + userId  // SQL injection risk!
+
+-- Good: plan cached and reused
+PreparedStatement ps = conn.prepareStatement("SELECT * FROM users WHERE id = ?");
+ps.setInt(1, userId);</pre>
+<div class="key-point">In PostgreSQL: use <code>pg_stat_statements</code> to find frequently executed queries and optimize them.</div>`,
+      },
+      {
+        q: 'What is database connection pooling and why is it important?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>Opening a database connection is expensive because of the handshake, authentication, and memory setup, so a connection pool keeps live connections ready and reuses them. This avoids the cost of creating a new connection for every request and greatly improves throughput. A common size guide is cores times two plus disk spindles, and a tool such as PgBouncer or HikariCP manages the pool. Too few connections makes clients wait, while too many strains the database with memory pressure and context switching.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Mở một kết nối tới database rất tốn kém vì phải bắt tay, xác thực, và cấp phát bộ nhớ, nên một connection pool giữ sẵn các kết nối đang hoạt động và tái sử dụng chúng. Điều này tránh được chi phí tạo một kết nối mới cho mỗi request và cải thiện đáng kể thông lượng. Một hướng dẫn phổ biến về kích thước là số nhân (core) nhân hai cộng số ổ đĩa, và một công cụ như PgBouncer hoặc HikariCP sẽ quản lý pool. Quá ít kết nối khiến client phải chờ, còn quá nhiều lại gây áp lực lên database với sức ép bộ nhớ và chuyển ngữ cảnh.</p></details>
+<p>Creating a DB connection is expensive (TCP handshake, authentication, memory allocation). A <strong>connection pool</strong> maintains a cache of reusable connections.</p>
+<ul>
+<li><strong>HikariCP</strong> (Java): fastest, default in Spring Boot. Typical pool size: CPU cores × 2 + disk spindles.</li>
+<li><strong>PgBouncer</strong> (PostgreSQL): external pooler, supports transaction/session pooling.</li>
+</ul>
+<pre># HikariCP config
+spring.datasource.hikari.maximum-pool-size=10
+spring.datasource.hikari.minimum-idle=5
+spring.datasource.hikari.connection-timeout=30000</pre>
+<div class="key-point">Pool too small → connection wait timeouts. Pool too large → excessive memory and context switching. Formula: <code>connections = (core_count * 2) + effective_spindle_count</code>.</div>`,
+      },
+      {
+        q: 'How to identify and fix slow queries in production?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>This works best in three evidence-based steps. First, find the worst queries by turning on the slow query log and ranking by total time in <code>pg_stat_statements</code>, since a fast query run millions of times can hurt more than one slow query. Second, get the real plan for the top offenders with <code>EXPLAIN (ANALYZE, BUFFERS)</code> and look for full scans, bad estimates, and sorts spilling to disk. Third, fix the cheapest thing first, such as refreshing statistics, adding a missing index, and rewriting the query, and only then scale out with pooling or read replicas.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Cách này hiệu quả nhất khi làm theo ba bước dựa trên bằng chứng. Đầu tiên, tìm những truy vấn tệ nhất bằng cách bật slow query log và xếp hạng theo tổng thời gian trong <code>pg_stat_statements</code>, vì một truy vấn nhanh chạy hàng triệu lần có thể gây hại nhiều hơn một truy vấn chậm chạy một lần. Thứ hai, lấy plan thực tế cho các truy vấn tệ nhất bằng <code>EXPLAIN (ANALYZE, BUFFERS)</code> và tìm các full scan, ước lượng sai, và các bước sort tràn xuống đĩa. Thứ ba, sửa thứ rẻ nhất trước, như làm mới thống kê, thêm index còn thiếu, và viết lại truy vấn, rồi mới mở rộng quy mô bằng connection pooling hoặc read replica.</p></details>
+<p>Work in three phases: <strong>find</strong> the worst queries with data (not guesses), <strong>diagnose</strong> each with its plan, then <strong>fix and verify</strong>.</p>
+<p><strong>1. Find — turn on the slow query log and query the stats view:</strong></p>
+<pre>-- PostgreSQL: log any statement slower than 500ms
+ALTER SYSTEM SET log_min_duration_statement = '500ms';   -- then SELECT pg_reload_conf();
+
+-- pg_stat_statements: the goldmine — rank by TOTAL time, not per-call time
+--   (a 5ms query run 2M times hurts more than a 3s query run once)
+SELECT query, calls, mean_exec_time, total_exec_time
+FROM pg_stat_statements
+ORDER BY total_exec_time DESC
+LIMIT 20;
+
+-- MySQL equivalent:
+SET GLOBAL slow_query_log = 'ON';
+SET GLOBAL long_query_time = 0.5;
+-- then aggregate with pt-query-digest / performance_schema</pre>
+<p><strong>2. Diagnose — get the real plan for the top offenders:</strong></p>
+<pre>EXPLAIN (ANALYZE, BUFFERS) &lt;the slow query&gt;;
+-- look for: Seq Scans on big tables, estimated-vs-actual row blowups,
+--           Nested Loops over large sets, Sort/Hash spilling to disk</pre>
+<p><strong>3. Fix — cheapest, most-targeted change first, then re-measure:</strong></p>
+<ul>
+<li>Refresh statistics (<code>ANALYZE table;</code>) — a stale estimate is the most common root cause after a bulk load or big DELETE.</li>
+<li>Add the missing index (find culprits via <code>pg_stat_user_tables.seq_scan</code>); build it with <code>CREATE INDEX CONCURRENTLY</code> to avoid locking writes.</li>
+<li>Rewrite the query — kill correlated subqueries, make predicates SARGable, fix ORM N+1.</li>
+<li>Scale out only after the query itself is sound: connection pooling (PgBouncer/HikariCP), read replicas for read-heavy load, caching.</li>
+</ul>
+<div class="key-point">The senior signal is <strong>evidence-driven order</strong>: rank by total time in <code>pg_stat_statements</code> → read the plan → fix statistics/index/query → verify with the same measurement. Adding indexes by guesswork (and never dropping the unused ones) is the anti-pattern.</div>`,
       },
     ],
   },

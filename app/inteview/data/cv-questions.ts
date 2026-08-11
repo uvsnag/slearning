@@ -7,7 +7,7 @@ export const topics: PvTopic[] = [
     name: 'CV-Based Questions',
     icon: '📋',
     questions: [
-      // --- PROFESSIONAL SUMMARY / GENERAL ---
+      // ──── 1. OPENING — BACKGROUND & MOTIVATION ────
       {
         q: 'Tell me about yourself and your experience.',
         difficulty: 'easy',
@@ -31,52 +31,6 @@ passionate about leveraging AI tools to improve developer productivity.
 I'm looking for a senior role where I can contribute to 
 architectural decisions and continue growing as a technical leader."</pre>
 <div class="key-point">Keep it to 2 minutes. Focus on: years of experience, current role, key technologies, what you're looking for. Don't read your CV — tell a story.</div>`,
-      },
-      {
-        q: 'Why are you leaving your current company?',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p>This question should be answered in an honest but positive way. The focus should be on what the person wants next, such as more ownership of architecture, new technical challenges, or working on a product with wider impact. Good answers describe growth goals, while bad answers complain about managers, salary, or boredom. It is important to never speak badly about the current employer.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Câu hỏi này nên được trả lời một cách trung thực nhưng tích cực. Trọng tâm nên đặt vào điều bạn mong muốn tiếp theo, chẳng hạn như được làm chủ nhiều hơn về kiến trúc hệ thống, những thử thách kỹ thuật mới, hoặc được làm việc trên một sản phẩm có tầm ảnh hưởng rộng hơn. Câu trả lời tốt mô tả các mục tiêu phát triển, còn câu trả lời dở thì than phiền về sếp, lương thưởng hay sự nhàm chán. Điều quan trọng là đừng bao giờ nói xấu về công ty hiện tại.</p></details>
-<p>Be honest but positive. Focus on what you want, not what you're running from.</p>
-<ul>
-<li><strong>Good answers</strong>: seeking growth, want to work with a specific tech stack, looking for more architectural challenges, want to contribute to a product company.</li>
-<li><strong>Bad answers</strong>: bad manager, low salary, bored (too negative).</li>
-</ul>
-<pre>Example: "I've had a great ~4 years at CyberLogitec working on 
-enterprise logistics systems. I've grown from a senior developer 
-to a deputy team lead. Now I'm looking for a role where I can 
-take on more ownership of system architecture decisions and work 
-on products with a broader impact."</pre>
-<div class="key-point">Never badmouth your current employer. Even if the reason is salary, frame it positively: "I'm looking for a role that better reflects my experience and contributions."</div>`,
-      },
-      {
-        q: 'Describe a challenging project you worked on and how you solved it.',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p>This answer uses the <strong>STAR</strong> method: Situation, Task, Action, Result. The example is a database migration toolkit built at CyberLogitec to move data across many PostgreSQL environments with more than 100 tables. The solution used a streaming pipeline on the PostgreSQL <code>COPY</code> protocol, multi-phase validation, data masking for private data, and a real-time monitoring screen. The result was much less manual work and zero production incidents, and the tool is now used across the company. Results should always be measured with numbers.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Câu trả lời này sử dụng phương pháp <strong>STAR</strong>: Situation, Task, Action, Result. Ví dụ ở đây là một bộ công cụ migration cơ sở dữ liệu được xây dựng tại CyberLogitec để di chuyển dữ liệu qua nhiều môi trường PostgreSQL với hơn 100 bảng. Giải pháp sử dụng một pipeline dạng streaming dựa trên giao thức <code>COPY</code> của PostgreSQL, xác thực dữ liệu qua nhiều giai đoạn, che dấu dữ liệu cá nhân, và một màn hình giám sát theo thời gian thực. Kết quả là giảm đáng kể công việc thủ công và không có sự cố nào trên production, và công cụ này hiện đã được dùng trên toàn công ty. Kết quả luôn nên được đo lường bằng những con số cụ thể.</p></details>
-<p>Use the <strong>STAR method</strong>: Situation → Task → Action → Result.</p>
-<pre>Example (FWD Database Migration Toolkit):
-
-Situation: "At CyberLogitec, we needed to migrate data across 
-multiple PostgreSQL environments covering 10+ modules (~100+ tables). 
-Manual scripting took hours and was error-prone."
-
-Task: "As the sole developer, I was responsible for building an 
-automated migration toolkit from scratch."
-
-Action: 
-- "I designed a streaming-based pipeline using PostgreSQL COPY 
-  protocol for high-throughput data transfer (up to 100K rows/batch)."
-- "Built multi-phase validation: schema comparison, row-level 
-  validation, and record reconciliation."
-- "Implemented data masking for PII compliance."
-- "Created a real-time monitoring UI with Socket.IO for 
-  progress tracking and fail-safe controls."
-
-Result: "Reduced migration effort from hours to a single automated 
-workflow. Achieved zero production incidents thanks to robust 
-validation. The tool is now used across the organization."</pre>
-<div class="key-point">Always quantify results: time saved, incidents prevented, performance improved. The interviewer wants to know your <strong>impact</strong>, not just what you did.</div>`,
       },
       {
         q: 'You mention ~7 years of experience. What has your growth trajectory been?',
@@ -103,7 +57,25 @@ validation. The tool is now used across the organization."</pre>
   → Focus: architecture, performance, tech strategy</pre>
 <div class="key-point">Highlight how your responsibilities grew: from writing features → leading teams → making architecture decisions → mentoring → setting tech direction.</div>`,
       },
-      // --- ARCHITECTURE / SYSTEM DESIGN ---
+      {
+        q: 'Why are you leaving your current company?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>This question should be answered in an honest but positive way. The focus should be on what the person wants next, such as more ownership of architecture, new technical challenges, or working on a product with wider impact. Good answers describe growth goals, while bad answers complain about managers, salary, or boredom. It is important to never speak badly about the current employer.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Câu hỏi này nên được trả lời một cách trung thực nhưng tích cực. Trọng tâm nên đặt vào điều bạn mong muốn tiếp theo, chẳng hạn như được làm chủ nhiều hơn về kiến trúc hệ thống, những thử thách kỹ thuật mới, hoặc được làm việc trên một sản phẩm có tầm ảnh hưởng rộng hơn. Câu trả lời tốt mô tả các mục tiêu phát triển, còn câu trả lời dở thì than phiền về sếp, lương thưởng hay sự nhàm chán. Điều quan trọng là đừng bao giờ nói xấu về công ty hiện tại.</p></details>
+<p>Be honest but positive. Focus on what you want, not what you're running from.</p>
+<ul>
+<li><strong>Good answers</strong>: seeking growth, want to work with a specific tech stack, looking for more architectural challenges, want to contribute to a product company.</li>
+<li><strong>Bad answers</strong>: bad manager, low salary, bored (too negative).</li>
+</ul>
+<pre>Example: "I've had a great ~4 years at CyberLogitec working on 
+enterprise logistics systems. I've grown from a senior developer 
+to a deputy team lead. Now I'm looking for a role where I can 
+take on more ownership of system architecture decisions and work 
+on products with a broader impact."</pre>
+<div class="key-point">Never badmouth your current employer. Even if the reason is salary, frame it positively: "I'm looking for a role that better reflects my experience and contributions."</div>`,
+      },
+
+      // ──── 2. TECHNICAL DEPTH — ARCHITECTURE, DATA & BACKEND ────
       {
         q: 'You mention Hexagonal Architecture and Spring Modulith. Explain the benefits.',
         difficulty: 'hard',
@@ -195,7 +167,45 @@ com.example.logistics
 </ul>
 <div class="key-point">API standardization reduces defects because every developer follows the same patterns. Use OpenAPI/Swagger to generate docs and validate contracts.</div>`,
       },
-      // --- SQL OPTIMIZATION ---
+      {
+        q: 'Explain your experience with MyBatis vs JPA. When would you choose each?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>The choice between MyBatis and JPA depends on where the complexity is. MyBatis fits complex queries with many joins, fixed or legacy schemas, and cases that need full control over the SQL, which is why it was used on the FWD and CARIS logistics projects. JPA with Spring Data fits CRUD-heavy applications on a schema you own, where fast development matters more, as at WOWCNS. On CARIS, Spring Boot still handled dependency injection, security, and the API layer while MyBatis handled the heavy queries.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Việc lựa chọn giữa MyBatis và JPA tùy thuộc vào nơi độ phức tạp nằm ở đâu. MyBatis phù hợp với các query phức tạp có nhiều join, các schema cố định hoặc legacy, và những trường hợp cần toàn quyền kiểm soát SQL, đó là lý do nó được dùng trong các dự án logistics FWD và CARIS. JPA kết hợp với Spring Data phù hợp với các ứng dụng thiên về CRUD trên một schema do bạn tự sở hữu, nơi tốc độ phát triển quan trọng hơn, như tại WOWCNS. Trong CARIS, Spring Boot vẫn đảm nhận dependency injection, bảo mật và tầng API trong khi MyBatis lo các query nặng.</p></details>
+<p>From your CV: You used MyBatis in CyberLogitec projects and JPA in WOWCNS.</p>
+<pre>My experience:
+
+MyBatis (CyberLogitec — FWD, CARIS):
+  → Complex logistics queries with 5+ JOINs
+  → Legacy database schemas (can't change table structure)
+  → DBA team writes and optimizes SQL
+  → Full control over every query
+  → Dynamic SQL with &lt;if&gt;, &lt;foreach&gt;, &lt;where&gt;
+
+JPA/Hibernate (WOWCNS — WowNet, MyOffice):
+  → CRUD-heavy e-commerce features
+  → Rapid development with Spring Data JPA
+  → Domain-driven design with entity relationships
+  → Method name queries (findByEmailAndStatus)
+
+Decision Guide:
+┌─────────────────────────────────────────────┐
+│ Choose MyBatis when:                        │
+│  → Complex reporting queries                │
+│  → Legacy DB schema you can't modify        │
+│  → DBA team manages SQL                     │
+│  → Need fine-grained SQL control            │
+│  → High-performance batch operations        │
+├─────────────────────────────────────────────┤
+│ Choose JPA when:                            │
+│  → CRUD-dominant application                │
+│  → Greenfield project (design your schema)  │
+│  → Domain-driven design                     │
+│  → Rapid prototyping                        │
+│  → Team familiar with ORM concepts          │
+└─────────────────────────────────────────────┘</pre>
+<div class="key-point">In the CARIS project, we used MyBatis for complex logistics queries that would be hard to express with JPQL, while keeping Spring Boot for DI, security, and API layer.</div>`,
+      },
       {
         q: 'You mention SQL optimization as a key skill. Walk me through your approach.',
         difficulty: 'hard',
@@ -250,7 +260,295 @@ ON orders(status, created_at DESC) INCLUDE (customer_id);
 -- Materialized views for aggregations</pre>
 <div class="key-point">SQL optimization is iterative: identify → analyze → optimize → validate. Always use EXPLAIN ANALYZE to verify improvements. The biggest gains usually come from adding the right indexes and rewriting bad queries.</div>`,
       },
-      // --- TEAM LEADERSHIP ---
+      {
+        q: 'You work with both PostgreSQL and SQL Server. What are the key differences?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>PostgreSQL and SQL Server are similar in some ways but differ in practical points. Both default to Read Committed isolation and use MVCC, but PostgreSQL keeps old row versions append-only while SQL Server uses tempdb. The syntax and features differ too: UPSERT is <code>ON CONFLICT</code> in PostgreSQL and <code>MERGE</code> in SQL Server, and pagination and JSON support are handled differently. A common rule is to choose PostgreSQL for new projects because it is free and extensible, and SQL Server when the team already uses the Microsoft ecosystem.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>PostgreSQL và SQL Server có nhiều điểm giống nhau nhưng khác biệt ở những khía cạnh thực tế. Cả hai đều mặc định mức cô lập Read Committed và dùng MVCC, nhưng PostgreSQL lưu các phiên bản dòng cũ theo kiểu append-only còn SQL Server thì dùng tempdb. Cú pháp và tính năng cũng khác nhau: UPSERT là <code>ON CONFLICT</code> trong PostgreSQL và <code>MERGE</code> trong SQL Server, còn phân trang cùng khả năng hỗ trợ JSON cũng được xử lý theo cách khác nhau. Một nguyên tắc phổ biến là chọn PostgreSQL cho các dự án mới vì nó miễn phí và dễ mở rộng, còn chọn SQL Server khi cả nhóm đã quen với hệ sinh thái Microsoft.</p></details>
+<table><tr><th>Feature</th><th>PostgreSQL</th><th>SQL Server</th></tr>
+<tr><td>License</td><td>Open source (free)</td><td>Commercial (Microsoft)</td></tr>
+<tr><td>Default isolation</td><td>Read Committed</td><td>Read Committed</td></tr>
+<tr><td>MVCC</td><td>Yes (append-only)</td><td>Yes (tempdb-based)</td></tr>
+<tr><td>JSON support</td><td>Excellent (JSONB)</td><td>Good (JSON functions)</td></tr>
+<tr><td>Full-text search</td><td>Built-in (tsvector)</td><td>Built-in (FTS)</td></tr>
+<tr><td>Partitioning</td><td>Declarative (10+)</td><td>Declarative (2016+)</td></tr>
+<tr><td>Replication</td><td>Streaming, logical</td><td>Always On, log shipping</td></tr>
+<tr><td>Procedural lang</td><td>PL/pgSQL, multiple</td><td>T-SQL only</td></tr>
+<tr><td>UPSERT syntax</td><td>ON CONFLICT</td><td>MERGE</td></tr>
+<tr><td>LIMIT</td><td>LIMIT N OFFSET M</td><td>OFFSET M ROWS FETCH NEXT N</td></tr>
+</table>
+<pre>-- PostgreSQL: UPSERT
+INSERT INTO users (email, name) VALUES ('john@mail.com', 'John')
+ON CONFLICT (email) DO UPDATE SET name = EXCLUDED.name;
+
+-- SQL Server: MERGE
+MERGE INTO users AS target
+USING (VALUES ('john@mail.com', 'John')) AS source (email, name)
+ON target.email = source.email
+WHEN MATCHED THEN UPDATE SET name = source.name
+WHEN NOT MATCHED THEN INSERT (email, name) VALUES (source.email, source.name);</pre>
+<div class="key-point">PostgreSQL is preferred for new projects (free, extensible, JSONB, community). SQL Server is common in enterprise environments with Microsoft ecosystems.</div>`,
+      },
+      {
+        q: 'How do you handle high-volume data processing and batch operations?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>For high-volume data, the best approach uses database-native paths instead of fighting the ORM. The PostgreSQL <code>COPY</code> protocol streams large batches of rows and avoids per-row insert overhead, while MyBatis batch inserts are flushed every few hundred records to stay under SQL limits. Data is processed in chunks with progress tracking and the ability to resume after a failure, shown through a real-time monitoring screen. Database tuning such as staging tables and partitioning helps, and data integrity is always validated before and after.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Với dữ liệu khối lượng lớn, cách tiếp cận tốt nhất là dùng các đường đi native của cơ sở dữ liệu thay vì chống lại ORM. Giao thức <code>COPY</code> của PostgreSQL truyền theo dạng stream từng lô dòng lớn và tránh được chi phí insert theo từng dòng, trong khi các batch insert của MyBatis được flush sau mỗi vài trăm bản ghi để không vượt giới hạn của SQL. Dữ liệu được xử lý theo từng chunk, có theo dõi tiến độ và khả năng chạy tiếp sau khi gặp lỗi, tất cả được hiển thị qua một màn hình giám sát theo thời gian thực. Việc tinh chỉnh cơ sở dữ liệu như dùng staging table và partition cũng giúp ích, và tính toàn vẹn dữ liệu luôn được xác thực trước và sau khi xử lý.</p></details>
+<p>From your CV: "High-volume data processing (batch, streaming)" and "up to 100K rows/batch."</p>
+<pre>Strategies I've used:
+
+1. STREAMING WITH PostgreSQL COPY PROTOCOL
+   → Bypasses row-by-row INSERT overhead
+   → Direct binary stream into tables
+   → Used in FWD Migration Toolkit (100K rows/batch)
+
+2. BATCH INSERT WITH MyBatis
+   &lt;insert id="batchInsert"&gt;
+     INSERT INTO records (col1, col2) VALUES
+     &lt;foreach collection="list" item="item" separator=","&gt;
+       (#{item.col1}, #{item.col2})
+     &lt;/foreach&gt;
+   &lt;/insert&gt;
+   → Flush every 500-1000 records to avoid SQL length limits
+
+3. CHUNKED PROCESSING
+   → Process large datasets in chunks (1000 rows at a time)
+   → Track progress, support resume on failure
+   → Real-time monitoring UI with Socket.IO
+
+4. DATABASE OPTIMIZATION FOR BATCH
+   → Disable indexes before bulk insert, rebuild after
+   → Use UNLOGGED tables for staging data
+   → Increase work_mem for sorting operations
+   → Partition tables by date for faster operations
+
+5. MONITORING & SAFETY
+   → Progress tracking with percentage, ETA
+   → Fail-safe: pause/resume/rollback controls
+   → Data validation before and after migration
+   → Data masking for PII compliance</pre>
+<div class="key-point">For high-volume operations: use database-native protocols (COPY, bulk insert), process in chunks, monitor progress, and always validate data integrity after processing.</div>`,
+      },
+
+      // ──── 3. PROJECTS, DELIVERY & TOOLING ────
+      {
+        q: 'Describe a challenging project you worked on and how you solved it.',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>This answer uses the <strong>STAR</strong> method: Situation, Task, Action, Result. The example is a database migration toolkit built at CyberLogitec to move data across many PostgreSQL environments with more than 100 tables. The solution used a streaming pipeline on the PostgreSQL <code>COPY</code> protocol, multi-phase validation, data masking for private data, and a real-time monitoring screen. The result was much less manual work and zero production incidents, and the tool is now used across the company. Results should always be measured with numbers.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Câu trả lời này sử dụng phương pháp <strong>STAR</strong>: Situation, Task, Action, Result. Ví dụ ở đây là một bộ công cụ migration cơ sở dữ liệu được xây dựng tại CyberLogitec để di chuyển dữ liệu qua nhiều môi trường PostgreSQL với hơn 100 bảng. Giải pháp sử dụng một pipeline dạng streaming dựa trên giao thức <code>COPY</code> của PostgreSQL, xác thực dữ liệu qua nhiều giai đoạn, che dấu dữ liệu cá nhân, và một màn hình giám sát theo thời gian thực. Kết quả là giảm đáng kể công việc thủ công và không có sự cố nào trên production, và công cụ này hiện đã được dùng trên toàn công ty. Kết quả luôn nên được đo lường bằng những con số cụ thể.</p></details>
+<p>Use the <strong>STAR method</strong>: Situation → Task → Action → Result.</p>
+<pre>Example (FWD Database Migration Toolkit):
+
+Situation: "At CyberLogitec, we needed to migrate data across 
+multiple PostgreSQL environments covering 10+ modules (~100+ tables). 
+Manual scripting took hours and was error-prone."
+
+Task: "As the sole developer, I was responsible for building an 
+automated migration toolkit from scratch."
+
+Action: 
+- "I designed a streaming-based pipeline using PostgreSQL COPY 
+  protocol for high-throughput data transfer (up to 100K rows/batch)."
+- "Built multi-phase validation: schema comparison, row-level 
+  validation, and record reconciliation."
+- "Implemented data masking for PII compliance."
+- "Created a real-time monitoring UI with Socket.IO for 
+  progress tracking and fail-safe controls."
+
+Result: "Reduced migration effort from hours to a single automated 
+workflow. Achieved zero production incidents thanks to robust 
+validation. The tool is now used across the organization."</pre>
+<div class="key-point">Always quantify results: time saved, incidents prevented, performance improved. The interviewer wants to know your <strong>impact</strong>, not just what you did.</div>`,
+      },
+      {
+        q: 'Tell me about the legacy system migration (CARIS UPGRADE). What challenges did you face?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>The CARIS project moved a live legacy logistics system to Next.js, <code>Java 21</code>, and Spring Modulith with no downtime and no data loss. Because the system runs in production, the Strangler Fig pattern was used to migrate one module at a time. Data across more than 100 tables was moved with an automated toolkit that included strong validation, and the inconsistent legacy APIs were redesigned around a new standard. The team was new to the stack, so coding standards, reusable patterns, and pair programming were important. The main lessons are to migrate step by step, keep backward compatibility, validate carefully, and support the team.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Dự án CARIS đã chuyển một hệ thống logistics legacy đang chạy thật sang Next.js, <code>Java 21</code> và Spring Modulith mà không có downtime và không mất dữ liệu. Vì hệ thống chạy trên production, mẫu Strangler Fig được dùng để migrate từng module một. Dữ liệu trải trên hơn 100 bảng được di chuyển bằng một bộ công cụ tự động có kèm cơ chế xác thực chặt chẽ, và các API legacy vốn thiếu nhất quán đã được thiết kế lại theo một chuẩn mới. Cả nhóm còn mới với stack này, nên coding standard, các pattern tái sử dụng và pair programming đều rất quan trọng. Bài học chính là hãy migrate theo từng bước, giữ tính tương thích ngược, xác thực cẩn thận, và hỗ trợ cả nhóm.</p></details>
+<p>From your CV: "Led the migration of a legacy logistics system to a modern stack (Next.js, Java 21, Spring Modulith), ensuring business continuity and zero data loss."</p>
+<pre>CARIS UPGRADE Migration Overview:
+
+FROM: Legacy logistics system
+TO: Next.js + React + TypeScript + Zustand + TanStack Query (Frontend)
+    Java 21 + Spring Boot + Spring Modulith + MyBatis (Backend)
+    SQL Server (Database)
+
+Challenges & Solutions:
+
+1. BUSINESS CONTINUITY
+   Challenge: System is in production, can't stop operations
+   Solution: Strangler Fig pattern — migrate module by module
+   → Sales module first, then freight, then warehouse
+
+2. DATA MIGRATION
+   Challenge: ~100+ tables across 10+ modules
+   Solution: Built automated migration toolkit with validation
+   → Schema comparison + row-level validation + reconciliation
+
+3. TEAM ADOPTION
+   Challenge: Team unfamiliar with new stack (Next.js, TypeScript, Zustand)
+   Solution: Created coding standards, reusable patterns, pair programming
+   → Gradual adoption, learning sprints
+
+4. API REDESIGN
+   Challenge: Legacy APIs inconsistent, poorly documented
+   Solution: Standardized API patterns with OpenAPI/Swagger
+   → Consistent error handling, auth, request lifecycle
+
+5. PERFORMANCE
+   Challenge: Complex data grids with large datasets
+   Solution: Server-side pagination, optimistic updates, 
+   TanStack Query for caching</pre>
+<div class="key-point">Key to successful migrations: do it incrementally (Strangler Fig), maintain backward compatibility, have robust validation, and bring the team along through mentoring and documentation.</div>`,
+      },
+      {
+        q: 'Tell me about your personal project (SLearning Studio). What did you learn?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>SLearning Studio is a personal AI-assisted English-learning and developer-utility platform built end to end. It uses a client-first design with a static export to GitHub Pages and Google Sheets as a content source, so it runs at almost no server cost. The interesting part is multi-provider AI orchestration across Gemini, OpenRouter, and GitHub Models with fallback and bounded conversation memory to control cost. The project also involved the Web Speech API and a full migration from older JavaScript to TypeScript and Next.js, and it taught how to build multi-provider AI systems and own a product fully.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>SLearning Studio là một nền tảng cá nhân hỗ trợ học tiếng Anh bằng AI kèm các tiện ích cho developer, được xây dựng hoàn chỉnh từ đầu đến cuối. Nó theo thiết kế client-first với static export lên GitHub Pages và dùng Google Sheets làm nguồn nội dung, nhờ vậy gần như không tốn chi phí server. Phần thú vị là việc điều phối AI đa nhà cung cấp qua Gemini, OpenRouter và GitHub Models, có cơ chế fallback và giới hạn bộ nhớ hội thoại để kiểm soát chi phí. Dự án cũng dùng đến Web Speech API và trải qua một đợt migration toàn diện từ JavaScript cũ sang TypeScript và Next.js, và nó dạy cho tôi cách xây dựng các hệ thống AI đa nhà cung cấp cũng như tự làm chủ trọn vẹn một sản phẩm.</p></details>
+<p>From your CV: SLearning Studio — AI-assisted English learning and developer utility platform.</p>
+<pre>Key technical highlights:
+
+1. ARCHITECTURE
+   → Client-first, configurable system
+   → React Context + Reducer for shared state
+   → Static export to GitHub Pages (no server costs)
+   → Google Sheets as dynamic content source
+
+2. AI INTEGRATION
+   → Multi-provider orchestration (Gemini, OpenRouter, GitHub Models)
+   → Flexible model routing with configurable fallback
+   → Bounded conversation memory (15 turns / 30 messages)
+     → Optimizes cost and performance
+
+3. WEB APIs
+   → Web Speech API (speech recognition & synthesis)
+   → Mobile/iOS-specific handling for speech
+   → YouTube IFrame API for subtitle-based learning
+
+4. FULL MIGRATION
+   → Originally JavaScript (2022) → TypeScript + Next.js (2025)
+   → App Router with static export
+   → Improved scalability and maintainability
+
+What I learned:
+   → How to build multi-provider AI systems
+   → Mobile browser quirks with Web Speech API
+   → Static site generation with dynamic content
+   → End-to-end product ownership</pre>
+<div class="key-point">Personal projects demonstrate initiative, curiosity, and end-to-end capability. This project shows: AI integration, modern React/Next.js, API orchestration, and product thinking.</div>`,
+      },
+      {
+        q: 'What is your experience with Docker and CI/CD? Describe your workflow.',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>Docker is used across the full development lifecycle. Locally, Docker Compose starts services such as PostgreSQL, Redis, and the app so everyone shares the same environment. For production, multi-stage Dockerfiles build in a full image and run on a slim base as a non-root user to reduce size and security risk. CI/CD pipelines with GitHub Actions or GitLab CI run build, test, docker-build, and deploy stages, and SLearning Studio uses a pipeline that builds, exports the static site, and deploys it to GitHub Pages.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Docker được sử dụng xuyên suốt toàn bộ vòng đời phát triển. Ở môi trường local, Docker Compose khởi động các service như PostgreSQL, Redis và ứng dụng để mọi người cùng dùng chung một môi trường. Với production, các Dockerfile multi-stage build trong một image đầy đủ rồi chạy trên một base gọn nhẹ với người dùng non-root nhằm giảm kích thước và rủi ro bảo mật. Các pipeline CI/CD với GitHub Actions hoặc GitLab CI chạy các giai đoạn build, test, docker-build và deploy, còn SLearning Studio thì dùng một pipeline để build, xuất static site và triển khai nó lên GitHub Pages.</p></details>
+<p>From your CV: "Docker" and "basic CI/CD pipelines" in your tech stack.</p>
+<pre>My Docker experience:
+
+1. LOCAL DEVELOPMENT
+   → Docker Compose for local dev environment
+   → PostgreSQL, Redis, app containers
+   → Consistent "works on my machine" solution
+
+2. DEPLOYMENT
+   → Multi-stage Dockerfile for production images
+   → Minimize image size with Alpine base
+   → Non-root user for security
+
+3. CI/CD PIPELINE
+   → GitHub Actions / GitLab CI
+   → Stages: Build → Test → Docker Build → Deploy
+   → Environment-specific configs via pipeline variables
+
+Example Dockerfile (Spring Boot):
+FROM eclipse-temurin:21-jdk AS builder
+WORKDIR /app
+COPY . .
+RUN ./mvnw package -DskipTests
+
+FROM eclipse-temurin:21-jre-alpine
+WORKDIR /app
+COPY --from=builder /app/target/*.jar app.jar
+USER 1001
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "app.jar"]
+
+For SLearning Studio:
+→ GitHub Actions: build → export → deploy to GitHub Pages
+→ Static export with Next.js</pre>
+<div class="key-point">Even with "basic" CI/CD experience, show that you understand the full pipeline: build, test, containerize, deploy. Mention any automation you've created.</div>`,
+      },
+      {
+        q: 'You list Webix and IBSheet as skills. Explain what they are and when to use them.',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>Webix and IBSheet are enterprise UI libraries built for data-heavy back-office applications, which suits logistics work. IBSheet is a spreadsheet-style grid with Excel-like editing, virtual scrolling over very large row counts, and copy-paste from Excel, useful for data entry and reporting. Webix is a wider widget library with rich grids, charts, forms, and server-side data handling. Both were used on the FWD project for booking and invoicing forms and large operations grids, and a modern alternative like AG Grid offers better React integration.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Webix và IBSheet là các thư viện UI dành cho doanh nghiệp, được xây dựng cho những ứng dụng back-office nhiều dữ liệu, rất phù hợp với công việc logistics. IBSheet là một grid kiểu bảng tính với khả năng chỉnh sửa giống Excel, virtual scrolling trên số lượng dòng cực lớn, và copy-paste từ Excel, hữu ích cho việc nhập liệu và làm báo cáo. Webix là một thư viện widget rộng hơn với grid, biểu đồ, form phong phú cùng khả năng xử lý dữ liệu ở phía server. Cả hai đều được dùng trong dự án FWD cho các form đặt chỗ và lập hóa đơn cũng như các grid vận hành lớn, và một lựa chọn hiện đại như AG Grid thì tích hợp với React tốt hơn.</p></details>
+<p>Both are enterprise UI component libraries focused on <strong>data-intensive applications</strong> (grids, charts, forms).</p>
+<pre>IBSheet:
+→ Korean enterprise spreadsheet-like grid component
+→ Excel-like editing in the browser
+→ Handles 100K+ rows with virtual scrolling
+→ Used in logistics systems for data entry and reporting
+→ Supports copy-paste from Excel, cell formatting, formulas
+
+Webix:
+→ Full UI library with 100+ widgets
+→ Rich data grid, charts, forms, scheduling
+→ Built for enterprise back-office applications
+→ Server-side data processing for large datasets
+
+Both used in CyberLogitec FWD project:
+→ Complex data entry forms for booking, invoicing
+→ Large data grids displaying freight operations
+→ Excel-like editing experience for logistics operators
+
+vs Modern alternatives (AG Grid, MUI DataGrid):
+→ IBSheet/Webix have been proven in enterprise logistics
+→ AG Grid is the modern equivalent with better React integration
+→ Choice depends on existing codebase and team familiarity</pre>
+<div class="key-point">These are specialized enterprise tools. When asked, explain that enterprise logistics requires spreadsheet-like UIs with massive data handling — different from typical web apps.</div>`,
+      },
+      {
+        q: 'You mention AI-assisted development. How do you use AI tools in your workflow?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>AI tools are used across the daily workflow to speed up development. They help create boilerplate such as CRUD endpoints, test scaffolding, and migration scripts, and to modernize old code, for example converting JavaScript to TypeScript. A shared library of reusable, standardized prompts gives the whole team consistent results. Every AI output is treated as a first draft that must be reviewed and tested, so the biggest value is removing repetitive work and freeing engineers for harder problems.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Các công cụ AI được sử dụng xuyên suốt quy trình làm việc hàng ngày để tăng tốc phát triển. Chúng giúp tạo ra các đoạn boilerplate như CRUD endpoint, khung test và script migration, cũng như hiện đại hóa code cũ, ví dụ chuyển JavaScript sang TypeScript. Một thư viện prompt dùng chung, đã được chuẩn hóa và tái sử dụng, giúp cả nhóm có kết quả nhất quán. Mọi kết quả do AI tạo ra đều được xem như một bản nháp đầu tiên và phải được review cùng kiểm thử, nên giá trị lớn nhất là loại bỏ những công việc lặp đi lặp lại và giải phóng kỹ sư để họ tập trung vào các bài toán khó hơn.</p></details>
+<p>From your CV: "Introduced AI-assisted development practices by researching and creating reusable prompts, accelerating development and refactoring."</p>
+<pre>How I use AI tools:
+
+1. CODE GENERATION
+   → Generate boilerplate code (CRUD endpoints, entity classes)
+   → Create unit test scaffolding
+   → Generate SQL migration scripts
+   → Convert legacy code patterns to modern equivalents
+
+2. CODE REVIEW ASSISTANCE
+   → Ask AI to review code for potential issues
+   → Identify security vulnerabilities
+   → Suggest performance improvements
+
+3. REFACTORING
+   → Convert JavaScript to TypeScript
+   → Modernize class components to hooks
+   → Restructure code to follow design patterns
+
+4. DOCUMENTATION
+   → Generate API documentation
+   → Create code comments for complex logic
+   → Write README sections
+
+5. REUSABLE PROMPTS
+   → Created a library of prompts for common tasks
+   → Standardized AI usage across the team
+   → "Convert this Spring Controller to follow our API standard"
+
+Tools: GitHub Copilot, Gemini, OpenRouter (multiple providers)
+SLearning Studio: Built multi-provider AI orchestration system</pre>
+<div class="key-point">AI tools amplify productivity but require good prompts and human verification. I treat AI output as a first draft — always review and test. The biggest value is in eliminating repetitive boilerplate work.</div>`,
+      },
+
+      // ──── 4. LEADERSHIP, PROCESS & COLLABORATION ────
       {
         q: 'You were a Deputy Team Lead. How do you handle code reviews?',
         difficulty: 'medium',
@@ -321,235 +619,6 @@ ON orders(status, created_at DESC) INCLUDE (customer_id);
    → Result: team productivity increased, faster onboarding</pre>
 <div class="key-point">The best mentoring creates independent developers. Teach them HOW to solve problems, not just the solutions. If they always need you, you haven't mentored — you've created dependency.</div>`,
       },
-      // --- MIGRATION & MODERNIZATION ---
-      {
-        q: 'Tell me about the legacy system migration (CARIS UPGRADE). What challenges did you face?',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p>The CARIS project moved a live legacy logistics system to Next.js, <code>Java 21</code>, and Spring Modulith with no downtime and no data loss. Because the system runs in production, the Strangler Fig pattern was used to migrate one module at a time. Data across more than 100 tables was moved with an automated toolkit that included strong validation, and the inconsistent legacy APIs were redesigned around a new standard. The team was new to the stack, so coding standards, reusable patterns, and pair programming were important. The main lessons are to migrate step by step, keep backward compatibility, validate carefully, and support the team.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Dự án CARIS đã chuyển một hệ thống logistics legacy đang chạy thật sang Next.js, <code>Java 21</code> và Spring Modulith mà không có downtime và không mất dữ liệu. Vì hệ thống chạy trên production, mẫu Strangler Fig được dùng để migrate từng module một. Dữ liệu trải trên hơn 100 bảng được di chuyển bằng một bộ công cụ tự động có kèm cơ chế xác thực chặt chẽ, và các API legacy vốn thiếu nhất quán đã được thiết kế lại theo một chuẩn mới. Cả nhóm còn mới với stack này, nên coding standard, các pattern tái sử dụng và pair programming đều rất quan trọng. Bài học chính là hãy migrate theo từng bước, giữ tính tương thích ngược, xác thực cẩn thận, và hỗ trợ cả nhóm.</p></details>
-<p>From your CV: "Led the migration of a legacy logistics system to a modern stack (Next.js, Java 21, Spring Modulith), ensuring business continuity and zero data loss."</p>
-<pre>CARIS UPGRADE Migration Overview:
-
-FROM: Legacy logistics system
-TO: Next.js + React + TypeScript + Zustand + TanStack Query (Frontend)
-    Java 21 + Spring Boot + Spring Modulith + MyBatis (Backend)
-    SQL Server (Database)
-
-Challenges & Solutions:
-
-1. BUSINESS CONTINUITY
-   Challenge: System is in production, can't stop operations
-   Solution: Strangler Fig pattern — migrate module by module
-   → Sales module first, then freight, then warehouse
-
-2. DATA MIGRATION
-   Challenge: ~100+ tables across 10+ modules
-   Solution: Built automated migration toolkit with validation
-   → Schema comparison + row-level validation + reconciliation
-
-3. TEAM ADOPTION
-   Challenge: Team unfamiliar with new stack (Next.js, TypeScript, Zustand)
-   Solution: Created coding standards, reusable patterns, pair programming
-   → Gradual adoption, learning sprints
-
-4. API REDESIGN
-   Challenge: Legacy APIs inconsistent, poorly documented
-   Solution: Standardized API patterns with OpenAPI/Swagger
-   → Consistent error handling, auth, request lifecycle
-
-5. PERFORMANCE
-   Challenge: Complex data grids with large datasets
-   Solution: Server-side pagination, optimistic updates, 
-   TanStack Query for caching</pre>
-<div class="key-point">Key to successful migrations: do it incrementally (Strangler Fig), maintain backward compatibility, have robust validation, and bring the team along through mentoring and documentation.</div>`,
-      },
-      // --- AI-ASSISTED DEVELOPMENT ---
-      {
-        q: 'You mention AI-assisted development. How do you use AI tools in your workflow?',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p>AI tools are used across the daily workflow to speed up development. They help create boilerplate such as CRUD endpoints, test scaffolding, and migration scripts, and to modernize old code, for example converting JavaScript to TypeScript. A shared library of reusable, standardized prompts gives the whole team consistent results. Every AI output is treated as a first draft that must be reviewed and tested, so the biggest value is removing repetitive work and freeing engineers for harder problems.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Các công cụ AI được sử dụng xuyên suốt quy trình làm việc hàng ngày để tăng tốc phát triển. Chúng giúp tạo ra các đoạn boilerplate như CRUD endpoint, khung test và script migration, cũng như hiện đại hóa code cũ, ví dụ chuyển JavaScript sang TypeScript. Một thư viện prompt dùng chung, đã được chuẩn hóa và tái sử dụng, giúp cả nhóm có kết quả nhất quán. Mọi kết quả do AI tạo ra đều được xem như một bản nháp đầu tiên và phải được review cùng kiểm thử, nên giá trị lớn nhất là loại bỏ những công việc lặp đi lặp lại và giải phóng kỹ sư để họ tập trung vào các bài toán khó hơn.</p></details>
-<p>From your CV: "Introduced AI-assisted development practices by researching and creating reusable prompts, accelerating development and refactoring."</p>
-<pre>How I use AI tools:
-
-1. CODE GENERATION
-   → Generate boilerplate code (CRUD endpoints, entity classes)
-   → Create unit test scaffolding
-   → Generate SQL migration scripts
-   → Convert legacy code patterns to modern equivalents
-
-2. CODE REVIEW ASSISTANCE
-   → Ask AI to review code for potential issues
-   → Identify security vulnerabilities
-   → Suggest performance improvements
-
-3. REFACTORING
-   → Convert JavaScript to TypeScript
-   → Modernize class components to hooks
-   → Restructure code to follow design patterns
-
-4. DOCUMENTATION
-   → Generate API documentation
-   → Create code comments for complex logic
-   → Write README sections
-
-5. REUSABLE PROMPTS
-   → Created a library of prompts for common tasks
-   → Standardized AI usage across the team
-   → "Convert this Spring Controller to follow our API standard"
-
-Tools: GitHub Copilot, Gemini, OpenRouter (multiple providers)
-SLearning Studio: Built multi-provider AI orchestration system</pre>
-<div class="key-point">AI tools amplify productivity but require good prompts and human verification. I treat AI output as a first draft — always review and test. The biggest value is in eliminating repetitive boilerplate work.</div>`,
-      },
-      // --- TECHNICAL DEEP-DIVE ---
-      {
-        q: 'You work with both PostgreSQL and SQL Server. What are the key differences?',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p>PostgreSQL and SQL Server are similar in some ways but differ in practical points. Both default to Read Committed isolation and use MVCC, but PostgreSQL keeps old row versions append-only while SQL Server uses tempdb. The syntax and features differ too: UPSERT is <code>ON CONFLICT</code> in PostgreSQL and <code>MERGE</code> in SQL Server, and pagination and JSON support are handled differently. A common rule is to choose PostgreSQL for new projects because it is free and extensible, and SQL Server when the team already uses the Microsoft ecosystem.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>PostgreSQL và SQL Server có nhiều điểm giống nhau nhưng khác biệt ở những khía cạnh thực tế. Cả hai đều mặc định mức cô lập Read Committed và dùng MVCC, nhưng PostgreSQL lưu các phiên bản dòng cũ theo kiểu append-only còn SQL Server thì dùng tempdb. Cú pháp và tính năng cũng khác nhau: UPSERT là <code>ON CONFLICT</code> trong PostgreSQL và <code>MERGE</code> trong SQL Server, còn phân trang cùng khả năng hỗ trợ JSON cũng được xử lý theo cách khác nhau. Một nguyên tắc phổ biến là chọn PostgreSQL cho các dự án mới vì nó miễn phí và dễ mở rộng, còn chọn SQL Server khi cả nhóm đã quen với hệ sinh thái Microsoft.</p></details>
-<table><tr><th>Feature</th><th>PostgreSQL</th><th>SQL Server</th></tr>
-<tr><td>License</td><td>Open source (free)</td><td>Commercial (Microsoft)</td></tr>
-<tr><td>Default isolation</td><td>Read Committed</td><td>Read Committed</td></tr>
-<tr><td>MVCC</td><td>Yes (append-only)</td><td>Yes (tempdb-based)</td></tr>
-<tr><td>JSON support</td><td>Excellent (JSONB)</td><td>Good (JSON functions)</td></tr>
-<tr><td>Full-text search</td><td>Built-in (tsvector)</td><td>Built-in (FTS)</td></tr>
-<tr><td>Partitioning</td><td>Declarative (10+)</td><td>Declarative (2016+)</td></tr>
-<tr><td>Replication</td><td>Streaming, logical</td><td>Always On, log shipping</td></tr>
-<tr><td>Procedural lang</td><td>PL/pgSQL, multiple</td><td>T-SQL only</td></tr>
-<tr><td>UPSERT syntax</td><td>ON CONFLICT</td><td>MERGE</td></tr>
-<tr><td>LIMIT</td><td>LIMIT N OFFSET M</td><td>OFFSET M ROWS FETCH NEXT N</td></tr>
-</table>
-<pre>-- PostgreSQL: UPSERT
-INSERT INTO users (email, name) VALUES ('john@mail.com', 'John')
-ON CONFLICT (email) DO UPDATE SET name = EXCLUDED.name;
-
--- SQL Server: MERGE
-MERGE INTO users AS target
-USING (VALUES ('john@mail.com', 'John')) AS source (email, name)
-ON target.email = source.email
-WHEN MATCHED THEN UPDATE SET name = source.name
-WHEN NOT MATCHED THEN INSERT (email, name) VALUES (source.email, source.name);</pre>
-<div class="key-point">PostgreSQL is preferred for new projects (free, extensible, JSONB, community). SQL Server is common in enterprise environments with Microsoft ecosystems.</div>`,
-      },
-      {
-        q: 'Explain your experience with MyBatis vs JPA. When would you choose each?',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p>The choice between MyBatis and JPA depends on where the complexity is. MyBatis fits complex queries with many joins, fixed or legacy schemas, and cases that need full control over the SQL, which is why it was used on the FWD and CARIS logistics projects. JPA with Spring Data fits CRUD-heavy applications on a schema you own, where fast development matters more, as at WOWCNS. On CARIS, Spring Boot still handled dependency injection, security, and the API layer while MyBatis handled the heavy queries.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Việc lựa chọn giữa MyBatis và JPA tùy thuộc vào nơi độ phức tạp nằm ở đâu. MyBatis phù hợp với các query phức tạp có nhiều join, các schema cố định hoặc legacy, và những trường hợp cần toàn quyền kiểm soát SQL, đó là lý do nó được dùng trong các dự án logistics FWD và CARIS. JPA kết hợp với Spring Data phù hợp với các ứng dụng thiên về CRUD trên một schema do bạn tự sở hữu, nơi tốc độ phát triển quan trọng hơn, như tại WOWCNS. Trong CARIS, Spring Boot vẫn đảm nhận dependency injection, bảo mật và tầng API trong khi MyBatis lo các query nặng.</p></details>
-<p>From your CV: You used MyBatis in CyberLogitec projects and JPA in WOWCNS.</p>
-<pre>My experience:
-
-MyBatis (CyberLogitec — FWD, CARIS):
-  → Complex logistics queries with 5+ JOINs
-  → Legacy database schemas (can't change table structure)
-  → DBA team writes and optimizes SQL
-  → Full control over every query
-  → Dynamic SQL with &lt;if&gt;, &lt;foreach&gt;, &lt;where&gt;
-
-JPA/Hibernate (WOWCNS — WowNet, MyOffice):
-  → CRUD-heavy e-commerce features
-  → Rapid development with Spring Data JPA
-  → Domain-driven design with entity relationships
-  → Method name queries (findByEmailAndStatus)
-
-Decision Guide:
-┌─────────────────────────────────────────────┐
-│ Choose MyBatis when:                        │
-│  → Complex reporting queries                │
-│  → Legacy DB schema you can't modify        │
-│  → DBA team manages SQL                     │
-│  → Need fine-grained SQL control            │
-│  → High-performance batch operations        │
-├─────────────────────────────────────────────┤
-│ Choose JPA when:                            │
-│  → CRUD-dominant application                │
-│  → Greenfield project (design your schema)  │
-│  → Domain-driven design                     │
-│  → Rapid prototyping                        │
-│  → Team familiar with ORM concepts          │
-└─────────────────────────────────────────────┘</pre>
-<div class="key-point">In the CARIS project, we used MyBatis for complex logistics queries that would be hard to express with JPQL, while keeping Spring Boot for DI, security, and API layer.</div>`,
-      },
-      {
-        q: 'How do you handle high-volume data processing and batch operations?',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p>For high-volume data, the best approach uses database-native paths instead of fighting the ORM. The PostgreSQL <code>COPY</code> protocol streams large batches of rows and avoids per-row insert overhead, while MyBatis batch inserts are flushed every few hundred records to stay under SQL limits. Data is processed in chunks with progress tracking and the ability to resume after a failure, shown through a real-time monitoring screen. Database tuning such as staging tables and partitioning helps, and data integrity is always validated before and after.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Với dữ liệu khối lượng lớn, cách tiếp cận tốt nhất là dùng các đường đi native của cơ sở dữ liệu thay vì chống lại ORM. Giao thức <code>COPY</code> của PostgreSQL truyền theo dạng stream từng lô dòng lớn và tránh được chi phí insert theo từng dòng, trong khi các batch insert của MyBatis được flush sau mỗi vài trăm bản ghi để không vượt giới hạn của SQL. Dữ liệu được xử lý theo từng chunk, có theo dõi tiến độ và khả năng chạy tiếp sau khi gặp lỗi, tất cả được hiển thị qua một màn hình giám sát theo thời gian thực. Việc tinh chỉnh cơ sở dữ liệu như dùng staging table và partition cũng giúp ích, và tính toàn vẹn dữ liệu luôn được xác thực trước và sau khi xử lý.</p></details>
-<p>From your CV: "High-volume data processing (batch, streaming)" and "up to 100K rows/batch."</p>
-<pre>Strategies I've used:
-
-1. STREAMING WITH PostgreSQL COPY PROTOCOL
-   → Bypasses row-by-row INSERT overhead
-   → Direct binary stream into tables
-   → Used in FWD Migration Toolkit (100K rows/batch)
-
-2. BATCH INSERT WITH MyBatis
-   &lt;insert id="batchInsert"&gt;
-     INSERT INTO records (col1, col2) VALUES
-     &lt;foreach collection="list" item="item" separator=","&gt;
-       (#{item.col1}, #{item.col2})
-     &lt;/foreach&gt;
-   &lt;/insert&gt;
-   → Flush every 500-1000 records to avoid SQL length limits
-
-3. CHUNKED PROCESSING
-   → Process large datasets in chunks (1000 rows at a time)
-   → Track progress, support resume on failure
-   → Real-time monitoring UI with Socket.IO
-
-4. DATABASE OPTIMIZATION FOR BATCH
-   → Disable indexes before bulk insert, rebuild after
-   → Use UNLOGGED tables for staging data
-   → Increase work_mem for sorting operations
-   → Partition tables by date for faster operations
-
-5. MONITORING & SAFETY
-   → Progress tracking with percentage, ETA
-   → Fail-safe: pause/resume/rollback controls
-   → Data validation before and after migration
-   → Data masking for PII compliance</pre>
-<div class="key-point">For high-volume operations: use database-native protocols (COPY, bulk insert), process in chunks, monitor progress, and always validate data integrity after processing.</div>`,
-      },
-      // --- PERSONAL PROJECT ---
-      {
-        q: 'Tell me about your personal project (SLearning Studio). What did you learn?',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p>SLearning Studio is a personal AI-assisted English-learning and developer-utility platform built end to end. It uses a client-first design with a static export to GitHub Pages and Google Sheets as a content source, so it runs at almost no server cost. The interesting part is multi-provider AI orchestration across Gemini, OpenRouter, and GitHub Models with fallback and bounded conversation memory to control cost. The project also involved the Web Speech API and a full migration from older JavaScript to TypeScript and Next.js, and it taught how to build multi-provider AI systems and own a product fully.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>SLearning Studio là một nền tảng cá nhân hỗ trợ học tiếng Anh bằng AI kèm các tiện ích cho developer, được xây dựng hoàn chỉnh từ đầu đến cuối. Nó theo thiết kế client-first với static export lên GitHub Pages và dùng Google Sheets làm nguồn nội dung, nhờ vậy gần như không tốn chi phí server. Phần thú vị là việc điều phối AI đa nhà cung cấp qua Gemini, OpenRouter và GitHub Models, có cơ chế fallback và giới hạn bộ nhớ hội thoại để kiểm soát chi phí. Dự án cũng dùng đến Web Speech API và trải qua một đợt migration toàn diện từ JavaScript cũ sang TypeScript và Next.js, và nó dạy cho tôi cách xây dựng các hệ thống AI đa nhà cung cấp cũng như tự làm chủ trọn vẹn một sản phẩm.</p></details>
-<p>From your CV: SLearning Studio — AI-assisted English learning and developer utility platform.</p>
-<pre>Key technical highlights:
-
-1. ARCHITECTURE
-   → Client-first, configurable system
-   → React Context + Reducer for shared state
-   → Static export to GitHub Pages (no server costs)
-   → Google Sheets as dynamic content source
-
-2. AI INTEGRATION
-   → Multi-provider orchestration (Gemini, OpenRouter, GitHub Models)
-   → Flexible model routing with configurable fallback
-   → Bounded conversation memory (15 turns / 30 messages)
-     → Optimizes cost and performance
-
-3. WEB APIs
-   → Web Speech API (speech recognition & synthesis)
-   → Mobile/iOS-specific handling for speech
-   → YouTube IFrame API for subtitle-based learning
-
-4. FULL MIGRATION
-   → Originally JavaScript (2022) → TypeScript + Next.js (2025)
-   → App Router with static export
-   → Improved scalability and maintainability
-
-What I learned:
-   → How to build multi-provider AI systems
-   → Mobile browser quirks with Web Speech API
-   → Static site generation with dynamic content
-   → End-to-end product ownership</pre>
-<div class="key-point">Personal projects demonstrate initiative, curiosity, and end-to-end capability. This project shows: AI integration, modern React/Next.js, API orchestration, and product thinking.</div>`,
-      },
-      // --- BEHAVIORAL ---
       {
         q: 'Describe a time you disagreed with a technical decision. How did you handle it?',
         difficulty: 'hard',
@@ -665,46 +734,31 @@ If asked about challenges:
    but I always ensure clear communication."</pre>
 <div class="key-point">Don't just say "my English is good." Show it through the quality of your responses during the interview. If you don't understand a question, ask for clarification — that's professional communication.</div>`,
       },
+
+      // ──── 5. CLOSING — EXPECTATIONS & YOUR QUESTIONS ────
       {
-        q: 'What is your experience with Docker and CI/CD? Describe your workflow.',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p>Docker is used across the full development lifecycle. Locally, Docker Compose starts services such as PostgreSQL, Redis, and the app so everyone shares the same environment. For production, multi-stage Dockerfiles build in a full image and run on a slim base as a non-root user to reduce size and security risk. CI/CD pipelines with GitHub Actions or GitLab CI run build, test, docker-build, and deploy stages, and SLearning Studio uses a pipeline that builds, exports the static site, and deploys it to GitHub Pages.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Docker được sử dụng xuyên suốt toàn bộ vòng đời phát triển. Ở môi trường local, Docker Compose khởi động các service như PostgreSQL, Redis và ứng dụng để mọi người cùng dùng chung một môi trường. Với production, các Dockerfile multi-stage build trong một image đầy đủ rồi chạy trên một base gọn nhẹ với người dùng non-root nhằm giảm kích thước và rủi ro bảo mật. Các pipeline CI/CD với GitHub Actions hoặc GitLab CI chạy các giai đoạn build, test, docker-build và deploy, còn SLearning Studio thì dùng một pipeline để build, xuất static site và triển khai nó lên GitHub Pages.</p></details>
-<p>From your CV: "Docker" and "basic CI/CD pipelines" in your tech stack.</p>
-<pre>My Docker experience:
+        q: 'Where do you see yourself in 3-5 years?',
+        difficulty: 'easy',
+        a: `<div class="interview-answer"><p>This answer shows ambition on two tracks over three to five years. On the technical side, the goal is deeper system architecture and cloud-native patterns such as Kubernetes and service mesh, while staying hands-on with code. On the leadership side, the goal is to grow from team lead toward a technical lead or architect role, setting technical strategy and building strong teams. The message is a wish for bigger technical and team impact, aligned with the company's own growth.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Câu trả lời này thể hiện tham vọng theo hai hướng trong vòng ba đến năm năm. Về mặt kỹ thuật, mục tiêu là đi sâu hơn vào kiến trúc hệ thống và các mẫu cloud-native như Kubernetes và service mesh, trong khi vẫn trực tiếp làm việc với code. Về mặt lãnh đạo, mục tiêu là phát triển từ team lead lên vai trò technical lead hoặc architect, định hình chiến lược kỹ thuật và xây dựng những đội ngũ mạnh. Thông điệp ở đây là mong muốn tạo ra tầm ảnh hưởng lớn hơn về kỹ thuật lẫn con người, gắn liền với chính sự phát triển của công ty.</p></details>
+<pre>Good structure:
 
-1. LOCAL DEVELOPMENT
-   → Docker Compose for local dev environment
-   → PostgreSQL, Redis, app containers
-   → Consistent "works on my machine" solution
+"In the next 3-5 years, I want to grow in two directions:
 
-2. DEPLOYMENT
-   → Multi-stage Dockerfile for production images
-   → Minimize image size with Alpine base
-   → Non-root user for security
+TECHNICAL:
+→ Deepen my expertise in system architecture and design
+→ Learn more about cloud-native patterns (Kubernetes, service mesh)
+→ Contribute to architectural decisions at a higher level
+→ Stay hands-on with coding while mentoring teams
 
-3. CI/CD PIPELINE
-   → GitHub Actions / GitLab CI
-   → Stages: Build → Test → Docker Build → Deploy
-   → Environment-specific configs via pipeline variables
+LEADERSHIP:
+→ Grow from team lead to technical lead / architect role
+→ Define tech strategy and best practices for engineering teams
+→ Build and mentor high-performing teams
 
-Example Dockerfile (Spring Boot):
-FROM eclipse-temurin:21-jdk AS builder
-WORKDIR /app
-COPY . .
-RUN ./mvnw package -DskipTests
-
-FROM eclipse-temurin:21-jre-alpine
-WORKDIR /app
-COPY --from=builder /app/target/*.jar app.jar
-USER 1001
-EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
-
-For SLearning Studio:
-→ GitHub Actions: build → export → deploy to GitHub Pages
-→ Static export with Next.js</pre>
-<div class="key-point">Even with "basic" CI/CD experience, show that you understand the full pipeline: build, test, containerize, deploy. Mention any automation you've created.</div>`,
+I see this role as a great next step because [specific reason 
+related to the company/role]."</pre>
+<div class="key-point">Show ambition aligned with the company's growth. Don't say "I want your manager's job" — say "I want to grow into a role where I can have a bigger technical and team impact."</div>`,
       },
       {
         q: 'What are your salary expectations?',
@@ -735,60 +789,6 @@ For SLearning Studio:
    → Consider: bonus, equity, insurance, remote policy,
       learning budget, vacation days, hardware</pre>
 <div class="key-point">Never give the first number if you can avoid it. Let the company share their range. Your leverage increases after they decide they want you — negotiate after receiving an offer, not during the interview.</div>`,
-      },
-      {
-        q: 'Where do you see yourself in 3-5 years?',
-        difficulty: 'easy',
-        a: `<div class="interview-answer"><p>This answer shows ambition on two tracks over three to five years. On the technical side, the goal is deeper system architecture and cloud-native patterns such as Kubernetes and service mesh, while staying hands-on with code. On the leadership side, the goal is to grow from team lead toward a technical lead or architect role, setting technical strategy and building strong teams. The message is a wish for bigger technical and team impact, aligned with the company's own growth.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Câu trả lời này thể hiện tham vọng theo hai hướng trong vòng ba đến năm năm. Về mặt kỹ thuật, mục tiêu là đi sâu hơn vào kiến trúc hệ thống và các mẫu cloud-native như Kubernetes và service mesh, trong khi vẫn trực tiếp làm việc với code. Về mặt lãnh đạo, mục tiêu là phát triển từ team lead lên vai trò technical lead hoặc architect, định hình chiến lược kỹ thuật và xây dựng những đội ngũ mạnh. Thông điệp ở đây là mong muốn tạo ra tầm ảnh hưởng lớn hơn về kỹ thuật lẫn con người, gắn liền với chính sự phát triển của công ty.</p></details>
-<pre>Good structure:
-
-"In the next 3-5 years, I want to grow in two directions:
-
-TECHNICAL:
-→ Deepen my expertise in system architecture and design
-→ Learn more about cloud-native patterns (Kubernetes, service mesh)
-→ Contribute to architectural decisions at a higher level
-→ Stay hands-on with coding while mentoring teams
-
-LEADERSHIP:
-→ Grow from team lead to technical lead / architect role
-→ Define tech strategy and best practices for engineering teams
-→ Build and mentor high-performing teams
-
-I see this role as a great next step because [specific reason 
-related to the company/role]."</pre>
-<div class="key-point">Show ambition aligned with the company's growth. Don't say "I want your manager's job" — say "I want to grow into a role where I can have a bigger technical and team impact."</div>`,
-      },
-      {
-        q: 'You list Webix and IBSheet as skills. Explain what they are and when to use them.',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p>Webix and IBSheet are enterprise UI libraries built for data-heavy back-office applications, which suits logistics work. IBSheet is a spreadsheet-style grid with Excel-like editing, virtual scrolling over very large row counts, and copy-paste from Excel, useful for data entry and reporting. Webix is a wider widget library with rich grids, charts, forms, and server-side data handling. Both were used on the FWD project for booking and invoicing forms and large operations grids, and a modern alternative like AG Grid offers better React integration.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Webix và IBSheet là các thư viện UI dành cho doanh nghiệp, được xây dựng cho những ứng dụng back-office nhiều dữ liệu, rất phù hợp với công việc logistics. IBSheet là một grid kiểu bảng tính với khả năng chỉnh sửa giống Excel, virtual scrolling trên số lượng dòng cực lớn, và copy-paste từ Excel, hữu ích cho việc nhập liệu và làm báo cáo. Webix là một thư viện widget rộng hơn với grid, biểu đồ, form phong phú cùng khả năng xử lý dữ liệu ở phía server. Cả hai đều được dùng trong dự án FWD cho các form đặt chỗ và lập hóa đơn cũng như các grid vận hành lớn, và một lựa chọn hiện đại như AG Grid thì tích hợp với React tốt hơn.</p></details>
-<p>Both are enterprise UI component libraries focused on <strong>data-intensive applications</strong> (grids, charts, forms).</p>
-<pre>IBSheet:
-→ Korean enterprise spreadsheet-like grid component
-→ Excel-like editing in the browser
-→ Handles 100K+ rows with virtual scrolling
-→ Used in logistics systems for data entry and reporting
-→ Supports copy-paste from Excel, cell formatting, formulas
-
-Webix:
-→ Full UI library with 100+ widgets
-→ Rich data grid, charts, forms, scheduling
-→ Built for enterprise back-office applications
-→ Server-side data processing for large datasets
-
-Both used in CyberLogitec FWD project:
-→ Complex data entry forms for booking, invoicing
-→ Large data grids displaying freight operations
-→ Excel-like editing experience for logistics operators
-
-vs Modern alternatives (AG Grid, MUI DataGrid):
-→ IBSheet/Webix have been proven in enterprise logistics
-→ AG Grid is the modern equivalent with better React integration
-→ Choice depends on existing codebase and team familiarity</pre>
-<div class="key-point">These are specialized enterprise tools. When asked, explain that enterprise logistics requires spreadsheet-like UIs with massive data handling — different from typical web apps.</div>`,
       },
       {
         q: 'Do you have any questions for us?',

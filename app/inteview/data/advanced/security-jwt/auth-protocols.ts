@@ -2,6 +2,7 @@
 import type { PvQuestion } from '../../../types';
 
 export const questions: PvQuestion[] = [
+  // ──── OAuth 2.0 / OIDC core ────
   {
     q: 'What is the difference between OAuth 2.0 and JWT?',
     difficulty: 'medium',
@@ -59,38 +60,6 @@ OIDC adds:
   "exp": 1699999999
 }</pre>
 <div class="key-point">When someone says "Login with Google/GitHub/Microsoft", that's OIDC in action. OAuth 2.0 handles the authorization, OIDC adds the user identity on top.</div>`,
-  },
-  {
-    q: 'How do you protect login endpoints from brute-force attacks?',
-    difficulty: 'medium',
-    a: `<div class="interview-answer"><p>Login endpoints need several layers of protection at once. Rate limiting and slower responses (or short lockouts) slow down password guessing, and the limits should be keyed by both account and IP to catch credential stuffing. A CAPTCHA after a few failures blocks bots, and <strong>MFA</strong> protects the account even if the password is known. Passwords should be stored with a slow hash like <code>bcrypt</code> or <code>argon2</code>, and errors should be generic so account existence is not revealed. Avoid permanent lockouts, because they can be used to block real users.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Endpoint đăng nhập cần nhiều lớp bảo vệ cùng lúc. Rate limit và tăng dần thời gian chờ (hoặc khóa tạm 15 phút) làm việc dò mật khẩu trở nên vô vọng; nên đếm giới hạn theo cả tài khoản lẫn IP để bắt được credential stuffing — mỗi tài khoản chỉ thử vài lần nhưng thử trên hàng nghìn tài khoản. CAPTCHA sau vài lần sai sẽ chặn bot, còn MFA giữ được tài khoản kể cả khi mật khẩu đã lộ. Mật khẩu phải lưu bằng hàm băm chậm như <code>bcrypt</code> hoặc <code>argon2</code>, và thông báo lỗi nên chung chung để không tiết lộ tài khoản có tồn tại hay không. Tránh khóa vĩnh viễn: kẻ tấn công sẽ lợi dụng chính cơ chế đó để khóa người dùng thật, biến nó thành một lỗ hổng DoS.</p></details>
-<p>Login endpoints are prime targets for brute-force and credential stuffing attacks.</p>
-<p><strong>Defense layers:</strong></p>
-<ul>
-<li><strong>Rate limiting</strong>: Max 5 attempts per account per 15 minutes</li>
-<li><strong>Progressive delays</strong>: Increase response time after each failure (1s, 2s, 4s...)</li>
-<li><strong>Account lockout with auto-unlock</strong>: Lock for 15 min after 10 failures (not permanent — that's a DoS vector)</li>
-<li><strong>CAPTCHA</strong>: After 3 failures, require CAPTCHA</li>
-<li><strong>MFA</strong>: Even if password is compromised, attacker needs second factor</li>
-<li><strong>Password hashing</strong>: bcrypt/argon2 with high cost factor (makes each attempt slow)</li>
-<li><strong>Monitor & alert</strong>: Detect credential stuffing patterns (many accounts, few attempts each)</li>
-</ul>
-<pre>// Rate limiting with Redis:
-String key = "login:" + username + ":" + ip;
-int attempts = redis.incr(key);
-redis.expire(key, 900); // 15 min window
-
-if (attempts > 5) {
-    return Response.status(429)
-        .header("Retry-After", "900")
-        .body("Too many attempts. Try again in 15 minutes.");
-}
-
-// Password hashing (bcrypt):
-String hash = BCrypt.hashpw(password, BCrypt.gensalt(12));
-// 12 rounds → ~250ms per hash → brute force is impractical</pre>
-<div class="key-point">Do not rely on account lockout alone — attackers can lock out legitimate users (denial of service). Combine rate limiting + progressive delays + MFA for robust protection.</div>`,
   },
   {
     q: 'What are the OAuth 2.0 grant types and which should you use today?',
@@ -238,6 +207,8 @@ public Order update(Long id, ...) {
 <p><strong>Token design guidance:</strong> keep scopes few and coarse (they are user-visible on a consent screen); do not stuff hundreds of fine-grained permissions into a JWT — the token bloats and goes stale, so resolve permissions server-side from the <code>sub</code> and cache them; use audience (<code>aud</code>) to say <em>which API</em> the token is for; and remember that in a client-credentials token there is no user at all, so ownership checks must be replaced by explicit service-level authorization.</p>
 <div class="key-point">Scopes constrain the application, roles and permissions constrain the user, and ownership constrains the object. A request is allowed only when all three agree — never authorize on scope alone, and never carry your whole permission model inside the token.</div>`,
   },
+
+  // ──── SSO & enterprise identity ────
   {
     q: 'How does SSO actually work, and why is single logout hard?',
     difficulty: 'hard',
@@ -349,40 +320,8 @@ spring.security.oauth2.resourceserver.jwt.issuer-uri=\\
 <p><strong>Operational reality:</strong> run Keycloak behind TLS with a real database, at least two replicas, and regular realm exports; change the default admin credentials and restrict the admin console by network; keep token lifetimes short (access 5–15 min, SSO idle sensible); use <em>groups</em> plus role mappers rather than assigning roles user by user; and script realm configuration (Terraform provider or realm JSON import) so environments are reproducible — clicking through the admin UI is not configuration management.</p>
 <div class="key-point">Keycloak = realm + clients + roles: SPA as public client with PKCE, Spring services as bearer-only resource servers validating via JWKS, machine clients on client credentials. Map Keycloak's <code>realm_access.roles</code> to Spring authorities yourself, and treat the IdP as production-critical infrastructure.</div>`,
   },
-  {
-    q: 'How do you implement MFA properly, and why are passkeys better than TOTP?',
-    difficulty: 'hard',
-    a: `<div class="interview-answer"><p>MFA means combining factors of different kinds — something you know, something you have, something you are — and the choice of second factor decides what attacks it stops. SMS is the weakest (SIM swap, SS7 interception, and it is phishable); <strong>TOTP</strong> apps are a solid baseline but still phishable, because a proxy phishing site simply asks for the six digits and replays them within the window; push approval adds "MFA fatigue" attacks. <strong>WebAuthn/passkeys</strong> are qualitatively different: the credential is a key pair bound to the origin, the signature covers a server challenge, and the private key never leaves the device — so a phishing site on a look-alike domain cannot obtain anything usable. Beyond the factor itself, the implementation details matter: enforce MFA at the IdP, protect enrollment and recovery paths, rate-limit and single-use the codes, and re-prompt for sensitive actions.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>MFA là kết hợp các yếu tố thuộc <em>loại</em> khác nhau — cái bạn biết, cái bạn có, cái bạn là — và việc chọn yếu tố thứ hai quyết định bạn chặn được kiểu tấn công nào. SMS yếu nhất (SIM swap, chặn bắt qua SS7, và vẫn bị phishing); ứng dụng <strong>TOTP</strong> là mức nền tốt nhưng vẫn phishing được, vì một trang phishing dạng proxy chỉ cần hỏi luôn 6 chữ số rồi dùng lại ngay trong khoảng thời gian hiệu lực; còn kiểu bấm "approve" qua push thì sinh ra tấn công làm người dùng bấm cho xong (MFA fatigue). <strong>WebAuthn/passkey</strong> khác về bản chất: credential là một cặp khóa gắn với origin, phần chữ ký bao gồm challenge do server sinh ra, và private key không bao giờ ra khỏi thiết bị — nên một trang phishing ở tên miền na ná sẽ không lấy được thứ gì dùng được. Ngoài chuyện chọn yếu tố, các chi tiết triển khai cũng quan trọng: bắt buộc MFA ngay tại IdP, bảo vệ luồng đăng ký và luồng khôi phục, giới hạn số lần thử và cho mỗi mã dùng một lần, và hỏi lại khi thực hiện thao tác quan trọng.</p></details>
-<pre>Factor strength (what each actually stops)
-SMS OTP     ✗ SIM swap, SS7, phishable, delivery failures  → last resort
-Email OTP   ✗ as strong as the email account (often the same password)
-TOTP        ✓ offline, cheap, no telco;  ✗ phishable, shared seed at setup
-Push approve✓ good UX;  ✗ fatigue attacks → require number matching
-WebAuthn /  ✓✓ origin-bound public-key credential: phishing-resistant,
-passkeys       no shared secret to steal from your database, hardware-backed
 
-// Why WebAuthn resists phishing — the origin is signed over
-navigator.credentials.get({ publicKey: {
-  challenge: serverRandom,          // replay protection
-  rpId: 'example.com',              // browser refuses other origins
-  userVerification: 'required',     // biometric/PIN = true second factor
-}});
-// The assertion signature covers challenge + origin + rpIdHash, so a
-// credential minted for example.com is worthless on examp1e.com.</pre>
-<pre>// TOTP implementation details that get missed
-- seed: 160-bit random, shown once, stored ENCRYPTED (KMS), never logged
-- verify with a ±1 step (30 s) window, and remember the last used step so
-  a code cannot be replayed even inside its window
-- rate-limit verification (5 tries) — 6 digits is only 1e6 combinations
-- protect ENROLLMENT: require the current password/session, and notify
-  the user by email when a factor is added or removed
-- recovery codes: 10 single-use codes, hashed at rest, invalidate on use
-- do not let "reset password" bypass MFA — that is the usual back door
-- step-up auth: re-prompt for MFA on payment, email change, API key
-  creation (OIDC: prompt=login / max_age, or acr claims)</pre>
-<div class="key-point">Prefer WebAuthn/passkeys — they are the only widely deployed phishing-resistant factor; keep TOTP as fallback, avoid SMS where possible. Then secure the paths around MFA: enrollment, recovery codes, password reset, and step-up for sensitive operations.</div>`,
-  },
+  // ──── Service-to-service auth ────
   {
     q: 'How do services authenticate to each other, and what is token exchange?',
     difficulty: 'hard',
@@ -420,6 +359,42 @@ JWT/scopes → WHICH USER, and WHAT the call may do (application identity)
 <p><strong>Also worth saying:</strong> internal endpoints must not be "trusted because they are internal" — that assumption dies the moment one pod is compromised (zero trust); async messages need the same treatment, so put a signed token or a verified caller identity in the message envelope rather than trusting the queue; and audit logs should record both the service and the user for every privileged action.</p>
 <div class="key-point">Give every workload its own short-lived, automatically rotated identity (mTLS/SPIFFE or client credentials with key-based auth), and never forward a user token unchanged — exchange it for an audience-restricted, scope-narrowed token at each hop.</div>`,
   },
+
+  // ──── Login hardening: MFA, reset, brute force ────
+  {
+    q: 'How do you implement MFA properly, and why are passkeys better than TOTP?',
+    difficulty: 'hard',
+    a: `<div class="interview-answer"><p>MFA means combining factors of different kinds — something you know, something you have, something you are — and the choice of second factor decides what attacks it stops. SMS is the weakest (SIM swap, SS7 interception, and it is phishable); <strong>TOTP</strong> apps are a solid baseline but still phishable, because a proxy phishing site simply asks for the six digits and replays them within the window; push approval adds "MFA fatigue" attacks. <strong>WebAuthn/passkeys</strong> are qualitatively different: the credential is a key pair bound to the origin, the signature covers a server challenge, and the private key never leaves the device — so a phishing site on a look-alike domain cannot obtain anything usable. Beyond the factor itself, the implementation details matter: enforce MFA at the IdP, protect enrollment and recovery paths, rate-limit and single-use the codes, and re-prompt for sensitive actions.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>MFA là kết hợp các yếu tố thuộc <em>loại</em> khác nhau — cái bạn biết, cái bạn có, cái bạn là — và việc chọn yếu tố thứ hai quyết định bạn chặn được kiểu tấn công nào. SMS yếu nhất (SIM swap, chặn bắt qua SS7, và vẫn bị phishing); ứng dụng <strong>TOTP</strong> là mức nền tốt nhưng vẫn phishing được, vì một trang phishing dạng proxy chỉ cần hỏi luôn 6 chữ số rồi dùng lại ngay trong khoảng thời gian hiệu lực; còn kiểu bấm "approve" qua push thì sinh ra tấn công làm người dùng bấm cho xong (MFA fatigue). <strong>WebAuthn/passkey</strong> khác về bản chất: credential là một cặp khóa gắn với origin, phần chữ ký bao gồm challenge do server sinh ra, và private key không bao giờ ra khỏi thiết bị — nên một trang phishing ở tên miền na ná sẽ không lấy được thứ gì dùng được. Ngoài chuyện chọn yếu tố, các chi tiết triển khai cũng quan trọng: bắt buộc MFA ngay tại IdP, bảo vệ luồng đăng ký và luồng khôi phục, giới hạn số lần thử và cho mỗi mã dùng một lần, và hỏi lại khi thực hiện thao tác quan trọng.</p></details>
+<pre>Factor strength (what each actually stops)
+SMS OTP     ✗ SIM swap, SS7, phishable, delivery failures  → last resort
+Email OTP   ✗ as strong as the email account (often the same password)
+TOTP        ✓ offline, cheap, no telco;  ✗ phishable, shared seed at setup
+Push approve✓ good UX;  ✗ fatigue attacks → require number matching
+WebAuthn /  ✓✓ origin-bound public-key credential: phishing-resistant,
+passkeys       no shared secret to steal from your database, hardware-backed
+
+// Why WebAuthn resists phishing — the origin is signed over
+navigator.credentials.get({ publicKey: {
+  challenge: serverRandom,          // replay protection
+  rpId: 'example.com',              // browser refuses other origins
+  userVerification: 'required',     // biometric/PIN = true second factor
+}});
+// The assertion signature covers challenge + origin + rpIdHash, so a
+// credential minted for example.com is worthless on examp1e.com.</pre>
+<pre>// TOTP implementation details that get missed
+- seed: 160-bit random, shown once, stored ENCRYPTED (KMS), never logged
+- verify with a ±1 step (30 s) window, and remember the last used step so
+  a code cannot be replayed even inside its window
+- rate-limit verification (5 tries) — 6 digits is only 1e6 combinations
+- protect ENROLLMENT: require the current password/session, and notify
+  the user by email when a factor is added or removed
+- recovery codes: 10 single-use codes, hashed at rest, invalidate on use
+- do not let "reset password" bypass MFA — that is the usual back door
+- step-up auth: re-prompt for MFA on payment, email change, API key
+  creation (OIDC: prompt=login / max_age, or acr claims)</pre>
+<div class="key-point">Prefer WebAuthn/passkeys — they are the only widely deployed phishing-resistant factor; keep TOTP as fallback, avoid SMS where possible. Then secure the paths around MFA: enrollment, recovery codes, password reset, and step-up for sensitive operations.</div>`,
+  },
   {
     q: 'How do you design a secure password reset flow?',
     difficulty: 'medium',
@@ -449,5 +424,37 @@ await refreshTokens.revokeFamilies(row.userId);
 await mail.send(user.email, 'Your password was changed');   // detection</pre>
 <p><strong>The subtle failures:</strong> tokens derived from the user id or a timestamp (guessable); a reset link that stays valid after use or after a second link is issued; the token accepted for a <em>different</em> user id passed in the body; leaving sessions alive so the attacker keeps access after the victim "recovers" the account; the <code>Host</code>-header trick that rewrites the link domain; and "security questions" as recovery, which are just weak passwords with public answers. If MFA is enabled, require the second factor (or a recovery code) during reset.</p>
 <div class="key-point">A reset token is a bearer credential: CSPRNG, hashed at rest, single-use, short-lived, and never in a URL query string. Answer neutrally to avoid enumeration, revoke all sessions on success, notify the user, and never let the flow skip MFA.</div>`,
+  },
+  {
+    q: 'How do you protect login endpoints from brute-force attacks?',
+    difficulty: 'medium',
+    a: `<div class="interview-answer"><p>Login endpoints need several layers of protection at once. Rate limiting and slower responses (or short lockouts) slow down password guessing, and the limits should be keyed by both account and IP to catch credential stuffing. A CAPTCHA after a few failures blocks bots, and <strong>MFA</strong> protects the account even if the password is known. Passwords should be stored with a slow hash like <code>bcrypt</code> or <code>argon2</code>, and errors should be generic so account existence is not revealed. Avoid permanent lockouts, because they can be used to block real users.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Endpoint đăng nhập cần nhiều lớp bảo vệ cùng lúc. Rate limit và tăng dần thời gian chờ (hoặc khóa tạm 15 phút) làm việc dò mật khẩu trở nên vô vọng; nên đếm giới hạn theo cả tài khoản lẫn IP để bắt được credential stuffing — mỗi tài khoản chỉ thử vài lần nhưng thử trên hàng nghìn tài khoản. CAPTCHA sau vài lần sai sẽ chặn bot, còn MFA giữ được tài khoản kể cả khi mật khẩu đã lộ. Mật khẩu phải lưu bằng hàm băm chậm như <code>bcrypt</code> hoặc <code>argon2</code>, và thông báo lỗi nên chung chung để không tiết lộ tài khoản có tồn tại hay không. Tránh khóa vĩnh viễn: kẻ tấn công sẽ lợi dụng chính cơ chế đó để khóa người dùng thật, biến nó thành một lỗ hổng DoS.</p></details>
+<p>Login endpoints are prime targets for brute-force and credential stuffing attacks.</p>
+<p><strong>Defense layers:</strong></p>
+<ul>
+<li><strong>Rate limiting</strong>: Max 5 attempts per account per 15 minutes</li>
+<li><strong>Progressive delays</strong>: Increase response time after each failure (1s, 2s, 4s...)</li>
+<li><strong>Account lockout with auto-unlock</strong>: Lock for 15 min after 10 failures (not permanent — that's a DoS vector)</li>
+<li><strong>CAPTCHA</strong>: After 3 failures, require CAPTCHA</li>
+<li><strong>MFA</strong>: Even if password is compromised, attacker needs second factor</li>
+<li><strong>Password hashing</strong>: bcrypt/argon2 with high cost factor (makes each attempt slow)</li>
+<li><strong>Monitor & alert</strong>: Detect credential stuffing patterns (many accounts, few attempts each)</li>
+</ul>
+<pre>// Rate limiting with Redis:
+String key = "login:" + username + ":" + ip;
+int attempts = redis.incr(key);
+redis.expire(key, 900); // 15 min window
+
+if (attempts > 5) {
+    return Response.status(429)
+        .header("Retry-After", "900")
+        .body("Too many attempts. Try again in 15 minutes.");
+}
+
+// Password hashing (bcrypt):
+String hash = BCrypt.hashpw(password, BCrypt.gensalt(12));
+// 12 rounds → ~250ms per hash → brute force is impractical</pre>
+<div class="key-point">Do not rely on account lockout alone — attackers can lock out legitimate users (denial of service). Combine rate limiting + progressive delays + MFA for robust protection.</div>`,
   },
 ];

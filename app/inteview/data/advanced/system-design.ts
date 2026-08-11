@@ -7,6 +7,7 @@ export const topics: PvTopic[] = [
     name: 'System Design',
     icon: '🏗️',
     questions: [
+      // ──── 1. FUNDAMENTALS & THE INTERVIEW METHOD ────
       {
         q: 'What is System Design and why does it matter in interviews?',
         difficulty: 'easy',
@@ -25,6 +26,93 @@ export const topics: PvTopic[] = [
 <li>What if one server crashes? (Redundancy)</li>
 </ul>
 <div class="key-point">In interviews, they don't expect a perfect answer — they want to see how you <strong>think through trade-offs</strong> and break a big problem into smaller pieces.</div>`,
+      },
+      {
+        q: 'How do you design a system in a real project? (the 7-step framework: requirements → estimation → API → data model → high-level → deep dive → failure modes)',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>Use the same repeatable framework every time so the design is driven by numbers instead of by favourite technologies. First clarify functional and non-functional requirements, then do a back-of-envelope estimate of QPS, storage and bandwidth, then define the API, then the data model, then draw the high-level components, then deep dive into the one or two hard parts, and finally walk through failure modes and bottlenecks. In a real project two extra steps matter that interviews often skip: start from the simplest thing that works and only add Kafka, sharding or microservices when a measured number forces it, and decide up front how you will observe the system in production. The single most common mistake is jumping to the architecture diagram before knowing the read/write ratio.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Hãy dùng cùng một khung làm việc lặp đi lặp lại mỗi lần, để thiết kế được dẫn dắt bởi các con số chứ không phải bởi công nghệ mình thích. Đầu tiên làm rõ yêu cầu chức năng và phi chức năng, rồi ước lượng nhanh QPS, dung lượng lưu trữ và băng thông, tiếp theo định nghĩa API, rồi tới data model, rồi vẽ các thành phần ở mức tổng quan, sau đó đi sâu vào một hai phần khó nhất, và cuối cùng đi qua các kịch bản lỗi và điểm nghẽn. Trong dự án thật có thêm hai bước mà phỏng vấn hay bỏ qua: bắt đầu từ giải pháp đơn giản nhất chạy được và chỉ thêm Kafka, sharding hay microservices khi có một con số đo được bắt buộc phải làm vậy; và quyết định ngay từ đầu bạn sẽ quan sát hệ thống trong production bằng cách nào. Sai lầm phổ biến nhất là vẽ kiến trúc trước khi biết tỷ lệ đọc/ghi.</p></details>
+<p><strong>The 7 steps (spend roughly this much of a 45-minute interview on each):</strong></p>
+<table>
+<tr><th>#</th><th>Step</th><th>Time</th><th>What you must produce</th></tr>
+<tr><td>1</td><td>Clarify requirements</td><td>5 min</td><td>Functional list + non-functional numbers (users, latency SLO, consistency needs)</td></tr>
+<tr><td>2</td><td>Capacity estimation</td><td>5 min</td><td>QPS (avg + peak), storage/year, bandwidth, cache size</td></tr>
+<tr><td>3</td><td>API design</td><td>5 min</td><td>3-5 endpoints with request/response shapes</td></tr>
+<tr><td>4</td><td>Data model</td><td>5 min</td><td>Tables/collections, partition key, indexes, SQL vs NoSQL decision</td></tr>
+<tr><td>5</td><td>High-level design</td><td>10 min</td><td>Boxes and arrows: clients → LB → services → cache → DB → queue</td></tr>
+<tr><td>6</td><td>Deep dive</td><td>10 min</td><td>The 1-2 genuinely hard parts (hot partition, exactly-once, seat locking…)</td></tr>
+<tr><td>7</td><td>Failure modes &amp; bottlenecks</td><td>5 min</td><td>What breaks first at 10x, what happens when each component dies</td></tr>
+</table>
+<p><strong>Step 1 — the questions to always ask:</strong></p>
+<ul>
+<li><strong>Scope</strong>: which features are in and out? ("Do we need search? Analytics? Mobile push?")</li>
+<li><strong>Scale</strong>: DAU, requests/sec, data size, growth rate.</li>
+<li><strong>Read/write ratio</strong> — this one decision drives caching, replication and sharding.</li>
+<li><strong>Consistency</strong>: is stale data acceptable? (feed = yes, bank balance = no)</li>
+<li><strong>Latency SLO</strong>: p99 target, not average.</li>
+<li><strong>Availability</strong>: 99.9% (8.7h/year down) vs 99.99% (52min/year) — the extra nine costs real money.</li>
+</ul>
+<pre>Non-functional requirements you should write on the board:
+
+  DAU              10 M
+  Peak QPS         write 2k / read 200k     ← 100:1 read-heavy → cache + replicas
+  p99 latency      &lt; 200 ms
+  Data retention   5 years
+  Consistency      read-your-own-writes, eventual for others
+  Availability     99.95%</pre>
+<p><strong>Step 5 — the default skeleton that fits 80% of systems:</strong></p>
+<pre>[Client] → [CDN (static)] → [API Gateway / LB]
+                                  ↓
+                    [Stateless service instances]
+                       ↓            ↓          ↓
+                  [Cache]     [Primary DB]  [Message queue]
+                              [Replicas]         ↓
+                                            [Async workers] → [Object store / Search / Analytics]</pre>
+<p><strong>Step 7 — the questions that separate senior answers:</strong></p>
+<ul>
+<li>What is the <strong>single bottleneck</strong> at 10x traffic? (usually the write path of one database)</li>
+<li>What happens when the cache dies — can the DB survive the cold-start stampede?</li>
+<li>What is the <strong>blast radius</strong> of one bad deploy or one hot tenant?</li>
+<li>How do you roll back? Feature flags, migrations that are backward compatible in both directions.</li>
+<li>How do you know it is broken before the customer tells you? (RED metrics: Rate, Errors, Duration)</li>
+</ul>
+<p><strong>What is different in a real project vs an interview:</strong></p>
+<ul>
+<li><strong>Start simpler</strong>: one Postgres + one cache handles far more than people expect (tens of thousands of QPS read). Add complexity when a metric forces it, not when a blog post suggests it.</li>
+<li><strong>Migration path matters</strong>: you rarely build greenfield. Design the strangler-fig route from what exists today.</li>
+<li><strong>Cost is a requirement</strong>: cross-AZ traffic, storage tiers, and idle Kafka clusters show up on the bill.</li>
+<li><strong>Team shape</strong>: Conway's law — service boundaries that don't match team boundaries generate permanent friction.</li>
+</ul>
+<div class="key-point">Say the numbers out loud before drawing anything. "200k read QPS, 2k write QPS, 100:1" instantly justifies read replicas + Redis, while "2k writes with strict ordering per user" justifies partitioning by user id. A design defended by numbers always beats a design defended by tool names.</div>`,
+      },
+      {
+        q: 'How do you do back-of-envelope capacity estimation in a system design interview?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>Back-of-envelope capacity estimation is about showing a structured method and rounding hard, not producing an exact number. A top-down approach starts with users, then requests per user per day, divided by about 10^5 seconds in a day to get average QPS, then multiplied by a peak factor. Storage is estimated as writes per day times bytes per record times retention, and memory as the hot working set to cache. Memorizing round numbers and always splitting read QPS from write QPS makes this fast, and the numbers are used to justify the architecture choices.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><p>Ước lượng capacity kiểu back-of-envelope là để thể hiện một phương pháp có cấu trúc và làm tròn mạnh tay, chứ không phải cho ra một con số chính xác. Cách tiếp cận top-down bắt đầu từ số người dùng, rồi số request mỗi người mỗi ngày, chia cho khoảng 10^5 giây trong một ngày để ra QPS trung bình, rồi nhân với một hệ số peak. Storage được ước lượng bằng số lần ghi mỗi ngày nhân với số byte mỗi bản ghi nhân với thời gian lưu trữ, còn bộ nhớ là phần working set nóng cần cache. Thuộc sẵn vài con số tròn và luôn tách read QPS khỏi write QPS sẽ giúp bạn tính rất nhanh, và mục đích cuối cùng của những con số này là để lý giải cho các lựa chọn kiến trúc.</p></p></details>
+<p>Interviewers want the <em>method</em>, not precision. Round aggressively to powers of 10.</p>
+<pre>Numbers to memorize:
+  1 day ≈ 86,400 s ≈ 10^5 s
+  1M requests/day ≈ 12 req/s   (÷ 10^5)
+  peak traffic ≈ 2–5× average
+  char = 1 B, int/long = 4–8 B, UUID = 16 B, 1M × 1KB = 1 GB
+
+Worked example — Twitter-like service:
+  100M DAU, each writes 2 tweets, reads 100 tweets/day
+
+  Write QPS : 100M × 2 / 10^5  = 2,000 /s   (peak ~5,000)
+  Read QPS  : 100M × 100 / 10^5 = 100,000 /s (peak ~250,000)
+  → read:write = 50:1 → design is READ-heavy → cache + fan-out strategy
+
+  Storage: tweet ≈ 300 B metadata+text
+  200M tweets/day × 300 B ≈ 60 GB/day ≈ 22 TB/year (×3 replication = 66 TB)
+  10% have media (1 MB avg) → 20 TB/day of blobs → object storage + CDN
+
+  Bandwidth: reads 100k/s × 300 B ≈ 30 MB/s API (media via CDN, not our servers)
+
+  Cache (80/20 rule): 20% of daily reads hot
+  10^10 reads × 20% × 300 B ≈ 600 GB → a handful of Redis nodes</pre>
+<div class="key-point">The conclusions are the point, not the numbers: "read-heavy → cache aggressively", "media dominates storage → S3+CDN", "5k writes/s → a single well-tuned DB can't take 250k reads/s → replicas + cache". State assumptions out loud and sanity-check orders of magnitude.</div>`,
       },
       {
         q: 'What is Horizontal Scaling vs Vertical Scaling?',
@@ -47,6 +135,35 @@ Horizontal: 1 server → 10 servers behind a load balancer</pre>
 <tr><td>Complexity</td><td>Simple</td><td>Need load balancer, sync</td></tr></table>
 <div class="key-point">Most real-world systems use <strong>horizontal scaling</strong> because it has no hard ceiling. Netflix, Google, Amazon all scale horizontally.</div>`,
       },
+      {
+        q: 'What is the Single Point of Failure (SPOF) and how do you eliminate it?',
+        difficulty: 'easy',
+        a: `<div class="interview-answer"><p>A <strong>single point of failure</strong> is any component whose failure brings down the whole system. It is removed by adding redundancy: several app servers behind a load balancer, a backup load balancer, a database with replicas and automatic failover, and multi-zone deployment. Redundancy alone is not enough, so health checks and automatic failover are needed, and the failover should be tested because untested failover often does not work. Watch for hidden single points of failure such as a shared config service, DNS, a single message broker, or the deploy pipeline.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><p><strong>Single point of failure</strong> là bất kỳ thành phần nào mà khi nó hỏng sẽ kéo sập cả hệ thống. Ta loại bỏ nó bằng cách thêm redundancy: nhiều app server phía sau một load balancer, một load balancer dự phòng, một database có replica và tự động failover, cùng với việc triển khai trên nhiều zone. Chỉ redundancy thôi thì chưa đủ, nên cần health check và tự động failover, và việc failover cần được kiểm thử vì failover chưa được test thường không hoạt động. Hãy để ý các single point of failure ẩn như một config service dùng chung, DNS, một message broker duy nhất, hoặc pipeline deploy.</p></p></details>
+<p>A <strong>Single Point of Failure (SPOF)</strong> is any component whose failure would bring down the entire system.</p>
+<p><strong>Analogy:</strong> A chain is only as strong as its weakest link. If your system has one database server and it crashes, everything goes down — that's a SPOF.</p>
+<pre>SPOF Examples:
+  ❌ One database server → crashes → entire app is down
+  ❌ One load balancer → crashes → no traffic gets through
+  ❌ One data center → power outage → everything goes dark
+
+Eliminating SPOFs:
+  ✅ Database: Master + Replica (auto-failover)
+  ✅ Load Balancer: Active-Passive pair
+  ✅ Data Center: Multi-region deployment
+  ✅ DNS: Multiple DNS providers</pre>
+<p><strong>Strategies:</strong></p>
+<ul>
+<li><strong>Redundancy</strong>: Duplicate every critical component</li>
+<li><strong>Failover</strong>: Automatic switch to backup when primary fails</li>
+<li><strong>Multi-region</strong>: Deploy in multiple geographic regions</li>
+<li><strong>Health checks</strong>: Continuously monitor and auto-replace unhealthy nodes</li>
+</ul>
+<p><strong>Example:</strong> Netflix runs in multiple AWS regions. If the entire US-East region goes down, traffic automatically routes to US-West. Users don't even notice.</p>
+<div class="key-point">Walk through your architecture diagram and ask: "What happens if THIS component dies?" If the answer is "everything breaks", that's a SPOF you need to address.</div>`,
+      },
+
+      // ──── 2. TRAFFIC LAYER — LOAD BALANCING, PROXIES, GATEWAYS & APIs ────
       {
         q: 'What is a Load Balancer and how does it work?',
         difficulty: 'easy',
@@ -74,6 +191,199 @@ Horizontal: 1 server → 10 servers behind a load balancer</pre>
 <p><strong>Example:</strong> When you visit google.com, your request hits a load balancer that routes you to one of thousands of servers — you never know which one.</p>
 <div class="key-point">Popular tools: <strong>Nginx</strong>, <strong>HAProxy</strong>, <strong>AWS ALB (L7) / NLB (L4)</strong>. Make the balancer itself redundant (active-passive pair) — otherwise it's a single point of failure. For sticky sessions, prefer a shared session store (Redis) over IP-hash stickiness, so any server can serve any user.</div>`,
       },
+      {
+        q: 'What is a Reverse Proxy?',
+        difficulty: 'easy',
+        a: `<div class="interview-answer"><p>A reverse proxy sits in front of servers, so clients talk to it and it forwards requests to the backend. It is a good place for TLS termination, caching, compression, and hiding the internal server layout. It differs from a load balancer, which distributes traffic across identical servers, although one tool like Nginx often does both. A common mistake is not forwarding the real client IP with the <code>X-Forwarded-For</code> header, which breaks logging and rate limiting.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Reverse proxy đứng trước các server, nên client nói chuyện với nó và nó chuyển tiếp request tới backend. Đây là nơi tốt để làm TLS termination, caching, nén và ẩn đi bố cục server nội bộ. Nó khác với load balancer, vốn phân phối lưu lượng qua các server giống nhau, dù rằng một công cụ như Nginx thường làm cả hai. Một sai lầm phổ biến là không chuyển tiếp IP thật của client bằng header <code>X-Forwarded-For</code>, khiến việc logging và rate limiting bị hỏng.</p></details>
+<p>A <strong>Reverse Proxy</strong> sits between clients and servers, forwarding client requests to the appropriate backend server.</p>
+<p><strong>Analogy:</strong> You call a company's main phone number (reverse proxy). The receptionist answers and transfers you to the right department (backend server). You never dial the department directly.</p>
+<pre>Forward Proxy (protects clients):
+  [Client] → [Proxy] → [Internet/Servers]
+  Example: VPN, corporate proxy
+
+Reverse Proxy (protects servers):
+  [Internet/Clients] → [Reverse Proxy] → [Backend Servers]
+  Example: Nginx, Cloudflare</pre>
+<p><strong>What a reverse proxy does:</strong></p>
+<ul>
+<li><strong>Load balancing</strong>: Distribute traffic across servers</li>
+<li><strong>SSL termination</strong>: Handle HTTPS encryption/decryption</li>
+<li><strong>Caching</strong>: Cache responses to reduce server load</li>
+<li><strong>Security</strong>: Hide server IPs, block malicious traffic</li>
+<li><strong>Compression</strong>: Compress responses (gzip) before sending to client</li>
+</ul>
+<p><strong>Example:</strong> Almost every website uses Nginx or Cloudflare as a reverse proxy. The client talks to Nginx, which forwards requests to your Node.js/Java app running behind it.</p>
+<div class="key-point">Nginx is the most popular reverse proxy — used by over 30% of all websites.</div>`,
+      },
+      {
+        q: 'What is an API Gateway?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>An API gateway is a single entry point for all client requests to backend services. It centralizes shared concerns such as authentication, rate limiting, TLS termination, routing, request aggregation, and monitoring, so each service can focus on business logic. The tradeoffs are an extra network hop and the risk of becoming a single point of failure, so it should run redundantly. It differs from a plain load balancer because it is Layer 7 and application-aware, and it should not grow into a system that holds business logic.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>API gateway là một điểm vào duy nhất cho mọi request của client đến các service backend. Nó gom về một chỗ những phần việc dùng chung như authentication, rate limiting, TLS termination, định tuyến, gộp request và giám sát, nhờ đó mỗi service chỉ cần lo logic nghiệp vụ của mình. Đánh đổi là thêm một chặng mạng và nguy cơ trở thành single point of failure, nên gateway cần được chạy ở chế độ dự phòng. Nó khác load balancer thuần tuý ở chỗ hoạt động tại Layer 7 và hiểu được nội dung ứng dụng; và tuyệt đối đừng để nó phình to thành nơi chứa logic nghiệp vụ.</p></details>
+<p>An <strong>API Gateway</strong> is a single entry point that sits between clients and your backend microservices. All requests go through it first.</p>
+<p><strong>Analogy:</strong> Think of a hotel receptionist. Guests don't walk directly to the kitchen, laundry, or housekeeping. They tell the receptionist what they need, and the receptionist routes the request to the right department.</p>
+<pre>Without API Gateway:
+  Mobile App → User Service
+  Mobile App → Order Service
+  Mobile App → Payment Service
+  (client must know all service URLs)
+
+With API Gateway:
+  Mobile App → [API Gateway] → User Service
+                             → Order Service
+                             → Payment Service
+  (client only knows one URL)</pre>
+<p><strong>What it does:</strong></p>
+<ul>
+<li><strong>Routing</strong>: Sends /users to User Service, /orders to Order Service</li>
+<li><strong>Authentication</strong>: Validates JWT/API keys before forwarding</li>
+<li><strong>Rate Limiting</strong>: Prevents abuse (max 100 requests/minute)</li>
+<li><strong>Response Aggregation</strong>: Combines data from multiple services into one response</li>
+<li><strong>SSL Termination</strong>: Handles HTTPS so backend services don't have to</li>
+</ul>
+<p><strong>Example:</strong> Netflix's Zuul API Gateway handles billions of requests/day, routing them to hundreds of microservices.</p>
+<div class="key-point">Popular tools: <strong>Kong</strong>, <strong>AWS API Gateway</strong>, <strong>Nginx</strong>, <strong>Spring Cloud Gateway</strong>.</div>`,
+      },
+      {
+        q: 'What is Rate Limiting and how do you implement it?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>Rate limiting controls how many requests a client can make in a time window, which protects against abuse, runaway clients, and cost spikes, and keeps usage fair. Token bucket is a common default because it allows short bursts while limiting the average rate, sliding window is more precise but heavier, and fixed window is simplest but has boundary spikes. In a distributed system, counters are kept in a shared store like Redis using atomic operations. Responses should return HTTP <code>429</code> with a <code>Retry-After</code> header, and the limit should be keyed per user or API key rather than per IP, which breaks behind NAT.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Rate limiting kiểm soát số request mà một client có thể thực hiện trong một khoảng thời gian, giúp chống lạm dụng, chặn các client lỗi gọi liên tục, tránh chi phí đội lên đột ngột, đồng thời chia đều tài nguyên cho mọi người dùng. Token bucket là lựa chọn mặc định phổ biến vì nó cho phép các đợt burst ngắn trong khi vẫn giới hạn tốc độ trung bình, sliding window thì chính xác hơn nhưng nặng hơn, còn fixed window đơn giản nhất nhưng có các đợt tăng vọt ở ranh giới. Trong một hệ phân tán, các bộ đếm được giữ trong một store dùng chung như Redis bằng các thao tác atomic. Response nên trả về HTTP <code>429</code> kèm header <code>Retry-After</code>, và nên áp giới hạn theo từng user hoặc API key thay vì theo IP, vì IP không còn chính xác khi nhiều người dùng cùng nằm sau một NAT.</p></details>
+<p><strong>Rate Limiting</strong> = controlling how many requests a user/client can make in a given time window.</p>
+<p><strong>Analogy:</strong> A theme park ride allows only 20 people per 5 minutes. If more people come, they wait in line. This prevents overcrowding (server overload).</p>
+<p><strong>Common algorithms:</strong></p>
+<ul>
+<li><strong>Fixed Window</strong>: Count requests in fixed time windows (e.g., 100 requests per minute starting at :00)</li>
+<li><strong>Sliding Window</strong>: Smooth version of fixed window, avoids burst at window edges</li>
+<li><strong>Token Bucket</strong>: A bucket fills with tokens at a fixed rate. Each request takes a token. No tokens = rejected. Allows short bursts.</li>
+<li><strong>Leaky Bucket</strong>: Requests queue up and are processed at a constant rate. Smooths traffic.</li>
+</ul>
+<pre>Token Bucket Example:
+  Bucket capacity: 10 tokens
+  Refill rate: 2 tokens/second
+
+  Request 1-10: ✅ (10 tokens used)
+  Request 11: ❌ 429 Too Many Requests (bucket empty)
+  After 1 second: 2 new tokens available
+  Request 12-13: ✅</pre>
+<p><strong>Example:</strong> Twitter API allows 300 tweets per 3 hours per user. GitHub API allows 5000 requests per hour per authenticated user.</p>
+<div class="key-point">Implement at the <strong>API Gateway level</strong> using Redis to track counters. Return HTTP <code>429 Too Many Requests</code> when limit is exceeded.</div>`,
+      },
+      {
+        q: 'How would you design a Rate Limiter service?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>A rate limiter service controls request traffic to protect backends from overload and abuse, and the main concerns are where the counters live, latency, and behavior on failure. Keeping the state in <code>Redis</code> with atomic Lua scripts makes each check fast and safe from race conditions. Token bucket is a good default because it allows short bursts while capping the average rate; a sliding-window log is more accurate but uses more memory. Two key choices are whether to fail open or fail closed when Redis is down (usually fail open) and running the check close to the edge, returning <code>429</code> with a <code>Retry-After</code> header.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><p>Một rate limiter service kiểm soát lưu lượng request để bảo vệ backend khỏi quá tải và lạm dụng, và ba điều cần cân nhắc chính là counter lưu ở đâu, độ trễ thêm vào bao nhiêu, và hệ thống hành xử thế nào khi có sự cố. Giữ state trong <code>Redis</code> với các Lua script atomic giúp mỗi lần kiểm tra vừa nhanh vừa an toàn khỏi race condition. Token bucket là lựa chọn mặc định tốt vì nó cho phép burst ngắn trong khi vẫn giới hạn tốc độ trung bình; sliding-window log thì chính xác hơn nhưng tốn nhiều bộ nhớ hơn. Hai lựa chọn quan trọng là nên fail open hay fail closed khi Redis chết (thường là fail open) và chạy phần kiểm tra gần edge, trả về <code>429</code> kèm header <code>Retry-After</code>.</p></p></details>
+<p>A rate limiter service controls request traffic to protect backend services from overload and abuse.</p>
+<p><strong>Design requirements:</strong></p>
+<ul>
+<li>Low latency (must not slow down requests)</li>
+<li>Distributed (works across multiple servers)</li>
+<li>Configurable rules (different limits per API, user, IP)</li>
+</ul>
+<pre>Architecture:
+  [Client] → [API Gateway] → [Rate Limiter] → [Backend Service]
+                                    ↓
+                              [Redis Cluster]
+                           (stores counters)</pre>
+<p><strong>Token Bucket implementation with Redis:</strong></p>
+<pre>// For each user/API key, store in Redis:
+Key: "rate:user123:/api/orders"
+Value: { tokens: 8, last_refill: 1699000000 }
+
+On each request:
+1. Calculate tokens to add since last_refill
+2. If tokens > 0: decrement and ALLOW
+3. If tokens == 0: REJECT with 429
+
+// Redis Lua script (atomic operation):
+local tokens = redis.call('GET', key)
+if tonumber(tokens) > 0 then
+  redis.call('DECR', key)
+  return 1  -- allowed
+else
+  return 0  -- rejected
+end</pre>
+<p><strong>Rules configuration:</strong></p>
+<pre>rules:
+  - api: /api/login
+    limit: 5 requests/minute/IP     # prevent brute force
+  - api: /api/orders
+    limit: 100 requests/minute/user  # normal usage
+  - api: /api/search
+    limit: 30 requests/minute/user   # expensive query</pre>
+<p><strong>Response headers:</strong></p>
+<pre>X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 42
+X-RateLimit-Reset: 1699001000
+HTTP 429 Too Many Requests (when limit exceeded)</pre>
+<div class="key-point">Use <strong>Redis</strong> for distributed rate limiting (fast, atomic). Run the rate limiter in the <strong>API Gateway</strong> so it protects all services uniformly.</div>`,
+      },
+      {
+        q: 'What are WebSockets vs HTTP Long Polling vs Server-Sent Events?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>These three methods trade off direction, complexity, and infrastructure fit. Long polling is a fallback where the client requests and the server holds the connection until there is data, which works everywhere but is wasteful. Server-Sent Events are a one-way server-to-client stream over plain HTTP that reconnects automatically, which suits feeds, notifications, and live scores. WebSockets are full-duplex over one connection, which fits chat, gaming, and collaborative editing, but all persistent connections need care with load balancers and proxies.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Ba phương pháp này đánh đổi giữa chiều truyền, độ phức tạp và mức phù hợp với hạ tầng. Long polling là phương án dự phòng: client gửi request rồi server giữ kết nối đó cho tới khi có dữ liệu mới trả về; cách này chạy được ở mọi môi trường nhưng khá tốn tài nguyên. Server-Sent Events là một luồng một chiều từ server tới client qua HTTP thuần túy và tự động kết nối lại, phù hợp cho feed, thông báo và tỷ số trực tiếp. WebSockets là full-duplex trên một kết nối, phù hợp cho chat, game và soạn thảo cộng tác, nhưng mọi kết nối lâu dài đều đòi hỏi cấu hình cẩn thận ở phía load balancer và proxy.</p></details>
+<p>These are three ways for a server to push data to clients in real-time:</p>
+<p><strong>1. HTTP Long Polling:</strong></p>
+<pre>Client: "Any new data?" → Server holds connection open...
+   ...waits until there IS new data...
+Server: "Here's your data!" → Client immediately asks again</pre>
+<p>Like repeatedly calling a friend: "Are you done yet? Are you done yet?"</p>
+
+<p><strong>2. Server-Sent Events (SSE):</strong></p>
+<pre>Client opens connection → Server sends events whenever it wants
+(One-way: server → client only)</pre>
+<p>Like a radio broadcast: server pushes updates, client listens.</p>
+
+<p><strong>3. WebSocket:</strong></p>
+<pre>Client ↔ Server (full duplex, both can send anytime)
+Initial HTTP handshake → upgraded to WebSocket</pre>
+<p>Like a phone call: both sides can talk at any time.</p>
+
+<table><tr><th>Feature</th><th>Long Polling</th><th>SSE</th><th>WebSocket</th></tr>
+<tr><td>Direction</td><td>Client→Server</td><td>Server→Client</td><td>Both ways</td></tr>
+<tr><td>Connection</td><td>Reconnect each time</td><td>Persistent</td><td>Persistent</td></tr>
+<tr><td>Overhead</td><td>High (HTTP headers)</td><td>Low</td><td>Very low</td></tr>
+<tr><td>Use case</td><td>Simple notifications</td><td>Live feeds, stocks</td><td>Chat, gaming</td></tr></table>
+<div class="key-point">Use <strong>WebSocket</strong> for bidirectional real-time (chat, games). Use <strong>SSE</strong> for one-way updates (news feed, stock prices). Use <strong>Long Polling</strong> as a fallback when WebSocket isn't available.</div>`,
+      },
+      {
+        q: 'What is the difference between REST and GraphQL?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>REST uses fixed endpoints per resource, while GraphQL uses one endpoint where the client asks for exactly the fields it needs. GraphQL helps when many clients need different data, since it avoids over-fetching and custom endpoints, but it moves complexity to the server. With GraphQL the server must manage query depth and cost, HTTP caching mostly disappears, and the N+1 resolver problem needs batching with tools like DataLoader. REST is a good default for simple CRUD and public APIs, while gRPC is another option for internal service-to-service calls.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>REST dùng các endpoint cố định cho mỗi resource, còn GraphQL dùng một endpoint duy nhất nơi client yêu cầu đúng những field mình cần. GraphQL hữu ích khi nhiều client cần dữ liệu khác nhau, vì nó tránh được over-fetching và các endpoint tùy biến, nhưng nó chuyển độ phức tạp sang phía server. Với GraphQL, server phải quản lý độ sâu và chi phí của truy vấn, HTTP caching gần như biến mất, và bài toán N+1 ở resolver cần batching bằng các công cụ như DataLoader. REST là lựa chọn mặc định tốt cho CRUD đơn giản và các API công khai, còn gRPC là một lựa chọn khác cho các lời gọi nội bộ giữa các service.</p></details>
+<p><strong>REST</strong>: Multiple endpoints, each returns a fixed data shape. <strong>GraphQL</strong>: One endpoint, client specifies exactly what data it wants.</p>
+<p><strong>Analogy:</strong></p>
+<ul>
+<li><strong>REST</strong> = A restaurant with a fixed menu. You order "Combo #3" and get whatever's in it — even if you don't want the salad.</li>
+<li><strong>GraphQL</strong> = A buffet. You pick exactly what you want on your plate.</li>
+</ul>
+<pre>REST:
+  GET /users/123         → { id, name, email, address, phone, ... }
+  GET /users/123/posts   → [{ id, title, body, ... }, ...]
+  (2 requests, might get extra data you don't need)
+
+GraphQL:
+  POST /graphql
+  query {
+    user(id: 123) {
+      name
+      posts { title }
+    }
+  }
+  → { name: "John", posts: [{ title: "Hello" }] }
+  (1 request, exactly the data you need)</pre>
+<table><tr><th>Aspect</th><th>REST</th><th>GraphQL</th></tr>
+<tr><td>Endpoints</td><td>Many (/users, /posts)</td><td>One (/graphql)</td></tr>
+<tr><td>Over-fetching</td><td>Common problem</td><td>Client asks for exact fields</td></tr>
+<tr><td>Caching</td><td>Easy (HTTP cache)</td><td>Harder (POST requests)</td></tr>
+<tr><td>Learning curve</td><td>Simple</td><td>Steeper</td></tr></table>
+<div class="key-point">Use REST for simple CRUD APIs. Use GraphQL when you have complex, nested data or multiple clients (mobile, web) needing different data shapes.</div>`,
+      },
+
+      // ──── 3. CACHING & CDN ────
       {
         q: 'What is Caching and why is it important in system design?',
         difficulty: 'easy',
@@ -130,26 +440,31 @@ With CDN:
 <div class="key-point">Popular CDNs: <strong>CloudFlare</strong>, <strong>AWS CloudFront</strong>, <strong>Akamai</strong>. Use CDN for any static content to dramatically reduce latency.</div>`,
       },
       {
-        q: 'What is a Database Index and how does it speed up queries?',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p>A database index is a sorted structure, usually a B-tree, that lets the database find rows quickly instead of scanning the whole table. Indexes are not free, because each write must update them and they use extra disk space, so they should match real query patterns. Useful ideas include composite indexes with the correct column order and covering indexes that answer a query from the index alone. A common mistake is a function or type mismatch in the <code>WHERE</code> clause that quietly disables the index, so <code>EXPLAIN</code> should confirm it is used.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Database index là một cấu trúc đã được sắp xếp, thường là B-tree, giúp database tìm các dòng một cách nhanh chóng thay vì quét toàn bộ bảng. Index không hề miễn phí: mỗi lần ghi đều phải cập nhật lại index và index còn chiếm thêm dung lượng đĩa, nên chỉ nên tạo index bám sát các mẫu truy vấn thực tế. Vài ý tưởng hữu ích gồm composite index với thứ tự cột đúng và covering index có thể trả lời một truy vấn chỉ từ index. Một sai lầm phổ biến là dùng hàm hoặc để lệch kiểu dữ liệu trong mệnh đề <code>WHERE</code>, khiến index bị vô hiệu hóa một cách âm thầm, vì vậy nên dùng <code>EXPLAIN</code> để xác nhận index có được sử dụng.</p></details>
-<p>A <strong>database index</strong> is a data structure (usually B-Tree or Hash) that helps the database find rows quickly without scanning every row.</p>
-<p><strong>Analogy:</strong> Think of the index at the back of a textbook. Instead of reading the entire book to find "Photosynthesis", you look it up in the index, get the page number, and go directly there.</p>
-<pre>Without index: SELECT * FROM users WHERE email = 'john@mail.com'
-  → Scans all 10 million rows (slow!)
-
-With index on email: 
-  → Looks up B-Tree, finds row in ~20 comparisons (instant!)</pre>
-<p><strong>Trade-offs:</strong></p>
+        q: 'What is a cache stampede (thundering herd) and how do you prevent it?',
+        difficulty: 'tricky',
+        a: `<div class="interview-answer"><p>A <strong>cache stampede</strong> happens when a popular key expires and many concurrent requests all miss at the same time and hit the database together. A main fix is a lock or single-flight approach, where only one request recomputes the value while the others wait or serve stale data, so the database sees one query instead of thousands. Other useful tactics are refreshing a bit before the TTL, serving stale data while refreshing in the background, and adding random jitter to TTLs so keys do not expire together. A related problem is cache penetration, where misses for keys that do not exist are handled with a Bloom filter or negative caching.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><p><strong>Cache stampede</strong> xảy ra khi một key phổ biến hết hạn và nhiều request đồng thời cùng miss một lúc rồi cùng dồn vào database. Cách khắc phục chính là dùng lock hoặc single-flight: chỉ để đúng một request đi tính lại giá trị, còn các request khác thì chờ hoặc tạm dùng dữ liệu cũ, nhờ vậy database chỉ nhận một truy vấn thay vì hàng nghìn. Các chiến thuật hữu ích khác là làm mới một chút trước khi TTL hết, phục vụ dữ liệu cũ trong khi làm mới ở nền, và thêm jitter ngẫu nhiên vào TTL để các key không hết hạn cùng lúc. Một vấn đề họ hàng là cache penetration — các request liên tục hỏi những key vốn không tồn tại — và cách xử lý là dùng Bloom filter hoặc negative caching.</p></p></details>
+<p>A <strong>cache stampede</strong>: a popular cache key expires, and thousands of concurrent requests all miss at once and hit the database together — often taking it down. The nastiest version is self-inflicted: the DB slows, requests pile up, and the retry wave makes it worse.</p>
+<pre>The scenario:
+  key "home_feed" (10,000 req/s) expires at 12:00:00
+  → 10,000 requests miss simultaneously
+  → 10,000 identical queries slam the DB
+  → DB melts, latency spikes, retries amplify the load</pre>
+<p><strong>Defenses (combine several):</strong></p>
 <ul>
-<li><strong>Pro</strong>: Reads become much faster (O(log n) instead of O(n))</li>
-<li><strong>Con</strong>: Writes become slightly slower (index must be updated)</li>
-<li><strong>Con</strong>: Uses extra disk space</li>
+<li><strong>Request coalescing / single-flight</strong>: only ONE request per key recomputes; the rest wait for its result (Go <code>singleflight</code>, a per-key mutex in Redis: <code>SET lock:key NX PX 3000</code>).</li>
+<li><strong>Stale-while-revalidate</strong>: serve the expired value immediately, refresh in the background. Users see slightly stale data instead of an outage.</li>
+<li><strong>Jittered TTL</strong>: <code>ttl = base + random(0, 10%)</code> so keys written together don't expire together.</li>
+<li><strong>Early probabilistic refresh</strong>: each hit refreshes with a probability that grows as expiry approaches (XFetch algorithm) — the key never actually expires under load.</li>
+<li><strong>Negative caching</strong>: cache "not found" results briefly so missing keys can't be used to bypass the cache.</li>
 </ul>
-<p><strong>Example:</strong> An e-commerce site indexes <code>product_name</code>, <code>category</code>, and <code>price</code> columns because users search/filter by those constantly.</p>
-<div class="key-point">Rule of thumb: Index columns that appear in <code>WHERE</code>, <code>JOIN</code>, and <code>ORDER BY</code> clauses. Don't over-index — each index slows down writes.</div>`,
+<p><strong>Related: the hot key / celebrity problem</strong> — one key too popular for a single cache node (Bieber posts a photo):</p>
+<pre>Fixes: local in-process cache (even 1s TTL absorbs most reads),
+       replicate the key: feed:123#1..N on different nodes, pick randomly</pre>
+<div class="key-point">Interviewers push on this after any "add a cache" answer. The senior move is naming the failure mode unprompted: "I'd add jittered TTLs and single-flight so we don't stampede the DB on expiry."</div>`,
       },
+
+      // ──── 4. DATA STORAGE, PARTITIONING & REPLICATION ────
       {
         q: 'Explain SQL vs NoSQL databases. When would you choose each?',
         difficulty: 'medium',
@@ -184,6 +499,27 @@ NoSQL (MongoDB document):
 <div class="key-point">Many systems use <strong>both</strong>: SQL for core data (users, payments) + NoSQL for flexible data (user activity logs, product catalogs).</div>`,
       },
       {
+        q: 'What is a Database Index and how does it speed up queries?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>A database index is a sorted structure, usually a B-tree, that lets the database find rows quickly instead of scanning the whole table. Indexes are not free, because each write must update them and they use extra disk space, so they should match real query patterns. Useful ideas include composite indexes with the correct column order and covering indexes that answer a query from the index alone. A common mistake is a function or type mismatch in the <code>WHERE</code> clause that quietly disables the index, so <code>EXPLAIN</code> should confirm it is used.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Database index là một cấu trúc đã được sắp xếp, thường là B-tree, giúp database tìm các dòng một cách nhanh chóng thay vì quét toàn bộ bảng. Index không hề miễn phí: mỗi lần ghi đều phải cập nhật lại index và index còn chiếm thêm dung lượng đĩa, nên chỉ nên tạo index bám sát các mẫu truy vấn thực tế. Vài ý tưởng hữu ích gồm composite index với thứ tự cột đúng và covering index có thể trả lời một truy vấn chỉ từ index. Một sai lầm phổ biến là dùng hàm hoặc để lệch kiểu dữ liệu trong mệnh đề <code>WHERE</code>, khiến index bị vô hiệu hóa một cách âm thầm, vì vậy nên dùng <code>EXPLAIN</code> để xác nhận index có được sử dụng.</p></details>
+<p>A <strong>database index</strong> is a data structure (usually B-Tree or Hash) that helps the database find rows quickly without scanning every row.</p>
+<p><strong>Analogy:</strong> Think of the index at the back of a textbook. Instead of reading the entire book to find "Photosynthesis", you look it up in the index, get the page number, and go directly there.</p>
+<pre>Without index: SELECT * FROM users WHERE email = 'john@mail.com'
+  → Scans all 10 million rows (slow!)
+
+With index on email: 
+  → Looks up B-Tree, finds row in ~20 comparisons (instant!)</pre>
+<p><strong>Trade-offs:</strong></p>
+<ul>
+<li><strong>Pro</strong>: Reads become much faster (O(log n) instead of O(n))</li>
+<li><strong>Con</strong>: Writes become slightly slower (index must be updated)</li>
+<li><strong>Con</strong>: Uses extra disk space</li>
+</ul>
+<p><strong>Example:</strong> An e-commerce site indexes <code>product_name</code>, <code>category</code>, and <code>price</code> columns because users search/filter by those constantly.</p>
+<div class="key-point">Rule of thumb: Index columns that appear in <code>WHERE</code>, <code>JOIN</code>, and <code>ORDER BY</code> clauses. Don't over-index — each index slows down writes.</div>`,
+      },
+      {
         q: 'What is Database Sharding?',
         difficulty: 'medium',
         a: `<div class="interview-answer"><p>Sharding splits data across multiple machines so each node holds only part of the data, which lets writes scale beyond one server. The shard key is the most important choice, because it must spread load evenly and fit the query patterns, or some shards become hotspots. Sharding is hard to reverse, so read replicas and caching should be tried first. Range keys are simple but can create hotspots, hash keys spread data well but break range scans, and cross-shard joins and transactions become very difficult.</p></div>
@@ -204,6 +540,31 @@ After sharding:
 </ul>
 <p><strong>Example:</strong> Instagram shards its PostgreSQL database by user ID. Each shard handles a subset of users, allowing them to scale to billions of photos.</p>
 <div class="key-point">Sharding adds complexity: cross-shard queries are hard, rebalancing shards is painful. Only shard when a single database can't handle the load.</div>`,
+      },
+      {
+        q: 'What is Consistent Hashing and why is it used?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>With plain hash(key) modulo N, changing the number of servers remaps almost all keys. Consistent hashing places servers and keys on a ring, so adding or removing a node moves only the nearby keys, about one part in N of the data. Virtual nodes give each server many points on the ring to keep load even and avoid hotspots. It is used in systems like DynamoDB, Cassandra, and distributed caches, but hot keys still need replication or bounded loads.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Với hash(key) modulo N thông thường, việc thay đổi số lượng server sẽ remap gần như toàn bộ các key. Consistent hashing đặt các server và key lên một vòng tròn, nên khi thêm hoặc bớt một node thì chỉ những key lân cận mới di chuyển, khoảng một phần N của dữ liệu. Virtual node cho mỗi server nhiều điểm trên vòng để giữ tải đều và tránh hotspot. Nó được dùng trong các hệ như DynamoDB, Cassandra và các distributed cache, nhưng các hot key vẫn cần replication hoặc bounded load.</p></details>
+<p><strong>Consistent Hashing</strong> is a technique for distributing data across servers such that when a server is added or removed, only a minimal amount of data needs to move.</p>
+<p><strong>Problem with simple hashing:</strong></p>
+<pre>server = hash(key) % N   (N = number of servers)
+If N changes (add/remove server), ALMOST ALL keys get remapped! 💀</pre>
+<p><strong>Analogy:</strong> Imagine 4 people sitting in a circle, and you assign tasks by pointing a spinner. If person 2 leaves, only their tasks move to the next person. Everyone else keeps their tasks.</p>
+<pre>Consistent Hashing Ring:
+      0°
+      |
+  [Server A]--90°
+      |         |
+ 270°--[Server C]
+      |         |
+  [Server B]--180°
+
+Key "user123" hashes to 120° → goes to Server B (next server clockwise)
+If Server B is removed → key goes to Server C (minimal disruption)</pre>
+<p><strong>Key benefit</strong>: When adding/removing a server, only <strong>K/N</strong> keys need to move (K = total keys, N = servers), instead of almost ALL keys.</p>
+<p><strong>Example:</strong> Amazon DynamoDB uses consistent hashing to distribute data across nodes. When a new node joins, only its neighbors' data is partially moved.</p>
+<div class="key-point">Used in: <strong>Memcached</strong>, <strong>DynamoDB</strong>, <strong>Cassandra</strong>, <strong>load balancers</strong>. Essential for any distributed cache or database.</div>`,
       },
       {
         q: 'What is Database Replication?',
@@ -231,6 +592,187 @@ After sharding:
 <p><strong>Example:</strong> A news site gets 95% reads, 5% writes. The master handles writes, and 4 read replicas handle the flood of readers. If the master crashes, one replica is promoted within seconds.</p>
 <div class="key-point">Watch out for <strong>replication lag</strong>: a write to master may take a few milliseconds to appear on slaves. This can cause "I just updated my profile but still see the old one" bugs.</div>`,
       },
+      {
+        q: 'What are quorum reads and writes (N, R, W)?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>Quorums let the consistency and availability balance be tuned per operation. With <strong>N</strong> replicas, requiring <strong>R</strong> read acknowledgments and <strong>W</strong> write acknowledgments gives strong consistency when R + W is greater than N, because the read set and write set are guaranteed to overlap on at least one up-to-date replica. So W=N with R=1 favors fast reads, W=1 with R=N favors fast writes, and a middle setting balances both. This overlap alone is not full linearizability, so read repair and version tracking are still needed, and it is the tuning knob behind Dynamo, Cassandra, and Riak.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><p>Quorum cho phép điều chỉnh cân bằng giữa consistency và availability theo từng thao tác. Với <strong>N</strong> replica, yêu cầu <strong>R</strong> acknowledgment khi đọc và <strong>W</strong> acknowledgment khi ghi sẽ cho strong consistency khi R + W lớn hơn N, vì tập đọc và tập ghi được đảm bảo giao nhau ở ít nhất một replica cập nhật. Vậy nên W=N với R=1 thiên về đọc nhanh, W=1 với R=N thiên về ghi nhanh, và một thiết lập ở giữa cân bằng cả hai. Chỉ riêng phần giao nhau này chưa phải là linearizability đầy đủ, nên vẫn cần read repair và theo dõi version, và đây là núm điều chỉnh phía sau Dynamo, Cassandra và Riak.</p></p></details>
+<p>In leaderless replication (Dynamo, Cassandra), each value lives on <strong>N</strong> replicas. A write must be confirmed by <strong>W</strong> nodes, a read queries <strong>R</strong> nodes.</p>
+<pre>The quorum condition:   R + W &gt; N
+→ read set and write set MUST overlap
+→ at least one node in every read has the latest write
+
+N=3, W=2, R=2  (typical):  2+2 &gt; 3 ✅
+  Write: send to 3 replicas, ack to client after 2 confirm
+  Read : ask 3 (or 2) replicas, take the value with newest version
+
+Tuning:
+  W=1, R=3 → fast writes, expensive reads
+  W=3, R=1 → slow writes, fast reads, write availability suffers
+  W=1, R=1 → fast everything, R+W ≤ N → stale reads possible</pre>
+<p><strong>Why quorums still aren't perfect (senior follow-ups):</strong></p>
+<ul>
+<li>Concurrent writes to different nodes → conflicts; need versioning (vector clocks) or last-write-wins (loses data on clock skew).</li>
+<li><strong>Sloppy quorum + hinted handoff</strong>: during a partition, writes land on stand-in nodes and are handed back later — availability up, overlap guarantee temporarily broken.</li>
+<li><strong>Read repair / anti-entropy</strong>: when a read sees divergent replicas, it writes the newest value back to stale ones.</li>
+</ul>
+<div class="key-point">Quorum ≠ strong consistency — it's tunable consistency. Cassandra exposes this per query: <code>QUORUM</code>, <code>ONE</code>, <code>LOCAL_QUORUM</code>, <code>ALL</code>. Knowing that R+W&gt;N gives overlap (not linearizability) is the distinction that separates senior answers.</div>`,
+      },
+      {
+        q: 'What is a Bloom Filter and when would you use it?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>A <strong>Bloom filter</strong> is a space-efficient way to test set membership that answers either <em>definitely not present</em> or <em>probably present</em>; false positives can happen but false negatives never do. This makes it useful as a cheap in-memory check before an expensive lookup. A common use is avoiding disk reads for keys that do not exist, as done in Cassandra and Bigtable, and it also helps defend against cache-penetration. The trade-offs are that items cannot be deleted from a basic Bloom filter, and the false-positive rate is tuned by the bit-array size and the number of hash functions.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><p><strong>Bloom filter</strong> là một cách tiết kiệm bộ nhớ để kiểm tra một phần tử có thuộc tập hợp hay không, và nó trả lời hoặc là <em>chắc chắn không có</em> hoặc là <em>có thể có</em>; false positive có thể xảy ra nhưng false negative thì không bao giờ. Điều này khiến nó hữu ích như một bước kiểm tra rẻ trong bộ nhớ trước khi thực hiện một lần tra cứu tốn kém. Một ứng dụng phổ biến là tránh đọc đĩa cho các key không tồn tại, như Cassandra và Bigtable đang làm, và nó cũng giúp chống lại cache-penetration. Đánh đổi là không thể xóa phần tử khỏi một Bloom filter cơ bản, và tỉ lệ false positive được điều chỉnh qua kích thước mảng bit và số lượng hàm hash.</p></p></details>
+<p>A <strong>Bloom Filter</strong> is a space-efficient data structure that tells you:</p>
+<ul>
+<li>"Definitely NOT in the set" → <strong>100% certain</strong></li>
+<li>"Probably in the set" → <strong>might be wrong</strong> (false positive)</li>
+</ul>
+<p><strong>Analogy:</strong> A bouncer at a club with a guest list. The bouncer can quickly say "you're definitely NOT on the list" (accurate). But sometimes they say "you might be on the list, go check inside" (might be wrong).</p>
+<pre>How it works:
+1. A bit array of size m (all zeros initially)
+2. k hash functions
+
+Adding "apple":
+  hash1("apple") = 3  → set bit 3
+  hash2("apple") = 7  → set bit 7
+  hash3("apple") = 11 → set bit 11
+
+  Bit array: [0,0,0,1,0,0,0,1,0,0,0,1,0,0,0]
+
+Checking "banana":
+  hash1("banana") = 3  → bit 3 is 1 ✅
+  hash2("banana") = 5  → bit 5 is 0 ❌ → DEFINITELY NOT in set
+
+Checking "grape":
+  All bits are 1 → PROBABLY in set (could be false positive)</pre>
+<p><strong>Use cases:</strong></p>
+<ul>
+<li><strong>Chrome Safe Browsing</strong>: Check if a URL is malicious (filter 99% of URLs instantly)</li>
+<li><strong>Database queries</strong>: Check if a key exists before hitting disk (Cassandra, HBase)</li>
+<li><strong>Email spam</strong>: Quick check if an email was already seen</li>
+<li><strong>Username availability</strong>: Fast "this username is taken" check</li>
+</ul>
+<div class="key-point">Bloom filters use <strong>very little memory</strong> compared to storing actual items. 1 billion items can be checked with ~1GB of memory and &lt;1% false positive rate.</div>`,
+      },
+      {
+        q: 'How would you design a distributed key-value store (Dynamo / Cassandra style)?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>The design is a ring of equal peers with no leader: keys are placed by consistent hashing with virtual nodes, each key is replicated to the next N nodes on the ring, and the client tunes consistency with quorum values R and W so that R plus W greater than N gives overlapping reads and writes. Because writes are accepted even when some replicas are down, the system must repair itself: hinted handoff replays writes to nodes that were unavailable, read repair fixes divergence noticed during reads, and Merkle-tree anti-entropy compares replicas in the background. Conflicting concurrent writes are resolved by last-write-wins with timestamps or by vector clocks that surface siblings to the application. Locally, each node stores data in an LSM tree with a commit log, memtable, immutable SSTables, and Bloom filters, which makes writes sequential and fast while compaction manages read amplification.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Thiết kế là một vòng ring gồm các node ngang hàng, không có leader: key được đặt bằng consistent hashing kèm virtual node, mỗi key được nhân bản tới N node kế tiếp trên ring, và client tự chỉnh mức nhất quán bằng hai tham số quorum R và W sao cho R cộng W lớn hơn N để đọc và ghi luôn giao nhau. Vì hệ thống vẫn nhận write ngay cả khi một số replica đang chết, nó phải tự sửa chữa: hinted handoff phát lại write cho node từng không sẵn sàng, read repair sửa các sai lệch phát hiện lúc đọc, còn anti-entropy dùng cây Merkle để so sánh replica ở chế độ nền. Xung đột khi ghi đồng thời được giải quyết bằng last-write-wins theo timestamp hoặc bằng vector clock để lộ các phiên bản song song cho ứng dụng xử lý. Ở mỗi node, dữ liệu lưu theo LSM tree với commit log, memtable, các SSTable bất biến và Bloom filter, nhờ vậy write luôn tuần tự và nhanh, còn compaction lo phần khuếch đại đọc.</p></details>
+<p><strong>1. Requirements that lead to this shape</strong></p>
+<ul>
+<li>Always writable (shopping cart, session store): choose <strong>AP</strong> in CAP terms — availability over strict consistency.</li>
+<li>Linear scalability by adding nodes; no single point of failure; commodity hardware that fails constantly.</li>
+<li>Simple API: <code>get(key)</code>, <code>put(key, value)</code> — no joins, no transactions across keys.</li>
+</ul>
+<p><strong>2. Partitioning: consistent hashing with virtual nodes</strong></p>
+<pre>hash(key) → position on a 0..2^128 ring → owned by the next node clockwise
+
+Virtual nodes (each physical node owns ~256 ring positions) because:
+  - adding/removing a node moves only 1/N of the data
+  - heterogeneous machines can own more or fewer vnodes
+  - load stays even instead of depending on where a node lands on the ring</pre>
+<p><strong>3. Replication and tunable consistency</strong></p>
+<pre>Replicate each key to the next N distinct physical nodes (preference list),
+skipping nodes in the same rack/AZ so a rack failure cannot take all copies.
+
+N = 3, W = 2, R = 2 → R + W &gt; N → a read set always overlaps the last write set
+N = 3, W = 1, R = 1 → fastest, may read stale data
+N = 3, W = 3        → strong-ish writes, but any node down blocks writes
+
+The client (or coordinator node) chooses per operation — consistency is a knob, not a property.</pre>
+<p><strong>4. Handling failure — three repair mechanisms (this is what interviewers probe)</strong></p>
+<table>
+<tr><th>Mechanism</th><th>When</th><th>What it does</th></tr>
+<tr><td><strong>Hinted handoff</strong></td><td>Write time, replica down</td><td>Another node accepts the write with a hint and replays it when the owner returns → write availability</td></tr>
+<tr><td><strong>Read repair</strong></td><td>Read time</td><td>Coordinator sees divergent versions among replicas, returns the newest and pushes the fix to the stale ones</td></tr>
+<tr><td><strong>Anti-entropy (Merkle trees)</strong></td><td>Background</td><td>Replicas compare hash trees of their key ranges and exchange only the differing subranges — cheap detection of long-term drift</td></tr>
+</table>
+<p><strong>5. Conflict resolution</strong></p>
+<ul>
+<li><strong>Last-write-wins</strong> with a timestamp: trivial, but clock skew silently loses writes. Cassandra's default.</li>
+<li><strong>Vector clocks</strong>: detect true concurrency and return siblings; the application merges them (Dynamo's shopping cart unions the items — losing a delete is better than losing an add).</li>
+<li><strong>CRDTs</strong> for counters/sets: merges are mathematically conflict-free, no application logic needed.</li>
+</ul>
+<p><strong>6. Membership and failure detection</strong>: a <strong>gossip</strong> protocol spreads node state, and a phi-accrual failure detector avoids flapping. No coordinator to lose — every node knows the ring.</p>
+<p><strong>7. Storage engine on each node (LSM tree)</strong></p>
+<pre>write → commit log (sequential, durability)  →  memtable (sorted, in memory)
+        memtable full → flush → SSTable (immutable, sorted, on disk)
+        background compaction merges SSTables, drops tombstones
+
+read  → memtable → Bloom filter per SSTable (skip files that cannot contain the key)
+        → partition index → the one SSTable that has it
+
+Why LSM: writes are append-only and sequential (fast on both SSD and HDD).
+Cost: read amplification and compaction IO — the classic write-optimized trade-off vs B-trees.
+Deletes are tombstones; forgetting about tombstone TTL is a real production trap.</pre>
+<div class="key-point">The senior framing: <em>"no leader, consistent hashing for placement, quorum for tunable consistency, and three self-healing mechanisms because failure is the normal state."</em> Then be explicit about the price: no cross-key transactions, no joins, and application-visible conflicts — you traded consistency and query power for availability and linear scale.</div>`,
+      },
+      {
+        q: 'How would you design an object storage service like S3 (durability, erasure coding, metadata at scale)?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>Object storage separates a metadata plane from a data plane: metadata maps a bucket and key to the physical location of the data and must support very high request rates with strong consistency, while the data plane stores immutable chunks on commodity disks across many failure domains. Durability comes from redundancy, and the important trade-off is replication versus erasure coding — three copies is simple and fast but costs three times the storage, whereas erasure coding stores data plus parity fragments across nodes for roughly 1.5 times the size at the price of extra CPU and network on reads that need reconstruction. Objects are immutable, so updates write a new version rather than modifying bytes, which makes caching, replication and consistency dramatically simpler. The background systems are the real engineering: continuous scrubbing to detect bit rot, rebuild when a disk or node dies, lifecycle transitions to colder tiers, and rate limiting to keep one customer from saturating a storage node.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Object storage tách mặt phẳng metadata khỏi mặt phẳng dữ liệu: metadata ánh xạ bucket và key tới vị trí vật lý của dữ liệu, phải chịu được tần suất request rất cao và cần nhất quán mạnh; còn mặt phẳng dữ liệu lưu các chunk bất biến trên ổ đĩa phổ thông, trải qua nhiều vùng lỗi khác nhau. Độ bền đến từ dư thừa, và đánh đổi quan trọng là nhân bản so với erasure coding: giữ ba bản sao thì đơn giản và nhanh nhưng tốn gấp ba dung lượng, còn erasure coding lưu dữ liệu cộng các mảnh parity trải trên nhiều node, chỉ tốn khoảng 1,5 lần dung lượng nhưng phải trả giá bằng CPU và mạng khi phải tái dựng lúc đọc. Object là bất biến, nên cập nhật nghĩa là ghi một phiên bản mới chứ không sửa byte tại chỗ, điều này làm cho caching, replication và nhất quán đơn giản đi rất nhiều. Phần kỹ thuật thật sự nằm ở các hệ thống chạy nền: quét kiểm tra liên tục để phát hiện hỏng bit, tái dựng khi mất ổ đĩa hay node, chuyển vòng đời sang các tầng lưu trữ lạnh hơn, và giới hạn tốc độ để một khách hàng không làm nghẽn một node lưu trữ.</p></details>
+<p><strong>1. The API constrains the design</strong></p>
+<pre>PUT    /bucket/key        (whole object, or multipart for large ones)
+GET    /bucket/key        (+ Range requests)
+DELETE /bucket/key
+LIST   /bucket?prefix=…   ← the expensive one: it is a range scan over metadata
+
+Objects are IMMUTABLE: no partial in-place update. "Modify" = write a new version.
+This one decision removes most of the distributed-consistency difficulty.</pre>
+<p><strong>2. Two planes</strong></p>
+<pre>[Client] → [API/frontend: auth, signature check, quota, routing]
+                ↓                                    ↓
+      [METADATA SERVICE]                     [DATA/STORAGE NODES]
+       bucket/key → {object_id, size,          chunks on raw disks,
+       chunk locations, etag, version,         append-only, immutable
+       storage class, ACL}
+       sharded KV (strongly consistent,        placement across racks/AZs
+       e.g. Paxos/Raft groups per range)       by a placement/allocation service</pre>
+<p><strong>3. Durability: replication vs erasure coding</strong></p>
+<table>
+<tr><th></th><th>3x replication</th><th>Erasure coding (e.g. 10 data + 4 parity)</th></tr>
+<tr><td>Storage overhead</td><td>200% (3x)</td><td>~40% (1.4x)</td></tr>
+<tr><td>Tolerates</td><td>2 node losses</td><td>Any 4 of 14 fragments lost</td></tr>
+<tr><td>Read cost</td><td>Read one replica — cheapest</td><td>Normally read the data fragments; on failure reconstruct from 10 of 14 (CPU + network)</td></tr>
+<tr><td>Write cost</td><td>3 writes</td><td>Encode + 14 smaller writes</td></tr>
+<tr><td>Best for</td><td>Small, hot, latency-critical objects</td><td>Large, warm/cold objects — the bulk of the bytes</td></tr>
+</table>
+<pre>Reed-Solomon: split the object into 10 fragments, compute 4 parity fragments,
+spread all 14 across different racks/AZs. Any 10 fragments reconstruct the object.
+This is how "11 nines of durability" is reached at ~1.4x cost instead of 3x.
+Common design: replicate small objects, erasure-code large ones (and cold tiers).</pre>
+<p><strong>4. Write path</strong></p>
+<pre>1. Auth + signature (pre-signed URLs / SigV4), bucket policy, quota check.
+2. Allocate object id; ask placement for target nodes in distinct failure domains.
+3. Stream the body into chunks (e.g. 4-64 MB); checksum each chunk (CRC32C/MD5).
+4. Write chunks with the chosen redundancy; wait for a durable quorum of acks.
+5. Commit metadata (bucket/key → chunk map, etag, version) — THE commit point.
+   Metadata committed last → a crash leaves orphan chunks (a GC job reaps them),
+   never a metadata entry that points at data which does not exist.
+6. Multipart upload: parts uploaded in parallel/resumable, then one atomic "complete".</pre>
+<p><strong>5. Metadata at scale — usually the real bottleneck</strong></p>
+<ul>
+<li>Billions of keys per bucket → shard the keyspace by hash or by range; range sharding keeps LIST with a prefix efficient but creates hot shards for sequential key names (timestamps!) — recommend high-entropy key prefixes.</li>
+<li>LIST is a paginated range scan with a continuation token; it is eventually consistent in many systems for exactly this reason.</li>
+<li>Strong read-after-write consistency for a single key is expected today — a single metadata shard owning the key makes this straightforward.</li>
+<li>Versioning: key → list of versions; DELETE writes a delete marker rather than removing data (this is what makes accidental deletion recoverable).</li>
+</ul>
+<p><strong>6. The background systems that actually keep data alive</strong></p>
+<ul>
+<li><strong>Scrubbing</strong>: continuously re-read and verify checksums to detect silent bit rot, and repair from redundancy.</li>
+<li><strong>Rebuild/repair</strong>: when a disk or node dies, regenerate the missing fragments elsewhere — throttled so repair traffic does not degrade serving.</li>
+<li><strong>Garbage collection</strong>: reclaim orphan chunks, expired versions and aborted multipart uploads.</li>
+<li><strong>Lifecycle tiering</strong>: hot → infrequent access → archive (cold storage with retrieval delay), driven by per-bucket policies.</li>
+<li><strong>Cross-region replication</strong> for DR, asynchronous, with a replication-lag metric.</li>
+<li><strong>Per-bucket/per-node rate limiting</strong> so one hot prefix cannot saturate a storage node.</li>
+</ul>
+<div class="key-point">Two things to name explicitly: <em>"immutable objects with metadata committed last"</em> (so failures leave collectable garbage, never dangling pointers), and <em>"erasure coding buys 11 nines at ~1.4x storage instead of 3x — at the cost of CPU and network during reconstruction."</em> Then mention scrubbing and throttled rebuild: durability is a background process, not a property you configure once.</div>`,
+      },
+
+      // ──── 5. CONSISTENCY, TRANSACTIONS & COORDINATION ────
       {
         q: 'What is the CAP Theorem?',
         difficulty: 'hard',
@@ -261,34 +803,204 @@ CA systems: Traditional single-node RDBMS (no partition tolerance)
 <div class="key-point">In real distributed systems, <strong>P (partition tolerance) is mandatory</strong> — networks WILL fail. So in practice, you choose between <strong>CP</strong> or <strong>AP</strong>.</div>`,
       },
       {
-        q: 'What is an API Gateway?',
+        q: 'What are ACID properties in databases?',
         difficulty: 'medium',
-        a: `<div class="interview-answer"><p>An API gateway is a single entry point for all client requests to backend services. It centralizes shared concerns such as authentication, rate limiting, TLS termination, routing, request aggregation, and monitoring, so each service can focus on business logic. The tradeoffs are an extra network hop and the risk of becoming a single point of failure, so it should run redundantly. It differs from a plain load balancer because it is Layer 7 and application-aware, and it should not grow into a system that holds business logic.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>API gateway là một điểm vào duy nhất cho mọi request của client đến các service backend. Nó gom về một chỗ những phần việc dùng chung như authentication, rate limiting, TLS termination, định tuyến, gộp request và giám sát, nhờ đó mỗi service chỉ cần lo logic nghiệp vụ của mình. Đánh đổi là thêm một chặng mạng và nguy cơ trở thành single point of failure, nên gateway cần được chạy ở chế độ dự phòng. Nó khác load balancer thuần tuý ở chỗ hoạt động tại Layer 7 và hiểu được nội dung ứng dụng; và tuyệt đối đừng để nó phình to thành nơi chứa logic nghiệp vụ.</p></details>
-<p>An <strong>API Gateway</strong> is a single entry point that sits between clients and your backend microservices. All requests go through it first.</p>
-<p><strong>Analogy:</strong> Think of a hotel receptionist. Guests don't walk directly to the kitchen, laundry, or housekeeping. They tell the receptionist what they need, and the receptionist routes the request to the right department.</p>
-<pre>Without API Gateway:
-  Mobile App → User Service
-  Mobile App → Order Service
-  Mobile App → Payment Service
-  (client must know all service URLs)
-
-With API Gateway:
-  Mobile App → [API Gateway] → User Service
-                             → Order Service
-                             → Payment Service
-  (client only knows one URL)</pre>
-<p><strong>What it does:</strong></p>
+        a: `<div class="interview-answer"><p>ACID means a transaction is all-or-nothing and leaves the database in a valid state. Isolation is often underestimated because it is a range of levels, such as read committed, repeatable read, and serializable, each allowing different anomalies like dirty reads, non-repeatable reads, and phantoms. Most databases default to read committed, not serializable, so the code must tolerate the remaining anomalies. Durability usually relies on a write-ahead log flushed to disk, and ACID is exactly what becomes hard to keep in distributed systems, where it may be rebuilt with sagas.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>ACID nghĩa là một transaction hoặc thực hiện toàn bộ hoặc không gì cả, và để database ở một trạng thái hợp lệ. Isolation thường bị xem nhẹ vì nó là một dải các mức, như read committed, repeatable read và serializable, mỗi mức cho phép các dị thường khác nhau như dirty read, non-repeatable read và phantom. Hầu hết database mặc định là read committed chứ không phải serializable, nên code phải chịu được những dị thường còn lại. Durability thường dựa vào một write-ahead log được flush xuống đĩa, và ACID chính là thứ trở nên khó giữ trong các hệ phân tán, nơi nó có thể được dựng lại bằng saga.</p></details>
+<p><strong>ACID</strong> ensures database transactions are reliable:</p>
 <ul>
-<li><strong>Routing</strong>: Sends /users to User Service, /orders to Order Service</li>
-<li><strong>Authentication</strong>: Validates JWT/API keys before forwarding</li>
-<li><strong>Rate Limiting</strong>: Prevents abuse (max 100 requests/minute)</li>
-<li><strong>Response Aggregation</strong>: Combines data from multiple services into one response</li>
-<li><strong>SSL Termination</strong>: Handles HTTPS so backend services don't have to</li>
+<li><strong>A</strong>tomicity – All or nothing. If any part fails, the whole transaction rolls back.</li>
+<li><strong>C</strong>onsistency – Data goes from one valid state to another. Rules (constraints) are never broken.</li>
+<li><strong>I</strong>solation – Concurrent transactions don't interfere with each other.</li>
+<li><strong>D</strong>urability – Once committed, data survives crashes (written to disk).</li>
 </ul>
-<p><strong>Example:</strong> Netflix's Zuul API Gateway handles billions of requests/day, routing them to hundreds of microservices.</p>
-<div class="key-point">Popular tools: <strong>Kong</strong>, <strong>AWS API Gateway</strong>, <strong>Nginx</strong>, <strong>Spring Cloud Gateway</strong>.</div>`,
+<p><strong>Analogy (Bank Transfer):</strong></p>
+<pre>Transfer $100 from Alice to Bob:
+  Step 1: Alice's balance -= $100
+  Step 2: Bob's balance += $100
+
+Atomicity:   If step 2 fails, step 1 is rolled back. Alice keeps her $100.
+Consistency: Total money in the system stays the same.
+Isolation:   Another transaction reading balances won't see a half-done state.
+Durability:  After "Transfer complete", even if server crashes, the transfer is saved.</pre>
+<p><strong>Example:</strong> E-commerce checkout:</p>
+<ul>
+<li>Deduct inventory ✅</li>
+<li>Charge payment ✅</li>
+<li>Create order ❌ (fails)</li>
+<li>→ ACID rolls back inventory and payment. Nothing is half-done.</li>
+</ul>
+<div class="key-point">SQL databases (MySQL, PostgreSQL) are ACID by default. Most NoSQL databases sacrifice ACID for performance/scalability (BASE model: Basically Available, Soft state, Eventually consistent).</div>`,
       },
+      {
+        q: 'What is Eventual Consistency?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>Eventual consistency means that once writes stop, all replicas converge to the same value, but for a short time different readers may see different data. It is the tradeoff made for higher availability and lower latency, as in AP systems. It is acceptable for things like likes, follower counts, and feeds, but not for values like account balances. A common problem is read-your-own-writes, where a user does not see their own update, which can be handled with session consistency, reading from the leader, or optimistic UI updates.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Eventual consistency nghĩa là khi các lần ghi dừng lại, mọi replica sẽ hội tụ về cùng một giá trị, nhưng trong một khoảng thời gian ngắn thì những người đọc khác nhau có thể thấy dữ liệu khác nhau. Đó là sự đánh đổi để có availability cao hơn và latency thấp hơn, như trong các hệ AP. Nó chấp nhận được cho những thứ như lượt like, số follower và feed, nhưng không dùng cho các giá trị như số dư tài khoản. Một vấn đề phổ biến là read-your-own-writes, khi một người dùng không thấy bản cập nhật của chính mình, có thể xử lý bằng session consistency, đọc từ leader, hoặc cập nhật UI theo kiểu optimistic.</p></details>
+<p><strong>Eventual Consistency</strong> = after a write, all replicas will <em>eventually</em> return the latest value, but not immediately.</p>
+<p><strong>Strict Consistency</strong> = after a write, ALL reads immediately see the new value.</p>
+<p><strong>Analogy:</strong> You update your profile picture on social media.</p>
+<ul>
+<li><strong>Strict consistency</strong>: Everyone in the world sees your new picture <em>immediately</em>.</li>
+<li><strong>Eventual consistency</strong>: Your friend in Japan might see the old picture for a few seconds, but it'll update soon.</li>
+</ul>
+<pre>Scenario with 3 replicas:
+  Write "name=John" to Replica 1
+  Replica 1 → syncs to Replica 2 (50ms delay)
+  Replica 1 → syncs to Replica 3 (100ms delay)
+
+  Read from Replica 3 at t=50ms → still sees old name (stale!)
+  Read from Replica 3 at t=200ms → sees "John" ✅ (eventually consistent)</pre>
+<p><strong>Where it's used:</strong></p>
+<ul>
+<li>DNS (domain name changes take hours to propagate)</li>
+<li>Social media feeds (a few seconds delay is fine)</li>
+<li>Shopping cart (Cassandra, DynamoDB)</li>
+</ul>
+<div class="key-point">Eventual consistency gives you <strong>higher availability and performance</strong>. Use it when "slightly stale data" is acceptable. Never use it for banking or inventory where accuracy is critical.</div>`,
+      },
+      {
+        q: 'How do you handle distributed transactions across microservices?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>The best first option for distributed transactions is to avoid them by redrawing service boundaries so the transaction fits inside one service. When that is not possible, two-phase commit is avoided because it blocks and does not scale, and a <strong>Saga</strong> is used instead: a series of local transactions with compensating actions to undo work on failure. This means accepting eventual consistency and designing compensations as business actions, such as a refund. Pairing it with the transactional outbox to publish events reliably and making each step idempotent helps, and because sagas have no isolation, intermediate states are guarded with status fields or semantic locks.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><p>Lựa chọn đầu tiên tốt nhất cho distributed transaction là tránh chúng bằng cách vẽ lại ranh giới service sao cho giao dịch nằm gọn trong một service. Khi không thể làm vậy, ta tránh two-phase commit vì nó blocking và không scale được, và dùng <strong>Saga</strong> thay thế: một chuỗi các local transaction kèm các hành động bù trừ để hoàn tác công việc khi có lỗi. Điều này nghĩa là chấp nhận eventual consistency và thiết kế các bù trừ như những hành động nghiệp vụ, chẳng hạn hoàn tiền. Nên kết hợp saga với transactional outbox để phát event một cách đáng tin cậy, và làm cho từng bước đều idempotent. Ngoài ra vì saga không có isolation, các trạng thái trung gian phải được bảo vệ bằng trường status hoặc semantic lock.</p></p></details>
+<p>In microservices, a single business operation may span multiple services/databases. You can't use a simple database transaction because each service has its own database.</p>
+<p><strong>Problem example:</strong></p>
+<pre>Place Order:
+  1. Order Service: Create order ✅
+  2. Payment Service: Charge credit card ✅
+  3. Inventory Service: Deduct stock ❌ (out of stock!)
+  → Need to undo steps 1 and 2!</pre>
+<p><strong>Solution 1: Saga Pattern</strong> (most popular)</p>
+<pre>Choreography Saga (event-driven):
+  Order Created → Payment Service listens → Payment Charged
+  → Inventory Service listens → Stock Deducted → Done!
+  
+  If Inventory fails → publishes "StockFailed" event
+  → Payment Service listens → Refund issued
+  → Order Service listens → Order cancelled
+
+Orchestration Saga (central coordinator):
+  [Saga Orchestrator]
+    → Step 1: Call Order Service
+    → Step 2: Call Payment Service  
+    → Step 3: Call Inventory Service (fails!)
+    → Compensate Step 2: Refund payment
+    → Compensate Step 1: Cancel order</pre>
+<p><strong>Solution 2: Two-Phase Commit (2PC)</strong></p>
+<pre>Phase 1 (Prepare): Coordinator asks all services "Can you commit?"
+  All say YES → Phase 2: "Commit!"
+  Any says NO → Phase 2: "Rollback!"
+
+(Rarely used in microservices — too slow and blocking)</pre>
+<div class="key-point">Use the <strong>Saga pattern</strong> in microservices. Choreography for simple flows, Orchestration for complex flows. Always define <strong>compensating actions</strong> (undo) for each step.</div>`,
+      },
+      {
+        q: 'How do you implement a distributed lock? What can go wrong?',
+        difficulty: 'tricky',
+        a: `<div class="interview-answer"><p>A distributed lock in Redis often starts with <code>SETNX</code>, and the important part is understanding its failure modes. An expiry is always needed so a crashed holder does not deadlock, but if a process pauses past the TTL, the lock can expire and another client can take it, leaving two clients that both think they hold it. A <strong>fencing token</strong>, a number that always increases and is checked by the protected resource, blocks writes from a stale holder. Redlock across nodes exists but is debated, so the safer path is often to avoid locks and rely on idempotency, unique constraints, or conditional updates.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><p>Một distributed lock trong Redis thường bắt đầu với <code>SETNX</code>, và phần quan trọng là hiểu các chế độ thất bại của nó. Luôn cần một thời gian hết hạn để một holder bị crash không gây deadlock, nhưng nếu một tiến trình tạm dừng vượt quá TTL, lock có thể hết hạn và một client khác chiếm lấy, dẫn đến hai client cùng nghĩ mình đang giữ lock. Một <strong>fencing token</strong>, một con số luôn tăng và được kiểm tra bởi tài nguyên được bảo vệ, sẽ chặn các thao tác ghi từ một holder cũ. Redlock trên nhiều node có tồn tại nhưng còn gây tranh cãi, nên con đường an toàn hơn thường là tránh dùng lock và dựa vào idempotency, unique constraint, hoặc conditional update.</p></p></details>
+<p>Naive Redis lock, and the interview is about its failure modes:</p>
+<pre>SET lock:order:42 &lt;token&gt; NX PX 30000   -- acquire: only if not exists, 30s TTL
+-- release: must be atomic check-and-delete (Lua), only if WE still own it:
+if redis.call("GET", key) == token then redis.call("DEL", key) end</pre>
+<p><strong>The famous failure (Kleppmann's GC-pause scenario):</strong></p>
+<pre>1. Client A acquires lock (TTL 30s)
+2. A hits a 40s stop-the-world GC pause / network blip
+3. Lock EXPIRES; client B acquires it and starts writing
+4. A wakes up, still believes it holds the lock → writes too
+→ TWO writers. The lock did not protect anything.</pre>
+<p><strong>Fix: fencing tokens</strong> — the lock service hands out a monotonically increasing number; the protected resource rejects stale tokens:</p>
+<pre>A gets lock with token 33 → pauses
+B gets lock with token 34 → writes (storage records 34)
+A wakes, writes with token 33 → storage: 33 &lt; 34 → REJECTED ✅</pre>
+<ul>
+<li><strong>Redis Redlock</strong> (quorum over N independent Redis nodes): controversial — Kleppmann showed it's unsafe under clock jumps/pauses without fencing. Fine for efficiency locks, not correctness locks.</li>
+<li><strong>ZooKeeper / etcd</strong>: consensus-backed, ephemeral nodes + monotonic versions (natural fencing tokens) — the right tool when correctness matters.</li>
+</ul>
+<div class="key-point">Senior distinction: is the lock for <strong>efficiency</strong> (avoid duplicate work — a flaky lock is fine) or <strong>correctness</strong> (prevent data corruption — needs consensus + fencing)? Often the best answer is no lock at all: a unique constraint, conditional update (<code>WHERE version = ?</code>), or idempotency achieves the same goal without the distributed-lock minefield.</div>`,
+      },
+      {
+        q: 'How do you generate unique IDs in a distributed system?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>Generating unique IDs in a distributed system is a trade-off between uniqueness, sortability, and coordination cost. UUIDv4 needs no coordination but is random, which makes it a poor database key and not sortable. A common choice is a Snowflake-style 64-bit ID that packs a timestamp, machine ID, and a sequence, giving roughly time-sorted IDs with no per-ID coordination, though it needs unique machine IDs and depends on clocks. For sortable IDs without machine setup, <code>ULID</code> or <code>UUIDv7</code> are modern options, while ticket servers and database sequences work but add a central bottleneck.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><p>Sinh unique ID trong hệ thống phân tán là một sự đánh đổi giữa tính duy nhất, khả năng sắp xếp, và chi phí phối hợp. UUIDv4 không cần phối hợp giữa các node nhưng lại hoàn toàn ngẫu nhiên, nên vừa không sắp xếp được vừa là một database key kém hiệu quả. Một lựa chọn phổ biến là ID 64-bit kiểu Snowflake gói timestamp, machine ID và một sequence, cho ra các ID gần như được sắp theo thời gian mà không cần phối hợp cho từng ID, dù nó cần machine ID duy nhất và phụ thuộc vào đồng hồ. Để có ID sắp xếp được mà không cần thiết lập machine, <code>ULID</code> hoặc <code>UUIDv7</code> là các lựa chọn hiện đại, trong khi ticket server và database sequence vẫn dùng được nhưng thêm một điểm nghẽn tập trung.</p></p></details>
+<p>Auto-increment doesn't work across many nodes. Classic trade-off question: uniqueness vs sortability vs coordination.</p>
+<table><tr><th>Approach</th><th>Pros</th><th>Cons</th></tr>
+<tr><td>UUID v4</td><td>No coordination, trivial</td><td>128-bit, random → terrible as B-tree PK (random inserts fragment the index), not time-sortable</td></tr>
+<tr><td>DB auto-increment</td><td>Simple, sortable</td><td>SPOF, doesn't scale writes; multi-master offset trick (1,3,5.. / 2,4,6..) is brittle</td></tr>
+<tr><td>Ticket server (Flickr)</td><td>Central control</td><td>Extra hop, needs HA pair</td></tr>
+<tr><td>Snowflake</td><td>64-bit, time-sortable, no coordination per ID</td><td>Needs unique worker IDs, sensitive to clock skew</td></tr>
+<tr><td>UUID v7 / ULID / KSUID</td><td>Time-ordered + random, index-friendly</td><td>128-bit (bigger than Snowflake)</td></tr>
+</table>
+<pre>Twitter Snowflake — 64 bits:
+| 1 bit | 41 bits timestamp (ms) | 10 bits machine ID | 12 bits sequence |
+  sign    ~69 years of ms         1024 workers          4096 IDs/ms/worker
+
+= 4M+ IDs per second per worker, roughly time-sorted, fits in a BIGINT</pre>
+<p><strong>The tricky follow-up — clock skew:</strong> what if the machine clock moves backward (NTP correction)? Snowflake generators must refuse to issue IDs (wait or error) until the clock catches up, otherwise duplicates. This is the detail interviewers fish for.</p>
+<div class="key-point">Good default today: <strong>UUID v7</strong> (time-ordered, standardized, no infrastructure) or <strong>Snowflake</strong> when you need compact 64-bit sortable IDs. Mention why random UUIDv4 hurts clustered-index insert performance — that's the senior signal.</div>`,
+      },
+      {
+        q: 'How do you prevent double payment / double charging? (idempotency in practice)',
+        difficulty: 'tricky',
+        a: `<div class="interview-answer"><p>To prevent double charging when a payment request times out and is retried, the fix is idempotency rather than locking. The client creates one idempotency key per payment attempt and sends it on every retry, and the server stores that key with the result in the same transaction as the charge. The first request is processed and its keyed result is saved, and any retry with the same key returns the saved result instead of charging again. Storing the key atomically with the effect, using a uniqueness constraint to handle concurrent retries, and passing the key to the payment provider are the details that matter.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><p>Để tránh charge hai lần khi một request thanh toán bị timeout và được retry, cách khắc phục là idempotency chứ không phải lock. Client tạo một idempotency key duy nhất cho mỗi lần thử thanh toán và gửi nó trong mọi lần retry, còn server lưu key đó cùng với kết quả trong cùng một transaction với việc charge. Request đầu tiên được xử lý và kết quả gắn với key được lưu lại, và bất kỳ retry nào với cùng key sẽ trả về kết quả đã lưu thay vì charge lại. Lưu key một cách atomic cùng với hiệu ứng của nó, dùng ràng buộc duy nhất để xử lý các retry đồng thời, và truyền key cho nhà cung cấp thanh toán là những chi tiết quan trọng.</p></p></details>
+<p>The scenario every payment interviewer asks: user clicks Pay, request times out, client (or user) retries. Was the first request processed? You must make the retry <strong>safe</strong>.</p>
+<pre>1. Client generates an idempotency key ONCE per logical action
+   (UUID created when the Pay button is rendered — NOT per HTTP attempt)
+
+   POST /payments
+   Idempotency-Key: 3f2a-...-9c1b
+   { "orderId": 42, "amount": 99.00 }
+
+2. Server — atomically claim the key BEFORE doing the work:
+   INSERT INTO idempotency_keys (key, status, response)
+   VALUES ('3f2a...', 'IN_PROGRESS', NULL);   -- UNIQUE constraint on key
+
+   - insert OK        → first attempt → charge the card
+                        → UPDATE ... SET status='DONE', response={...}
+   - duplicate key    → status DONE        → return the SAVED response (no re-charge)
+                      → status IN_PROGRESS → 409/retry-later (first attempt still running)
+
+3. Downstream: pass the same key to the payment provider
+   (Stripe/PayPal support Idempotency-Key natively → dedupe on their side too)</pre>
+<p><strong>Details that mark a senior answer:</strong></p>
+<ul>
+<li>The dedupe check and the business write must be in the <strong>same DB transaction</strong> — check-then-act across two systems reintroduces the race.</li>
+<li>Key includes/binds the request payload hash — same key with different amount is an error, not a replay.</li>
+<li>Keys expire (e.g. 24h) so storage doesn't grow forever.</li>
+<li>Timeout ambiguity: on timeout the client must retry with the <strong>same key</strong> — retrying with a fresh key is exactly how double charges happen.</li>
+</ul>
+<div class="key-point">Pattern generalizes to any non-idempotent POST: unique constraint claims the operation, the stored response makes replays return identical results. "The database's unique constraint is doing the distributed coordination" is the key insight.</div>`,
+      },
+      {
+        q: 'Is exactly-once delivery possible in distributed systems?',
+        difficulty: 'tricky',
+        a: `<div class="interview-answer"><p>Exactly-once <em>delivery</em> is not possible over an unreliable network, because the sender can never be sure its message or the acknowledgment arrived, so it must retry, which can create duplicates. What is achievable is exactly-once <em>processing</em>, done with at-least-once delivery plus idempotent consumers or deduplication on a unique message ID. The real work is making the receiver idempotent, deduping by key, and using the outbox and inbox patterns. Kafka's exactly-once feature works this way within Kafka, using idempotent producers and transactions, not across arbitrary external systems.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><p>Exactly-once <em>delivery</em> là không thể trên một mạng không đáng tin cậy, vì bên gửi không bao giờ chắc chắn tin nhắn hay acknowledgment của mình đã đến, nên nó phải retry, và điều này có thể tạo ra bản trùng. Thứ thực sự đạt được là exactly-once <em>processing</em>, làm bằng cách kết hợp at-least-once delivery với consumer idempotent hoặc khử trùng lặp theo một message ID duy nhất. Nói cách khác, phần việc thật nằm ở phía người nhận: làm cho nó idempotent, khử trùng theo key, và áp dụng outbox cùng inbox pattern. Tính năng exactly-once của Kafka hoạt động theo cách này bên trong Kafka, dùng idempotent producer và transaction, chứ không phải xuyên qua các hệ thống bên ngoài tùy ý.</p></p></details>
+<p>The trick question: <strong>exactly-once <em>delivery</em> is impossible</strong> over an unreliable network — but <strong>exactly-once <em>processing</em> (effectively-once)</strong> is achievable.</p>
+<pre>Why delivery can't be exactly-once:
+  Producer sends message → network timeout → was it received?
+  - Don't retry → maybe ZERO deliveries (message lost)
+  - Retry       → maybe TWO deliveries (it had arrived)
+  You cannot distinguish "lost" from "slow ack". (Two Generals problem)</pre>
+<p><strong>So real systems pick at-least-once + deduplication:</strong></p>
+<pre>1. Producer: retry until acknowledged (at-least-once)
+   + attach a stable message ID / idempotency key
+
+2. Consumer: make processing IDEMPOTENT
+   INSERT INTO processed_messages(message_id) VALUES (?)  -- unique constraint
+   → duplicate arrives → constraint violation → skip, ack, move on
+
+3. Or make the operation naturally idempotent:
+   SET balance = 100        (idempotent — safe to repeat)
+   vs balance = balance + 10 (NOT idempotent — must dedupe)</pre>
+<p><strong>What about "Kafka exactly-once semantics (EOS)"?</strong> It's transactional: for Kafka→Kafka pipelines, consuming offsets and producing results commit <em>atomically</em>, so reprocessing isn't visible downstream. The moment you touch an external system (DB, email, payment API), you're back to needing idempotency on that system.</p>
+<div class="key-point">Interview-ready answer: "Exactly-once delivery is impossible; we get effectively-once by combining at-least-once delivery with idempotent consumers — dedup table keyed by message ID, updated in the same transaction as the business change."</div>`,
+      },
+
+      // ──── 6. ASYNC ARCHITECTURE — QUEUES, EVENTS & MICROSERVICES ────
       {
         q: 'What is a Message Queue and when should you use one?',
         difficulty: 'medium',
@@ -326,6 +1038,73 @@ Asynchronous (with queue):
 <div class="key-point">Popular tools: <strong>RabbitMQ</strong>, <strong>Apache Kafka</strong>, <strong>AWS SQS</strong>, <strong>Redis Streams</strong>.</div>`,
       },
       {
+        q: 'What is Event-Driven Architecture?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>In event-driven architecture, services send out events about what happened and other services react to them, instead of calling each other directly. This gives <strong>loose coupling</strong> and makes it easy to add new consumers without changing the producer. The trade-offs are real: eventual consistency, harder debugging, no simple end-to-end view, and the need to handle duplicate or out-of-order events. Because services depend on shared event formats, a schema registry and versioning are important.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><p>Trong event-driven architecture, các service phát ra event về những gì đã xảy ra và các service khác phản ứng lại, thay vì gọi trực tiếp lẫn nhau. Cách này mang lại <strong>loose coupling</strong> và giúp dễ dàng thêm consumer mới mà không cần sửa producer. Nhưng cũng có những đánh đổi thực sự: eventual consistency, việc debug khó hơn, không có bức tranh end-to-end đơn giản, và phải xử lý các event bị trùng hoặc đến sai thứ tự. Vì các service phụ thuộc vào định dạng event dùng chung, nên schema registry và versioning là rất quan trọng.</p></p></details>
+<p><strong>Event-Driven Architecture (EDA)</strong> = services communicate by producing and consuming events instead of directly calling each other.</p>
+<p><strong>Analogy:</strong> Instead of Person A calling Person B directly (phone call = synchronous), Person A posts a note on a bulletin board (event), and anyone interested reads it (asynchronous).</p>
+<pre>Traditional (synchronous):
+  Order Service → calls → Payment Service → calls → Inventory Service
+  (tightly coupled, if Payment is slow, everything waits)
+
+Event-Driven (asynchronous):
+  Order Service → publishes "OrderCreated" event
+    → Payment Service listens and processes payment
+    → Inventory Service listens and reserves stock
+    → Notification Service listens and sends email
+  (loosely coupled, each service works independently)</pre>
+<p><strong>Key concepts:</strong></p>
+<ul>
+<li><strong>Event</strong>: "Something happened" (OrderCreated, PaymentCompleted)</li>
+<li><strong>Producer</strong>: Service that emits the event</li>
+<li><strong>Consumer</strong>: Service that reacts to the event</li>
+<li><strong>Event Bus/Broker</strong>: Kafka, RabbitMQ, AWS SNS/SQS</li>
+</ul>
+<p><strong>Example:</strong> When you place an Uber ride:</p>
+<ol>
+<li>"RideRequested" event is published</li>
+<li>Driver Matching Service finds a driver</li>
+<li>Pricing Service calculates fare</li>
+<li>Notification Service alerts the driver</li>
+</ol>
+<div class="key-point">EDA gives you <strong>loose coupling</strong>, <strong>scalability</strong>, and <strong>resilience</strong>. But debugging is harder because there's no linear flow to follow. Use distributed tracing (Jaeger, Zipkin).</div>`,
+      },
+      {
+        q: 'What is the CQRS pattern (Command Query Responsibility Segregation)?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p><strong>CQRS</strong> separates the write model from the read model so each can be tuned on its own: normalized data for correct writes, and denormalized read models shaped for the queries. It helps most when reads and writes have very different scale or shape, or in complex domains where query needs differ from the transactional model. It is not free, since it means two models, usually eventual consistency between them, and more moving parts, so it is overkill for simple CRUD. It works well with event sourcing but does not require it, and the main risk is the read model lagging behind the write model.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><p><strong>CQRS</strong> tách write model khỏi read model để mỗi bên có thể được tối ưu riêng: dữ liệu normalized cho việc ghi đúng đắn, và các read model denormalized được định hình theo các truy vấn. Nó giúp nhiều nhất khi đọc và ghi có quy mô hoặc hình dạng rất khác nhau, hoặc trong các domain phức tạp nơi nhu cầu truy vấn khác với model giao dịch. Nhưng nó không hề miễn phí: phải duy trì hai model, thường phải chấp nhận eventual consistency giữa hai bên, và hệ thống có thêm nhiều thành phần — nên với CRUD đơn giản thì đây là lựa chọn thừa thãi. Nó phối hợp tốt với event sourcing nhưng không bắt buộc phải có, và rủi ro chính là read model bị trễ so với write model.</p></p></details>
+<p><strong>CQRS</strong> = use different models for reading and writing data.</p>
+<p><strong>Analogy:</strong> A restaurant has two windows:</p>
+<ul>
+<li><strong>Order window</strong> (Command/Write): Place orders, send to kitchen</li>
+<li><strong>Pickup window</strong> (Query/Read): Pick up your food, optimized for fast delivery</li>
+</ul>
+<pre>Traditional (same model for read & write):
+  [Client] → [API] → [Single Database] → reads & writes
+
+CQRS (separate models):
+  [Client] → Write API → [Command Model] → [Write DB]
+                                    ↓ (events/sync)
+  [Client] → Read API → [Query Model] → [Read DB]</pre>
+<p><strong>Why separate them?</strong></p>
+<ul>
+<li>Reads and writes have different needs</li>
+<li><strong>Writes</strong>: Need validation, business rules, normalized data</li>
+<li><strong>Reads</strong>: Need speed, denormalized data, different views</li>
+</ul>
+<p><strong>Example:</strong> E-commerce product page:</p>
+<pre>Write model (normalized):
+  products table + categories table + reviews table (3 JOINs to read)
+
+Read model (denormalized, optimized for display):
+  product_view: { name, category_name, avg_rating, review_count }
+  → Single fast read, no JOINs needed</pre>
+<p>The write DB stays normalized (correct). The read DB is a denormalized projection (fast).</p>
+<div class="key-point">CQRS works great with <strong>Event Sourcing</strong>. Often paired with Kafka: writes go to the write DB, events trigger updates to the read DB. Adds complexity — only use when read/write patterns are very different.</div>`,
+      },
+      {
         q: 'What is the difference between Monolith and Microservices architecture?',
         difficulty: 'medium',
         a: `<div class="interview-answer"><p>A monolith is a single deployable application, while microservices split the app into small independent services. Starting with a well-structured monolith is usually best, because microservices add network calls, distributed transactions, and operational overhead. Microservices help when multiple teams need independent deploys or when components need very different scaling. A common failure is splitting too early and creating a distributed monolith, which has the cost without the benefit.</p></div>
@@ -353,55 +1132,105 @@ Microservices:
 <div class="key-point">Start with a monolith, then extract microservices as the system grows. Don't start with microservices for a small project — it's over-engineering.</div>`,
       },
       {
-        q: 'What is Rate Limiting and how do you implement it?',
+        q: 'What is a Circuit Breaker pattern?',
         difficulty: 'medium',
-        a: `<div class="interview-answer"><p>Rate limiting controls how many requests a client can make in a time window, which protects against abuse, runaway clients, and cost spikes, and keeps usage fair. Token bucket is a common default because it allows short bursts while limiting the average rate, sliding window is more precise but heavier, and fixed window is simplest but has boundary spikes. In a distributed system, counters are kept in a shared store like Redis using atomic operations. Responses should return HTTP <code>429</code> with a <code>Retry-After</code> header, and the limit should be keyed per user or API key rather than per IP, which breaks behind NAT.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Rate limiting kiểm soát số request mà một client có thể thực hiện trong một khoảng thời gian, giúp chống lạm dụng, chặn các client lỗi gọi liên tục, tránh chi phí đội lên đột ngột, đồng thời chia đều tài nguyên cho mọi người dùng. Token bucket là lựa chọn mặc định phổ biến vì nó cho phép các đợt burst ngắn trong khi vẫn giới hạn tốc độ trung bình, sliding window thì chính xác hơn nhưng nặng hơn, còn fixed window đơn giản nhất nhưng có các đợt tăng vọt ở ranh giới. Trong một hệ phân tán, các bộ đếm được giữ trong một store dùng chung như Redis bằng các thao tác atomic. Response nên trả về HTTP <code>429</code> kèm header <code>Retry-After</code>, và nên áp giới hạn theo từng user hoặc API key thay vì theo IP, vì IP không còn chính xác khi nhiều người dùng cùng nằm sau một NAT.</p></details>
-<p><strong>Rate Limiting</strong> = controlling how many requests a user/client can make in a given time window.</p>
-<p><strong>Analogy:</strong> A theme park ride allows only 20 people per 5 minutes. If more people come, they wait in line. This prevents overcrowding (server overload).</p>
-<p><strong>Common algorithms:</strong></p>
-<ul>
-<li><strong>Fixed Window</strong>: Count requests in fixed time windows (e.g., 100 requests per minute starting at :00)</li>
-<li><strong>Sliding Window</strong>: Smooth version of fixed window, avoids burst at window edges</li>
-<li><strong>Token Bucket</strong>: A bucket fills with tokens at a fixed rate. Each request takes a token. No tokens = rejected. Allows short bursts.</li>
-<li><strong>Leaky Bucket</strong>: Requests queue up and are processed at a constant rate. Smooths traffic.</li>
-</ul>
-<pre>Token Bucket Example:
-  Bucket capacity: 10 tokens
-  Refill rate: 2 tokens/second
+        a: `<div class="interview-answer"><p>A circuit breaker stops a caller from repeatedly calling a service that is already failing, so it fails fast instead of piling up timeouts and prevents cascading failures. It has three states: closed for normal operation, open after too many failures so requests are rejected immediately, and half-open where a few test requests check for recovery. It protects the caller's threads while giving the failing service time to recover, and it works well with timeouts, retries with backoff, and a fallback. The main challenge is tuning the thresholds so it does not trip on small problems or fail to protect the system.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Một circuit breaker ngăn phía gọi liên tục gọi một service vốn đã đang lỗi, để nó fail nhanh thay vì chồng chất các timeout và ngăn các thất bại lan truyền. Nó có ba trạng thái: closed là lúc hoạt động bình thường; open là sau khi có quá nhiều lỗi nên request bị từ chối ngay lập tức; còn half-open là lúc cho một vài request đi qua để thăm dò xem service đã hồi phục hay chưa. Nó bảo vệ các thread của phía gọi trong khi cho service đang lỗi thời gian để phục hồi, và nó phối hợp tốt với timeout, retry kèm backoff, và một fallback. Thách thức chính là tinh chỉnh ngưỡng sao cho circuit breaker không mở ra chỉ vì vài lỗi vặt, nhưng cũng không phản ứng quá chậm khi sự cố thật xảy ra.</p></details>
+<p>A <strong>Circuit Breaker</strong> prevents your service from repeatedly calling a failing service. It "trips" after too many failures and returns errors immediately.</p>
+<p><strong>Analogy:</strong> Electrical circuit breaker in your house. If there's a short circuit, the breaker trips and cuts power to prevent a fire. After fixing the issue, you flip it back on.</p>
+<pre>States:
+  [CLOSED] → Requests pass through normally
+    ↓ (too many failures)
+  [OPEN] → Requests fail immediately (don't even try)
+    ↓ (after timeout)
+  [HALF-OPEN] → Allow a few test requests
+    ↓ (if they succeed → CLOSED, if they fail → OPEN again)</pre>
+<p><strong>Example:</strong></p>
+<pre>// Without circuit breaker:
+Order Service → Payment Service (down!) → timeout 30s → retry → timeout...
+  → All threads blocked → Order Service also crashes! (cascading failure)
 
-  Request 1-10: ✅ (10 tokens used)
-  Request 11: ❌ 429 Too Many Requests (bucket empty)
-  After 1 second: 2 new tokens available
-  Request 12-13: ✅</pre>
-<p><strong>Example:</strong> Twitter API allows 300 tweets per 3 hours per user. GitHub API allows 5000 requests per hour per authenticated user.</p>
-<div class="key-point">Implement at the <strong>API Gateway level</strong> using Redis to track counters. Return HTTP <code>429 Too Many Requests</code> when limit is exceeded.</div>`,
+// With circuit breaker:
+Order Service → Circuit Breaker → Payment Service (down!)
+  → After 5 failures, breaker OPENs
+  → Next requests get instant error: "Payment unavailable"
+  → Order Service stays healthy, shows user a friendly message</pre>
+<p><strong>Configuration:</strong></p>
+<ul>
+<li>Failure threshold: 5 failures to trip</li>
+<li>Open duration: 30 seconds before trying again</li>
+<li>Half-open: Allow 3 test requests</li>
+</ul>
+<div class="key-point">Implement with <strong>Resilience4j</strong> (Java) or <strong>Hystrix</strong> (legacy). Essential in microservices to prevent cascading failures.</div>`,
+      },
+
+      // ──── 7. AUTHENTICATION & AUTHORIZATION BASICS ────
+      {
+        q: 'What is the difference between Authentication and Authorization?',
+        difficulty: 'easy',
+        a: `<div class="interview-answer"><p>Authentication proves who a user is, and authorization decides what that user is allowed to do. Identity comes first, then permissions, and the two should be kept separate in code. A common security mistake is to authenticate a user and then trust identity or role values sent by the client. Authorization checks should always run on the server against the verified user, never based on what the client claims about itself.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><p>Authentication chứng minh người dùng là ai, còn authorization quyết định người dùng đó được phép làm gì. Danh tính đến trước, rồi mới đến quyền hạn, và hai thứ này nên được tách bạch trong code. Một lỗi bảo mật phổ biến là sau khi xác thực người dùng lại tin vào thông tin danh tính hoặc role do client gửi lên. Các kiểm tra authorization luôn phải chạy ở phía server dựa trên người dùng đã được xác minh, không bao giờ dựa vào những gì client tự khai về mình.</p></p></details>
+<p><strong>Authentication (AuthN)</strong> = "Who are you?" → Verifying identity (login).</p>
+<p><strong>Authorization (AuthZ)</strong> = "What can you do?" → Verifying permissions.</p>
+<p><strong>Analogy:</strong></p>
+<ul>
+<li><strong>Authentication</strong>: Showing your ID card at the airport (proving who you are).</li>
+<li><strong>Authorization</strong>: Your boarding pass says you can enter Gate 5 but not the VIP lounge (what you're allowed to do).</li>
+</ul>
+<pre>Flow:
+  1. User sends username + password → Server verifies → Authentication ✅
+  2. User tries to access /admin → Server checks role → Authorization ✅ or ❌
+
+Common implementations:
+  Authentication: JWT tokens, OAuth 2.0, session cookies
+  Authorization: RBAC (Role-Based), ABAC (Attribute-Based), ACL</pre>
+<p><strong>Example:</strong></p>
+<pre>// JWT token after login:
+{
+  "user_id": 123,
+  "role": "editor",         // used for Authorization
+  "exp": 1699999999         // token expiry
+}
+
+// Authorization check:
+if (user.role === "admin") → allow DELETE /posts
+if (user.role === "editor") → allow PUT /posts
+if (user.role === "viewer") → allow GET /posts only</pre>
+<div class="key-point">Authentication always comes first. You must know WHO the user is before checking WHAT they can do.</div>`,
       },
       {
-        q: 'What is Consistent Hashing and why is it used?',
+        q: 'What is OAuth 2.0 and how does it work?',
         difficulty: 'hard',
-        a: `<div class="interview-answer"><p>With plain hash(key) modulo N, changing the number of servers remaps almost all keys. Consistent hashing places servers and keys on a ring, so adding or removing a node moves only the nearby keys, about one part in N of the data. Virtual nodes give each server many points on the ring to keep load even and avoid hotspots. It is used in systems like DynamoDB, Cassandra, and distributed caches, but hot keys still need replication or bounded loads.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Với hash(key) modulo N thông thường, việc thay đổi số lượng server sẽ remap gần như toàn bộ các key. Consistent hashing đặt các server và key lên một vòng tròn, nên khi thêm hoặc bớt một node thì chỉ những key lân cận mới di chuyển, khoảng một phần N của dữ liệu. Virtual node cho mỗi server nhiều điểm trên vòng để giữ tải đều và tránh hotspot. Nó được dùng trong các hệ như DynamoDB, Cassandra và các distributed cache, nhưng các hot key vẫn cần replication hoặc bounded load.</p></details>
-<p><strong>Consistent Hashing</strong> is a technique for distributing data across servers such that when a server is added or removed, only a minimal amount of data needs to move.</p>
-<p><strong>Problem with simple hashing:</strong></p>
-<pre>server = hash(key) % N   (N = number of servers)
-If N changes (add/remove server), ALMOST ALL keys get remapped! 💀</pre>
-<p><strong>Analogy:</strong> Imagine 4 people sitting in a circle, and you assign tasks by pointing a spinner. If person 2 leaves, only their tasks move to the next person. Everyone else keeps their tasks.</p>
-<pre>Consistent Hashing Ring:
-      0°
-      |
-  [Server A]--90°
-      |         |
- 270°--[Server C]
-      |         |
-  [Server B]--180°
+        a: `<div class="interview-answer"><p><strong>OAuth 2.0</strong> is a framework for delegated authorization that lets an app act for a user without ever seeing the user's password, using scoped tokens that can be revoked. The recommended flow is Authorization Code with <code>PKCE</code>, which keeps the token exchange safe and hides secrets from the browser. OAuth is about authorization, not authentication; proving identity is added by OpenID Connect on top of it. A common mistake is using the old implicit flow or treating the access token as proof of identity.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><p><strong>OAuth 2.0</strong> là một framework cho delegated authorization, cho phép một app hành động thay cho người dùng mà không bao giờ nhìn thấy mật khẩu của họ, bằng cách dùng các token có phạm vi giới hạn và có thể thu hồi. Flow được khuyến nghị là Authorization Code với <code>PKCE</code>, giúp việc trao đổi token an toàn và giấu secret khỏi trình duyệt. OAuth nói về authorization chứ không phải authentication; việc chứng minh danh tính được bổ sung bởi OpenID Connect nằm trên nó. Một sai lầm phổ biến là dùng implicit flow cũ hoặc coi access token như bằng chứng về danh tính.</p></p></details>
+<p><strong>OAuth 2.0</strong> is an authorization framework that lets a third-party app access your data without giving it your password.</p>
+<p><strong>Analogy:</strong> You want a house cleaner (App) to enter your house (Google account). Instead of giving them your house key (password), you give them a temporary access card (token) that only opens the front door (limited access) and expires after 2 hours.</p>
+<pre>OAuth 2.0 Flow (Authorization Code):
 
-Key "user123" hashes to 120° → goes to Server B (next server clockwise)
-If Server B is removed → key goes to Server C (minimal disruption)</pre>
-<p><strong>Key benefit</strong>: When adding/removing a server, only <strong>K/N</strong> keys need to move (K = total keys, N = servers), instead of almost ALL keys.</p>
-<p><strong>Example:</strong> Amazon DynamoDB uses consistent hashing to distribute data across nodes. When a new node joins, only its neighbors' data is partially moved.</p>
-<div class="key-point">Used in: <strong>Memcached</strong>, <strong>DynamoDB</strong>, <strong>Cassandra</strong>, <strong>load balancers</strong>. Essential for any distributed cache or database.</div>`,
+1. User clicks "Login with Google" on YourApp
+2. YourApp redirects to Google: "This app wants access to your email"
+3. User approves on Google's page
+4. Google redirects back to YourApp with an authorization code
+5. YourApp exchanges code for an access token (server-to-server)
+6. YourApp uses the token to call Google APIs
+
+  [User] → [YourApp] → [Google Auth Server]
+                              ↓ (auth code)
+           [YourApp] → exchanges code → [Access Token]
+           [YourApp] → uses token → [Google API: get user email]</pre>
+<p><strong>Key terms:</strong></p>
+<ul>
+<li><strong>Resource Owner</strong>: The user (you)</li>
+<li><strong>Client</strong>: The third-party app</li>
+<li><strong>Authorization Server</strong>: Google/Facebook login server</li>
+<li><strong>Resource Server</strong>: Google API that has your data</li>
+<li><strong>Access Token</strong>: Short-lived key to access resources</li>
+<li><strong>Refresh Token</strong>: Long-lived key to get new access tokens</li>
+</ul>
+<div class="key-point">OAuth 2.0 is for <strong>authorization</strong> (granting access), not authentication. <strong>OpenID Connect (OIDC)</strong> is built on top of OAuth 2.0 and adds authentication (proving identity).</div>`,
       },
+
+      // ──── 8. CLASSIC DESIGN WALKTHROUGHS ────
       {
         q: 'How would you design a URL Shortener (like bit.ly)?',
         difficulty: 'medium',
@@ -470,150 +1299,6 @@ Status: sent → delivered → read</pre>
 <div class="key-point">Key challenge: maintaining millions of WebSocket connections. Use connection servers (stateful) separated from business logic servers (stateless).</div>`,
       },
       {
-        q: 'What is a Reverse Proxy?',
-        difficulty: 'easy',
-        a: `<div class="interview-answer"><p>A reverse proxy sits in front of servers, so clients talk to it and it forwards requests to the backend. It is a good place for TLS termination, caching, compression, and hiding the internal server layout. It differs from a load balancer, which distributes traffic across identical servers, although one tool like Nginx often does both. A common mistake is not forwarding the real client IP with the <code>X-Forwarded-For</code> header, which breaks logging and rate limiting.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Reverse proxy đứng trước các server, nên client nói chuyện với nó và nó chuyển tiếp request tới backend. Đây là nơi tốt để làm TLS termination, caching, nén và ẩn đi bố cục server nội bộ. Nó khác với load balancer, vốn phân phối lưu lượng qua các server giống nhau, dù rằng một công cụ như Nginx thường làm cả hai. Một sai lầm phổ biến là không chuyển tiếp IP thật của client bằng header <code>X-Forwarded-For</code>, khiến việc logging và rate limiting bị hỏng.</p></details>
-<p>A <strong>Reverse Proxy</strong> sits between clients and servers, forwarding client requests to the appropriate backend server.</p>
-<p><strong>Analogy:</strong> You call a company's main phone number (reverse proxy). The receptionist answers and transfers you to the right department (backend server). You never dial the department directly.</p>
-<pre>Forward Proxy (protects clients):
-  [Client] → [Proxy] → [Internet/Servers]
-  Example: VPN, corporate proxy
-
-Reverse Proxy (protects servers):
-  [Internet/Clients] → [Reverse Proxy] → [Backend Servers]
-  Example: Nginx, Cloudflare</pre>
-<p><strong>What a reverse proxy does:</strong></p>
-<ul>
-<li><strong>Load balancing</strong>: Distribute traffic across servers</li>
-<li><strong>SSL termination</strong>: Handle HTTPS encryption/decryption</li>
-<li><strong>Caching</strong>: Cache responses to reduce server load</li>
-<li><strong>Security</strong>: Hide server IPs, block malicious traffic</li>
-<li><strong>Compression</strong>: Compress responses (gzip) before sending to client</li>
-</ul>
-<p><strong>Example:</strong> Almost every website uses Nginx or Cloudflare as a reverse proxy. The client talks to Nginx, which forwards requests to your Node.js/Java app running behind it.</p>
-<div class="key-point">Nginx is the most popular reverse proxy — used by over 30% of all websites.</div>`,
-      },
-      {
-        q: 'What are WebSockets vs HTTP Long Polling vs Server-Sent Events?',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p>These three methods trade off direction, complexity, and infrastructure fit. Long polling is a fallback where the client requests and the server holds the connection until there is data, which works everywhere but is wasteful. Server-Sent Events are a one-way server-to-client stream over plain HTTP that reconnects automatically, which suits feeds, notifications, and live scores. WebSockets are full-duplex over one connection, which fits chat, gaming, and collaborative editing, but all persistent connections need care with load balancers and proxies.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Ba phương pháp này đánh đổi giữa chiều truyền, độ phức tạp và mức phù hợp với hạ tầng. Long polling là phương án dự phòng: client gửi request rồi server giữ kết nối đó cho tới khi có dữ liệu mới trả về; cách này chạy được ở mọi môi trường nhưng khá tốn tài nguyên. Server-Sent Events là một luồng một chiều từ server tới client qua HTTP thuần túy và tự động kết nối lại, phù hợp cho feed, thông báo và tỷ số trực tiếp. WebSockets là full-duplex trên một kết nối, phù hợp cho chat, game và soạn thảo cộng tác, nhưng mọi kết nối lâu dài đều đòi hỏi cấu hình cẩn thận ở phía load balancer và proxy.</p></details>
-<p>These are three ways for a server to push data to clients in real-time:</p>
-<p><strong>1. HTTP Long Polling:</strong></p>
-<pre>Client: "Any new data?" → Server holds connection open...
-   ...waits until there IS new data...
-Server: "Here's your data!" → Client immediately asks again</pre>
-<p>Like repeatedly calling a friend: "Are you done yet? Are you done yet?"</p>
-
-<p><strong>2. Server-Sent Events (SSE):</strong></p>
-<pre>Client opens connection → Server sends events whenever it wants
-(One-way: server → client only)</pre>
-<p>Like a radio broadcast: server pushes updates, client listens.</p>
-
-<p><strong>3. WebSocket:</strong></p>
-<pre>Client ↔ Server (full duplex, both can send anytime)
-Initial HTTP handshake → upgraded to WebSocket</pre>
-<p>Like a phone call: both sides can talk at any time.</p>
-
-<table><tr><th>Feature</th><th>Long Polling</th><th>SSE</th><th>WebSocket</th></tr>
-<tr><td>Direction</td><td>Client→Server</td><td>Server→Client</td><td>Both ways</td></tr>
-<tr><td>Connection</td><td>Reconnect each time</td><td>Persistent</td><td>Persistent</td></tr>
-<tr><td>Overhead</td><td>High (HTTP headers)</td><td>Low</td><td>Very low</td></tr>
-<tr><td>Use case</td><td>Simple notifications</td><td>Live feeds, stocks</td><td>Chat, gaming</td></tr></table>
-<div class="key-point">Use <strong>WebSocket</strong> for bidirectional real-time (chat, games). Use <strong>SSE</strong> for one-way updates (news feed, stock prices). Use <strong>Long Polling</strong> as a fallback when WebSocket isn't available.</div>`,
-      },
-      {
-        q: 'What is the difference between REST and GraphQL?',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p>REST uses fixed endpoints per resource, while GraphQL uses one endpoint where the client asks for exactly the fields it needs. GraphQL helps when many clients need different data, since it avoids over-fetching and custom endpoints, but it moves complexity to the server. With GraphQL the server must manage query depth and cost, HTTP caching mostly disappears, and the N+1 resolver problem needs batching with tools like DataLoader. REST is a good default for simple CRUD and public APIs, while gRPC is another option for internal service-to-service calls.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>REST dùng các endpoint cố định cho mỗi resource, còn GraphQL dùng một endpoint duy nhất nơi client yêu cầu đúng những field mình cần. GraphQL hữu ích khi nhiều client cần dữ liệu khác nhau, vì nó tránh được over-fetching và các endpoint tùy biến, nhưng nó chuyển độ phức tạp sang phía server. Với GraphQL, server phải quản lý độ sâu và chi phí của truy vấn, HTTP caching gần như biến mất, và bài toán N+1 ở resolver cần batching bằng các công cụ như DataLoader. REST là lựa chọn mặc định tốt cho CRUD đơn giản và các API công khai, còn gRPC là một lựa chọn khác cho các lời gọi nội bộ giữa các service.</p></details>
-<p><strong>REST</strong>: Multiple endpoints, each returns a fixed data shape. <strong>GraphQL</strong>: One endpoint, client specifies exactly what data it wants.</p>
-<p><strong>Analogy:</strong></p>
-<ul>
-<li><strong>REST</strong> = A restaurant with a fixed menu. You order "Combo #3" and get whatever's in it — even if you don't want the salad.</li>
-<li><strong>GraphQL</strong> = A buffet. You pick exactly what you want on your plate.</li>
-</ul>
-<pre>REST:
-  GET /users/123         → { id, name, email, address, phone, ... }
-  GET /users/123/posts   → [{ id, title, body, ... }, ...]
-  (2 requests, might get extra data you don't need)
-
-GraphQL:
-  POST /graphql
-  query {
-    user(id: 123) {
-      name
-      posts { title }
-    }
-  }
-  → { name: "John", posts: [{ title: "Hello" }] }
-  (1 request, exactly the data you need)</pre>
-<table><tr><th>Aspect</th><th>REST</th><th>GraphQL</th></tr>
-<tr><td>Endpoints</td><td>Many (/users, /posts)</td><td>One (/graphql)</td></tr>
-<tr><td>Over-fetching</td><td>Common problem</td><td>Client asks for exact fields</td></tr>
-<tr><td>Caching</td><td>Easy (HTTP cache)</td><td>Harder (POST requests)</td></tr>
-<tr><td>Learning curve</td><td>Simple</td><td>Steeper</td></tr></table>
-<div class="key-point">Use REST for simple CRUD APIs. Use GraphQL when you have complex, nested data or multiple clients (mobile, web) needing different data shapes.</div>`,
-      },
-      {
-        q: 'What are ACID properties in databases?',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p>ACID means a transaction is all-or-nothing and leaves the database in a valid state. Isolation is often underestimated because it is a range of levels, such as read committed, repeatable read, and serializable, each allowing different anomalies like dirty reads, non-repeatable reads, and phantoms. Most databases default to read committed, not serializable, so the code must tolerate the remaining anomalies. Durability usually relies on a write-ahead log flushed to disk, and ACID is exactly what becomes hard to keep in distributed systems, where it may be rebuilt with sagas.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>ACID nghĩa là một transaction hoặc thực hiện toàn bộ hoặc không gì cả, và để database ở một trạng thái hợp lệ. Isolation thường bị xem nhẹ vì nó là một dải các mức, như read committed, repeatable read và serializable, mỗi mức cho phép các dị thường khác nhau như dirty read, non-repeatable read và phantom. Hầu hết database mặc định là read committed chứ không phải serializable, nên code phải chịu được những dị thường còn lại. Durability thường dựa vào một write-ahead log được flush xuống đĩa, và ACID chính là thứ trở nên khó giữ trong các hệ phân tán, nơi nó có thể được dựng lại bằng saga.</p></details>
-<p><strong>ACID</strong> ensures database transactions are reliable:</p>
-<ul>
-<li><strong>A</strong>tomicity – All or nothing. If any part fails, the whole transaction rolls back.</li>
-<li><strong>C</strong>onsistency – Data goes from one valid state to another. Rules (constraints) are never broken.</li>
-<li><strong>I</strong>solation – Concurrent transactions don't interfere with each other.</li>
-<li><strong>D</strong>urability – Once committed, data survives crashes (written to disk).</li>
-</ul>
-<p><strong>Analogy (Bank Transfer):</strong></p>
-<pre>Transfer $100 from Alice to Bob:
-  Step 1: Alice's balance -= $100
-  Step 2: Bob's balance += $100
-
-Atomicity:   If step 2 fails, step 1 is rolled back. Alice keeps her $100.
-Consistency: Total money in the system stays the same.
-Isolation:   Another transaction reading balances won't see a half-done state.
-Durability:  After "Transfer complete", even if server crashes, the transfer is saved.</pre>
-<p><strong>Example:</strong> E-commerce checkout:</p>
-<ul>
-<li>Deduct inventory ✅</li>
-<li>Charge payment ✅</li>
-<li>Create order ❌ (fails)</li>
-<li>→ ACID rolls back inventory and payment. Nothing is half-done.</li>
-</ul>
-<div class="key-point">SQL databases (MySQL, PostgreSQL) are ACID by default. Most NoSQL databases sacrifice ACID for performance/scalability (BASE model: Basically Available, Soft state, Eventually consistent).</div>`,
-      },
-      {
-        q: 'What is Eventual Consistency?',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p>Eventual consistency means that once writes stop, all replicas converge to the same value, but for a short time different readers may see different data. It is the tradeoff made for higher availability and lower latency, as in AP systems. It is acceptable for things like likes, follower counts, and feeds, but not for values like account balances. A common problem is read-your-own-writes, where a user does not see their own update, which can be handled with session consistency, reading from the leader, or optimistic UI updates.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Eventual consistency nghĩa là khi các lần ghi dừng lại, mọi replica sẽ hội tụ về cùng một giá trị, nhưng trong một khoảng thời gian ngắn thì những người đọc khác nhau có thể thấy dữ liệu khác nhau. Đó là sự đánh đổi để có availability cao hơn và latency thấp hơn, như trong các hệ AP. Nó chấp nhận được cho những thứ như lượt like, số follower và feed, nhưng không dùng cho các giá trị như số dư tài khoản. Một vấn đề phổ biến là read-your-own-writes, khi một người dùng không thấy bản cập nhật của chính mình, có thể xử lý bằng session consistency, đọc từ leader, hoặc cập nhật UI theo kiểu optimistic.</p></details>
-<p><strong>Eventual Consistency</strong> = after a write, all replicas will <em>eventually</em> return the latest value, but not immediately.</p>
-<p><strong>Strict Consistency</strong> = after a write, ALL reads immediately see the new value.</p>
-<p><strong>Analogy:</strong> You update your profile picture on social media.</p>
-<ul>
-<li><strong>Strict consistency</strong>: Everyone in the world sees your new picture <em>immediately</em>.</li>
-<li><strong>Eventual consistency</strong>: Your friend in Japan might see the old picture for a few seconds, but it'll update soon.</li>
-</ul>
-<pre>Scenario with 3 replicas:
-  Write "name=John" to Replica 1
-  Replica 1 → syncs to Replica 2 (50ms delay)
-  Replica 1 → syncs to Replica 3 (100ms delay)
-
-  Read from Replica 3 at t=50ms → still sees old name (stale!)
-  Read from Replica 3 at t=200ms → sees "John" ✅ (eventually consistent)</pre>
-<p><strong>Where it's used:</strong></p>
-<ul>
-<li>DNS (domain name changes take hours to propagate)</li>
-<li>Social media feeds (a few seconds delay is fine)</li>
-<li>Shopping cart (Cassandra, DynamoDB)</li>
-</ul>
-<div class="key-point">Eventual consistency gives you <strong>higher availability and performance</strong>. Use it when "slightly stale data" is acceptable. Never use it for banking or inventory where accuracy is critical.</div>`,
-      },
-      {
         q: 'How would you design a News Feed system (like Facebook/Twitter)?',
         difficulty: 'hard',
         a: `<div class="interview-answer"><p>The main decision is fan-out on write versus fan-out on read. Fan-out on write precomputes each user's feed when someone posts, which makes reads fast but causes a write storm for users with millions of followers. Fan-out on read builds the feed at read time, which makes writes cheap but reads expensive. Large systems use a hybrid: push for normal users and pull for celebrities, merged at read time, with feeds stored in a cache like Redis, ranked, and paginated by cursor.</p></div>
@@ -650,135 +1335,6 @@ Feed cache per user:
 <div class="key-point">The feed cache is the core. Keep it in Redis as a sorted set of post IDs per user. Only store IDs in the feed, fetch full post content separately.</div>`,
       },
       {
-        q: 'What is a Circuit Breaker pattern?',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p>A circuit breaker stops a caller from repeatedly calling a service that is already failing, so it fails fast instead of piling up timeouts and prevents cascading failures. It has three states: closed for normal operation, open after too many failures so requests are rejected immediately, and half-open where a few test requests check for recovery. It protects the caller's threads while giving the failing service time to recover, and it works well with timeouts, retries with backoff, and a fallback. The main challenge is tuning the thresholds so it does not trip on small problems or fail to protect the system.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Một circuit breaker ngăn phía gọi liên tục gọi một service vốn đã đang lỗi, để nó fail nhanh thay vì chồng chất các timeout và ngăn các thất bại lan truyền. Nó có ba trạng thái: closed là lúc hoạt động bình thường; open là sau khi có quá nhiều lỗi nên request bị từ chối ngay lập tức; còn half-open là lúc cho một vài request đi qua để thăm dò xem service đã hồi phục hay chưa. Nó bảo vệ các thread của phía gọi trong khi cho service đang lỗi thời gian để phục hồi, và nó phối hợp tốt với timeout, retry kèm backoff, và một fallback. Thách thức chính là tinh chỉnh ngưỡng sao cho circuit breaker không mở ra chỉ vì vài lỗi vặt, nhưng cũng không phản ứng quá chậm khi sự cố thật xảy ra.</p></details>
-<p>A <strong>Circuit Breaker</strong> prevents your service from repeatedly calling a failing service. It "trips" after too many failures and returns errors immediately.</p>
-<p><strong>Analogy:</strong> Electrical circuit breaker in your house. If there's a short circuit, the breaker trips and cuts power to prevent a fire. After fixing the issue, you flip it back on.</p>
-<pre>States:
-  [CLOSED] → Requests pass through normally
-    ↓ (too many failures)
-  [OPEN] → Requests fail immediately (don't even try)
-    ↓ (after timeout)
-  [HALF-OPEN] → Allow a few test requests
-    ↓ (if they succeed → CLOSED, if they fail → OPEN again)</pre>
-<p><strong>Example:</strong></p>
-<pre>// Without circuit breaker:
-Order Service → Payment Service (down!) → timeout 30s → retry → timeout...
-  → All threads blocked → Order Service also crashes! (cascading failure)
-
-// With circuit breaker:
-Order Service → Circuit Breaker → Payment Service (down!)
-  → After 5 failures, breaker OPENs
-  → Next requests get instant error: "Payment unavailable"
-  → Order Service stays healthy, shows user a friendly message</pre>
-<p><strong>Configuration:</strong></p>
-<ul>
-<li>Failure threshold: 5 failures to trip</li>
-<li>Open duration: 30 seconds before trying again</li>
-<li>Half-open: Allow 3 test requests</li>
-</ul>
-<div class="key-point">Implement with <strong>Resilience4j</strong> (Java) or <strong>Hystrix</strong> (legacy). Essential in microservices to prevent cascading failures.</div>`,
-      },
-      {
-        q: 'What is Event-Driven Architecture?',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p>In event-driven architecture, services send out events about what happened and other services react to them, instead of calling each other directly. This gives <strong>loose coupling</strong> and makes it easy to add new consumers without changing the producer. The trade-offs are real: eventual consistency, harder debugging, no simple end-to-end view, and the need to handle duplicate or out-of-order events. Because services depend on shared event formats, a schema registry and versioning are important.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><p>Trong event-driven architecture, các service phát ra event về những gì đã xảy ra và các service khác phản ứng lại, thay vì gọi trực tiếp lẫn nhau. Cách này mang lại <strong>loose coupling</strong> và giúp dễ dàng thêm consumer mới mà không cần sửa producer. Nhưng cũng có những đánh đổi thực sự: eventual consistency, việc debug khó hơn, không có bức tranh end-to-end đơn giản, và phải xử lý các event bị trùng hoặc đến sai thứ tự. Vì các service phụ thuộc vào định dạng event dùng chung, nên schema registry và versioning là rất quan trọng.</p></p></details>
-<p><strong>Event-Driven Architecture (EDA)</strong> = services communicate by producing and consuming events instead of directly calling each other.</p>
-<p><strong>Analogy:</strong> Instead of Person A calling Person B directly (phone call = synchronous), Person A posts a note on a bulletin board (event), and anyone interested reads it (asynchronous).</p>
-<pre>Traditional (synchronous):
-  Order Service → calls → Payment Service → calls → Inventory Service
-  (tightly coupled, if Payment is slow, everything waits)
-
-Event-Driven (asynchronous):
-  Order Service → publishes "OrderCreated" event
-    → Payment Service listens and processes payment
-    → Inventory Service listens and reserves stock
-    → Notification Service listens and sends email
-  (loosely coupled, each service works independently)</pre>
-<p><strong>Key concepts:</strong></p>
-<ul>
-<li><strong>Event</strong>: "Something happened" (OrderCreated, PaymentCompleted)</li>
-<li><strong>Producer</strong>: Service that emits the event</li>
-<li><strong>Consumer</strong>: Service that reacts to the event</li>
-<li><strong>Event Bus/Broker</strong>: Kafka, RabbitMQ, AWS SNS/SQS</li>
-</ul>
-<p><strong>Example:</strong> When you place an Uber ride:</p>
-<ol>
-<li>"RideRequested" event is published</li>
-<li>Driver Matching Service finds a driver</li>
-<li>Pricing Service calculates fare</li>
-<li>Notification Service alerts the driver</li>
-</ol>
-<div class="key-point">EDA gives you <strong>loose coupling</strong>, <strong>scalability</strong>, and <strong>resilience</strong>. But debugging is harder because there's no linear flow to follow. Use distributed tracing (Jaeger, Zipkin).</div>`,
-      },
-      {
-        q: 'What is the difference between Authentication and Authorization?',
-        difficulty: 'easy',
-        a: `<div class="interview-answer"><p>Authentication proves who a user is, and authorization decides what that user is allowed to do. Identity comes first, then permissions, and the two should be kept separate in code. A common security mistake is to authenticate a user and then trust identity or role values sent by the client. Authorization checks should always run on the server against the verified user, never based on what the client claims about itself.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><p>Authentication chứng minh người dùng là ai, còn authorization quyết định người dùng đó được phép làm gì. Danh tính đến trước, rồi mới đến quyền hạn, và hai thứ này nên được tách bạch trong code. Một lỗi bảo mật phổ biến là sau khi xác thực người dùng lại tin vào thông tin danh tính hoặc role do client gửi lên. Các kiểm tra authorization luôn phải chạy ở phía server dựa trên người dùng đã được xác minh, không bao giờ dựa vào những gì client tự khai về mình.</p></p></details>
-<p><strong>Authentication (AuthN)</strong> = "Who are you?" → Verifying identity (login).</p>
-<p><strong>Authorization (AuthZ)</strong> = "What can you do?" → Verifying permissions.</p>
-<p><strong>Analogy:</strong></p>
-<ul>
-<li><strong>Authentication</strong>: Showing your ID card at the airport (proving who you are).</li>
-<li><strong>Authorization</strong>: Your boarding pass says you can enter Gate 5 but not the VIP lounge (what you're allowed to do).</li>
-</ul>
-<pre>Flow:
-  1. User sends username + password → Server verifies → Authentication ✅
-  2. User tries to access /admin → Server checks role → Authorization ✅ or ❌
-
-Common implementations:
-  Authentication: JWT tokens, OAuth 2.0, session cookies
-  Authorization: RBAC (Role-Based), ABAC (Attribute-Based), ACL</pre>
-<p><strong>Example:</strong></p>
-<pre>// JWT token after login:
-{
-  "user_id": 123,
-  "role": "editor",         // used for Authorization
-  "exp": 1699999999         // token expiry
-}
-
-// Authorization check:
-if (user.role === "admin") → allow DELETE /posts
-if (user.role === "editor") → allow PUT /posts
-if (user.role === "viewer") → allow GET /posts only</pre>
-<div class="key-point">Authentication always comes first. You must know WHO the user is before checking WHAT they can do.</div>`,
-      },
-      {
-        q: 'What is OAuth 2.0 and how does it work?',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p><strong>OAuth 2.0</strong> is a framework for delegated authorization that lets an app act for a user without ever seeing the user's password, using scoped tokens that can be revoked. The recommended flow is Authorization Code with <code>PKCE</code>, which keeps the token exchange safe and hides secrets from the browser. OAuth is about authorization, not authentication; proving identity is added by OpenID Connect on top of it. A common mistake is using the old implicit flow or treating the access token as proof of identity.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><p><strong>OAuth 2.0</strong> là một framework cho delegated authorization, cho phép một app hành động thay cho người dùng mà không bao giờ nhìn thấy mật khẩu của họ, bằng cách dùng các token có phạm vi giới hạn và có thể thu hồi. Flow được khuyến nghị là Authorization Code với <code>PKCE</code>, giúp việc trao đổi token an toàn và giấu secret khỏi trình duyệt. OAuth nói về authorization chứ không phải authentication; việc chứng minh danh tính được bổ sung bởi OpenID Connect nằm trên nó. Một sai lầm phổ biến là dùng implicit flow cũ hoặc coi access token như bằng chứng về danh tính.</p></p></details>
-<p><strong>OAuth 2.0</strong> is an authorization framework that lets a third-party app access your data without giving it your password.</p>
-<p><strong>Analogy:</strong> You want a house cleaner (App) to enter your house (Google account). Instead of giving them your house key (password), you give them a temporary access card (token) that only opens the front door (limited access) and expires after 2 hours.</p>
-<pre>OAuth 2.0 Flow (Authorization Code):
-
-1. User clicks "Login with Google" on YourApp
-2. YourApp redirects to Google: "This app wants access to your email"
-3. User approves on Google's page
-4. Google redirects back to YourApp with an authorization code
-5. YourApp exchanges code for an access token (server-to-server)
-6. YourApp uses the token to call Google APIs
-
-  [User] → [YourApp] → [Google Auth Server]
-                              ↓ (auth code)
-           [YourApp] → exchanges code → [Access Token]
-           [YourApp] → uses token → [Google API: get user email]</pre>
-<p><strong>Key terms:</strong></p>
-<ul>
-<li><strong>Resource Owner</strong>: The user (you)</li>
-<li><strong>Client</strong>: The third-party app</li>
-<li><strong>Authorization Server</strong>: Google/Facebook login server</li>
-<li><strong>Resource Server</strong>: Google API that has your data</li>
-<li><strong>Access Token</strong>: Short-lived key to access resources</li>
-<li><strong>Refresh Token</strong>: Long-lived key to get new access tokens</li>
-</ul>
-<div class="key-point">OAuth 2.0 is for <strong>authorization</strong> (granting access), not authentication. <strong>OpenID Connect (OIDC)</strong> is built on top of OAuth 2.0 and adds authentication (proving identity).</div>`,
-      },
-      {
         q: 'How would you design a Notification System?',
         difficulty: 'hard',
         a: `<div class="interview-answer"><p>A notification system works well as an event-driven pipeline built around a queue: services send notification events, and workers deliver them through channel-specific senders such as push, SMS, email, and in-app. Important features include user preferences and opt-outs, deduplication so retries do not send twice, per-user rate limiting, and templates with localization. Because outside providers fail and throttle, retries with backoff, dead-letter queues, and fallbacks are needed. Priority matters too, since a one-time password cannot wait behind marketing messages.</p></div>
@@ -813,190 +1369,6 @@ if (user.role === "viewer") → allow GET /posts only</pre>
 <pre>If SMS fails: retry after 1s → 2s → 4s → 8s → give up</pre>
 <p><strong>Example:</strong> When your Amazon package ships, the notification system sends a push notification, an email, and an in-app message — all through different workers but triggered by one event.</p>
 <div class="key-point">Use a <strong>message queue</strong> (Kafka/SQS) to decouple notification sending. This ensures notifications are delivered even if a worker crashes — the message stays in the queue.</div>`,
-      },
-      {
-        q: 'What is the Single Point of Failure (SPOF) and how do you eliminate it?',
-        difficulty: 'easy',
-        a: `<div class="interview-answer"><p>A <strong>single point of failure</strong> is any component whose failure brings down the whole system. It is removed by adding redundancy: several app servers behind a load balancer, a backup load balancer, a database with replicas and automatic failover, and multi-zone deployment. Redundancy alone is not enough, so health checks and automatic failover are needed, and the failover should be tested because untested failover often does not work. Watch for hidden single points of failure such as a shared config service, DNS, a single message broker, or the deploy pipeline.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><p><strong>Single point of failure</strong> là bất kỳ thành phần nào mà khi nó hỏng sẽ kéo sập cả hệ thống. Ta loại bỏ nó bằng cách thêm redundancy: nhiều app server phía sau một load balancer, một load balancer dự phòng, một database có replica và tự động failover, cùng với việc triển khai trên nhiều zone. Chỉ redundancy thôi thì chưa đủ, nên cần health check và tự động failover, và việc failover cần được kiểm thử vì failover chưa được test thường không hoạt động. Hãy để ý các single point of failure ẩn như một config service dùng chung, DNS, một message broker duy nhất, hoặc pipeline deploy.</p></p></details>
-<p>A <strong>Single Point of Failure (SPOF)</strong> is any component whose failure would bring down the entire system.</p>
-<p><strong>Analogy:</strong> A chain is only as strong as its weakest link. If your system has one database server and it crashes, everything goes down — that's a SPOF.</p>
-<pre>SPOF Examples:
-  ❌ One database server → crashes → entire app is down
-  ❌ One load balancer → crashes → no traffic gets through
-  ❌ One data center → power outage → everything goes dark
-
-Eliminating SPOFs:
-  ✅ Database: Master + Replica (auto-failover)
-  ✅ Load Balancer: Active-Passive pair
-  ✅ Data Center: Multi-region deployment
-  ✅ DNS: Multiple DNS providers</pre>
-<p><strong>Strategies:</strong></p>
-<ul>
-<li><strong>Redundancy</strong>: Duplicate every critical component</li>
-<li><strong>Failover</strong>: Automatic switch to backup when primary fails</li>
-<li><strong>Multi-region</strong>: Deploy in multiple geographic regions</li>
-<li><strong>Health checks</strong>: Continuously monitor and auto-replace unhealthy nodes</li>
-</ul>
-<p><strong>Example:</strong> Netflix runs in multiple AWS regions. If the entire US-East region goes down, traffic automatically routes to US-West. Users don't even notice.</p>
-<div class="key-point">Walk through your architecture diagram and ask: "What happens if THIS component dies?" If the answer is "everything breaks", that's a SPOF you need to address.</div>`,
-      },
-      {
-        q: 'How would you design a Rate Limiter service?',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p>A rate limiter service controls request traffic to protect backends from overload and abuse, and the main concerns are where the counters live, latency, and behavior on failure. Keeping the state in <code>Redis</code> with atomic Lua scripts makes each check fast and safe from race conditions. Token bucket is a good default because it allows short bursts while capping the average rate; a sliding-window log is more accurate but uses more memory. Two key choices are whether to fail open or fail closed when Redis is down (usually fail open) and running the check close to the edge, returning <code>429</code> with a <code>Retry-After</code> header.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><p>Một rate limiter service kiểm soát lưu lượng request để bảo vệ backend khỏi quá tải và lạm dụng, và ba điều cần cân nhắc chính là counter lưu ở đâu, độ trễ thêm vào bao nhiêu, và hệ thống hành xử thế nào khi có sự cố. Giữ state trong <code>Redis</code> với các Lua script atomic giúp mỗi lần kiểm tra vừa nhanh vừa an toàn khỏi race condition. Token bucket là lựa chọn mặc định tốt vì nó cho phép burst ngắn trong khi vẫn giới hạn tốc độ trung bình; sliding-window log thì chính xác hơn nhưng tốn nhiều bộ nhớ hơn. Hai lựa chọn quan trọng là nên fail open hay fail closed khi Redis chết (thường là fail open) và chạy phần kiểm tra gần edge, trả về <code>429</code> kèm header <code>Retry-After</code>.</p></p></details>
-<p>A rate limiter service controls request traffic to protect backend services from overload and abuse.</p>
-<p><strong>Design requirements:</strong></p>
-<ul>
-<li>Low latency (must not slow down requests)</li>
-<li>Distributed (works across multiple servers)</li>
-<li>Configurable rules (different limits per API, user, IP)</li>
-</ul>
-<pre>Architecture:
-  [Client] → [API Gateway] → [Rate Limiter] → [Backend Service]
-                                    ↓
-                              [Redis Cluster]
-                           (stores counters)</pre>
-<p><strong>Token Bucket implementation with Redis:</strong></p>
-<pre>// For each user/API key, store in Redis:
-Key: "rate:user123:/api/orders"
-Value: { tokens: 8, last_refill: 1699000000 }
-
-On each request:
-1. Calculate tokens to add since last_refill
-2. If tokens > 0: decrement and ALLOW
-3. If tokens == 0: REJECT with 429
-
-// Redis Lua script (atomic operation):
-local tokens = redis.call('GET', key)
-if tonumber(tokens) > 0 then
-  redis.call('DECR', key)
-  return 1  -- allowed
-else
-  return 0  -- rejected
-end</pre>
-<p><strong>Rules configuration:</strong></p>
-<pre>rules:
-  - api: /api/login
-    limit: 5 requests/minute/IP     # prevent brute force
-  - api: /api/orders
-    limit: 100 requests/minute/user  # normal usage
-  - api: /api/search
-    limit: 30 requests/minute/user   # expensive query</pre>
-<p><strong>Response headers:</strong></p>
-<pre>X-RateLimit-Limit: 100
-X-RateLimit-Remaining: 42
-X-RateLimit-Reset: 1699001000
-HTTP 429 Too Many Requests (when limit exceeded)</pre>
-<div class="key-point">Use <strong>Redis</strong> for distributed rate limiting (fast, atomic). Run the rate limiter in the <strong>API Gateway</strong> so it protects all services uniformly.</div>`,
-      },
-      {
-        q: 'What is a Bloom Filter and when would you use it?',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p>A <strong>Bloom filter</strong> is a space-efficient way to test set membership that answers either <em>definitely not present</em> or <em>probably present</em>; false positives can happen but false negatives never do. This makes it useful as a cheap in-memory check before an expensive lookup. A common use is avoiding disk reads for keys that do not exist, as done in Cassandra and Bigtable, and it also helps defend against cache-penetration. The trade-offs are that items cannot be deleted from a basic Bloom filter, and the false-positive rate is tuned by the bit-array size and the number of hash functions.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><p><strong>Bloom filter</strong> là một cách tiết kiệm bộ nhớ để kiểm tra một phần tử có thuộc tập hợp hay không, và nó trả lời hoặc là <em>chắc chắn không có</em> hoặc là <em>có thể có</em>; false positive có thể xảy ra nhưng false negative thì không bao giờ. Điều này khiến nó hữu ích như một bước kiểm tra rẻ trong bộ nhớ trước khi thực hiện một lần tra cứu tốn kém. Một ứng dụng phổ biến là tránh đọc đĩa cho các key không tồn tại, như Cassandra và Bigtable đang làm, và nó cũng giúp chống lại cache-penetration. Đánh đổi là không thể xóa phần tử khỏi một Bloom filter cơ bản, và tỉ lệ false positive được điều chỉnh qua kích thước mảng bit và số lượng hàm hash.</p></p></details>
-<p>A <strong>Bloom Filter</strong> is a space-efficient data structure that tells you:</p>
-<ul>
-<li>"Definitely NOT in the set" → <strong>100% certain</strong></li>
-<li>"Probably in the set" → <strong>might be wrong</strong> (false positive)</li>
-</ul>
-<p><strong>Analogy:</strong> A bouncer at a club with a guest list. The bouncer can quickly say "you're definitely NOT on the list" (accurate). But sometimes they say "you might be on the list, go check inside" (might be wrong).</p>
-<pre>How it works:
-1. A bit array of size m (all zeros initially)
-2. k hash functions
-
-Adding "apple":
-  hash1("apple") = 3  → set bit 3
-  hash2("apple") = 7  → set bit 7
-  hash3("apple") = 11 → set bit 11
-
-  Bit array: [0,0,0,1,0,0,0,1,0,0,0,1,0,0,0]
-
-Checking "banana":
-  hash1("banana") = 3  → bit 3 is 1 ✅
-  hash2("banana") = 5  → bit 5 is 0 ❌ → DEFINITELY NOT in set
-
-Checking "grape":
-  All bits are 1 → PROBABLY in set (could be false positive)</pre>
-<p><strong>Use cases:</strong></p>
-<ul>
-<li><strong>Chrome Safe Browsing</strong>: Check if a URL is malicious (filter 99% of URLs instantly)</li>
-<li><strong>Database queries</strong>: Check if a key exists before hitting disk (Cassandra, HBase)</li>
-<li><strong>Email spam</strong>: Quick check if an email was already seen</li>
-<li><strong>Username availability</strong>: Fast "this username is taken" check</li>
-</ul>
-<div class="key-point">Bloom filters use <strong>very little memory</strong> compared to storing actual items. 1 billion items can be checked with ~1GB of memory and &lt;1% false positive rate.</div>`,
-      },
-      {
-        q: 'How do you handle distributed transactions across microservices?',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p>The best first option for distributed transactions is to avoid them by redrawing service boundaries so the transaction fits inside one service. When that is not possible, two-phase commit is avoided because it blocks and does not scale, and a <strong>Saga</strong> is used instead: a series of local transactions with compensating actions to undo work on failure. This means accepting eventual consistency and designing compensations as business actions, such as a refund. Pairing it with the transactional outbox to publish events reliably and making each step idempotent helps, and because sagas have no isolation, intermediate states are guarded with status fields or semantic locks.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><p>Lựa chọn đầu tiên tốt nhất cho distributed transaction là tránh chúng bằng cách vẽ lại ranh giới service sao cho giao dịch nằm gọn trong một service. Khi không thể làm vậy, ta tránh two-phase commit vì nó blocking và không scale được, và dùng <strong>Saga</strong> thay thế: một chuỗi các local transaction kèm các hành động bù trừ để hoàn tác công việc khi có lỗi. Điều này nghĩa là chấp nhận eventual consistency và thiết kế các bù trừ như những hành động nghiệp vụ, chẳng hạn hoàn tiền. Nên kết hợp saga với transactional outbox để phát event một cách đáng tin cậy, và làm cho từng bước đều idempotent. Ngoài ra vì saga không có isolation, các trạng thái trung gian phải được bảo vệ bằng trường status hoặc semantic lock.</p></p></details>
-<p>In microservices, a single business operation may span multiple services/databases. You can't use a simple database transaction because each service has its own database.</p>
-<p><strong>Problem example:</strong></p>
-<pre>Place Order:
-  1. Order Service: Create order ✅
-  2. Payment Service: Charge credit card ✅
-  3. Inventory Service: Deduct stock ❌ (out of stock!)
-  → Need to undo steps 1 and 2!</pre>
-<p><strong>Solution 1: Saga Pattern</strong> (most popular)</p>
-<pre>Choreography Saga (event-driven):
-  Order Created → Payment Service listens → Payment Charged
-  → Inventory Service listens → Stock Deducted → Done!
-  
-  If Inventory fails → publishes "StockFailed" event
-  → Payment Service listens → Refund issued
-  → Order Service listens → Order cancelled
-
-Orchestration Saga (central coordinator):
-  [Saga Orchestrator]
-    → Step 1: Call Order Service
-    → Step 2: Call Payment Service  
-    → Step 3: Call Inventory Service (fails!)
-    → Compensate Step 2: Refund payment
-    → Compensate Step 1: Cancel order</pre>
-<p><strong>Solution 2: Two-Phase Commit (2PC)</strong></p>
-<pre>Phase 1 (Prepare): Coordinator asks all services "Can you commit?"
-  All say YES → Phase 2: "Commit!"
-  Any says NO → Phase 2: "Rollback!"
-
-(Rarely used in microservices — too slow and blocking)</pre>
-<div class="key-point">Use the <strong>Saga pattern</strong> in microservices. Choreography for simple flows, Orchestration for complex flows. Always define <strong>compensating actions</strong> (undo) for each step.</div>`,
-      },
-      {
-        q: 'What is the CQRS pattern (Command Query Responsibility Segregation)?',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p><strong>CQRS</strong> separates the write model from the read model so each can be tuned on its own: normalized data for correct writes, and denormalized read models shaped for the queries. It helps most when reads and writes have very different scale or shape, or in complex domains where query needs differ from the transactional model. It is not free, since it means two models, usually eventual consistency between them, and more moving parts, so it is overkill for simple CRUD. It works well with event sourcing but does not require it, and the main risk is the read model lagging behind the write model.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><p><strong>CQRS</strong> tách write model khỏi read model để mỗi bên có thể được tối ưu riêng: dữ liệu normalized cho việc ghi đúng đắn, và các read model denormalized được định hình theo các truy vấn. Nó giúp nhiều nhất khi đọc và ghi có quy mô hoặc hình dạng rất khác nhau, hoặc trong các domain phức tạp nơi nhu cầu truy vấn khác với model giao dịch. Nhưng nó không hề miễn phí: phải duy trì hai model, thường phải chấp nhận eventual consistency giữa hai bên, và hệ thống có thêm nhiều thành phần — nên với CRUD đơn giản thì đây là lựa chọn thừa thãi. Nó phối hợp tốt với event sourcing nhưng không bắt buộc phải có, và rủi ro chính là read model bị trễ so với write model.</p></p></details>
-<p><strong>CQRS</strong> = use different models for reading and writing data.</p>
-<p><strong>Analogy:</strong> A restaurant has two windows:</p>
-<ul>
-<li><strong>Order window</strong> (Command/Write): Place orders, send to kitchen</li>
-<li><strong>Pickup window</strong> (Query/Read): Pick up your food, optimized for fast delivery</li>
-</ul>
-<pre>Traditional (same model for read & write):
-  [Client] → [API] → [Single Database] → reads & writes
-
-CQRS (separate models):
-  [Client] → Write API → [Command Model] → [Write DB]
-                                    ↓ (events/sync)
-  [Client] → Read API → [Query Model] → [Read DB]</pre>
-<p><strong>Why separate them?</strong></p>
-<ul>
-<li>Reads and writes have different needs</li>
-<li><strong>Writes</strong>: Need validation, business rules, normalized data</li>
-<li><strong>Reads</strong>: Need speed, denormalized data, different views</li>
-</ul>
-<p><strong>Example:</strong> E-commerce product page:</p>
-<pre>Write model (normalized):
-  products table + categories table + reviews table (3 JOINs to read)
-
-Read model (denormalized, optimized for display):
-  product_view: { name, category_name, avg_rating, review_count }
-  → Single fast read, no JOINs needed</pre>
-<p>The write DB stays normalized (correct). The read DB is a denormalized projection (fast).</p>
-<div class="key-point">CQRS works great with <strong>Event Sourcing</strong>. Often paired with Kafka: writes go to the write DB, events trigger updates to the read DB. Adds complexity — only use when read/write patterns are very different.</div>`,
       },
       {
         q: 'How would you design a file storage system like Google Drive/Dropbox?',
@@ -1036,247 +1408,417 @@ Table: chunks
 <div class="key-point">The magic is in <strong>chunking + deduplication + delta sync</strong>. This is what makes Dropbox fast even on slow connections.</div>`,
       },
       {
-        q: 'What is a cache stampede (thundering herd) and how do you prevent it?',
-        difficulty: 'tricky',
-        a: `<div class="interview-answer"><p>A <strong>cache stampede</strong> happens when a popular key expires and many concurrent requests all miss at the same time and hit the database together. A main fix is a lock or single-flight approach, where only one request recomputes the value while the others wait or serve stale data, so the database sees one query instead of thousands. Other useful tactics are refreshing a bit before the TTL, serving stale data while refreshing in the background, and adding random jitter to TTLs so keys do not expire together. A related problem is cache penetration, where misses for keys that do not exist are handled with a Bloom filter or negative caching.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><p><strong>Cache stampede</strong> xảy ra khi một key phổ biến hết hạn và nhiều request đồng thời cùng miss một lúc rồi cùng dồn vào database. Cách khắc phục chính là dùng lock hoặc single-flight: chỉ để đúng một request đi tính lại giá trị, còn các request khác thì chờ hoặc tạm dùng dữ liệu cũ, nhờ vậy database chỉ nhận một truy vấn thay vì hàng nghìn. Các chiến thuật hữu ích khác là làm mới một chút trước khi TTL hết, phục vụ dữ liệu cũ trong khi làm mới ở nền, và thêm jitter ngẫu nhiên vào TTL để các key không hết hạn cùng lúc. Một vấn đề họ hàng là cache penetration — các request liên tục hỏi những key vốn không tồn tại — và cách xử lý là dùng Bloom filter hoặc negative caching.</p></p></details>
-<p>A <strong>cache stampede</strong>: a popular cache key expires, and thousands of concurrent requests all miss at once and hit the database together — often taking it down. The nastiest version is self-inflicted: the DB slows, requests pile up, and the retry wave makes it worse.</p>
-<pre>The scenario:
-  key "home_feed" (10,000 req/s) expires at 12:00:00
-  → 10,000 requests miss simultaneously
-  → 10,000 identical queries slam the DB
-  → DB melts, latency spikes, retries amplify the load</pre>
-<p><strong>Defenses (combine several):</strong></p>
-<ul>
-<li><strong>Request coalescing / single-flight</strong>: only ONE request per key recomputes; the rest wait for its result (Go <code>singleflight</code>, a per-key mutex in Redis: <code>SET lock:key NX PX 3000</code>).</li>
-<li><strong>Stale-while-revalidate</strong>: serve the expired value immediately, refresh in the background. Users see slightly stale data instead of an outage.</li>
-<li><strong>Jittered TTL</strong>: <code>ttl = base + random(0, 10%)</code> so keys written together don't expire together.</li>
-<li><strong>Early probabilistic refresh</strong>: each hit refreshes with a probability that grows as expiry approaches (XFetch algorithm) — the key never actually expires under load.</li>
-<li><strong>Negative caching</strong>: cache "not found" results briefly so missing keys can't be used to bypass the cache.</li>
-</ul>
-<p><strong>Related: the hot key / celebrity problem</strong> — one key too popular for a single cache node (Bieber posts a photo):</p>
-<pre>Fixes: local in-process cache (even 1s TTL absorbs most reads),
-       replicate the key: feed:123#1..N on different nodes, pick randomly</pre>
-<div class="key-point">Interviewers push on this after any "add a cache" answer. The senior move is naming the failure mode unprompted: "I'd add jittered TTLs and single-flight so we don't stampede the DB on expiry."</div>`,
-      },
-      {
-        q: 'How do you generate unique IDs in a distributed system?',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p>Generating unique IDs in a distributed system is a trade-off between uniqueness, sortability, and coordination cost. UUIDv4 needs no coordination but is random, which makes it a poor database key and not sortable. A common choice is a Snowflake-style 64-bit ID that packs a timestamp, machine ID, and a sequence, giving roughly time-sorted IDs with no per-ID coordination, though it needs unique machine IDs and depends on clocks. For sortable IDs without machine setup, <code>ULID</code> or <code>UUIDv7</code> are modern options, while ticket servers and database sequences work but add a central bottleneck.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><p>Sinh unique ID trong hệ thống phân tán là một sự đánh đổi giữa tính duy nhất, khả năng sắp xếp, và chi phí phối hợp. UUIDv4 không cần phối hợp giữa các node nhưng lại hoàn toàn ngẫu nhiên, nên vừa không sắp xếp được vừa là một database key kém hiệu quả. Một lựa chọn phổ biến là ID 64-bit kiểu Snowflake gói timestamp, machine ID và một sequence, cho ra các ID gần như được sắp theo thời gian mà không cần phối hợp cho từng ID, dù nó cần machine ID duy nhất và phụ thuộc vào đồng hồ. Để có ID sắp xếp được mà không cần thiết lập machine, <code>ULID</code> hoặc <code>UUIDv7</code> là các lựa chọn hiện đại, trong khi ticket server và database sequence vẫn dùng được nhưng thêm một điểm nghẽn tập trung.</p></p></details>
-<p>Auto-increment doesn't work across many nodes. Classic trade-off question: uniqueness vs sortability vs coordination.</p>
-<table><tr><th>Approach</th><th>Pros</th><th>Cons</th></tr>
-<tr><td>UUID v4</td><td>No coordination, trivial</td><td>128-bit, random → terrible as B-tree PK (random inserts fragment the index), not time-sortable</td></tr>
-<tr><td>DB auto-increment</td><td>Simple, sortable</td><td>SPOF, doesn't scale writes; multi-master offset trick (1,3,5.. / 2,4,6..) is brittle</td></tr>
-<tr><td>Ticket server (Flickr)</td><td>Central control</td><td>Extra hop, needs HA pair</td></tr>
-<tr><td>Snowflake</td><td>64-bit, time-sortable, no coordination per ID</td><td>Needs unique worker IDs, sensitive to clock skew</td></tr>
-<tr><td>UUID v7 / ULID / KSUID</td><td>Time-ordered + random, index-friendly</td><td>128-bit (bigger than Snowflake)</td></tr>
-</table>
-<pre>Twitter Snowflake — 64 bits:
-| 1 bit | 41 bits timestamp (ms) | 10 bits machine ID | 12 bits sequence |
-  sign    ~69 years of ms         1024 workers          4096 IDs/ms/worker
-
-= 4M+ IDs per second per worker, roughly time-sorted, fits in a BIGINT</pre>
-<p><strong>The tricky follow-up — clock skew:</strong> what if the machine clock moves backward (NTP correction)? Snowflake generators must refuse to issue IDs (wait or error) until the clock catches up, otherwise duplicates. This is the detail interviewers fish for.</p>
-<div class="key-point">Good default today: <strong>UUID v7</strong> (time-ordered, standardized, no infrastructure) or <strong>Snowflake</strong> when you need compact 64-bit sortable IDs. Mention why random UUIDv4 hurts clustered-index insert performance — that's the senior signal.</div>`,
-      },
-      {
-        q: 'Is exactly-once delivery possible in distributed systems?',
-        difficulty: 'tricky',
-        a: `<div class="interview-answer"><p>Exactly-once <em>delivery</em> is not possible over an unreliable network, because the sender can never be sure its message or the acknowledgment arrived, so it must retry, which can create duplicates. What is achievable is exactly-once <em>processing</em>, done with at-least-once delivery plus idempotent consumers or deduplication on a unique message ID. The real work is making the receiver idempotent, deduping by key, and using the outbox and inbox patterns. Kafka's exactly-once feature works this way within Kafka, using idempotent producers and transactions, not across arbitrary external systems.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><p>Exactly-once <em>delivery</em> là không thể trên một mạng không đáng tin cậy, vì bên gửi không bao giờ chắc chắn tin nhắn hay acknowledgment của mình đã đến, nên nó phải retry, và điều này có thể tạo ra bản trùng. Thứ thực sự đạt được là exactly-once <em>processing</em>, làm bằng cách kết hợp at-least-once delivery với consumer idempotent hoặc khử trùng lặp theo một message ID duy nhất. Nói cách khác, phần việc thật nằm ở phía người nhận: làm cho nó idempotent, khử trùng theo key, và áp dụng outbox cùng inbox pattern. Tính năng exactly-once của Kafka hoạt động theo cách này bên trong Kafka, dùng idempotent producer và transaction, chứ không phải xuyên qua các hệ thống bên ngoài tùy ý.</p></p></details>
-<p>The trick question: <strong>exactly-once <em>delivery</em> is impossible</strong> over an unreliable network — but <strong>exactly-once <em>processing</em> (effectively-once)</strong> is achievable.</p>
-<pre>Why delivery can't be exactly-once:
-  Producer sends message → network timeout → was it received?
-  - Don't retry → maybe ZERO deliveries (message lost)
-  - Retry       → maybe TWO deliveries (it had arrived)
-  You cannot distinguish "lost" from "slow ack". (Two Generals problem)</pre>
-<p><strong>So real systems pick at-least-once + deduplication:</strong></p>
-<pre>1. Producer: retry until acknowledged (at-least-once)
-   + attach a stable message ID / idempotency key
-
-2. Consumer: make processing IDEMPOTENT
-   INSERT INTO processed_messages(message_id) VALUES (?)  -- unique constraint
-   → duplicate arrives → constraint violation → skip, ack, move on
-
-3. Or make the operation naturally idempotent:
-   SET balance = 100        (idempotent — safe to repeat)
-   vs balance = balance + 10 (NOT idempotent — must dedupe)</pre>
-<p><strong>What about "Kafka exactly-once semantics (EOS)"?</strong> It's transactional: for Kafka→Kafka pipelines, consuming offsets and producing results commit <em>atomically</em>, so reprocessing isn't visible downstream. The moment you touch an external system (DB, email, payment API), you're back to needing idempotency on that system.</p>
-<div class="key-point">Interview-ready answer: "Exactly-once delivery is impossible; we get effectively-once by combining at-least-once delivery with idempotent consumers — dedup table keyed by message ID, updated in the same transaction as the business change."</div>`,
-      },
-      {
-        q: 'How do you implement a distributed lock? What can go wrong?',
-        difficulty: 'tricky',
-        a: `<div class="interview-answer"><p>A distributed lock in Redis often starts with <code>SETNX</code>, and the important part is understanding its failure modes. An expiry is always needed so a crashed holder does not deadlock, but if a process pauses past the TTL, the lock can expire and another client can take it, leaving two clients that both think they hold it. A <strong>fencing token</strong>, a number that always increases and is checked by the protected resource, blocks writes from a stale holder. Redlock across nodes exists but is debated, so the safer path is often to avoid locks and rely on idempotency, unique constraints, or conditional updates.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><p>Một distributed lock trong Redis thường bắt đầu với <code>SETNX</code>, và phần quan trọng là hiểu các chế độ thất bại của nó. Luôn cần một thời gian hết hạn để một holder bị crash không gây deadlock, nhưng nếu một tiến trình tạm dừng vượt quá TTL, lock có thể hết hạn và một client khác chiếm lấy, dẫn đến hai client cùng nghĩ mình đang giữ lock. Một <strong>fencing token</strong>, một con số luôn tăng và được kiểm tra bởi tài nguyên được bảo vệ, sẽ chặn các thao tác ghi từ một holder cũ. Redlock trên nhiều node có tồn tại nhưng còn gây tranh cãi, nên con đường an toàn hơn thường là tránh dùng lock và dựa vào idempotency, unique constraint, hoặc conditional update.</p></p></details>
-<p>Naive Redis lock, and the interview is about its failure modes:</p>
-<pre>SET lock:order:42 &lt;token&gt; NX PX 30000   -- acquire: only if not exists, 30s TTL
--- release: must be atomic check-and-delete (Lua), only if WE still own it:
-if redis.call("GET", key) == token then redis.call("DEL", key) end</pre>
-<p><strong>The famous failure (Kleppmann's GC-pause scenario):</strong></p>
-<pre>1. Client A acquires lock (TTL 30s)
-2. A hits a 40s stop-the-world GC pause / network blip
-3. Lock EXPIRES; client B acquires it and starts writing
-4. A wakes up, still believes it holds the lock → writes too
-→ TWO writers. The lock did not protect anything.</pre>
-<p><strong>Fix: fencing tokens</strong> — the lock service hands out a monotonically increasing number; the protected resource rejects stale tokens:</p>
-<pre>A gets lock with token 33 → pauses
-B gets lock with token 34 → writes (storage records 34)
-A wakes, writes with token 33 → storage: 33 &lt; 34 → REJECTED ✅</pre>
-<ul>
-<li><strong>Redis Redlock</strong> (quorum over N independent Redis nodes): controversial — Kleppmann showed it's unsafe under clock jumps/pauses without fencing. Fine for efficiency locks, not correctness locks.</li>
-<li><strong>ZooKeeper / etcd</strong>: consensus-backed, ephemeral nodes + monotonic versions (natural fencing tokens) — the right tool when correctness matters.</li>
-</ul>
-<div class="key-point">Senior distinction: is the lock for <strong>efficiency</strong> (avoid duplicate work — a flaky lock is fine) or <strong>correctness</strong> (prevent data corruption — needs consensus + fencing)? Often the best answer is no lock at all: a unique constraint, conditional update (<code>WHERE version = ?</code>), or idempotency achieves the same goal without the distributed-lock minefield.</div>`,
-      },
-      {
-        q: 'How do you do back-of-envelope capacity estimation in a system design interview?',
+        q: 'How would you design a search autocomplete / typeahead system?',
         difficulty: 'medium',
-        a: `<div class="interview-answer"><p>Back-of-envelope capacity estimation is about showing a structured method and rounding hard, not producing an exact number. A top-down approach starts with users, then requests per user per day, divided by about 10^5 seconds in a day to get average QPS, then multiplied by a peak factor. Storage is estimated as writes per day times bytes per record times retention, and memory as the hot working set to cache. Memorizing round numbers and always splitting read QPS from write QPS makes this fast, and the numbers are used to justify the architecture choices.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><p>Ước lượng capacity kiểu back-of-envelope là để thể hiện một phương pháp có cấu trúc và làm tròn mạnh tay, chứ không phải cho ra một con số chính xác. Cách tiếp cận top-down bắt đầu từ số người dùng, rồi số request mỗi người mỗi ngày, chia cho khoảng 10^5 giây trong một ngày để ra QPS trung bình, rồi nhân với một hệ số peak. Storage được ước lượng bằng số lần ghi mỗi ngày nhân với số byte mỗi bản ghi nhân với thời gian lưu trữ, còn bộ nhớ là phần working set nóng cần cache. Thuộc sẵn vài con số tròn và luôn tách read QPS khỏi write QPS sẽ giúp bạn tính rất nhanh, và mục đích cuối cùng của những con số này là để lý giải cho các lựa chọn kiến trúc.</p></p></details>
-<p>Interviewers want the <em>method</em>, not precision. Round aggressively to powers of 10.</p>
-<pre>Numbers to memorize:
-  1 day ≈ 86,400 s ≈ 10^5 s
-  1M requests/day ≈ 12 req/s   (÷ 10^5)
-  peak traffic ≈ 2–5× average
-  char = 1 B, int/long = 4–8 B, UUID = 16 B, 1M × 1KB = 1 GB
+        a: `<div class="interview-answer"><p>Autocomplete is a read-only, extremely latency-sensitive lookup, so the whole design is about pre-computing answers rather than searching at request time. An offline pipeline aggregates query logs into frequency counts, builds a prefix structure such as a trie where each node already stores its own top-K completions, and ships that structure to the serving tier, so a request is a prefix walk plus returning a cached list in a few milliseconds. Results are cached at every level, including the CDN and the browser, and the index is rebuilt periodically rather than updated per keystroke, with a small real-time layer merged in for trending queries. The client also does its share by debouncing keystrokes, cancelling stale requests and caching prefixes it has already seen.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Autocomplete là một truy vấn chỉ đọc và cực kỳ nhạy với độ trễ, nên toàn bộ thiết kế xoay quanh việc tính sẵn câu trả lời thay vì đi tìm kiếm lúc có request. Một pipeline offline gom log truy vấn thành số đếm tần suất, dựng một cấu trúc tiền tố như trie trong đó mỗi node đã lưu sẵn top-K gợi ý của chính nó, rồi đẩy cấu trúc đó xuống tầng phục vụ, nhờ vậy mỗi request chỉ là đi theo tiền tố rồi trả về danh sách đã có sẵn trong vài mili-giây. Kết quả được cache ở mọi tầng, kể cả CDN và trình duyệt, còn index được dựng lại theo chu kỳ chứ không cập nhật theo từng phím gõ, kèm một lớp real-time nhỏ trộn vào cho các truy vấn đang thịnh hành. Client cũng phải làm phần việc của mình: debounce phím gõ, hủy request cũ và cache lại các tiền tố đã gặp.</p></details>
+<p><strong>1. Requirements</strong></p>
+<ul>
+<li>p99 latency <strong>under ~50 ms</strong> — the suggestion must appear before the next keystroke.</li>
+<li>Every keystroke is a request: a search box with 10 M daily users generates far more QPS than the search itself (5-10 requests per query typed).</li>
+<li>Top 5-10 suggestions, ranked by popularity (and personalization/locale if required).</li>
+<li>Fresh enough: new trending terms should appear within minutes, not seconds.</li>
+</ul>
+<p><strong>2. Why a trie with precomputed top-K</strong></p>
+<pre>Naive: SELECT q FROM queries WHERE q LIKE 'lap%' ORDER BY freq DESC LIMIT 10
+       → scans/sorts at request time → too slow and expensive at 100k QPS.
 
-Worked example — Twitter-like service:
-  100M DAU, each writes 2 tweets, reads 100 tweets/day
+Trie where EVERY node stores its own answer:
 
-  Write QPS : 100M × 2 / 10^5  = 2,000 /s   (peak ~5,000)
-  Read QPS  : 100M × 100 / 10^5 = 100,000 /s (peak ~250,000)
-  → read:write = 50:1 → design is READ-heavy → cache + fan-out strategy
+        (root)
+          └ l ── a ── p
+                     ├ top10: [laptop, laptop deals, lapland, ...]  ← precomputed
+                     └ t ── o ── p
+                                 └ top10: [laptop, laptop bag, ...] ← precomputed
 
-  Storage: tweet ≈ 300 B metadata+text
-  200M tweets/day × 300 B ≈ 60 GB/day ≈ 22 TB/year (×3 replication = 66 TB)
-  10% have media (1 MB avg) → 20 TB/day of blobs → object storage + CDN
+Request "lap" = walk 3 nodes, return the stored list. O(prefix length), no ranking at runtime.</pre>
+<p><strong>3. Architecture</strong></p>
+<pre>[Search logs] → Kafka → [Aggregation job (hourly/daily)]  count(query) with time decay
+                             ↓
+                     [Trie/index builder]  compute top-K per node, serialize
+                             ↓
+                     [Distributed store / shipped snapshot]
+                             ↓
+[Client] → CDN/edge cache → [Suggestion service: index held IN MEMORY] → response
 
-  Bandwidth: reads 100k/s × 300 B ≈ 30 MB/s API (media via CDN, not our servers)
-
-  Cache (80/20 rule): 20% of daily reads hot
-  10^10 reads × 20% × 300 B ≈ 600 GB → a handful of Redis nodes</pre>
-<div class="key-point">The conclusions are the point, not the numbers: "read-heavy → cache aggressively", "media dominates storage → S3+CDN", "5k writes/s → a single well-tuned DB can't take 250k reads/s → replicas + cache". State assumptions out loud and sanity-check orders of magnitude.</div>`,
++ [Real-time layer]: a small Redis sorted set of the last N minutes' trending queries,
+  merged with the static top-K at query time (bounded, cheap).</pre>
+<p><strong>4. Sharding and serving</strong></p>
+<ul>
+<li><strong>Shard by prefix</strong> (e.g. first 1-2 characters) so each server holds a slice of the trie in memory; the router picks the shard from the prefix.</li>
+<li>Replicate every shard for both availability and read throughput — the index is read-only, so replicas are trivially consistent.</li>
+<li>Index updates are <strong>atomic swaps</strong>: build a new snapshot, load it into memory, flip the pointer. No incremental mutation of a live trie.</li>
+<li>Memory-efficient structures matter at scale: compressed tries (radix tree), succinct tries, or an FST as used by Lucene.</li>
+</ul>
+<p><strong>5. Caching layers (each one removes most of the traffic below it)</strong></p>
+<ul>
+<li><strong>Browser</strong>: cache prefixes already fetched; typing one more character often needs no request at all (filter the previous result client-side).</li>
+<li><strong>Debounce</strong> ~50-100 ms and cancel in-flight requests for stale prefixes.</li>
+<li><strong>CDN/edge</strong>: short-prefix suggestions are identical for everyone → cache with a 1-5 minute TTL. Short prefixes are the bulk of traffic.</li>
+<li><strong>Service-level cache</strong> for the hottest prefixes.</li>
+</ul>
+<p><strong>6. Ranking and quality</strong></p>
+<ul>
+<li>Score = frequency with <strong>time decay</strong> (recent counts weigh more) + click-through rate + optional personalization (user's own history, locale, device).</li>
+<li><strong>Typo tolerance</strong>: edit-distance-1 expansion, or a separate fuzzy index — do it offline where possible.</li>
+<li><strong>Filtering</strong>: block offensive/legally sensitive suggestions and rate-limit query injection into the popularity counts, otherwise the box gets poisoned by bots.</li>
+</ul>
+<div class="key-point">The line that wins this question: <em>"nothing is ranked at request time — the top-K for every prefix is precomputed and the request is a pointer walk in memory."</em> Add "the index is rebuilt and hot-swapped, never mutated in place" and "short prefixes are cached at the CDN because they are identical for all users" and you have covered latency, scale and freshness.</div>`,
       },
       {
-        q: 'What are quorum reads and writes (N, R, W)?',
+        q: 'How would you design a web crawler and the search indexing pipeline behind it?',
         difficulty: 'hard',
-        a: `<div class="interview-answer"><p>Quorums let the consistency and availability balance be tuned per operation. With <strong>N</strong> replicas, requiring <strong>R</strong> read acknowledgments and <strong>W</strong> write acknowledgments gives strong consistency when R + W is greater than N, because the read set and write set are guaranteed to overlap on at least one up-to-date replica. So W=N with R=1 favors fast reads, W=1 with R=N favors fast writes, and a middle setting balances both. This overlap alone is not full linearizability, so read repair and version tracking are still needed, and it is the tuning knob behind Dynamo, Cassandra, and Riak.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><p>Quorum cho phép điều chỉnh cân bằng giữa consistency và availability theo từng thao tác. Với <strong>N</strong> replica, yêu cầu <strong>R</strong> acknowledgment khi đọc và <strong>W</strong> acknowledgment khi ghi sẽ cho strong consistency khi R + W lớn hơn N, vì tập đọc và tập ghi được đảm bảo giao nhau ở ít nhất một replica cập nhật. Vậy nên W=N với R=1 thiên về đọc nhanh, W=1 với R=N thiên về ghi nhanh, và một thiết lập ở giữa cân bằng cả hai. Chỉ riêng phần giao nhau này chưa phải là linearizability đầy đủ, nên vẫn cần read repair và theo dõi version, và đây là núm điều chỉnh phía sau Dynamo, Cassandra và Riak.</p></p></details>
-<p>In leaderless replication (Dynamo, Cassandra), each value lives on <strong>N</strong> replicas. A write must be confirmed by <strong>W</strong> nodes, a read queries <strong>R</strong> nodes.</p>
-<pre>The quorum condition:   R + W &gt; N
-→ read set and write set MUST overlap
-→ at least one node in every read has the latest write
-
-N=3, W=2, R=2  (typical):  2+2 &gt; 3 ✅
-  Write: send to 3 replicas, ack to client after 2 confirm
-  Read : ask 3 (or 2) replicas, take the value with newest version
-
-Tuning:
-  W=1, R=3 → fast writes, expensive reads
-  W=3, R=1 → slow writes, fast reads, write availability suffers
-  W=1, R=1 → fast everything, R+W ≤ N → stale reads possible</pre>
-<p><strong>Why quorums still aren't perfect (senior follow-ups):</strong></p>
+        a: `<div class="interview-answer"><p>A crawler is a distributed breadth-first traversal of the web whose real constraints are politeness and deduplication rather than raw speed. A URL frontier holds work partitioned so that all URLs of one host land in the same queue, which lets a single worker respect robots.txt and a per-host delay, and every URL is checked against a seen-set (a Bloom filter in front of a durable store) before being enqueued. Fetched pages are stored raw in object storage, parsed to extract links and text, and deduplicated by content hash or simhash because a large share of the web is near-duplicate. The indexing side is a batch or streaming pipeline that turns documents into an inverted index sharded by document, and query serving fans a request out to every shard, merges the top-K, and re-ranks. Freshness is handled by re-crawl priorities per site rather than by crawling everything again.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Crawler là một phép duyệt theo chiều rộng phân tán trên web, mà ràng buộc thật sự là tính lịch sự và khử trùng lặp chứ không phải tốc độ thô. Một URL frontier chứa công việc, được phân mảnh sao cho mọi URL của cùng một host rơi vào cùng một hàng đợi, nhờ đó một worker duy nhất có thể tôn trọng robots.txt và độ trễ theo host, và mọi URL đều được kiểm tra với tập đã thấy (một Bloom filter đặt trước một kho bền vững) trước khi đưa vào hàng đợi. Trang tải về được lưu thô trên object storage, được parse để trích link và văn bản, rồi khử trùng lặp bằng content hash hoặc simhash vì một phần lớn nội dung web là gần trùng nhau. Phía đánh chỉ mục là một pipeline batch hoặc streaming biến tài liệu thành inverted index phân mảnh theo tài liệu, còn khi phục vụ truy vấn thì tán request tới mọi shard, gộp top-K rồi xếp hạng lại. Độ tươi mới được xử lý bằng mức ưu tiên crawl lại cho từng site chứ không phải crawl lại tất cả.</p></details>
+<p><strong>1. Scale first</strong></p>
+<pre>1 billion pages/month → ~400 pages/sec sustained
+Average page 100 KB (HTML) → 100 TB/month raw → object storage, not a database
+Politeness: max 1 request per host per second → parallelism comes from crawling
+            MANY hosts at once, never from hammering one host</pre>
+<p><strong>2. Architecture</strong></p>
+<pre>[Seed URLs] → [URL Frontier]  ← priority + politeness queues
+                   ↓
+              [Fetcher pool]  DNS cache → HTTP GET → raw HTML to S3
+                   ↓
+              [Parser]  extract text + outlinks + canonical URL
+                   ↓                     ↓
+        [Dedup: content hash/simhash]  [URL filter + seen-set] → back to Frontier
+                   ↓
+              [Indexer]  tokenize → inverted index → shards
+                   ↓
+        [Index shards] ← [Query service: scatter-gather + rank]</pre>
+<p><strong>3. The URL frontier (the heart of a crawler)</strong></p>
 <ul>
-<li>Concurrent writes to different nodes → conflicts; need versioning (vector clocks) or last-write-wins (loses data on clock skew).</li>
-<li><strong>Sloppy quorum + hinted handoff</strong>: during a partition, writes land on stand-in nodes and are handed back later — availability up, overlap guarantee temporarily broken.</li>
-<li><strong>Read repair / anti-entropy</strong>: when a read sees divergent replicas, it writes the newest value back to stale ones.</li>
+<li><strong>Two-level queues</strong>: front queues give priority (news site &gt; personal blog), back queues enforce politeness — one back queue per host, with a next-allowed-fetch timestamp.</li>
+<li><strong>Partition by host hash</strong> so a host is owned by exactly one worker; otherwise per-host rate limiting needs distributed coordination.</li>
+<li><strong>robots.txt</strong> is fetched once per host and cached with a TTL; crawl-delay is honoured.</li>
+<li>Frontier must be durable (Kafka/Redis + DB) — a crash must not lose a month of discovered URLs.</li>
 </ul>
-<div class="key-point">Quorum ≠ strong consistency — it's tunable consistency. Cassandra exposes this per query: <code>QUORUM</code>, <code>ONE</code>, <code>LOCAL_QUORUM</code>, <code>ALL</code>. Knowing that R+W&gt;N gives overlap (not linearizability) is the distinction that separates senior answers.</div>`,
-      },
-      {
-        q: 'How do you prevent double payment / double charging? (idempotency in practice)',
-        difficulty: 'tricky',
-        a: `<div class="interview-answer"><p>To prevent double charging when a payment request times out and is retried, the fix is idempotency rather than locking. The client creates one idempotency key per payment attempt and sends it on every retry, and the server stores that key with the result in the same transaction as the charge. The first request is processed and its keyed result is saved, and any retry with the same key returns the saved result instead of charging again. Storing the key atomically with the effect, using a uniqueness constraint to handle concurrent retries, and passing the key to the payment provider are the details that matter.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><p>Để tránh charge hai lần khi một request thanh toán bị timeout và được retry, cách khắc phục là idempotency chứ không phải lock. Client tạo một idempotency key duy nhất cho mỗi lần thử thanh toán và gửi nó trong mọi lần retry, còn server lưu key đó cùng với kết quả trong cùng một transaction với việc charge. Request đầu tiên được xử lý và kết quả gắn với key được lưu lại, và bất kỳ retry nào với cùng key sẽ trả về kết quả đã lưu thay vì charge lại. Lưu key một cách atomic cùng với hiệu ứng của nó, dùng ràng buộc duy nhất để xử lý các retry đồng thời, và truyền key cho nhà cung cấp thanh toán là những chi tiết quan trọng.</p></p></details>
-<p>The scenario every payment interviewer asks: user clicks Pay, request times out, client (or user) retries. Was the first request processed? You must make the retry <strong>safe</strong>.</p>
-<pre>1. Client generates an idempotency key ONCE per logical action
-   (UUID created when the Pay button is rendered — NOT per HTTP attempt)
-
-   POST /payments
-   Idempotency-Key: 3f2a-...-9c1b
-   { "orderId": 42, "amount": 99.00 }
-
-2. Server — atomically claim the key BEFORE doing the work:
-   INSERT INTO idempotency_keys (key, status, response)
-   VALUES ('3f2a...', 'IN_PROGRESS', NULL);   -- UNIQUE constraint on key
-
-   - insert OK        → first attempt → charge the card
-                        → UPDATE ... SET status='DONE', response={...}
-   - duplicate key    → status DONE        → return the SAVED response (no re-charge)
-                      → status IN_PROGRESS → 409/retry-later (first attempt still running)
-
-3. Downstream: pass the same key to the payment provider
-   (Stripe/PayPal support Idempotency-Key natively → dedupe on their side too)</pre>
-<p><strong>Details that mark a senior answer:</strong></p>
+<p><strong>4. Deduplication at two levels</strong></p>
+<pre>URL dedup:     normalize (lowercase host, strip fragments/utm params, resolve relative)
+               → Bloom filter in memory (fast "definitely new") + durable set for the maybes
+Content dedup: exact  → SHA-256 of the normalized body
+               near   → simhash / minhash, compare Hamming distance
+               ~30% of the web is duplicate or boilerplate; skipping it saves the same % of cost</pre>
+<p><strong>5. Traps and hazards to mention</strong></p>
 <ul>
-<li>The dedupe check and the business write must be in the <strong>same DB transaction</strong> — check-then-act across two systems reintroduces the race.</li>
-<li>Key includes/binds the request payload hash — same key with different amount is an error, not a replay.</li>
-<li>Keys expire (e.g. 24h) so storage doesn't grow forever.</li>
-<li>Timeout ambiguity: on timeout the client must retry with the <strong>same key</strong> — retrying with a fresh key is exactly how double charges happen.</li>
+<li><strong>Crawler traps</strong>: infinite calendars, session ids in URLs, faceted-search URL explosions → cap depth, cap URLs per host, detect repeating path patterns.</li>
+<li><strong>DNS is a bottleneck</strong> — cache resolutions aggressively and use an async resolver; naive DNS lookups dominate crawl latency.</li>
+<li><strong>Slow/hostile servers</strong> → strict timeouts, per-host failure counters, exponential back-off, temporary blacklist.</li>
+<li><strong>JS-rendered pages</strong> need a headless browser: 10-100x more expensive, so route only selected sites there.</li>
 </ul>
-<div class="key-point">Pattern generalizes to any non-idempotent POST: unique constraint claims the operation, the stored response makes replays return identical results. "The database's unique constraint is doing the distributed coordination" is the key insight.</div>`,
-      },
-      // ──── REAL-PROJECT DESIGN WALKTHROUGHS ────
-      {
-        q: 'How do you design a system in a real project? (the 7-step framework: requirements → estimation → API → data model → high-level → deep dive → failure modes)',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p>Use the same repeatable framework every time so the design is driven by numbers instead of by favourite technologies. First clarify functional and non-functional requirements, then do a back-of-envelope estimate of QPS, storage and bandwidth, then define the API, then the data model, then draw the high-level components, then deep dive into the one or two hard parts, and finally walk through failure modes and bottlenecks. In a real project two extra steps matter that interviews often skip: start from the simplest thing that works and only add Kafka, sharding or microservices when a measured number forces it, and decide up front how you will observe the system in production. The single most common mistake is jumping to the architecture diagram before knowing the read/write ratio.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Hãy dùng cùng một khung làm việc lặp đi lặp lại mỗi lần, để thiết kế được dẫn dắt bởi các con số chứ không phải bởi công nghệ mình thích. Đầu tiên làm rõ yêu cầu chức năng và phi chức năng, rồi ước lượng nhanh QPS, dung lượng lưu trữ và băng thông, tiếp theo định nghĩa API, rồi tới data model, rồi vẽ các thành phần ở mức tổng quan, sau đó đi sâu vào một hai phần khó nhất, và cuối cùng đi qua các kịch bản lỗi và điểm nghẽn. Trong dự án thật có thêm hai bước mà phỏng vấn hay bỏ qua: bắt đầu từ giải pháp đơn giản nhất chạy được và chỉ thêm Kafka, sharding hay microservices khi có một con số đo được bắt buộc phải làm vậy; và quyết định ngay từ đầu bạn sẽ quan sát hệ thống trong production bằng cách nào. Sai lầm phổ biến nhất là vẽ kiến trúc trước khi biết tỷ lệ đọc/ghi.</p></details>
-<p><strong>The 7 steps (spend roughly this much of a 45-minute interview on each):</strong></p>
+<p><strong>6. From documents to an inverted index</strong></p>
+<pre>Doc 1: "fast java tutorial"   Doc 2: "java streams tutorial"
+
+inverted index (term → posting list with positions/frequencies):
+   java     → [(1, tf=1), (2, tf=1)]
+   tutorial → [(1, tf=1), (2, tf=1)]
+   streams  → [(2, tf=1)]
+
+Build: map(doc → terms) → shuffle by term → reduce(term → sorted posting list)
+       (MapReduce/Spark for batch rebuilds; incremental segments for fresh docs)</pre>
+<p><strong>7. Serving: shard by document, not by term</strong></p>
 <table>
-<tr><th>#</th><th>Step</th><th>Time</th><th>What you must produce</th></tr>
-<tr><td>1</td><td>Clarify requirements</td><td>5 min</td><td>Functional list + non-functional numbers (users, latency SLO, consistency needs)</td></tr>
-<tr><td>2</td><td>Capacity estimation</td><td>5 min</td><td>QPS (avg + peak), storage/year, bandwidth, cache size</td></tr>
-<tr><td>3</td><td>API design</td><td>5 min</td><td>3-5 endpoints with request/response shapes</td></tr>
-<tr><td>4</td><td>Data model</td><td>5 min</td><td>Tables/collections, partition key, indexes, SQL vs NoSQL decision</td></tr>
-<tr><td>5</td><td>High-level design</td><td>10 min</td><td>Boxes and arrows: clients → LB → services → cache → DB → queue</td></tr>
-<tr><td>6</td><td>Deep dive</td><td>10 min</td><td>The 1-2 genuinely hard parts (hot partition, exactly-once, seat locking…)</td></tr>
-<tr><td>7</td><td>Failure modes &amp; bottlenecks</td><td>5 min</td><td>What breaks first at 10x, what happens when each component dies</td></tr>
+<tr><th>Sharding</th><th>Query cost</th><th>Verdict</th></tr>
+<tr><td><strong>By document</strong> (each shard holds a full index of its own docs)</td><td>Fan out to all shards, each returns local top-K, merge</td><td>✅ Standard — balanced load, easy to add shards, resilient</td></tr>
+<tr><td>By term (a shard owns certain terms)</td><td>Multi-term queries must join posting lists across machines</td><td>❌ Hot terms create hot shards; network-heavy</td></tr>
 </table>
-<p><strong>Step 1 — the questions to always ask:</strong></p>
 <ul>
-<li><strong>Scope</strong>: which features are in and out? ("Do we need search? Analytics? Mobile push?")</li>
-<li><strong>Scale</strong>: DAU, requests/sec, data size, growth rate.</li>
-<li><strong>Read/write ratio</strong> — this one decision drives caching, replication and sharding.</li>
-<li><strong>Consistency</strong>: is stale data acceptable? (feed = yes, bank balance = no)</li>
-<li><strong>Latency SLO</strong>: p99 target, not average.</li>
-<li><strong>Availability</strong>: 99.9% (8.7h/year down) vs 99.99% (52min/year) — the extra nine costs real money.</li>
+<li>Ranking: BM25/TF-IDF for text relevance + query-independent signals (PageRank-style link authority, freshness, click feedback), then an expensive re-rank of only the merged top few hundred.</li>
+<li>Caching: the query result cache absorbs the head of the distribution (a small number of queries are a large share of traffic).</li>
+<li>Index updates: immutable segments + periodic merge (Lucene model) — never mutate posting lists in place.</li>
 </ul>
-<pre>Non-functional requirements you should write on the board:
-
-  DAU              10 M
-  Peak QPS         write 2k / read 200k     ← 100:1 read-heavy → cache + replicas
-  p99 latency      &lt; 200 ms
-  Data retention   5 years
-  Consistency      read-your-own-writes, eventual for others
-  Availability     99.95%</pre>
-<p><strong>Step 5 — the default skeleton that fits 80% of systems:</strong></p>
-<pre>[Client] → [CDN (static)] → [API Gateway / LB]
-                                  ↓
-                    [Stateless service instances]
-                       ↓            ↓          ↓
-                  [Cache]     [Primary DB]  [Message queue]
-                              [Replicas]         ↓
-                                            [Async workers] → [Object store / Search / Analytics]</pre>
-<p><strong>Step 7 — the questions that separate senior answers:</strong></p>
-<ul>
-<li>What is the <strong>single bottleneck</strong> at 10x traffic? (usually the write path of one database)</li>
-<li>What happens when the cache dies — can the DB survive the cold-start stampede?</li>
-<li>What is the <strong>blast radius</strong> of one bad deploy or one hot tenant?</li>
-<li>How do you roll back? Feature flags, migrations that are backward compatible in both directions.</li>
-<li>How do you know it is broken before the customer tells you? (RED metrics: Rate, Errors, Duration)</li>
-</ul>
-<p><strong>What is different in a real project vs an interview:</strong></p>
-<ul>
-<li><strong>Start simpler</strong>: one Postgres + one cache handles far more than people expect (tens of thousands of QPS read). Add complexity when a metric forces it, not when a blog post suggests it.</li>
-<li><strong>Migration path matters</strong>: you rarely build greenfield. Design the strangler-fig route from what exists today.</li>
-<li><strong>Cost is a requirement</strong>: cross-AZ traffic, storage tiers, and idle Kafka clusters show up on the bill.</li>
-<li><strong>Team shape</strong>: Conway's law — service boundaries that don't match team boundaries generate permanent friction.</li>
-</ul>
-<div class="key-point">Say the numbers out loud before drawing anything. "200k read QPS, 2k write QPS, 100:1" instantly justifies read replicas + Redis, while "2k writes with strict ordering per user" justifies partitioning by user id. A design defended by numbers always beats a design defended by tool names.</div>`,
+<div class="key-point">Say these three things: <em>"politeness is per-host, so partition the frontier by host"</em>, <em>"dedup twice — URL before fetching, content after"</em>, and <em>"shard the index by document and scatter-gather, because term sharding turns every multi-word query into a distributed join."</em></div>`,
       },
+      {
+        q: 'How would you design a real-time leaderboard / ranking system (millions of players, top-K plus my rank)?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>A leaderboard is a sorted-set problem, so the natural primary structure is a Redis sorted set where a score update is a logarithmic operation and top-K is a direct range read. The difficulty is not the top 100, which is tiny and cacheable, but answering "what is my rank" for tens of millions of users, and the practical answer is either an exact rank from the sorted set while it fits in memory, or an approximate rank computed from score-bucket counters once it does not. Durable scores live in a database and the sorted set is a rebuildable projection, so a Redis failure loses speed rather than data. Time-scoped boards, such as daily or weekly, are separate keys with a TTL, and very large boards are sharded by score range or by region with a merge step at read time.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Leaderboard về bản chất là bài toán tập sắp xếp, nên cấu trúc chính tự nhiên là Redis sorted set, ở đó cập nhật điểm là thao tác logarit còn lấy top-K là một lần đọc dải liên tiếp. Cái khó không nằm ở top 100 vốn rất nhỏ và dễ cache, mà ở việc trả lời "tôi đang hạng mấy" cho hàng chục triệu người dùng; cách làm thực tế là lấy hạng chính xác từ sorted set khi còn vừa bộ nhớ, hoặc tính hạng xấp xỉ từ các bộ đếm theo khoảng điểm khi đã vượt quá. Điểm số bền vững nằm ở database còn sorted set chỉ là một phép chiếu dựng lại được, nên Redis hỏng thì mất tốc độ chứ không mất dữ liệu. Các bảng theo thời gian như ngày hoặc tuần là các key riêng có TTL, còn bảng cực lớn thì phân mảnh theo khoảng điểm hoặc theo khu vực rồi gộp lại lúc đọc.</p></details>
+<p><strong>1. The operations and their required complexity</strong></p>
+<table>
+<tr><th>Operation</th><th>Frequency</th><th>Target</th></tr>
+<tr><td>Update score</td><td>Very high (every match/action)</td><td>O(log N)</td></tr>
+<tr><td>Top-K (K = 10..100)</td><td>Very high, identical for everyone</td><td>O(log N + K), cacheable</td></tr>
+<tr><td>My rank</td><td>High, unique per user</td><td>O(log N) exact, or O(1) approximate</td></tr>
+<tr><td>Neighbours (ranks around me)</td><td>Medium</td><td>Range read around my index</td></tr>
+</table>
+<p><strong>2. Redis sorted set — the default answer</strong></p>
+<pre>ZADD   leaderboard:global 1500 user:42       -- set/update score       O(log N)
+ZINCRBY leaderboard:global 25 user:42        -- atomic increment
+ZREVRANGE leaderboard:global 0 9 WITHSCORES  -- top 10                 O(log N + K)
+ZREVRANK  leaderboard:global user:42         -- my rank (0-based)      O(log N)
+ZREVRANGE leaderboard:global :r-2 :r+2       -- players around me
+
+Implementation: skip list + hash map → ordered access and O(1) score lookup.
+Memory: ~60-100 bytes per member → 10 M players ≈ 1 GB. 100 M players → shard.</pre>
+<p><strong>3. Durability: Redis is the index, not the record</strong></p>
+<pre>Match ends → write score to the DB (source of truth)
+           → ZADD/ZINCRBY to Redis (the ranking projection)
+           → (optionally publish an event for feeds/achievements)
+
+Redis lost? Rebuild by streaming scores from the DB. Enable AOF for a faster warm start.
+Never let "the leaderboard" be the only copy of a player's score.</pre>
+<p><strong>4. Scaling past one sorted set</strong></p>
+<ul>
+<li><strong>Time-scoped boards</strong>: <code>leaderboard:daily:2026-08-11</code>, <code>:weekly:2026-W33</code> with TTLs. This is also the cheapest way to keep set sizes small and interest high.</li>
+<li><strong>Segment boards</strong>: per region, per league, per friend group — smaller sets, and most users only care about their own segment.</li>
+<li><strong>Score-range sharding</strong> for one huge global board: shard S holds scores in a bucket; top-K reads only the top shard, and a global rank = (count of all higher shards) + local rank.</li>
+<li><strong>Approximate rank at extreme scale</strong>: maintain counters of "how many players have a score in bucket B" (a histogram). Rank ≈ sum of counts above my bucket + interpolation inside it — O(number of buckets), and users below the top few thousand cannot tell the difference.</li>
+<li><strong>Percentile instead of rank</strong>: "top 3%" is cheaper to compute and often better UX than "rank 412,908".</li>
+</ul>
+<p><strong>5. Write amplification and hot keys</strong></p>
+<ul>
+<li>Batch or debounce updates for chatty games (aggregate in memory, flush every second) — a sorted set update per action is unnecessary.</li>
+<li>One global key is a single-shard hotspot in Redis Cluster; segmenting boards is also the fix for that.</li>
+<li>Use <code>ZINCRBY</code> instead of read-modify-write to keep updates atomic and lock-free.</li>
+</ul>
+<p><strong>6. Details interviewers like</strong></p>
+<ul>
+<li><strong>Tie-breaking</strong>: encode a tiebreaker into the score, e.g. score * 10^10 + (max_ts - achieved_ts), so earlier achievers rank first while remaining a single double value (watch the 2^53 precision limit).</li>
+<li><strong>Anti-cheat</strong>: scores are computed server-side and validated; never trust a client-submitted score.</li>
+<li><strong>Consistency</strong>: leaderboards can be seconds stale — say so explicitly and use that freedom for caching top-K at the edge.</li>
+</ul>
+<div class="key-point">The answer in one line: <em>"a sorted set gives O(log N) updates and O(log N + K) top-K, so the only genuinely hard part is per-user rank at 100 M scale — and that is solved with score-bucket counters and an approximate rank, or by never showing a global rank at all."</em></div>`,
+      },
+      {
+        q: 'How would you design a video streaming platform (YouTube / Netflix): upload, transcoding and playback?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>Video is two very different systems joined by a pipeline: a write-side that ingests and transcodes files asynchronously, and a read-side that serves enormous amounts of bytes from a CDN. Uploads go directly to object storage using pre-signed URLs so the application servers never touch the bytes, then a message triggers a transcoding pipeline that splits the video into chunks, encodes them into multiple bitrates in parallel, and packages them into HLS or DASH segments with a manifest. Playback is adaptive: the player reads the manifest, requests small segments, and switches quality according to measured bandwidth, with almost every byte served from CDN edge caches rather than the origin. Metadata, recommendations and view counts live in separate stores, and the entire pipeline is idempotent and resumable because transcoding jobs are long and failure is normal.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Video thực chất là hai hệ thống rất khác nhau nối với nhau bằng một pipeline: phía ghi nhận file lên và transcode bất đồng bộ, phía đọc phục vụ một lượng byte khổng lồ từ CDN. File upload được đẩy thẳng lên object storage bằng pre-signed URL nên server ứng dụng không bao giờ phải xử lý luồng byte, sau đó một message kích hoạt pipeline transcoding: cắt video thành các chunk, encode song song ra nhiều mức bitrate, rồi đóng gói thành các segment HLS hoặc DASH kèm manifest. Việc phát là thích ứng: player đọc manifest, tải các segment nhỏ và đổi chất lượng theo băng thông đo được, và gần như toàn bộ byte được phục vụ từ cache biên của CDN chứ không phải từ origin. Metadata, gợi ý và lượt xem nằm ở các kho riêng, còn toàn bộ pipeline phải idempotent và có thể tiếp tục được, vì job transcoding chạy lâu và lỗi là chuyện bình thường.</p></details>
+<p><strong>1. Numbers that shape the design</strong></p>
+<pre>1 hour of 1080p ≈ 2-4 GB source; transcoded to 6 renditions ≈ 4-6 GB stored
+1 M concurrent viewers × 5 Mbps = 5 Tbps egress   ← impossible from origin
+  → 95-99% of bytes MUST be served by CDN edges
+Storage grows forever → tiering (hot → warm → cold/archive) is mandatory</pre>
+<p><strong>2. Upload path</strong></p>
+<pre>1. Client asks the API for a pre-signed upload URL (+ multipart for large files).
+2. Client uploads DIRECTLY to object storage (S3/GCS) — resumable, chunked.
+   The app server never proxies bytes; it only issues credentials and records metadata.
+3. Storage emits an event (or client calls /complete) → message on the queue.
+4. Video row: status = UPLOADED → PROCESSING.</pre>
+<p><strong>3. Transcoding pipeline (the interesting part)</strong></p>
+<pre>[queue] → [Splitter]  cut source into 5-10s GOP-aligned chunks
+             ↓ fan out (thousands of workers, spot/preemptible instances)
+          [Encode chunk × N renditions]   240p 360p 480p 720p 1080p 4K (+ AV1/H.265)
+             ↓
+          [Packager]  assemble chunks → HLS (.ts/.m4s + .m3u8) / DASH (.mpd)
+             ↓
+          [Publish]  write to object storage, generate thumbnails/preview sprites,
+                     captions (ASR), content fingerprint (copyright), status = READY</pre>
+<ul>
+<li><strong>Chunk-level parallelism</strong> is why a 2-hour movie can transcode in minutes: 1000 chunks encode simultaneously.</li>
+<li>Jobs must be <strong>idempotent and resumable</strong> — a worker dying mid-chunk just re-runs that chunk; the output key is deterministic.</li>
+<li><strong>Priority queues</strong>: a 30-second short and a 3-hour 4K film should not share one FIFO. Also transcode low renditions first so the video becomes watchable sooner.</li>
+<li>Cheap capacity: preemptible/spot instances, since every task is retryable.</li>
+</ul>
+<p><strong>4. Playback: adaptive bitrate streaming</strong></p>
+<pre>Player → GET master.m3u8            (manifest listing renditions)
+      → GET 720p/segment_001.ts     (~5s of video, cacheable forever, immutable)
+      → measures throughput & buffer → next request may switch to 1080p or drop to 480p
+
+Why segments? Small immutable files = perfect CDN objects, instant quality switching,
+seek = jump to a segment index, and one slow segment doesn't stall the whole stream.</pre>
+<p><strong>5. Delivery</strong></p>
+<ul>
+<li><strong>CDN everything</strong>: segments are immutable with long TTLs. Netflix goes further with Open Connect appliances placed inside ISPs.</li>
+<li><strong>Pre-position popular content</strong> to edges before demand (a new season release) instead of relying on cache-fill.</li>
+<li><strong>Origin shield</strong>: a mid-tier cache so thousands of edges do not stampede object storage.</li>
+<li><strong>Signed URLs / DRM</strong> (Widevine, FairPlay) for paid content; tokens are short-lived and per-session.</li>
+</ul>
+<p><strong>6. Metadata and the read-side</strong></p>
+<ul>
+<li><strong>Video metadata</strong>: relational or document store, heavily cached; the catalogue is read-mostly.</li>
+<li><strong>View counts / watch progress</strong>: high-volume writes → stream to Kafka, aggregate, and update counters asynchronously (approximate is fine for counts, exact for billing).</li>
+<li><strong>Search</strong>: Elasticsearch over titles, descriptions, transcripts.</li>
+<li><strong>Recommendations</strong>: offline model training + a low-latency serving layer; never in the playback path.</li>
+</ul>
+<p><strong>7. Failure modes and trade-offs</strong></p>
+<ul>
+<li><strong>Transcode fails for one rendition</strong> → publish what is ready (progressive availability), retry the rest, alert if 4K never completes.</li>
+<li><strong>Live streaming</strong> changes everything: low-latency HLS/WebRTC, sub-second chunks, no time for multi-pass encoding — call this out as a separate design.</li>
+<li><strong>Cost control</strong>: storage tiering by age/popularity, AV1 for popular titles (better compression, expensive to encode), and per-title encoding ladders instead of one fixed ladder.</li>
+</ul>
+<div class="key-point">Two sentences carry this design: <em>"bytes never pass through my application servers — clients upload to object storage and download from CDN edges"</em>, and <em>"transcoding is chunk-parallel and idempotent, so it scales horizontally on cheap preemptible capacity."</em> Adaptive bitrate over immutable segments is what makes both playback quality and caching work.</div>`,
+      },
+      {
+        q: 'How would you design a ride-hailing system (Uber / Grab): matching drivers and riders in real time?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>The hard parts are a very high-frequency location write stream and a low-latency geospatial query, so the location store is kept in memory and indexed by a geohash or H3 cell rather than in the transactional database. Drivers push their position every few seconds over a persistent connection, the location service writes to Redis keyed by cell, and a matching service answers nearby-driver queries by scanning the rider's cell plus its neighbours, ranked by estimated time of arrival rather than straight-line distance. Matching must be exclusive, so an offer to a driver is a short lock with a timeout that falls through to the next candidate, and the trip itself is a state machine with its own durable store. Everything downstream — pricing, ETA, fraud, analytics — consumes the same event stream asynchronously so the real-time path stays thin.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Phần khó là luồng ghi vị trí với tần suất rất cao và truy vấn không gian địa lý cần độ trễ thấp, nên kho vị trí được giữ trong bộ nhớ và đánh chỉ mục theo geohash hoặc ô H3 thay vì nằm trong database giao dịch. Tài xế đẩy vị trí vài giây một lần qua kết nối lâu dài, location service ghi vào Redis theo khóa ô, còn matching service trả lời truy vấn tài xế gần đây bằng cách quét ô của khách cộng các ô lân cận, xếp hạng theo thời gian đến dự kiến chứ không phải khoảng cách đường chim bay. Việc ghép cặp phải độc quyền, nên một lời mời gửi cho tài xế là một lock ngắn có timeout, hết hạn thì chuyển sang ứng viên kế tiếp, và bản thân chuyến đi là một máy trạng thái với kho dữ liệu bền vững riêng. Mọi thứ phía sau — tính giá, ETA, chống gian lận, phân tích — đều tiêu thụ cùng một luồng sự kiện một cách bất đồng bộ để đường real-time luôn mỏng.</p></details>
+<p><strong>1. Scale estimate (this drives the whole design)</strong></p>
+<pre>1,000,000 active drivers × 1 location update / 4 s ≈ 250,000 writes/sec
+Each update ~100 bytes → 25 MB/s — small data, brutal write rate.
+→ A relational DB with a spatial index cannot take this. In-memory, keyed store required.
+Rider requests: ~10,000/sec at peak — 25x fewer than location writes.</pre>
+<p><strong>2. Components</strong></p>
+<pre>[Driver app] --WebSocket--> [Location svc] --> Redis GEO / geohash buckets
+                                   └--> Kafka (locations topic) --> analytics, ETA models
+
+[Rider app]  --HTTPS------> [Trip svc] --> [Matching svc] --(query)--> Redis
+                                │
+                                └--> Postgres (trips, state machine) + Kafka (trip events)
+                                         └--> pricing, notifications, receipts, fraud</pre>
+<p><strong>3. Geospatial indexing: the key idea</strong></p>
+<ul>
+<li>A 2D "find everyone within 3 km" query is expensive; instead map the earth into <strong>cells</strong> (geohash, S2, or Uber's own H3 hexagons) and turn the query into key lookups.</li>
+<li>Redis: <code>GEOADD drivers:cell lon lat driverId</code> then <code>GEOSEARCH</code>, or a plain <code>SET</code> per cell — reading the rider's cell plus its 6-8 neighbours covers the radius.</li>
+<li>Hexagons (H3) are preferred over squares because all neighbours are equidistant, which makes expanding-ring searches uniform.</li>
+<li>Expand the ring until enough candidates are found; cap the expansion and fall back to "no drivers nearby".</li>
+</ul>
+<pre>Rider at cell 8928308280fffff
+  ring 0: [8928308280fffff]                 → 3 drivers
+  ring 1: + 6 neighbouring cells            → 21 drivers  ← enough, stop
+  rank by ETA (road network + traffic), not by straight-line distance</pre>
+<p><strong>4. Matching must be exclusive (two riders must not get the same driver)</strong></p>
+<pre>1. Matching svc picks top-K candidates by ETA + acceptance-rate score.
+2. Atomically claim one:  SET driver:{id}:offer {tripId} NX EX 15   ← Redis lock, 15s TTL
+   - NX fails → that driver is already being offered another trip → try the next.
+3. Push the offer over the driver's WebSocket; wait for accept.
+4. Accept  → transactionally set trip.driver_id (unique constraint on trip), driver → ON_TRIP.
+   Reject/timeout → release the lock, offer to the next candidate.
+5. No acceptance after N rounds → widen the radius / surge / apologize.</pre>
+<p><strong>5. Trip state machine (durable, in Postgres)</strong></p>
+<pre>REQUESTED → MATCHED → DRIVER_ARRIVING → IN_PROGRESS → COMPLETED → PAID
+     ↘ NO_DRIVERS        ↘ CANCELLED_BY_RIDER / CANCELLED_BY_DRIVER</pre>
+<p><strong>6. Design decisions worth defending</strong></p>
+<ul>
+<li><strong>Location data is disposable</strong>: current position lives in Redis with a TTL (a driver who stops sending disappears automatically = free liveness detection). The Kafka stream is the durable copy for history and analytics.</li>
+<li><strong>Geo-partition the services</strong>: a city is a natural shard. Traffic in Hanoi never touches the shard for Jakarta, and matching only ever needs local data.</li>
+<li><strong>WebSocket connection servers are stateful</strong> and separated from stateless business services, with a registry mapping driver → connection server.</li>
+<li><strong>Surge pricing</strong> is computed per cell per few minutes from the supply/demand ratio in the stream — an async consumer, never in the request path.</li>
+<li><strong>ETA</strong> comes from a routing service with live traffic; cache per (cell pair, time bucket) because exact coordinates are unnecessary precision.</li>
+</ul>
+<p><strong>7. Failure modes</strong></p>
+<ul>
+<li><strong>Driver goes offline mid-trip</strong> (tunnel/battery) → buffer positions on the device, replay on reconnect; trip state survives in Postgres, not in the socket.</li>
+<li><strong>Redis loses the location index</strong> → degraded matching for a few seconds until drivers re-report; nothing permanent is lost because Redis is a cache.</li>
+<li><strong>Hot cell</strong> (stadium at the end of a concert) → split the cell to a finer resolution and rate-limit the expansion radius.</li>
+<li><strong>Duplicate assignment</strong> → prevented by the offer lock plus a unique constraint on trips.driver_id for active trips.</li>
+</ul>
+<div class="key-point">The core insight: <em>"a geospatial nearest-neighbour query becomes a key lookup once you index by cell"</em>. Combine that with "current location is a cache with a TTL, the event stream is the record of truth", and an exclusive offer lock for matching, and you have the whole system in three sentences.</div>`,
+      },
+      {
+        q: 'How would you design a collaborative document editor (Google Docs): real-time multi-user editing?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>The core problem is that two users edit the same text at the same time on different machines, so edits must be expressed as operations against a version rather than as a whole document, and the system needs a rule that makes concurrent operations converge to the same result everywhere. There are two proven approaches: operational transformation, where a central server serializes operations and transforms each incoming operation against the ones it missed, and CRDTs, where every character gets a unique identifier so operations commute by construction and no central authority is needed. Around that core sit a WebSocket layer per document, presence and cursor broadcasting, periodic snapshots plus an operation log for history and recovery, and offline support that replays queued operations on reconnect. Documents are sharded by document id, with one owning server per active document so ordering stays simple.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Vấn đề cốt lõi là hai người cùng sửa một đoạn văn bản tại cùng thời điểm trên hai máy khác nhau, nên các thay đổi phải được biểu diễn dưới dạng operation gắn với một phiên bản chứ không phải gửi cả tài liệu, và hệ thống cần một quy tắc để các operation đồng thời hội tụ về cùng một kết quả ở mọi nơi. Có hai hướng đã được kiểm chứng: operational transformation, trong đó một server trung tâm xếp thứ tự các operation và biến đổi operation đến sao cho phù hợp với những operation nó chưa thấy; và CRDT, trong đó mỗi ký tự có một định danh duy nhất nên các operation giao hoán được về mặt bản chất và không cần một trọng tài trung tâm. Bao quanh phần lõi đó là một lớp WebSocket theo từng tài liệu, phát tán presence và vị trí con trỏ, chụp snapshot định kỳ kèm log operation để phục vụ lịch sử và khôi phục, cùng khả năng làm việc offline bằng cách phát lại các operation đã xếp hàng khi kết nối lại. Tài liệu được phân mảnh theo document id, mỗi tài liệu đang mở do đúng một server sở hữu để việc sắp thứ tự luôn đơn giản.</p></details>
+<p><strong>1. Why "send the whole document" and "last write wins" both fail</strong></p>
+<pre>Document: "HELLO"
+  User A inserts "!" at position 5     → "HELLO!"
+  User B inserts "?" at position 0     → "?HELLO"
+Naive last-write-wins → one edit is silently destroyed.
+Naive apply-both-in-arrival-order → positions have shifted → text corrupts ("?HELL!O").</pre>
+<p><strong>2. Approach A — Operational Transformation (what Google Docs uses)</strong></p>
+<pre>Every op carries the document version it was based on:
+   A: insert("!", pos 5, base v10)
+   B: insert("?", pos 0, base v10)
+
+Server picks an order (A then B), and TRANSFORMS B against A:
+   transform(insert@0, against insert@5) → insert@0 unchanged
+   transform(insert@5, against insert@0) → insert@6   (shifted by the earlier insert)
+
+Both clients end with "?HELLO!"  → convergence.
+Client-side: keep a buffer of unacknowledged local ops, transform incoming server ops
+against them (this is what makes typing feel instant with no round trip).</pre>
+<ul>
+<li>Needs a <strong>central server</strong> to define the canonical order; transformation functions must satisfy the TP1/TP2 properties and are famously easy to get subtly wrong.</li>
+<li>Compact on the wire — an op is a few bytes.</li>
+</ul>
+<p><strong>3. Approach B — CRDT (Yjs, Automerge, Figma-style)</strong></p>
+<pre>Each character gets a globally unique, ordered id: (siteId, counter) + a position between neighbours.
+   Insert = "add character with id X between ids A and B"
+   Delete = tombstone the id (never shift indexes)
+
+Because ids are unique and ordering is total, ops COMMUTE:
+   apply(op1, op2) == apply(op2, op1)   → converge with no transformation and no server
+Server can be a dumb relay; peer-to-peer and offline-first work naturally.</pre>
+<table>
+<tr><th></th><th>OT</th><th>CRDT</th></tr>
+<tr><td>Central server</td><td>Required (ordering authority)</td><td>Not required (relay only)</td></tr>
+<tr><td>Metadata size</td><td>Small</td><td>Larger (ids + tombstones; needs garbage collection)</td></tr>
+<tr><td>Implementation risk</td><td>Transformation functions are hard</td><td>Data structure is complex but the merge rule is proven</td></tr>
+<tr><td>Offline / P2P</td><td>Awkward</td><td>Natural</td></tr>
+<tr><td>Used by</td><td>Google Docs, Etherpad</td><td>Yjs, Automerge, Figma, Apple Notes</td></tr>
+</table>
+<p><strong>4. System architecture</strong></p>
+<pre>[Browser] ←WebSocket→ [Doc session server]   ← one OWNER server per active doc
+                             │  in-memory doc state + op log
+                             ├→ [Redis pub/sub] presence, cursors, awareness
+                             ├→ [Op log store]  append-only ops (Kafka/DB)
+                             └→ [Snapshot store] periodic full document + version
+
+Routing: consistent hashing on document_id → all editors of one doc land on the same server.
+Persistence: snapshot every N ops or T seconds; recovery = latest snapshot + replay ops after it.</pre>
+<p><strong>5. The rest of the product (do not forget these in the interview)</strong></p>
+<ul>
+<li><strong>Presence and cursors</strong>: ephemeral, high frequency, lossy — broadcast over pub/sub, never persisted.</li>
+<li><strong>Offline editing</strong>: queue ops locally (IndexedDB), replay on reconnect; CRDTs merge them, OT needs transformation against everything missed.</li>
+<li><strong>Version history</strong>: op log gives infinite undo and named revisions; compaction turns old ops into snapshots.</li>
+<li><strong>Permissions</strong> checked at session join and on every op (a share link revoked mid-session must take effect).</li>
+<li><strong>Large documents</strong>: split into blocks/paragraphs so a single edit does not re-broadcast the whole tree; rich text is modelled as attributed ranges, which multiplies the transformation cases.</li>
+<li><strong>Failover</strong>: if the owning server dies, another loads snapshot + op log and clients reconnect — clients must be able to resume from their last acknowledged version.</li>
+</ul>
+<div class="key-point">The framing that shows depth: <em>"you cannot send document state, you send intent as operations against a version, and you need a convergence rule — OT (server transforms, small payloads) or CRDT (unique ids, commutative merges, works offline and P2P)."</em> Then mention snapshot + op log for persistence, and one owning server per document so ordering never becomes a distributed consensus problem.</div>`,
+      },
+      {
+        q: 'How would you design a recommendation / personalization system (candidate generation, ranking, online serving)?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>A recommender is a two-stage funnel because scoring millions of items per request is impossible within a latency budget: candidate generation cheaply narrows millions of items to a few hundred using precomputed sources such as collaborative-filtering neighbours, embedding nearest neighbours, trending items and simple rules, and then a heavier ranking model scores only those candidates with rich features. The system splits into an offline part that trains models and precomputes embeddings and candidate lists on a schedule, a nearline part that reacts to fresh user activity within seconds, and an online part that must answer in tens of milliseconds from a feature store and a model server. The recurring engineering problems are cold start for new users and items, training and serving feature skew, and a feedback loop where the model only ever learns from what it already showed, which is why exploration and A/B testing are part of the design rather than an afterthought.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Một hệ gợi ý là một phễu hai tầng, vì chấm điểm hàng triệu item cho mỗi request là bất khả thi trong ngân sách độ trễ: tầng sinh ứng viên thu hẹp từ hàng triệu xuống vài trăm item bằng các nguồn tính sẵn như hàng xóm trong lọc cộng tác, láng giềng gần theo embedding, item đang thịnh hành và vài luật đơn giản; sau đó một mô hình xếp hạng nặng hơn chỉ chấm điểm số ứng viên đó với bộ đặc trưng phong phú. Hệ thống chia làm ba phần: offline huấn luyện mô hình và tính sẵn embedding cùng danh sách ứng viên theo lịch; nearline phản ứng với hoạt động mới của người dùng trong vài giây; online phải trả lời trong vài chục mili-giây từ feature store và model server. Những vấn đề kỹ thuật lặp đi lặp lại là cold start cho người dùng và item mới, lệch đặc trưng giữa lúc huấn luyện và lúc phục vụ, và vòng phản hồi khiến mô hình chỉ học được từ những thứ chính nó đã hiển thị — đó là lý do exploration và A/B testing phải nằm trong thiết kế chứ không phải thêm vào sau.</p></details>
+<p><strong>1. The two-stage funnel (this is the answer skeleton)</strong></p>
+<pre>10,000,000 items
+      ↓  CANDIDATE GENERATION — cheap, recall-oriented, precomputed, multiple sources
+  ~500 candidates
+      ↓  RANKING — expensive model, ~100 features per (user, item) pair
+   ~50 ranked
+      ↓  RE-RANK / business rules — diversity, freshness, dedupe, ads, blocklists
+   ~10 shown
+
+Latency budget: 100 ms total → candidates ~10 ms, ranking ~30 ms, the rest is overhead.</pre>
+<p><strong>2. Candidate sources (blend several — each covers a different weakness)</strong></p>
+<ul>
+<li><strong>Collaborative filtering</strong>: "users like you also liked" — item-item similarity precomputed offline from the interaction matrix.</li>
+<li><strong>Embedding ANN search</strong>: user and item vectors in the same space; retrieve nearest neighbours with FAISS/ScaNN/a vector DB (approximate, sub-millisecond over millions of vectors).</li>
+<li><strong>Content-based</strong>: same category/author/tags — the only thing that works for a brand-new item.</li>
+<li><strong>Trending / popular</strong> per segment — the fallback for a brand-new user, and a strong baseline.</li>
+<li><strong>Recent user activity</strong>: "because you watched X" — nearline, seconds-fresh.</li>
+</ul>
+<p><strong>3. Ranking</strong></p>
+<ul>
+<li>Model: gradient-boosted trees are still an excellent, cheap baseline; deep models (two-tower for retrieval, DNN/DLRM for ranking) win at scale.</li>
+<li>Objective: predicted click, watch time, purchase probability — often a <strong>multi-objective blend</strong>, because optimizing pure CTR produces clickbait.</li>
+<li>Features: user (history, demographics), item (age, popularity, category), context (time, device, session), and cross features (user's affinity for this category).</li>
+</ul>
+<p><strong>4. Three-layer system architecture</strong></p>
+<pre>OFFLINE (hours/daily)          NEARLINE (seconds)             ONLINE (10-50 ms)
+ - train models                  - consume click/view stream     - fetch candidates
+ - compute embeddings            - update user session features  - fetch features (feature store)
+ - precompute candidate lists    - refresh trending counters     - score with the model server
+ - backfill feature store        - invalidate caches             - apply business rules
+ - offline eval (AUC, NDCG)                                      - log the impression + features
+
+The impression log (what we showed, with the exact features used) is the training data
+for tomorrow's model — logging is part of the design, not an operational detail.</pre>
+<p><strong>5. The classic problems, and the expected answers</strong></p>
+<table>
+<tr><th>Problem</th><th>Fix</th></tr>
+<tr><td><strong>Cold-start user</strong></td><td>Popular/trending by segment, onboarding preference picker, contextual signals (device, locale), switch to personalized after N interactions</td></tr>
+<tr><td><strong>Cold-start item</strong></td><td>Content features + deliberate exploration budget so new items get impressions</td></tr>
+<tr><td><strong>Train/serve skew</strong></td><td>One feature definition used by both paths (a feature store with point-in-time correct training reads)</td></tr>
+<tr><td><strong>Feedback loop / filter bubble</strong></td><td>Exploration (epsilon-greedy, bandits), diversity constraints in re-ranking, unbiased evaluation with logged propensities</td></tr>
+<tr><td><strong>Position bias</strong></td><td>Position as a training feature (set to a constant at serving) or inverse-propensity weighting</td></tr>
+<tr><td><strong>Stale model</strong></td><td>Scheduled retraining + drift monitoring on feature distributions and CTR</td></tr>
+</table>
+<p><strong>6. Evaluation — offline metrics never decide it</strong></p>
+<ul>
+<li>Offline (AUC, NDCG, recall@K) filters bad candidates; the decision is an <strong>online A/B test</strong> on product metrics (engagement, retention, revenue), with guardrail metrics so you notice the harm a lift is hiding.</li>
+<li>Always ship a shadow/canary path and a fast rollback — a bad ranking model degrades revenue quietly rather than throwing errors.</li>
+</ul>
+<div class="key-point">The structural point: <em>"retrieve cheaply, rank expensively"</em> — plus the honest engineering caveats that impress most: a feature store to kill train/serve skew, an impression log with the exact serving features as tomorrow's training data, and explicit exploration because a recommender that only learns from its own choices slowly poisons itself.</div>`,
+      },
+
+      // ──── 9. TRANSACTIONAL & BUSINESS-CRITICAL SYSTEMS ────
       {
         q: 'How would you design a ticket booking system (cinema / concert seat reservation)?',
         difficulty: 'hard',
@@ -1584,6 +2126,69 @@ COMMIT;</pre>
 <div class="key-point">The sentence that signals experience: <em>"balances are derived, entries are immutable"</em>. If you can rebuild every balance by replaying the ledger, you can audit, reconcile and recover from any bug. Add "integer minor units", "idempotency key with a unique constraint", and "daily reconciliation with the provider" and you have covered what actually breaks in production payment systems.</div>`,
       },
       {
+        q: 'How would you design a stock exchange / order matching engine (low latency, deterministic, no lost orders)?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>An exchange inverts the usual priorities: correctness and determinism come first, latency is measured in microseconds, and throughput is achieved by keeping the matching engine single-threaded and entirely in memory instead of by scaling out. Orders enter through gateways that perform risk and validation checks, pass through a sequencer that assigns a total order, and then hit one matching engine per instrument that maintains a limit order book and matches by price-time priority. Durability comes from event sourcing: the sequenced input stream is written to a replicated log, so a standby engine can replay the same inputs and reach exactly the same state, which is only possible because the engine is deterministic and free of clocks, random values and concurrency. Market data and execution reports fan out to clients on a separate publish path so slow consumers never slow down matching.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Một sàn giao dịch đảo ngược thứ tự ưu tiên thông thường: tính đúng đắn và tính tất định đứng đầu, độ trễ tính bằng micro-giây, và throughput đạt được bằng cách giữ matching engine chạy đơn luồng hoàn toàn trong bộ nhớ chứ không phải bằng scale out. Lệnh đi vào qua các gateway làm nhiệm vụ kiểm tra rủi ro và tính hợp lệ, qua một sequencer gán thứ tự toàn cục, rồi tới một matching engine cho mỗi mã, nơi duy trì sổ lệnh giới hạn và khớp theo ưu tiên giá rồi tới thời gian. Tính bền vững đến từ event sourcing: dòng input đã được đánh thứ tự được ghi vào một log nhân bản, nhờ đó một engine dự phòng có thể phát lại đúng các input đó và đạt đúng cùng một trạng thái — điều này chỉ khả thi vì engine là tất định, không dùng đồng hồ, không dùng số ngẫu nhiên và không có xử lý đồng thời. Dữ liệu thị trường và báo cáo khớp lệnh được phát ra trên một đường riêng để các client chậm không bao giờ làm chậm việc khớp lệnh.</p></details>
+<p><strong>1. Requirements that drive an unusual architecture</strong></p>
+<ul>
+<li><strong>Determinism</strong>: the same input sequence must always produce the same trades — this is a regulatory and audit requirement, not an optimization.</li>
+<li><strong>Fairness</strong>: strict price-time priority; no order may jump the queue.</li>
+<li><strong>Latency</strong>: p99 in microseconds, and <strong>predictable</strong> — a jittery p99.9 is worse than a slightly higher mean.</li>
+<li><strong>No lost orders</strong>: every accepted order is durable before it is acknowledged.</li>
+</ul>
+<p><strong>2. Architecture</strong></p>
+<pre>[Trader/FIX gateway]  auth, validation, pre-trade risk (limits, buying power)
+        ↓
+[Sequencer]  assigns a monotonic sequence number → THE total order of the venue
+        ↓ (write to replicated log first: Aeron/Kafka/custom, fsync or multi-node ack)
+[Matching engine per instrument]  single-threaded, in-memory order book
+        ↓                                   ↓
+[Execution reports → traders]     [Market data feed → all subscribers]
+        ↓
+[Post-trade: clearing, settlement, ledger, surveillance]  (asynchronous, off the hot path)</pre>
+<p><strong>3. The limit order book</strong></p>
+<pre>Bids (buy, sorted DESC by price)      Asks (sell, sorted ASC by price)
+  100.20 → [order A 500, order B 200]   100.25 → [order C 300]
+  100.15 → [order D 1000]               100.30 → [order E 800]
+            ↑ FIFO queue per price level (time priority)
+
+Structure: an array/tree indexed by price level (prices are discrete ticks → array is viable)
+           + a doubly linked list per level  + a hash map orderId → node
+   add order    O(1) amortized      cancel O(1) via the hash map      match O(1) at the top
+Matching a market buy: take the best ask level, fill orders in FIFO order, walk levels
+until the quantity is filled or the book is empty (or the price limit is crossed).</pre>
+<p><strong>4. Why single-threaded is the fast and correct answer</strong></p>
+<ul>
+<li>No locks, no contention, no cache-line ping-pong; a modern core matches millions of orders per second when everything is in memory.</li>
+<li>Determinism becomes trivial — with concurrency, replaying inputs would not reproduce the same trades.</li>
+<li><strong>Scale by instrument, not by thread</strong>: shard symbols across engines (AAPL on engine 1, TSLA on engine 2). Each book is independent.</li>
+<li>LMAX Disruptor style: pre-allocated ring buffers, no garbage during trading hours, mechanical sympathy (cache-friendly layouts, busy-spin instead of blocking, pinned cores, no syscalls in the hot path).</li>
+</ul>
+<p><strong>5. Durability and failover through event sourcing</strong></p>
+<pre>Input log (sequenced commands)  →  engine state is a pure function of the log
+  - persist the command BEFORE acknowledging the trader
+  - hot standby engines consume the same log and stay in lockstep
+  - failover = promote a standby that has applied the same sequence number
+  - recovery  = last snapshot + replay the tail of the log
+  - audit/replay = re-run any trading day exactly, which regulators require
+
+Rule: no wall-clock reads, no random numbers, no map iteration order dependence,
+      no external calls inside the engine — any of them breaks replay determinism.
+      Timestamps are assigned by the sequencer and become part of the input.</pre>
+<p><strong>6. Around the engine</strong></p>
+<ul>
+<li><strong>Pre-trade risk</strong> runs in the gateway (position limits, fat-finger price bands, credit) — the engine must stay minimal.</li>
+<li><strong>Market data</strong> is published incrementally (order book deltas) with periodic snapshots so a late subscriber can sync; use multicast/UDP-style fan-out for the lowest latency.</li>
+<li><strong>Backpressure</strong>: a slow trader connection must never block the engine — drop or conflate their feed, never stall the matching loop.</li>
+<li><strong>Order types</strong>: market, limit, IOC/FOK, stop, iceberg — each adds book complexity; call out that auctions (open/close) are a separate matching algorithm.</li>
+<li><strong>Circuit breakers</strong>: volatility halts and price bands are exchange-level safety features.</li>
+</ul>
+<div class="key-point">The counter-intuitive point worth stating explicitly: <em>"you do not scale a matching engine with threads — you make it single-threaded and deterministic, put the whole book in memory, and shard by instrument."</em> Durability and failover then come free from replaying a sequenced input log, which is also exactly what regulators want for audit.</div>`,
+      },
+
+      // ──── 10. HIGH-THROUGHPUT & DATA PIPELINES ────
+      {
         q: 'How would you design a very high-throughput system (millions of events per second ingestion)?',
         difficulty: 'hard',
         a: `<div class="interview-answer"><p>At millions of events per second the design is dominated by three ideas: never do per-event synchronous work, partition everything so there is no shared hot resource, and push work off the request path. Producers batch and compress events and write to a partitioned log such as Kafka, where the ingestion tier is stateless and does almost nothing except validate and append, which keeps p99 low. Consumers process partitions in parallel, write to storage optimized for sequential writes such as an LSM-tree store or object storage in columnar files, and aggregate into pre-computed rollups rather than querying raw data. Backpressure, bounded queues and load shedding are explicit, because a system that accepts more than it can process fails much worse than one that rejects early. Delivery is at-least-once with idempotent consumers, since exactly-once end to end is a property you build with deduplication rather than a checkbox.</p></div>
@@ -1643,179 +2248,58 @@ Fixes:
 <div class="key-point">The three-line summary interviewers want: <em>"batch and append instead of per-event random writes"</em>, <em>"partition so nothing is globally shared"</em>, and <em>"bounded buffers with explicit shedding, because an overloaded system must degrade instead of collapse."</em> Adding a durable log (Kafka) between ingestion and processing is what lets the slow parts fail independently of the fast parts.</div>`,
       },
       {
-        q: 'How would you design a ride-hailing system (Uber / Grab): matching drivers and riders in real time?',
+        q: 'How would you design a real-time analytics / ad-click aggregation system (counting at massive scale)?',
         difficulty: 'hard',
-        a: `<div class="interview-answer"><p>The hard parts are a very high-frequency location write stream and a low-latency geospatial query, so the location store is kept in memory and indexed by a geohash or H3 cell rather than in the transactional database. Drivers push their position every few seconds over a persistent connection, the location service writes to Redis keyed by cell, and a matching service answers nearby-driver queries by scanning the rider's cell plus its neighbours, ranked by estimated time of arrival rather than straight-line distance. Matching must be exclusive, so an offer to a driver is a short lock with a timeout that falls through to the next candidate, and the trip itself is a state machine with its own durable store. Everything downstream — pricing, ETA, fraud, analytics — consumes the same event stream asynchronously so the real-time path stays thin.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Phần khó là luồng ghi vị trí với tần suất rất cao và truy vấn không gian địa lý cần độ trễ thấp, nên kho vị trí được giữ trong bộ nhớ và đánh chỉ mục theo geohash hoặc ô H3 thay vì nằm trong database giao dịch. Tài xế đẩy vị trí vài giây một lần qua kết nối lâu dài, location service ghi vào Redis theo khóa ô, còn matching service trả lời truy vấn tài xế gần đây bằng cách quét ô của khách cộng các ô lân cận, xếp hạng theo thời gian đến dự kiến chứ không phải khoảng cách đường chim bay. Việc ghép cặp phải độc quyền, nên một lời mời gửi cho tài xế là một lock ngắn có timeout, hết hạn thì chuyển sang ứng viên kế tiếp, và bản thân chuyến đi là một máy trạng thái với kho dữ liệu bền vững riêng. Mọi thứ phía sau — tính giá, ETA, chống gian lận, phân tích — đều tiêu thụ cùng một luồng sự kiện một cách bất đồng bộ để đường real-time luôn mỏng.</p></details>
-<p><strong>1. Scale estimate (this drives the whole design)</strong></p>
-<pre>1,000,000 active drivers × 1 location update / 4 s ≈ 250,000 writes/sec
-Each update ~100 bytes → 25 MB/s — small data, brutal write rate.
-→ A relational DB with a spatial index cannot take this. In-memory, keyed store required.
-Rider requests: ~10,000/sec at peak — 25x fewer than location writes.</pre>
-<p><strong>2. Components</strong></p>
-<pre>[Driver app] --WebSocket--> [Location svc] --> Redis GEO / geohash buckets
-                                   └--> Kafka (locations topic) --> analytics, ETA models
+        a: `<div class="interview-answer"><p>Counting at scale is a streaming aggregation problem where the design decisions are windowing, late data, deduplication and cost. Events arrive on a partitioned log, a stream processor aggregates them into time windows keyed by the dimensions you will query, and results are written into an OLAP store as pre-aggregated rollups, because scanning raw events per query is far too expensive. Correctness comes from idempotent writes keyed by window and dimension plus deduplication on an event id, since the pipeline is at-least-once, and watermarks decide how long a window stays open for late events with a separate correction path for stragglers. Where exact numbers are not required, probabilistic structures such as HyperLogLog for unique counts and count-min sketch for heavy hitters replace expensive exact aggregation. Billing-grade numbers get a slower batch recomputation that reconciles the fast path.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Đếm ở quy mô lớn là bài toán tổng hợp theo luồng, ở đó các quyết định thiết kế là cửa sổ thời gian, dữ liệu đến trễ, khử trùng lặp và chi phí. Sự kiện đi vào một log phân mảnh, một stream processor gộp chúng theo các cửa sổ thời gian với khóa là các chiều mà bạn sẽ truy vấn, rồi ghi kết quả vào một kho OLAP dưới dạng rollup tính sẵn, vì quét dữ liệu thô cho từng truy vấn là quá đắt. Tính đúng đắn đến từ việc ghi idempotent theo khóa (cửa sổ, chiều) cộng với khử trùng lặp theo event id, bởi pipeline chỉ đảm bảo at-least-once; watermark quyết định cửa sổ mở bao lâu để chờ dữ liệu trễ, kèm một đường sửa chữa riêng cho những sự kiện quá muộn. Ở những chỗ không cần con số chính xác tuyệt đối, các cấu trúc xác suất như HyperLogLog cho số lượng duy nhất và count-min sketch cho các phần tử nổi trội sẽ thay cho việc tổng hợp chính xác vốn rất tốn kém. Những con số dùng để tính tiền thì có thêm một lần tính lại theo lô, chậm hơn, để đối soát với đường nhanh.</p></details>
+<p><strong>1. The query patterns define the aggregation keys</strong></p>
+<pre>"Clicks for ad X in the last 5 minutes"        → (ad_id, minute)
+"Top 100 ads by CTR today by country"          → (ad_id, country, day)
+"Unique users who saw campaign C this week"    → distinct count → HyperLogLog
+Decide the dimension combinations UP FRONT — you cannot roll up what you did not key.</pre>
+<p><strong>2. Pipeline</strong></p>
+<pre>[Click/impression events] → Kafka (partitioned by ad_id, retention 7d)
+        ↓
+[Stream processor: Flink / Kafka Streams / Spark Streaming]
+    - dedupe by event_id (state store, TTL = the dedupe window)
+    - tumbling windows: 1 min → aggregate counts per dimension key
+    - watermark: allow lateness of e.g. 5 min, then close the window
+        ↓
+[OLAP store: ClickHouse / Druid / BigQuery]   ← minute rollups
+        ↓ (further rollup jobs: minute → hour → day)
+[Query API + cache] → dashboards
 
-[Rider app]  --HTTPS------> [Trip svc] --> [Matching svc] --(query)--> Redis
-                                │
-                                └--> Postgres (trips, state machine) + Kafka (trip events)
-                                         └--> pricing, notifications, receipts, fraud</pre>
-<p><strong>3. Geospatial indexing: the key idea</strong></p>
+[Raw events archive to S3] ─→ [Nightly batch recompute] ─→ corrections / billing truth</pre>
+<p><strong>3. Windowing and late events (the part that separates real answers)</strong></p>
 <ul>
-<li>A 2D "find everyone within 3 km" query is expensive; instead map the earth into <strong>cells</strong> (geohash, S2, or Uber's own H3 hexagons) and turn the query into key lookups.</li>
-<li>Redis: <code>GEOADD drivers:cell lon lat driverId</code> then <code>GEOSEARCH</code>, or a plain <code>SET</code> per cell — reading the rider's cell plus its 6-8 neighbours covers the radius.</li>
-<li>Hexagons (H3) are preferred over squares because all neighbours are equidistant, which makes expanding-ring searches uniform.</li>
-<li>Expand the ring until enough candidates are found; cap the expansion and fall back to "no drivers nearby".</li>
+<li><strong>Event time, not processing time</strong> — a mobile client that was offline sends clicks minutes later; counting them in the wrong minute makes every chart wrong.</li>
+<li><strong>Watermark</strong> = "I believe I have seen all events up to time T". Windows close after the watermark passes; lateness is a tunable trade-off between latency and completeness.</li>
+<li><strong>Very late events</strong>: route to a side output and apply as corrections to the already-written rollup (the store must support updates or the query layer must sum a corrections table).</li>
+<li><strong>Idempotent sink</strong>: write with primary key (window_start, dimensions) and upsert the value, so a replay after a crash produces the same number instead of double counting.</li>
 </ul>
-<pre>Rider at cell 8928308280fffff
-  ring 0: [8928308280fffff]                 → 3 drivers
-  ring 1: + 6 neighbouring cells            → 21 drivers  ← enough, stop
-  rank by ETA (road network + traffic), not by straight-line distance</pre>
-<p><strong>4. Matching must be exclusive (two riders must not get the same driver)</strong></p>
-<pre>1. Matching svc picks top-K candidates by ETA + acceptance-rate score.
-2. Atomically claim one:  SET driver:{id}:offer {tripId} NX EX 15   ← Redis lock, 15s TTL
-   - NX fails → that driver is already being offered another trip → try the next.
-3. Push the offer over the driver's WebSocket; wait for accept.
-4. Accept  → transactionally set trip.driver_id (unique constraint on trip), driver → ON_TRIP.
-   Reject/timeout → release the lock, offer to the next candidate.
-5. No acceptance after N rounds → widen the radius / surge / apologize.</pre>
-<p><strong>5. Trip state machine (durable, in Postgres)</strong></p>
-<pre>REQUESTED → MATCHED → DRIVER_ARRIVING → IN_PROGRESS → COMPLETED → PAID
-     ↘ NO_DRIVERS        ↘ CANCELLED_BY_RIDER / CANCELLED_BY_DRIVER</pre>
-<p><strong>6. Design decisions worth defending</strong></p>
+<p><strong>4. Probabilistic structures — when exactness is not worth the money</strong></p>
+<table>
+<tr><th>Need</th><th>Structure</th><th>Cost / accuracy</th></tr>
+<tr><td>Unique visitors</td><td><strong>HyperLogLog</strong></td><td>~12 KB per counter, ~2% error, mergeable across shards and time buckets</td></tr>
+<tr><td>Top-K / heavy hitters</td><td><strong>Count-min sketch</strong> (+ a heap)</td><td>Fixed memory, may overcount rare items; perfect for "top ads/URLs"</td></tr>
+<tr><td>"Have we seen this event id?"</td><td><strong>Bloom filter</strong></td><td>Small, false positives only → cheap first-line dedupe before the state store</td></tr>
+<tr><td>Percentiles (latency, bid price)</td><td><strong>t-digest / DDSketch</strong></td><td>Mergeable approximate quantiles — averages are useless here</td></tr>
+</table>
+<p>Exact distinct counts across billions of events require huge state; HLL merges make "uniques per hour, rolled up to a week" almost free.</p>
+<p><strong>5. Lambda vs kappa in practice</strong></p>
 <ul>
-<li><strong>Location data is disposable</strong>: current position lives in Redis with a TTL (a driver who stops sending disappears automatically = free liveness detection). The Kafka stream is the durable copy for history and analytics.</li>
-<li><strong>Geo-partition the services</strong>: a city is a natural shard. Traffic in Hanoi never touches the shard for Jakarta, and matching only ever needs local data.</li>
-<li><strong>WebSocket connection servers are stateful</strong> and separated from stateless business services, with a registry mapping driver → connection server.</li>
-<li><strong>Surge pricing</strong> is computed per cell per few minutes from the supply/demand ratio in the stream — an async consumer, never in the request path.</li>
-<li><strong>ETA</strong> comes from a routing service with live traffic; cache per (cell pair, time bucket) because exact coordinates are unnecessary precision.</li>
+<li><strong>Fast path</strong> (streaming) serves dashboards in seconds and is allowed to be approximate.</li>
+<li><strong>Slow path</strong> (batch over the raw archive) recomputes the same numbers nightly and is the source of truth for <strong>billing</strong> — advertisers get invoiced from this, not from the stream.</li>
+<li>Publish the reconciliation delta as a metric; a growing gap between fast and slow paths is a bug alarm.</li>
 </ul>
-<p><strong>7. Failure modes</strong></p>
+<p><strong>6. Practical concerns</strong></p>
 <ul>
-<li><strong>Driver goes offline mid-trip</strong> (tunnel/battery) → buffer positions on the device, replay on reconnect; trip state survives in Postgres, not in the socket.</li>
-<li><strong>Redis loses the location index</strong> → degraded matching for a few seconds until drivers re-report; nothing permanent is lost because Redis is a cache.</li>
-<li><strong>Hot cell</strong> (stadium at the end of a concert) → split the cell to a finer resolution and rate-limit the expansion radius.</li>
-<li><strong>Duplicate assignment</strong> → prevented by the offer lock plus a unique constraint on trips.driver_id for active trips.</li>
+<li><strong>Hot keys</strong>: one viral ad saturates a partition → two-stage aggregation (pre-aggregate with a salted key, then merge).</li>
+<li><strong>Click fraud / dedupe</strong>: same user clicking 100 times, bot traffic — filter before aggregation, and keep the raw events so filters can be re-applied retroactively.</li>
+<li><strong>Cardinality control</strong>: (ad_id × country × device × hour) explodes quickly; cap dimension combinations and pre-define the cubes you support.</li>
+<li><strong>Retention tiers</strong>: minute granularity for 7 days, hourly for 90 days, daily forever.</li>
 </ul>
-<div class="key-point">The core insight: <em>"a geospatial nearest-neighbour query becomes a key lookup once you index by cell"</em>. Combine that with "current location is a cache with a TTL, the event stream is the record of truth", and an exclusive offer lock for matching, and you have the whole system in three sentences.</div>`,
-      },
-      {
-        q: 'How would you design a video streaming platform (YouTube / Netflix): upload, transcoding and playback?',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p>Video is two very different systems joined by a pipeline: a write-side that ingests and transcodes files asynchronously, and a read-side that serves enormous amounts of bytes from a CDN. Uploads go directly to object storage using pre-signed URLs so the application servers never touch the bytes, then a message triggers a transcoding pipeline that splits the video into chunks, encodes them into multiple bitrates in parallel, and packages them into HLS or DASH segments with a manifest. Playback is adaptive: the player reads the manifest, requests small segments, and switches quality according to measured bandwidth, with almost every byte served from CDN edge caches rather than the origin. Metadata, recommendations and view counts live in separate stores, and the entire pipeline is idempotent and resumable because transcoding jobs are long and failure is normal.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Video thực chất là hai hệ thống rất khác nhau nối với nhau bằng một pipeline: phía ghi nhận file lên và transcode bất đồng bộ, phía đọc phục vụ một lượng byte khổng lồ từ CDN. File upload được đẩy thẳng lên object storage bằng pre-signed URL nên server ứng dụng không bao giờ phải xử lý luồng byte, sau đó một message kích hoạt pipeline transcoding: cắt video thành các chunk, encode song song ra nhiều mức bitrate, rồi đóng gói thành các segment HLS hoặc DASH kèm manifest. Việc phát là thích ứng: player đọc manifest, tải các segment nhỏ và đổi chất lượng theo băng thông đo được, và gần như toàn bộ byte được phục vụ từ cache biên của CDN chứ không phải từ origin. Metadata, gợi ý và lượt xem nằm ở các kho riêng, còn toàn bộ pipeline phải idempotent và có thể tiếp tục được, vì job transcoding chạy lâu và lỗi là chuyện bình thường.</p></details>
-<p><strong>1. Numbers that shape the design</strong></p>
-<pre>1 hour of 1080p ≈ 2-4 GB source; transcoded to 6 renditions ≈ 4-6 GB stored
-1 M concurrent viewers × 5 Mbps = 5 Tbps egress   ← impossible from origin
-  → 95-99% of bytes MUST be served by CDN edges
-Storage grows forever → tiering (hot → warm → cold/archive) is mandatory</pre>
-<p><strong>2. Upload path</strong></p>
-<pre>1. Client asks the API for a pre-signed upload URL (+ multipart for large files).
-2. Client uploads DIRECTLY to object storage (S3/GCS) — resumable, chunked.
-   The app server never proxies bytes; it only issues credentials and records metadata.
-3. Storage emits an event (or client calls /complete) → message on the queue.
-4. Video row: status = UPLOADED → PROCESSING.</pre>
-<p><strong>3. Transcoding pipeline (the interesting part)</strong></p>
-<pre>[queue] → [Splitter]  cut source into 5-10s GOP-aligned chunks
-             ↓ fan out (thousands of workers, spot/preemptible instances)
-          [Encode chunk × N renditions]   240p 360p 480p 720p 1080p 4K (+ AV1/H.265)
-             ↓
-          [Packager]  assemble chunks → HLS (.ts/.m4s + .m3u8) / DASH (.mpd)
-             ↓
-          [Publish]  write to object storage, generate thumbnails/preview sprites,
-                     captions (ASR), content fingerprint (copyright), status = READY</pre>
-<ul>
-<li><strong>Chunk-level parallelism</strong> is why a 2-hour movie can transcode in minutes: 1000 chunks encode simultaneously.</li>
-<li>Jobs must be <strong>idempotent and resumable</strong> — a worker dying mid-chunk just re-runs that chunk; the output key is deterministic.</li>
-<li><strong>Priority queues</strong>: a 30-second short and a 3-hour 4K film should not share one FIFO. Also transcode low renditions first so the video becomes watchable sooner.</li>
-<li>Cheap capacity: preemptible/spot instances, since every task is retryable.</li>
-</ul>
-<p><strong>4. Playback: adaptive bitrate streaming</strong></p>
-<pre>Player → GET master.m3u8            (manifest listing renditions)
-      → GET 720p/segment_001.ts     (~5s of video, cacheable forever, immutable)
-      → measures throughput & buffer → next request may switch to 1080p or drop to 480p
-
-Why segments? Small immutable files = perfect CDN objects, instant quality switching,
-seek = jump to a segment index, and one slow segment doesn't stall the whole stream.</pre>
-<p><strong>5. Delivery</strong></p>
-<ul>
-<li><strong>CDN everything</strong>: segments are immutable with long TTLs. Netflix goes further with Open Connect appliances placed inside ISPs.</li>
-<li><strong>Pre-position popular content</strong> to edges before demand (a new season release) instead of relying on cache-fill.</li>
-<li><strong>Origin shield</strong>: a mid-tier cache so thousands of edges do not stampede object storage.</li>
-<li><strong>Signed URLs / DRM</strong> (Widevine, FairPlay) for paid content; tokens are short-lived and per-session.</li>
-</ul>
-<p><strong>6. Metadata and the read-side</strong></p>
-<ul>
-<li><strong>Video metadata</strong>: relational or document store, heavily cached; the catalogue is read-mostly.</li>
-<li><strong>View counts / watch progress</strong>: high-volume writes → stream to Kafka, aggregate, and update counters asynchronously (approximate is fine for counts, exact for billing).</li>
-<li><strong>Search</strong>: Elasticsearch over titles, descriptions, transcripts.</li>
-<li><strong>Recommendations</strong>: offline model training + a low-latency serving layer; never in the playback path.</li>
-</ul>
-<p><strong>7. Failure modes and trade-offs</strong></p>
-<ul>
-<li><strong>Transcode fails for one rendition</strong> → publish what is ready (progressive availability), retry the rest, alert if 4K never completes.</li>
-<li><strong>Live streaming</strong> changes everything: low-latency HLS/WebRTC, sub-second chunks, no time for multi-pass encoding — call this out as a separate design.</li>
-<li><strong>Cost control</strong>: storage tiering by age/popularity, AV1 for popular titles (better compression, expensive to encode), and per-title encoding ladders instead of one fixed ladder.</li>
-</ul>
-<div class="key-point">Two sentences carry this design: <em>"bytes never pass through my application servers — clients upload to object storage and download from CDN edges"</em>, and <em>"transcoding is chunk-parallel and idempotent, so it scales horizontally on cheap preemptible capacity."</em> Adaptive bitrate over immutable segments is what makes both playback quality and caching work.</div>`,
-      },
-      {
-        q: 'How would you design a search autocomplete / typeahead system?',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p>Autocomplete is a read-only, extremely latency-sensitive lookup, so the whole design is about pre-computing answers rather than searching at request time. An offline pipeline aggregates query logs into frequency counts, builds a prefix structure such as a trie where each node already stores its own top-K completions, and ships that structure to the serving tier, so a request is a prefix walk plus returning a cached list in a few milliseconds. Results are cached at every level, including the CDN and the browser, and the index is rebuilt periodically rather than updated per keystroke, with a small real-time layer merged in for trending queries. The client also does its share by debouncing keystrokes, cancelling stale requests and caching prefixes it has already seen.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Autocomplete là một truy vấn chỉ đọc và cực kỳ nhạy với độ trễ, nên toàn bộ thiết kế xoay quanh việc tính sẵn câu trả lời thay vì đi tìm kiếm lúc có request. Một pipeline offline gom log truy vấn thành số đếm tần suất, dựng một cấu trúc tiền tố như trie trong đó mỗi node đã lưu sẵn top-K gợi ý của chính nó, rồi đẩy cấu trúc đó xuống tầng phục vụ, nhờ vậy mỗi request chỉ là đi theo tiền tố rồi trả về danh sách đã có sẵn trong vài mili-giây. Kết quả được cache ở mọi tầng, kể cả CDN và trình duyệt, còn index được dựng lại theo chu kỳ chứ không cập nhật theo từng phím gõ, kèm một lớp real-time nhỏ trộn vào cho các truy vấn đang thịnh hành. Client cũng phải làm phần việc của mình: debounce phím gõ, hủy request cũ và cache lại các tiền tố đã gặp.</p></details>
-<p><strong>1. Requirements</strong></p>
-<ul>
-<li>p99 latency <strong>under ~50 ms</strong> — the suggestion must appear before the next keystroke.</li>
-<li>Every keystroke is a request: a search box with 10 M daily users generates far more QPS than the search itself (5-10 requests per query typed).</li>
-<li>Top 5-10 suggestions, ranked by popularity (and personalization/locale if required).</li>
-<li>Fresh enough: new trending terms should appear within minutes, not seconds.</li>
-</ul>
-<p><strong>2. Why a trie with precomputed top-K</strong></p>
-<pre>Naive: SELECT q FROM queries WHERE q LIKE 'lap%' ORDER BY freq DESC LIMIT 10
-       → scans/sorts at request time → too slow and expensive at 100k QPS.
-
-Trie where EVERY node stores its own answer:
-
-        (root)
-          └ l ── a ── p
-                     ├ top10: [laptop, laptop deals, lapland, ...]  ← precomputed
-                     └ t ── o ── p
-                                 └ top10: [laptop, laptop bag, ...] ← precomputed
-
-Request "lap" = walk 3 nodes, return the stored list. O(prefix length), no ranking at runtime.</pre>
-<p><strong>3. Architecture</strong></p>
-<pre>[Search logs] → Kafka → [Aggregation job (hourly/daily)]  count(query) with time decay
-                             ↓
-                     [Trie/index builder]  compute top-K per node, serialize
-                             ↓
-                     [Distributed store / shipped snapshot]
-                             ↓
-[Client] → CDN/edge cache → [Suggestion service: index held IN MEMORY] → response
-
-+ [Real-time layer]: a small Redis sorted set of the last N minutes' trending queries,
-  merged with the static top-K at query time (bounded, cheap).</pre>
-<p><strong>4. Sharding and serving</strong></p>
-<ul>
-<li><strong>Shard by prefix</strong> (e.g. first 1-2 characters) so each server holds a slice of the trie in memory; the router picks the shard from the prefix.</li>
-<li>Replicate every shard for both availability and read throughput — the index is read-only, so replicas are trivially consistent.</li>
-<li>Index updates are <strong>atomic swaps</strong>: build a new snapshot, load it into memory, flip the pointer. No incremental mutation of a live trie.</li>
-<li>Memory-efficient structures matter at scale: compressed tries (radix tree), succinct tries, or an FST as used by Lucene.</li>
-</ul>
-<p><strong>5. Caching layers (each one removes most of the traffic below it)</strong></p>
-<ul>
-<li><strong>Browser</strong>: cache prefixes already fetched; typing one more character often needs no request at all (filter the previous result client-side).</li>
-<li><strong>Debounce</strong> ~50-100 ms and cancel in-flight requests for stale prefixes.</li>
-<li><strong>CDN/edge</strong>: short-prefix suggestions are identical for everyone → cache with a 1-5 minute TTL. Short prefixes are the bulk of traffic.</li>
-<li><strong>Service-level cache</strong> for the hottest prefixes.</li>
-</ul>
-<p><strong>6. Ranking and quality</strong></p>
-<ul>
-<li>Score = frequency with <strong>time decay</strong> (recent counts weigh more) + click-through rate + optional personalization (user's own history, locale, device).</li>
-<li><strong>Typo tolerance</strong>: edit-distance-1 expansion, or a separate fuzzy index — do it offline where possible.</li>
-<li><strong>Filtering</strong>: block offensive/legally sensitive suggestions and rate-limit query injection into the popularity counts, otherwise the box gets poisoned by bots.</li>
-</ul>
-<div class="key-point">The line that wins this question: <em>"nothing is ranked at request time — the top-K for every prefix is precomputed and the request is a pointer walk in memory."</em> Add "the index is rebuilt and hot-swapped, never mutated in place" and "short prefixes are cached at the CDN because they are identical for all users" and you have covered latency, scale and freshness.</div>`,
+<div class="key-point">The three sentences that land it: <em>"aggregate on event time with watermarks, not on arrival time"</em>, <em>"make the sink idempotent by (window, dimensions) so replays are safe under at-least-once"</em>, and <em>"use HLL/count-min where approximate is fine, and reconcile with a nightly batch job for anything that turns into an invoice."</em></div>`,
       },
       {
         q: 'How would you design a distributed job scheduler / delayed task system (cron at scale, retries, exactly-once execution)?',
@@ -1941,346 +2425,8 @@ Rules:
 </ul>
 <div class="key-point">Three lines to say out loud: <em>"metrics for alerting, traces for finding the slow hop, logs for the details of one request — linked by trace id"</em>; <em>"cardinality and retention are the cost knobs"</em>; and <em>"the telemetry path must never back-pressure production, so it buffers locally and drops rather than blocks."</em></div>`,
       },
-      {
-        q: 'A production system is slowing down under 10x growth — how do you find and fix the bottleneck? (real-project scaling playbook)',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p>Start by measuring instead of guessing: get p50, p95 and p99 latency broken down per endpoint and per dependency, because the fix for a slow database query is nothing like the fix for connection-pool exhaustion. The usual order of bottlenecks is database first, then N+1 query patterns and missing indexes, then serialized external calls, then connection pools and thread pools, and only then raw CPU or memory. Fixes are applied cheapest first: add the index, cache the hot read, batch or parallelize the calls, move slow work to a queue, add read replicas, and only shard or split services when a single node genuinely cannot hold the write load. Every change is verified by load testing against realistic data volume, and capacity is left with headroom because systems fail non-linearly once a resource passes about 80% utilization.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Hãy bắt đầu bằng đo đạc thay vì đoán: lấy p50, p95 và p99 chia theo từng endpoint và từng dependency, vì cách sửa một câu truy vấn chậm hoàn toàn khác với cách sửa việc cạn connection pool. Thứ tự điểm nghẽn thường gặp là database trước, rồi tới các mẫu N+1 và thiếu index, rồi tới các lời gọi ngoài bị chạy tuần tự, rồi tới connection pool và thread pool, và chỉ sau đó mới tới CPU hay bộ nhớ thuần túy. Cách sửa được áp dụng theo thứ tự rẻ nhất trước: thêm index, cache các truy vấn đọc nóng, gom lô hoặc chạy song song các lời gọi, đẩy việc chậm sang hàng đợi, thêm read replica, và chỉ sharding hay tách service khi một node thực sự không gánh nổi lượng ghi. Mọi thay đổi đều phải kiểm chứng bằng load test trên khối lượng dữ liệu thực tế, và luôn chừa dư địa công suất, vì hệ thống hỏng theo cách phi tuyến khi một tài nguyên vượt quá khoảng 80% mức sử dụng.</p></details>
-<p><strong>1. Measure — do not guess (the step everyone skips)</strong></p>
-<pre>Questions to answer before touching code:
-  - WHICH endpoint is slow? (p99 per route, not overall average)
-  - WHERE does the time go? (APM/trace breakdown: app CPU vs DB vs external call vs queue wait)
-  - WHEN? (constant, or only at peak / only for large tenants / only after a deploy)
-  - Is it latency or saturation? (queueing = latency rises while throughput is flat)
 
-Averages lie. A p99 of 4s with a p50 of 80ms is a queueing or hot-key problem,
-not a "the code is slow" problem.</pre>
-<p><strong>2. The usual suspects, in the order they actually occur</strong></p>
-<table>
-<tr><th>#</th><th>Bottleneck</th><th>Symptom</th><th>Typical fix</th></tr>
-<tr><td>1</td><td>Missing/wrong index</td><td>One query dominates; seq scans in the plan</td><td>Add composite index matching the WHERE + ORDER BY</td></tr>
-<tr><td>2</td><td>N+1 queries</td><td>Query count scales with result size</td><td>Join/fetch join, batch load (IN clause), DataLoader</td></tr>
-<tr><td>3</td><td>Serialized external calls</td><td>Latency = sum of dependencies</td><td>Parallelize (CompletableFuture), batch, cache, set timeouts</td></tr>
-<tr><td>4</td><td>Connection/thread pool exhaustion</td><td>Latency spikes with queue wait; pool metrics at 100%</td><td>Right-size the pool, fix the slow query holding connections, bulkhead per dependency</td></tr>
-<tr><td>5</td><td>Lock contention</td><td>Throughput flat while CPU is idle</td><td>Shorter transactions, row-level instead of table-level, optimistic locking, shard the hot row</td></tr>
-<tr><td>6</td><td>Cache miss storm</td><td>DB load spikes on deploy/expiry</td><td>Staggered TTL + jitter, request coalescing, pre-warm</td></tr>
-<tr><td>7</td><td>GC / memory pressure</td><td>Periodic latency spikes, high pause time</td><td>Fix allocation hot spots, size the heap, use a low-pause collector</td></tr>
-<tr><td>8</td><td>Genuine CPU limit</td><td>All cores at 100%, profile is flat</td><td>Optimize the hot path, then add instances</td></tr>
-</table>
-<p><strong>3. Fix in order of cost (do not start at the expensive end)</strong></p>
-<pre>1. Index / query fix            hours,  no architecture change     ← usually 80% of the win
-2. Cache the hot read           days,   adds invalidation concerns
-3. Async the slow write path    days,   adds a queue + eventual consistency
-4. Read replicas                days,   read-your-writes caveat
-5. Vertical scale               hours,  buys time, costs money, has a ceiling
-6. Horizontal scale (stateless) days,   requires no sticky sessions
-7. Partition / shard the data   weeks,  changes the data model
-8. Split the service            months, organizational change too</pre>
-<p><strong>4. Load test the way production behaves</strong></p>
-<ul>
-<li>Test against <strong>production-sized data</strong> — an index that is unnecessary on 10k rows is critical on 100M.</li>
-<li>Model realistic traffic mixes and think time; a uniform-random key distribution hides hot-key problems that are the actual production failure.</li>
-<li>Ramp until something breaks and record <strong>where</strong> it breaks — that number is your capacity limit, and the shape of the failure is your degradation plan.</li>
-<li>Watch the whole system: queue depth, pool utilization, replica lag, GC pauses — not just the request latency graph.</li>
-</ul>
-<p><strong>5. Keep it from happening again</strong></p>
-<ul>
-<li><strong>Headroom</strong>: plan for 50-60% steady-state utilization. Beyond ~80%, queueing theory makes latency explode non-linearly for a small traffic increase.</li>
-<li><strong>Timeouts, retries with jitter, circuit breakers, bulkheads</strong> on every remote call — an unbounded retry storm turns a slow dependency into a full outage.</li>
-<li><strong>Autoscale on a leading signal</strong> (queue depth, RPS per instance), not on CPU alone.</li>
-<li><strong>Guardrails in CI</strong>: query-count assertions on key paths and a performance smoke test catch the next N+1 before it ships.</li>
-<li><strong>Capacity review per quarter</strong>: current peak vs measured limit vs growth rate — the answer tells you what to fix before it becomes an incident.</li>
-</ul>
-<div class="key-point">The habit that marks experience: <em>"I profile before I optimize, and I fix the cheapest thing that removes the bottleneck."</em> Most 10x scaling problems are one index, one N+1, or one missing cache — not a missing microservice architecture. And always name the next bottleneck after the fix: if the database is no longer the limit, say what becomes the limit at the next 10x.</div>`,
-      },
-      // ──── ADVANCED / SPECIALIZED SYSTEM DESIGNS ────
-      {
-        q: 'How would you design a web crawler and the search indexing pipeline behind it?',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p>A crawler is a distributed breadth-first traversal of the web whose real constraints are politeness and deduplication rather than raw speed. A URL frontier holds work partitioned so that all URLs of one host land in the same queue, which lets a single worker respect robots.txt and a per-host delay, and every URL is checked against a seen-set (a Bloom filter in front of a durable store) before being enqueued. Fetched pages are stored raw in object storage, parsed to extract links and text, and deduplicated by content hash or simhash because a large share of the web is near-duplicate. The indexing side is a batch or streaming pipeline that turns documents into an inverted index sharded by document, and query serving fans a request out to every shard, merges the top-K, and re-ranks. Freshness is handled by re-crawl priorities per site rather than by crawling everything again.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Crawler là một phép duyệt theo chiều rộng phân tán trên web, mà ràng buộc thật sự là tính lịch sự và khử trùng lặp chứ không phải tốc độ thô. Một URL frontier chứa công việc, được phân mảnh sao cho mọi URL của cùng một host rơi vào cùng một hàng đợi, nhờ đó một worker duy nhất có thể tôn trọng robots.txt và độ trễ theo host, và mọi URL đều được kiểm tra với tập đã thấy (một Bloom filter đặt trước một kho bền vững) trước khi đưa vào hàng đợi. Trang tải về được lưu thô trên object storage, được parse để trích link và văn bản, rồi khử trùng lặp bằng content hash hoặc simhash vì một phần lớn nội dung web là gần trùng nhau. Phía đánh chỉ mục là một pipeline batch hoặc streaming biến tài liệu thành inverted index phân mảnh theo tài liệu, còn khi phục vụ truy vấn thì tán request tới mọi shard, gộp top-K rồi xếp hạng lại. Độ tươi mới được xử lý bằng mức ưu tiên crawl lại cho từng site chứ không phải crawl lại tất cả.</p></details>
-<p><strong>1. Scale first</strong></p>
-<pre>1 billion pages/month → ~400 pages/sec sustained
-Average page 100 KB (HTML) → 100 TB/month raw → object storage, not a database
-Politeness: max 1 request per host per second → parallelism comes from crawling
-            MANY hosts at once, never from hammering one host</pre>
-<p><strong>2. Architecture</strong></p>
-<pre>[Seed URLs] → [URL Frontier]  ← priority + politeness queues
-                   ↓
-              [Fetcher pool]  DNS cache → HTTP GET → raw HTML to S3
-                   ↓
-              [Parser]  extract text + outlinks + canonical URL
-                   ↓                     ↓
-        [Dedup: content hash/simhash]  [URL filter + seen-set] → back to Frontier
-                   ↓
-              [Indexer]  tokenize → inverted index → shards
-                   ↓
-        [Index shards] ← [Query service: scatter-gather + rank]</pre>
-<p><strong>3. The URL frontier (the heart of a crawler)</strong></p>
-<ul>
-<li><strong>Two-level queues</strong>: front queues give priority (news site &gt; personal blog), back queues enforce politeness — one back queue per host, with a next-allowed-fetch timestamp.</li>
-<li><strong>Partition by host hash</strong> so a host is owned by exactly one worker; otherwise per-host rate limiting needs distributed coordination.</li>
-<li><strong>robots.txt</strong> is fetched once per host and cached with a TTL; crawl-delay is honoured.</li>
-<li>Frontier must be durable (Kafka/Redis + DB) — a crash must not lose a month of discovered URLs.</li>
-</ul>
-<p><strong>4. Deduplication at two levels</strong></p>
-<pre>URL dedup:     normalize (lowercase host, strip fragments/utm params, resolve relative)
-               → Bloom filter in memory (fast "definitely new") + durable set for the maybes
-Content dedup: exact  → SHA-256 of the normalized body
-               near   → simhash / minhash, compare Hamming distance
-               ~30% of the web is duplicate or boilerplate; skipping it saves the same % of cost</pre>
-<p><strong>5. Traps and hazards to mention</strong></p>
-<ul>
-<li><strong>Crawler traps</strong>: infinite calendars, session ids in URLs, faceted-search URL explosions → cap depth, cap URLs per host, detect repeating path patterns.</li>
-<li><strong>DNS is a bottleneck</strong> — cache resolutions aggressively and use an async resolver; naive DNS lookups dominate crawl latency.</li>
-<li><strong>Slow/hostile servers</strong> → strict timeouts, per-host failure counters, exponential back-off, temporary blacklist.</li>
-<li><strong>JS-rendered pages</strong> need a headless browser: 10-100x more expensive, so route only selected sites there.</li>
-</ul>
-<p><strong>6. From documents to an inverted index</strong></p>
-<pre>Doc 1: "fast java tutorial"   Doc 2: "java streams tutorial"
-
-inverted index (term → posting list with positions/frequencies):
-   java     → [(1, tf=1), (2, tf=1)]
-   tutorial → [(1, tf=1), (2, tf=1)]
-   streams  → [(2, tf=1)]
-
-Build: map(doc → terms) → shuffle by term → reduce(term → sorted posting list)
-       (MapReduce/Spark for batch rebuilds; incremental segments for fresh docs)</pre>
-<p><strong>7. Serving: shard by document, not by term</strong></p>
-<table>
-<tr><th>Sharding</th><th>Query cost</th><th>Verdict</th></tr>
-<tr><td><strong>By document</strong> (each shard holds a full index of its own docs)</td><td>Fan out to all shards, each returns local top-K, merge</td><td>✅ Standard — balanced load, easy to add shards, resilient</td></tr>
-<tr><td>By term (a shard owns certain terms)</td><td>Multi-term queries must join posting lists across machines</td><td>❌ Hot terms create hot shards; network-heavy</td></tr>
-</table>
-<ul>
-<li>Ranking: BM25/TF-IDF for text relevance + query-independent signals (PageRank-style link authority, freshness, click feedback), then an expensive re-rank of only the merged top few hundred.</li>
-<li>Caching: the query result cache absorbs the head of the distribution (a small number of queries are a large share of traffic).</li>
-<li>Index updates: immutable segments + periodic merge (Lucene model) — never mutate posting lists in place.</li>
-</ul>
-<div class="key-point">Say these three things: <em>"politeness is per-host, so partition the frontier by host"</em>, <em>"dedup twice — URL before fetching, content after"</em>, and <em>"shard the index by document and scatter-gather, because term sharding turns every multi-word query into a distributed join."</em></div>`,
-      },
-      {
-        q: 'How would you design a distributed key-value store (Dynamo / Cassandra style)?',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p>The design is a ring of equal peers with no leader: keys are placed by consistent hashing with virtual nodes, each key is replicated to the next N nodes on the ring, and the client tunes consistency with quorum values R and W so that R plus W greater than N gives overlapping reads and writes. Because writes are accepted even when some replicas are down, the system must repair itself: hinted handoff replays writes to nodes that were unavailable, read repair fixes divergence noticed during reads, and Merkle-tree anti-entropy compares replicas in the background. Conflicting concurrent writes are resolved by last-write-wins with timestamps or by vector clocks that surface siblings to the application. Locally, each node stores data in an LSM tree with a commit log, memtable, immutable SSTables, and Bloom filters, which makes writes sequential and fast while compaction manages read amplification.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Thiết kế là một vòng ring gồm các node ngang hàng, không có leader: key được đặt bằng consistent hashing kèm virtual node, mỗi key được nhân bản tới N node kế tiếp trên ring, và client tự chỉnh mức nhất quán bằng hai tham số quorum R và W sao cho R cộng W lớn hơn N để đọc và ghi luôn giao nhau. Vì hệ thống vẫn nhận write ngay cả khi một số replica đang chết, nó phải tự sửa chữa: hinted handoff phát lại write cho node từng không sẵn sàng, read repair sửa các sai lệch phát hiện lúc đọc, còn anti-entropy dùng cây Merkle để so sánh replica ở chế độ nền. Xung đột khi ghi đồng thời được giải quyết bằng last-write-wins theo timestamp hoặc bằng vector clock để lộ các phiên bản song song cho ứng dụng xử lý. Ở mỗi node, dữ liệu lưu theo LSM tree với commit log, memtable, các SSTable bất biến và Bloom filter, nhờ vậy write luôn tuần tự và nhanh, còn compaction lo phần khuếch đại đọc.</p></details>
-<p><strong>1. Requirements that lead to this shape</strong></p>
-<ul>
-<li>Always writable (shopping cart, session store): choose <strong>AP</strong> in CAP terms — availability over strict consistency.</li>
-<li>Linear scalability by adding nodes; no single point of failure; commodity hardware that fails constantly.</li>
-<li>Simple API: <code>get(key)</code>, <code>put(key, value)</code> — no joins, no transactions across keys.</li>
-</ul>
-<p><strong>2. Partitioning: consistent hashing with virtual nodes</strong></p>
-<pre>hash(key) → position on a 0..2^128 ring → owned by the next node clockwise
-
-Virtual nodes (each physical node owns ~256 ring positions) because:
-  - adding/removing a node moves only 1/N of the data
-  - heterogeneous machines can own more or fewer vnodes
-  - load stays even instead of depending on where a node lands on the ring</pre>
-<p><strong>3. Replication and tunable consistency</strong></p>
-<pre>Replicate each key to the next N distinct physical nodes (preference list),
-skipping nodes in the same rack/AZ so a rack failure cannot take all copies.
-
-N = 3, W = 2, R = 2 → R + W &gt; N → a read set always overlaps the last write set
-N = 3, W = 1, R = 1 → fastest, may read stale data
-N = 3, W = 3        → strong-ish writes, but any node down blocks writes
-
-The client (or coordinator node) chooses per operation — consistency is a knob, not a property.</pre>
-<p><strong>4. Handling failure — three repair mechanisms (this is what interviewers probe)</strong></p>
-<table>
-<tr><th>Mechanism</th><th>When</th><th>What it does</th></tr>
-<tr><td><strong>Hinted handoff</strong></td><td>Write time, replica down</td><td>Another node accepts the write with a hint and replays it when the owner returns → write availability</td></tr>
-<tr><td><strong>Read repair</strong></td><td>Read time</td><td>Coordinator sees divergent versions among replicas, returns the newest and pushes the fix to the stale ones</td></tr>
-<tr><td><strong>Anti-entropy (Merkle trees)</strong></td><td>Background</td><td>Replicas compare hash trees of their key ranges and exchange only the differing subranges — cheap detection of long-term drift</td></tr>
-</table>
-<p><strong>5. Conflict resolution</strong></p>
-<ul>
-<li><strong>Last-write-wins</strong> with a timestamp: trivial, but clock skew silently loses writes. Cassandra's default.</li>
-<li><strong>Vector clocks</strong>: detect true concurrency and return siblings; the application merges them (Dynamo's shopping cart unions the items — losing a delete is better than losing an add).</li>
-<li><strong>CRDTs</strong> for counters/sets: merges are mathematically conflict-free, no application logic needed.</li>
-</ul>
-<p><strong>6. Membership and failure detection</strong>: a <strong>gossip</strong> protocol spreads node state, and a phi-accrual failure detector avoids flapping. No coordinator to lose — every node knows the ring.</p>
-<p><strong>7. Storage engine on each node (LSM tree)</strong></p>
-<pre>write → commit log (sequential, durability)  →  memtable (sorted, in memory)
-        memtable full → flush → SSTable (immutable, sorted, on disk)
-        background compaction merges SSTables, drops tombstones
-
-read  → memtable → Bloom filter per SSTable (skip files that cannot contain the key)
-        → partition index → the one SSTable that has it
-
-Why LSM: writes are append-only and sequential (fast on both SSD and HDD).
-Cost: read amplification and compaction IO — the classic write-optimized trade-off vs B-trees.
-Deletes are tombstones; forgetting about tombstone TTL is a real production trap.</pre>
-<div class="key-point">The senior framing: <em>"no leader, consistent hashing for placement, quorum for tunable consistency, and three self-healing mechanisms because failure is the normal state."</em> Then be explicit about the price: no cross-key transactions, no joins, and application-visible conflicts — you traded consistency and query power for availability and linear scale.</div>`,
-      },
-      {
-        q: 'How would you design a real-time leaderboard / ranking system (millions of players, top-K plus my rank)?',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p>A leaderboard is a sorted-set problem, so the natural primary structure is a Redis sorted set where a score update is a logarithmic operation and top-K is a direct range read. The difficulty is not the top 100, which is tiny and cacheable, but answering "what is my rank" for tens of millions of users, and the practical answer is either an exact rank from the sorted set while it fits in memory, or an approximate rank computed from score-bucket counters once it does not. Durable scores live in a database and the sorted set is a rebuildable projection, so a Redis failure loses speed rather than data. Time-scoped boards, such as daily or weekly, are separate keys with a TTL, and very large boards are sharded by score range or by region with a merge step at read time.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Leaderboard về bản chất là bài toán tập sắp xếp, nên cấu trúc chính tự nhiên là Redis sorted set, ở đó cập nhật điểm là thao tác logarit còn lấy top-K là một lần đọc dải liên tiếp. Cái khó không nằm ở top 100 vốn rất nhỏ và dễ cache, mà ở việc trả lời "tôi đang hạng mấy" cho hàng chục triệu người dùng; cách làm thực tế là lấy hạng chính xác từ sorted set khi còn vừa bộ nhớ, hoặc tính hạng xấp xỉ từ các bộ đếm theo khoảng điểm khi đã vượt quá. Điểm số bền vững nằm ở database còn sorted set chỉ là một phép chiếu dựng lại được, nên Redis hỏng thì mất tốc độ chứ không mất dữ liệu. Các bảng theo thời gian như ngày hoặc tuần là các key riêng có TTL, còn bảng cực lớn thì phân mảnh theo khoảng điểm hoặc theo khu vực rồi gộp lại lúc đọc.</p></details>
-<p><strong>1. The operations and their required complexity</strong></p>
-<table>
-<tr><th>Operation</th><th>Frequency</th><th>Target</th></tr>
-<tr><td>Update score</td><td>Very high (every match/action)</td><td>O(log N)</td></tr>
-<tr><td>Top-K (K = 10..100)</td><td>Very high, identical for everyone</td><td>O(log N + K), cacheable</td></tr>
-<tr><td>My rank</td><td>High, unique per user</td><td>O(log N) exact, or O(1) approximate</td></tr>
-<tr><td>Neighbours (ranks around me)</td><td>Medium</td><td>Range read around my index</td></tr>
-</table>
-<p><strong>2. Redis sorted set — the default answer</strong></p>
-<pre>ZADD   leaderboard:global 1500 user:42       -- set/update score       O(log N)
-ZINCRBY leaderboard:global 25 user:42        -- atomic increment
-ZREVRANGE leaderboard:global 0 9 WITHSCORES  -- top 10                 O(log N + K)
-ZREVRANK  leaderboard:global user:42         -- my rank (0-based)      O(log N)
-ZREVRANGE leaderboard:global :r-2 :r+2       -- players around me
-
-Implementation: skip list + hash map → ordered access and O(1) score lookup.
-Memory: ~60-100 bytes per member → 10 M players ≈ 1 GB. 100 M players → shard.</pre>
-<p><strong>3. Durability: Redis is the index, not the record</strong></p>
-<pre>Match ends → write score to the DB (source of truth)
-           → ZADD/ZINCRBY to Redis (the ranking projection)
-           → (optionally publish an event for feeds/achievements)
-
-Redis lost? Rebuild by streaming scores from the DB. Enable AOF for a faster warm start.
-Never let "the leaderboard" be the only copy of a player's score.</pre>
-<p><strong>4. Scaling past one sorted set</strong></p>
-<ul>
-<li><strong>Time-scoped boards</strong>: <code>leaderboard:daily:2026-08-11</code>, <code>:weekly:2026-W33</code> with TTLs. This is also the cheapest way to keep set sizes small and interest high.</li>
-<li><strong>Segment boards</strong>: per region, per league, per friend group — smaller sets, and most users only care about their own segment.</li>
-<li><strong>Score-range sharding</strong> for one huge global board: shard S holds scores in a bucket; top-K reads only the top shard, and a global rank = (count of all higher shards) + local rank.</li>
-<li><strong>Approximate rank at extreme scale</strong>: maintain counters of "how many players have a score in bucket B" (a histogram). Rank ≈ sum of counts above my bucket + interpolation inside it — O(number of buckets), and users below the top few thousand cannot tell the difference.</li>
-<li><strong>Percentile instead of rank</strong>: "top 3%" is cheaper to compute and often better UX than "rank 412,908".</li>
-</ul>
-<p><strong>5. Write amplification and hot keys</strong></p>
-<ul>
-<li>Batch or debounce updates for chatty games (aggregate in memory, flush every second) — a sorted set update per action is unnecessary.</li>
-<li>One global key is a single-shard hotspot in Redis Cluster; segmenting boards is also the fix for that.</li>
-<li>Use <code>ZINCRBY</code> instead of read-modify-write to keep updates atomic and lock-free.</li>
-</ul>
-<p><strong>6. Details interviewers like</strong></p>
-<ul>
-<li><strong>Tie-breaking</strong>: encode a tiebreaker into the score, e.g. score * 10^10 + (max_ts - achieved_ts), so earlier achievers rank first while remaining a single double value (watch the 2^53 precision limit).</li>
-<li><strong>Anti-cheat</strong>: scores are computed server-side and validated; never trust a client-submitted score.</li>
-<li><strong>Consistency</strong>: leaderboards can be seconds stale — say so explicitly and use that freedom for caching top-K at the edge.</li>
-</ul>
-<div class="key-point">The answer in one line: <em>"a sorted set gives O(log N) updates and O(log N + K) top-K, so the only genuinely hard part is per-user rank at 100 M scale — and that is solved with score-bucket counters and an approximate rank, or by never showing a global rank at all."</em></div>`,
-      },
-      {
-        q: 'How would you design a real-time analytics / ad-click aggregation system (counting at massive scale)?',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p>Counting at scale is a streaming aggregation problem where the design decisions are windowing, late data, deduplication and cost. Events arrive on a partitioned log, a stream processor aggregates them into time windows keyed by the dimensions you will query, and results are written into an OLAP store as pre-aggregated rollups, because scanning raw events per query is far too expensive. Correctness comes from idempotent writes keyed by window and dimension plus deduplication on an event id, since the pipeline is at-least-once, and watermarks decide how long a window stays open for late events with a separate correction path for stragglers. Where exact numbers are not required, probabilistic structures such as HyperLogLog for unique counts and count-min sketch for heavy hitters replace expensive exact aggregation. Billing-grade numbers get a slower batch recomputation that reconciles the fast path.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Đếm ở quy mô lớn là bài toán tổng hợp theo luồng, ở đó các quyết định thiết kế là cửa sổ thời gian, dữ liệu đến trễ, khử trùng lặp và chi phí. Sự kiện đi vào một log phân mảnh, một stream processor gộp chúng theo các cửa sổ thời gian với khóa là các chiều mà bạn sẽ truy vấn, rồi ghi kết quả vào một kho OLAP dưới dạng rollup tính sẵn, vì quét dữ liệu thô cho từng truy vấn là quá đắt. Tính đúng đắn đến từ việc ghi idempotent theo khóa (cửa sổ, chiều) cộng với khử trùng lặp theo event id, bởi pipeline chỉ đảm bảo at-least-once; watermark quyết định cửa sổ mở bao lâu để chờ dữ liệu trễ, kèm một đường sửa chữa riêng cho những sự kiện quá muộn. Ở những chỗ không cần con số chính xác tuyệt đối, các cấu trúc xác suất như HyperLogLog cho số lượng duy nhất và count-min sketch cho các phần tử nổi trội sẽ thay cho việc tổng hợp chính xác vốn rất tốn kém. Những con số dùng để tính tiền thì có thêm một lần tính lại theo lô, chậm hơn, để đối soát với đường nhanh.</p></details>
-<p><strong>1. The query patterns define the aggregation keys</strong></p>
-<pre>"Clicks for ad X in the last 5 minutes"        → (ad_id, minute)
-"Top 100 ads by CTR today by country"          → (ad_id, country, day)
-"Unique users who saw campaign C this week"    → distinct count → HyperLogLog
-Decide the dimension combinations UP FRONT — you cannot roll up what you did not key.</pre>
-<p><strong>2. Pipeline</strong></p>
-<pre>[Click/impression events] → Kafka (partitioned by ad_id, retention 7d)
-        ↓
-[Stream processor: Flink / Kafka Streams / Spark Streaming]
-    - dedupe by event_id (state store, TTL = the dedupe window)
-    - tumbling windows: 1 min → aggregate counts per dimension key
-    - watermark: allow lateness of e.g. 5 min, then close the window
-        ↓
-[OLAP store: ClickHouse / Druid / BigQuery]   ← minute rollups
-        ↓ (further rollup jobs: minute → hour → day)
-[Query API + cache] → dashboards
-
-[Raw events archive to S3] ─→ [Nightly batch recompute] ─→ corrections / billing truth</pre>
-<p><strong>3. Windowing and late events (the part that separates real answers)</strong></p>
-<ul>
-<li><strong>Event time, not processing time</strong> — a mobile client that was offline sends clicks minutes later; counting them in the wrong minute makes every chart wrong.</li>
-<li><strong>Watermark</strong> = "I believe I have seen all events up to time T". Windows close after the watermark passes; lateness is a tunable trade-off between latency and completeness.</li>
-<li><strong>Very late events</strong>: route to a side output and apply as corrections to the already-written rollup (the store must support updates or the query layer must sum a corrections table).</li>
-<li><strong>Idempotent sink</strong>: write with primary key (window_start, dimensions) and upsert the value, so a replay after a crash produces the same number instead of double counting.</li>
-</ul>
-<p><strong>4. Probabilistic structures — when exactness is not worth the money</strong></p>
-<table>
-<tr><th>Need</th><th>Structure</th><th>Cost / accuracy</th></tr>
-<tr><td>Unique visitors</td><td><strong>HyperLogLog</strong></td><td>~12 KB per counter, ~2% error, mergeable across shards and time buckets</td></tr>
-<tr><td>Top-K / heavy hitters</td><td><strong>Count-min sketch</strong> (+ a heap)</td><td>Fixed memory, may overcount rare items; perfect for "top ads/URLs"</td></tr>
-<tr><td>"Have we seen this event id?"</td><td><strong>Bloom filter</strong></td><td>Small, false positives only → cheap first-line dedupe before the state store</td></tr>
-<tr><td>Percentiles (latency, bid price)</td><td><strong>t-digest / DDSketch</strong></td><td>Mergeable approximate quantiles — averages are useless here</td></tr>
-</table>
-<p>Exact distinct counts across billions of events require huge state; HLL merges make "uniques per hour, rolled up to a week" almost free.</p>
-<p><strong>5. Lambda vs kappa in practice</strong></p>
-<ul>
-<li><strong>Fast path</strong> (streaming) serves dashboards in seconds and is allowed to be approximate.</li>
-<li><strong>Slow path</strong> (batch over the raw archive) recomputes the same numbers nightly and is the source of truth for <strong>billing</strong> — advertisers get invoiced from this, not from the stream.</li>
-<li>Publish the reconciliation delta as a metric; a growing gap between fast and slow paths is a bug alarm.</li>
-</ul>
-<p><strong>6. Practical concerns</strong></p>
-<ul>
-<li><strong>Hot keys</strong>: one viral ad saturates a partition → two-stage aggregation (pre-aggregate with a salted key, then merge).</li>
-<li><strong>Click fraud / dedupe</strong>: same user clicking 100 times, bot traffic — filter before aggregation, and keep the raw events so filters can be re-applied retroactively.</li>
-<li><strong>Cardinality control</strong>: (ad_id × country × device × hour) explodes quickly; cap dimension combinations and pre-define the cubes you support.</li>
-<li><strong>Retention tiers</strong>: minute granularity for 7 days, hourly for 90 days, daily forever.</li>
-</ul>
-<div class="key-point">The three sentences that land it: <em>"aggregate on event time with watermarks, not on arrival time"</em>, <em>"make the sink idempotent by (window, dimensions) so replays are safe under at-least-once"</em>, and <em>"use HLL/count-min where approximate is fine, and reconcile with a nightly batch job for anything that turns into an invoice."</em></div>`,
-      },
-      {
-        q: 'How would you design a collaborative document editor (Google Docs): real-time multi-user editing?',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p>The core problem is that two users edit the same text at the same time on different machines, so edits must be expressed as operations against a version rather than as a whole document, and the system needs a rule that makes concurrent operations converge to the same result everywhere. There are two proven approaches: operational transformation, where a central server serializes operations and transforms each incoming operation against the ones it missed, and CRDTs, where every character gets a unique identifier so operations commute by construction and no central authority is needed. Around that core sit a WebSocket layer per document, presence and cursor broadcasting, periodic snapshots plus an operation log for history and recovery, and offline support that replays queued operations on reconnect. Documents are sharded by document id, with one owning server per active document so ordering stays simple.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Vấn đề cốt lõi là hai người cùng sửa một đoạn văn bản tại cùng thời điểm trên hai máy khác nhau, nên các thay đổi phải được biểu diễn dưới dạng operation gắn với một phiên bản chứ không phải gửi cả tài liệu, và hệ thống cần một quy tắc để các operation đồng thời hội tụ về cùng một kết quả ở mọi nơi. Có hai hướng đã được kiểm chứng: operational transformation, trong đó một server trung tâm xếp thứ tự các operation và biến đổi operation đến sao cho phù hợp với những operation nó chưa thấy; và CRDT, trong đó mỗi ký tự có một định danh duy nhất nên các operation giao hoán được về mặt bản chất và không cần một trọng tài trung tâm. Bao quanh phần lõi đó là một lớp WebSocket theo từng tài liệu, phát tán presence và vị trí con trỏ, chụp snapshot định kỳ kèm log operation để phục vụ lịch sử và khôi phục, cùng khả năng làm việc offline bằng cách phát lại các operation đã xếp hàng khi kết nối lại. Tài liệu được phân mảnh theo document id, mỗi tài liệu đang mở do đúng một server sở hữu để việc sắp thứ tự luôn đơn giản.</p></details>
-<p><strong>1. Why "send the whole document" and "last write wins" both fail</strong></p>
-<pre>Document: "HELLO"
-  User A inserts "!" at position 5     → "HELLO!"
-  User B inserts "?" at position 0     → "?HELLO"
-Naive last-write-wins → one edit is silently destroyed.
-Naive apply-both-in-arrival-order → positions have shifted → text corrupts ("?HELL!O").</pre>
-<p><strong>2. Approach A — Operational Transformation (what Google Docs uses)</strong></p>
-<pre>Every op carries the document version it was based on:
-   A: insert("!", pos 5, base v10)
-   B: insert("?", pos 0, base v10)
-
-Server picks an order (A then B), and TRANSFORMS B against A:
-   transform(insert@0, against insert@5) → insert@0 unchanged
-   transform(insert@5, against insert@0) → insert@6   (shifted by the earlier insert)
-
-Both clients end with "?HELLO!"  → convergence.
-Client-side: keep a buffer of unacknowledged local ops, transform incoming server ops
-against them (this is what makes typing feel instant with no round trip).</pre>
-<ul>
-<li>Needs a <strong>central server</strong> to define the canonical order; transformation functions must satisfy the TP1/TP2 properties and are famously easy to get subtly wrong.</li>
-<li>Compact on the wire — an op is a few bytes.</li>
-</ul>
-<p><strong>3. Approach B — CRDT (Yjs, Automerge, Figma-style)</strong></p>
-<pre>Each character gets a globally unique, ordered id: (siteId, counter) + a position between neighbours.
-   Insert = "add character with id X between ids A and B"
-   Delete = tombstone the id (never shift indexes)
-
-Because ids are unique and ordering is total, ops COMMUTE:
-   apply(op1, op2) == apply(op2, op1)   → converge with no transformation and no server
-Server can be a dumb relay; peer-to-peer and offline-first work naturally.</pre>
-<table>
-<tr><th></th><th>OT</th><th>CRDT</th></tr>
-<tr><td>Central server</td><td>Required (ordering authority)</td><td>Not required (relay only)</td></tr>
-<tr><td>Metadata size</td><td>Small</td><td>Larger (ids + tombstones; needs garbage collection)</td></tr>
-<tr><td>Implementation risk</td><td>Transformation functions are hard</td><td>Data structure is complex but the merge rule is proven</td></tr>
-<tr><td>Offline / P2P</td><td>Awkward</td><td>Natural</td></tr>
-<tr><td>Used by</td><td>Google Docs, Etherpad</td><td>Yjs, Automerge, Figma, Apple Notes</td></tr>
-</table>
-<p><strong>4. System architecture</strong></p>
-<pre>[Browser] ←WebSocket→ [Doc session server]   ← one OWNER server per active doc
-                             │  in-memory doc state + op log
-                             ├→ [Redis pub/sub] presence, cursors, awareness
-                             ├→ [Op log store]  append-only ops (Kafka/DB)
-                             └→ [Snapshot store] periodic full document + version
-
-Routing: consistent hashing on document_id → all editors of one doc land on the same server.
-Persistence: snapshot every N ops or T seconds; recovery = latest snapshot + replay ops after it.</pre>
-<p><strong>5. The rest of the product (do not forget these in the interview)</strong></p>
-<ul>
-<li><strong>Presence and cursors</strong>: ephemeral, high frequency, lossy — broadcast over pub/sub, never persisted.</li>
-<li><strong>Offline editing</strong>: queue ops locally (IndexedDB), replay on reconnect; CRDTs merge them, OT needs transformation against everything missed.</li>
-<li><strong>Version history</strong>: op log gives infinite undo and named revisions; compaction turns old ops into snapshots.</li>
-<li><strong>Permissions</strong> checked at session join and on every op (a share link revoked mid-session must take effect).</li>
-<li><strong>Large documents</strong>: split into blocks/paragraphs so a single edit does not re-broadcast the whole tree; rich text is modelled as attributed ranges, which multiplies the transformation cases.</li>
-<li><strong>Failover</strong>: if the owning server dies, another loads snapshot + op log and clients reconnect — clients must be able to resume from their last acknowledged version.</li>
-</ul>
-<div class="key-point">The framing that shows depth: <em>"you cannot send document state, you send intent as operations against a version, and you need a convergence rule — OT (server transforms, small payloads) or CRDT (unique ids, commutative merges, works offline and P2P)."</em> Then mention snapshot + op log for persistence, and one owning server per document so ordering never becomes a distributed consensus problem.</div>`,
-      },
+      // ──── 11. RELIABILITY, MULTI-REGION & SCALING IN PRODUCTION ────
       {
         q: 'How would you design a multi-region architecture for high availability and disaster recovery (RPO/RTO, active-active vs active-passive)?',
         difficulty: 'hard',
@@ -2389,183 +2535,56 @@ CREATE POLICY tenant_isolation ON invoices
 <div class="key-point">The line that shows you have run this in production: <em>"tenant isolation is enforced in exactly one place — RLS or a central filter — because relying on developers to remember a WHERE clause is a data breach with a schedule."</em> Second: pooled vs silo is not a religion, it is a per-customer tier decision, so build the migration path between them from day one.</div>`,
       },
       {
-        q: 'How would you design a stock exchange / order matching engine (low latency, deterministic, no lost orders)?',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p>An exchange inverts the usual priorities: correctness and determinism come first, latency is measured in microseconds, and throughput is achieved by keeping the matching engine single-threaded and entirely in memory instead of by scaling out. Orders enter through gateways that perform risk and validation checks, pass through a sequencer that assigns a total order, and then hit one matching engine per instrument that maintains a limit order book and matches by price-time priority. Durability comes from event sourcing: the sequenced input stream is written to a replicated log, so a standby engine can replay the same inputs and reach exactly the same state, which is only possible because the engine is deterministic and free of clocks, random values and concurrency. Market data and execution reports fan out to clients on a separate publish path so slow consumers never slow down matching.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Một sàn giao dịch đảo ngược thứ tự ưu tiên thông thường: tính đúng đắn và tính tất định đứng đầu, độ trễ tính bằng micro-giây, và throughput đạt được bằng cách giữ matching engine chạy đơn luồng hoàn toàn trong bộ nhớ chứ không phải bằng scale out. Lệnh đi vào qua các gateway làm nhiệm vụ kiểm tra rủi ro và tính hợp lệ, qua một sequencer gán thứ tự toàn cục, rồi tới một matching engine cho mỗi mã, nơi duy trì sổ lệnh giới hạn và khớp theo ưu tiên giá rồi tới thời gian. Tính bền vững đến từ event sourcing: dòng input đã được đánh thứ tự được ghi vào một log nhân bản, nhờ đó một engine dự phòng có thể phát lại đúng các input đó và đạt đúng cùng một trạng thái — điều này chỉ khả thi vì engine là tất định, không dùng đồng hồ, không dùng số ngẫu nhiên và không có xử lý đồng thời. Dữ liệu thị trường và báo cáo khớp lệnh được phát ra trên một đường riêng để các client chậm không bao giờ làm chậm việc khớp lệnh.</p></details>
-<p><strong>1. Requirements that drive an unusual architecture</strong></p>
-<ul>
-<li><strong>Determinism</strong>: the same input sequence must always produce the same trades — this is a regulatory and audit requirement, not an optimization.</li>
-<li><strong>Fairness</strong>: strict price-time priority; no order may jump the queue.</li>
-<li><strong>Latency</strong>: p99 in microseconds, and <strong>predictable</strong> — a jittery p99.9 is worse than a slightly higher mean.</li>
-<li><strong>No lost orders</strong>: every accepted order is durable before it is acknowledged.</li>
-</ul>
-<p><strong>2. Architecture</strong></p>
-<pre>[Trader/FIX gateway]  auth, validation, pre-trade risk (limits, buying power)
-        ↓
-[Sequencer]  assigns a monotonic sequence number → THE total order of the venue
-        ↓ (write to replicated log first: Aeron/Kafka/custom, fsync or multi-node ack)
-[Matching engine per instrument]  single-threaded, in-memory order book
-        ↓                                   ↓
-[Execution reports → traders]     [Market data feed → all subscribers]
-        ↓
-[Post-trade: clearing, settlement, ledger, surveillance]  (asynchronous, off the hot path)</pre>
-<p><strong>3. The limit order book</strong></p>
-<pre>Bids (buy, sorted DESC by price)      Asks (sell, sorted ASC by price)
-  100.20 → [order A 500, order B 200]   100.25 → [order C 300]
-  100.15 → [order D 1000]               100.30 → [order E 800]
-            ↑ FIFO queue per price level (time priority)
+        q: 'A production system is slowing down under 10x growth — how do you find and fix the bottleneck? (real-project scaling playbook)',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>Start by measuring instead of guessing: get p50, p95 and p99 latency broken down per endpoint and per dependency, because the fix for a slow database query is nothing like the fix for connection-pool exhaustion. The usual order of bottlenecks is database first, then N+1 query patterns and missing indexes, then serialized external calls, then connection pools and thread pools, and only then raw CPU or memory. Fixes are applied cheapest first: add the index, cache the hot read, batch or parallelize the calls, move slow work to a queue, add read replicas, and only shard or split services when a single node genuinely cannot hold the write load. Every change is verified by load testing against realistic data volume, and capacity is left with headroom because systems fail non-linearly once a resource passes about 80% utilization.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Hãy bắt đầu bằng đo đạc thay vì đoán: lấy p50, p95 và p99 chia theo từng endpoint và từng dependency, vì cách sửa một câu truy vấn chậm hoàn toàn khác với cách sửa việc cạn connection pool. Thứ tự điểm nghẽn thường gặp là database trước, rồi tới các mẫu N+1 và thiếu index, rồi tới các lời gọi ngoài bị chạy tuần tự, rồi tới connection pool và thread pool, và chỉ sau đó mới tới CPU hay bộ nhớ thuần túy. Cách sửa được áp dụng theo thứ tự rẻ nhất trước: thêm index, cache các truy vấn đọc nóng, gom lô hoặc chạy song song các lời gọi, đẩy việc chậm sang hàng đợi, thêm read replica, và chỉ sharding hay tách service khi một node thực sự không gánh nổi lượng ghi. Mọi thay đổi đều phải kiểm chứng bằng load test trên khối lượng dữ liệu thực tế, và luôn chừa dư địa công suất, vì hệ thống hỏng theo cách phi tuyến khi một tài nguyên vượt quá khoảng 80% mức sử dụng.</p></details>
+<p><strong>1. Measure — do not guess (the step everyone skips)</strong></p>
+<pre>Questions to answer before touching code:
+  - WHICH endpoint is slow? (p99 per route, not overall average)
+  - WHERE does the time go? (APM/trace breakdown: app CPU vs DB vs external call vs queue wait)
+  - WHEN? (constant, or only at peak / only for large tenants / only after a deploy)
+  - Is it latency or saturation? (queueing = latency rises while throughput is flat)
 
-Structure: an array/tree indexed by price level (prices are discrete ticks → array is viable)
-           + a doubly linked list per level  + a hash map orderId → node
-   add order    O(1) amortized      cancel O(1) via the hash map      match O(1) at the top
-Matching a market buy: take the best ask level, fill orders in FIFO order, walk levels
-until the quantity is filled or the book is empty (or the price limit is crossed).</pre>
-<p><strong>4. Why single-threaded is the fast and correct answer</strong></p>
-<ul>
-<li>No locks, no contention, no cache-line ping-pong; a modern core matches millions of orders per second when everything is in memory.</li>
-<li>Determinism becomes trivial — with concurrency, replaying inputs would not reproduce the same trades.</li>
-<li><strong>Scale by instrument, not by thread</strong>: shard symbols across engines (AAPL on engine 1, TSLA on engine 2). Each book is independent.</li>
-<li>LMAX Disruptor style: pre-allocated ring buffers, no garbage during trading hours, mechanical sympathy (cache-friendly layouts, busy-spin instead of blocking, pinned cores, no syscalls in the hot path).</li>
-</ul>
-<p><strong>5. Durability and failover through event sourcing</strong></p>
-<pre>Input log (sequenced commands)  →  engine state is a pure function of the log
-  - persist the command BEFORE acknowledging the trader
-  - hot standby engines consume the same log and stay in lockstep
-  - failover = promote a standby that has applied the same sequence number
-  - recovery  = last snapshot + replay the tail of the log
-  - audit/replay = re-run any trading day exactly, which regulators require
-
-Rule: no wall-clock reads, no random numbers, no map iteration order dependence,
-      no external calls inside the engine — any of them breaks replay determinism.
-      Timestamps are assigned by the sequencer and become part of the input.</pre>
-<p><strong>6. Around the engine</strong></p>
-<ul>
-<li><strong>Pre-trade risk</strong> runs in the gateway (position limits, fat-finger price bands, credit) — the engine must stay minimal.</li>
-<li><strong>Market data</strong> is published incrementally (order book deltas) with periodic snapshots so a late subscriber can sync; use multicast/UDP-style fan-out for the lowest latency.</li>
-<li><strong>Backpressure</strong>: a slow trader connection must never block the engine — drop or conflate their feed, never stall the matching loop.</li>
-<li><strong>Order types</strong>: market, limit, IOC/FOK, stop, iceberg — each adds book complexity; call out that auctions (open/close) are a separate matching algorithm.</li>
-<li><strong>Circuit breakers</strong>: volatility halts and price bands are exchange-level safety features.</li>
-</ul>
-<div class="key-point">The counter-intuitive point worth stating explicitly: <em>"you do not scale a matching engine with threads — you make it single-threaded and deterministic, put the whole book in memory, and shard by instrument."</em> Durability and failover then come free from replaying a sequenced input log, which is also exactly what regulators want for audit.</div>`,
-      },
-      {
-        q: 'How would you design a recommendation / personalization system (candidate generation, ranking, online serving)?',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p>A recommender is a two-stage funnel because scoring millions of items per request is impossible within a latency budget: candidate generation cheaply narrows millions of items to a few hundred using precomputed sources such as collaborative-filtering neighbours, embedding nearest neighbours, trending items and simple rules, and then a heavier ranking model scores only those candidates with rich features. The system splits into an offline part that trains models and precomputes embeddings and candidate lists on a schedule, a nearline part that reacts to fresh user activity within seconds, and an online part that must answer in tens of milliseconds from a feature store and a model server. The recurring engineering problems are cold start for new users and items, training and serving feature skew, and a feedback loop where the model only ever learns from what it already showed, which is why exploration and A/B testing are part of the design rather than an afterthought.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Một hệ gợi ý là một phễu hai tầng, vì chấm điểm hàng triệu item cho mỗi request là bất khả thi trong ngân sách độ trễ: tầng sinh ứng viên thu hẹp từ hàng triệu xuống vài trăm item bằng các nguồn tính sẵn như hàng xóm trong lọc cộng tác, láng giềng gần theo embedding, item đang thịnh hành và vài luật đơn giản; sau đó một mô hình xếp hạng nặng hơn chỉ chấm điểm số ứng viên đó với bộ đặc trưng phong phú. Hệ thống chia làm ba phần: offline huấn luyện mô hình và tính sẵn embedding cùng danh sách ứng viên theo lịch; nearline phản ứng với hoạt động mới của người dùng trong vài giây; online phải trả lời trong vài chục mili-giây từ feature store và model server. Những vấn đề kỹ thuật lặp đi lặp lại là cold start cho người dùng và item mới, lệch đặc trưng giữa lúc huấn luyện và lúc phục vụ, và vòng phản hồi khiến mô hình chỉ học được từ những thứ chính nó đã hiển thị — đó là lý do exploration và A/B testing phải nằm trong thiết kế chứ không phải thêm vào sau.</p></details>
-<p><strong>1. The two-stage funnel (this is the answer skeleton)</strong></p>
-<pre>10,000,000 items
-      ↓  CANDIDATE GENERATION — cheap, recall-oriented, precomputed, multiple sources
-  ~500 candidates
-      ↓  RANKING — expensive model, ~100 features per (user, item) pair
-   ~50 ranked
-      ↓  RE-RANK / business rules — diversity, freshness, dedupe, ads, blocklists
-   ~10 shown
-
-Latency budget: 100 ms total → candidates ~10 ms, ranking ~30 ms, the rest is overhead.</pre>
-<p><strong>2. Candidate sources (blend several — each covers a different weakness)</strong></p>
-<ul>
-<li><strong>Collaborative filtering</strong>: "users like you also liked" — item-item similarity precomputed offline from the interaction matrix.</li>
-<li><strong>Embedding ANN search</strong>: user and item vectors in the same space; retrieve nearest neighbours with FAISS/ScaNN/a vector DB (approximate, sub-millisecond over millions of vectors).</li>
-<li><strong>Content-based</strong>: same category/author/tags — the only thing that works for a brand-new item.</li>
-<li><strong>Trending / popular</strong> per segment — the fallback for a brand-new user, and a strong baseline.</li>
-<li><strong>Recent user activity</strong>: "because you watched X" — nearline, seconds-fresh.</li>
-</ul>
-<p><strong>3. Ranking</strong></p>
-<ul>
-<li>Model: gradient-boosted trees are still an excellent, cheap baseline; deep models (two-tower for retrieval, DNN/DLRM for ranking) win at scale.</li>
-<li>Objective: predicted click, watch time, purchase probability — often a <strong>multi-objective blend</strong>, because optimizing pure CTR produces clickbait.</li>
-<li>Features: user (history, demographics), item (age, popularity, category), context (time, device, session), and cross features (user's affinity for this category).</li>
-</ul>
-<p><strong>4. Three-layer system architecture</strong></p>
-<pre>OFFLINE (hours/daily)          NEARLINE (seconds)             ONLINE (10-50 ms)
- - train models                  - consume click/view stream     - fetch candidates
- - compute embeddings            - update user session features  - fetch features (feature store)
- - precompute candidate lists    - refresh trending counters     - score with the model server
- - backfill feature store        - invalidate caches             - apply business rules
- - offline eval (AUC, NDCG)                                      - log the impression + features
-
-The impression log (what we showed, with the exact features used) is the training data
-for tomorrow's model — logging is part of the design, not an operational detail.</pre>
-<p><strong>5. The classic problems, and the expected answers</strong></p>
+Averages lie. A p99 of 4s with a p50 of 80ms is a queueing or hot-key problem,
+not a "the code is slow" problem.</pre>
+<p><strong>2. The usual suspects, in the order they actually occur</strong></p>
 <table>
-<tr><th>Problem</th><th>Fix</th></tr>
-<tr><td><strong>Cold-start user</strong></td><td>Popular/trending by segment, onboarding preference picker, contextual signals (device, locale), switch to personalized after N interactions</td></tr>
-<tr><td><strong>Cold-start item</strong></td><td>Content features + deliberate exploration budget so new items get impressions</td></tr>
-<tr><td><strong>Train/serve skew</strong></td><td>One feature definition used by both paths (a feature store with point-in-time correct training reads)</td></tr>
-<tr><td><strong>Feedback loop / filter bubble</strong></td><td>Exploration (epsilon-greedy, bandits), diversity constraints in re-ranking, unbiased evaluation with logged propensities</td></tr>
-<tr><td><strong>Position bias</strong></td><td>Position as a training feature (set to a constant at serving) or inverse-propensity weighting</td></tr>
-<tr><td><strong>Stale model</strong></td><td>Scheduled retraining + drift monitoring on feature distributions and CTR</td></tr>
+<tr><th>#</th><th>Bottleneck</th><th>Symptom</th><th>Typical fix</th></tr>
+<tr><td>1</td><td>Missing/wrong index</td><td>One query dominates; seq scans in the plan</td><td>Add composite index matching the WHERE + ORDER BY</td></tr>
+<tr><td>2</td><td>N+1 queries</td><td>Query count scales with result size</td><td>Join/fetch join, batch load (IN clause), DataLoader</td></tr>
+<tr><td>3</td><td>Serialized external calls</td><td>Latency = sum of dependencies</td><td>Parallelize (CompletableFuture), batch, cache, set timeouts</td></tr>
+<tr><td>4</td><td>Connection/thread pool exhaustion</td><td>Latency spikes with queue wait; pool metrics at 100%</td><td>Right-size the pool, fix the slow query holding connections, bulkhead per dependency</td></tr>
+<tr><td>5</td><td>Lock contention</td><td>Throughput flat while CPU is idle</td><td>Shorter transactions, row-level instead of table-level, optimistic locking, shard the hot row</td></tr>
+<tr><td>6</td><td>Cache miss storm</td><td>DB load spikes on deploy/expiry</td><td>Staggered TTL + jitter, request coalescing, pre-warm</td></tr>
+<tr><td>7</td><td>GC / memory pressure</td><td>Periodic latency spikes, high pause time</td><td>Fix allocation hot spots, size the heap, use a low-pause collector</td></tr>
+<tr><td>8</td><td>Genuine CPU limit</td><td>All cores at 100%, profile is flat</td><td>Optimize the hot path, then add instances</td></tr>
 </table>
-<p><strong>6. Evaluation — offline metrics never decide it</strong></p>
+<p><strong>3. Fix in order of cost (do not start at the expensive end)</strong></p>
+<pre>1. Index / query fix            hours,  no architecture change     ← usually 80% of the win
+2. Cache the hot read           days,   adds invalidation concerns
+3. Async the slow write path    days,   adds a queue + eventual consistency
+4. Read replicas                days,   read-your-writes caveat
+5. Vertical scale               hours,  buys time, costs money, has a ceiling
+6. Horizontal scale (stateless) days,   requires no sticky sessions
+7. Partition / shard the data   weeks,  changes the data model
+8. Split the service            months, organizational change too</pre>
+<p><strong>4. Load test the way production behaves</strong></p>
 <ul>
-<li>Offline (AUC, NDCG, recall@K) filters bad candidates; the decision is an <strong>online A/B test</strong> on product metrics (engagement, retention, revenue), with guardrail metrics so you notice the harm a lift is hiding.</li>
-<li>Always ship a shadow/canary path and a fast rollback — a bad ranking model degrades revenue quietly rather than throwing errors.</li>
+<li>Test against <strong>production-sized data</strong> — an index that is unnecessary on 10k rows is critical on 100M.</li>
+<li>Model realistic traffic mixes and think time; a uniform-random key distribution hides hot-key problems that are the actual production failure.</li>
+<li>Ramp until something breaks and record <strong>where</strong> it breaks — that number is your capacity limit, and the shape of the failure is your degradation plan.</li>
+<li>Watch the whole system: queue depth, pool utilization, replica lag, GC pauses — not just the request latency graph.</li>
 </ul>
-<div class="key-point">The structural point: <em>"retrieve cheaply, rank expensively"</em> — plus the honest engineering caveats that impress most: a feature store to kill train/serve skew, an impression log with the exact serving features as tomorrow's training data, and explicit exploration because a recommender that only learns from its own choices slowly poisons itself.</div>`,
-      },
-      {
-        q: 'How would you design an object storage service like S3 (durability, erasure coding, metadata at scale)?',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p>Object storage separates a metadata plane from a data plane: metadata maps a bucket and key to the physical location of the data and must support very high request rates with strong consistency, while the data plane stores immutable chunks on commodity disks across many failure domains. Durability comes from redundancy, and the important trade-off is replication versus erasure coding — three copies is simple and fast but costs three times the storage, whereas erasure coding stores data plus parity fragments across nodes for roughly 1.5 times the size at the price of extra CPU and network on reads that need reconstruction. Objects are immutable, so updates write a new version rather than modifying bytes, which makes caching, replication and consistency dramatically simpler. The background systems are the real engineering: continuous scrubbing to detect bit rot, rebuild when a disk or node dies, lifecycle transitions to colder tiers, and rate limiting to keep one customer from saturating a storage node.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Object storage tách mặt phẳng metadata khỏi mặt phẳng dữ liệu: metadata ánh xạ bucket và key tới vị trí vật lý của dữ liệu, phải chịu được tần suất request rất cao và cần nhất quán mạnh; còn mặt phẳng dữ liệu lưu các chunk bất biến trên ổ đĩa phổ thông, trải qua nhiều vùng lỗi khác nhau. Độ bền đến từ dư thừa, và đánh đổi quan trọng là nhân bản so với erasure coding: giữ ba bản sao thì đơn giản và nhanh nhưng tốn gấp ba dung lượng, còn erasure coding lưu dữ liệu cộng các mảnh parity trải trên nhiều node, chỉ tốn khoảng 1,5 lần dung lượng nhưng phải trả giá bằng CPU và mạng khi phải tái dựng lúc đọc. Object là bất biến, nên cập nhật nghĩa là ghi một phiên bản mới chứ không sửa byte tại chỗ, điều này làm cho caching, replication và nhất quán đơn giản đi rất nhiều. Phần kỹ thuật thật sự nằm ở các hệ thống chạy nền: quét kiểm tra liên tục để phát hiện hỏng bit, tái dựng khi mất ổ đĩa hay node, chuyển vòng đời sang các tầng lưu trữ lạnh hơn, và giới hạn tốc độ để một khách hàng không làm nghẽn một node lưu trữ.</p></details>
-<p><strong>1. The API constrains the design</strong></p>
-<pre>PUT    /bucket/key        (whole object, or multipart for large ones)
-GET    /bucket/key        (+ Range requests)
-DELETE /bucket/key
-LIST   /bucket?prefix=…   ← the expensive one: it is a range scan over metadata
-
-Objects are IMMUTABLE: no partial in-place update. "Modify" = write a new version.
-This one decision removes most of the distributed-consistency difficulty.</pre>
-<p><strong>2. Two planes</strong></p>
-<pre>[Client] → [API/frontend: auth, signature check, quota, routing]
-                ↓                                    ↓
-      [METADATA SERVICE]                     [DATA/STORAGE NODES]
-       bucket/key → {object_id, size,          chunks on raw disks,
-       chunk locations, etag, version,         append-only, immutable
-       storage class, ACL}
-       sharded KV (strongly consistent,        placement across racks/AZs
-       e.g. Paxos/Raft groups per range)       by a placement/allocation service</pre>
-<p><strong>3. Durability: replication vs erasure coding</strong></p>
-<table>
-<tr><th></th><th>3x replication</th><th>Erasure coding (e.g. 10 data + 4 parity)</th></tr>
-<tr><td>Storage overhead</td><td>200% (3x)</td><td>~40% (1.4x)</td></tr>
-<tr><td>Tolerates</td><td>2 node losses</td><td>Any 4 of 14 fragments lost</td></tr>
-<tr><td>Read cost</td><td>Read one replica — cheapest</td><td>Normally read the data fragments; on failure reconstruct from 10 of 14 (CPU + network)</td></tr>
-<tr><td>Write cost</td><td>3 writes</td><td>Encode + 14 smaller writes</td></tr>
-<tr><td>Best for</td><td>Small, hot, latency-critical objects</td><td>Large, warm/cold objects — the bulk of the bytes</td></tr>
-</table>
-<pre>Reed-Solomon: split the object into 10 fragments, compute 4 parity fragments,
-spread all 14 across different racks/AZs. Any 10 fragments reconstruct the object.
-This is how "11 nines of durability" is reached at ~1.4x cost instead of 3x.
-Common design: replicate small objects, erasure-code large ones (and cold tiers).</pre>
-<p><strong>4. Write path</strong></p>
-<pre>1. Auth + signature (pre-signed URLs / SigV4), bucket policy, quota check.
-2. Allocate object id; ask placement for target nodes in distinct failure domains.
-3. Stream the body into chunks (e.g. 4-64 MB); checksum each chunk (CRC32C/MD5).
-4. Write chunks with the chosen redundancy; wait for a durable quorum of acks.
-5. Commit metadata (bucket/key → chunk map, etag, version) — THE commit point.
-   Metadata committed last → a crash leaves orphan chunks (a GC job reaps them),
-   never a metadata entry that points at data which does not exist.
-6. Multipart upload: parts uploaded in parallel/resumable, then one atomic "complete".</pre>
-<p><strong>5. Metadata at scale — usually the real bottleneck</strong></p>
+<p><strong>5. Keep it from happening again</strong></p>
 <ul>
-<li>Billions of keys per bucket → shard the keyspace by hash or by range; range sharding keeps LIST with a prefix efficient but creates hot shards for sequential key names (timestamps!) — recommend high-entropy key prefixes.</li>
-<li>LIST is a paginated range scan with a continuation token; it is eventually consistent in many systems for exactly this reason.</li>
-<li>Strong read-after-write consistency for a single key is expected today — a single metadata shard owning the key makes this straightforward.</li>
-<li>Versioning: key → list of versions; DELETE writes a delete marker rather than removing data (this is what makes accidental deletion recoverable).</li>
+<li><strong>Headroom</strong>: plan for 50-60% steady-state utilization. Beyond ~80%, queueing theory makes latency explode non-linearly for a small traffic increase.</li>
+<li><strong>Timeouts, retries with jitter, circuit breakers, bulkheads</strong> on every remote call — an unbounded retry storm turns a slow dependency into a full outage.</li>
+<li><strong>Autoscale on a leading signal</strong> (queue depth, RPS per instance), not on CPU alone.</li>
+<li><strong>Guardrails in CI</strong>: query-count assertions on key paths and a performance smoke test catch the next N+1 before it ships.</li>
+<li><strong>Capacity review per quarter</strong>: current peak vs measured limit vs growth rate — the answer tells you what to fix before it becomes an incident.</li>
 </ul>
-<p><strong>6. The background systems that actually keep data alive</strong></p>
-<ul>
-<li><strong>Scrubbing</strong>: continuously re-read and verify checksums to detect silent bit rot, and repair from redundancy.</li>
-<li><strong>Rebuild/repair</strong>: when a disk or node dies, regenerate the missing fragments elsewhere — throttled so repair traffic does not degrade serving.</li>
-<li><strong>Garbage collection</strong>: reclaim orphan chunks, expired versions and aborted multipart uploads.</li>
-<li><strong>Lifecycle tiering</strong>: hot → infrequent access → archive (cold storage with retrieval delay), driven by per-bucket policies.</li>
-<li><strong>Cross-region replication</strong> for DR, asynchronous, with a replication-lag metric.</li>
-<li><strong>Per-bucket/per-node rate limiting</strong> so one hot prefix cannot saturate a storage node.</li>
-</ul>
-<div class="key-point">Two things to name explicitly: <em>"immutable objects with metadata committed last"</em> (so failures leave collectable garbage, never dangling pointers), and <em>"erasure coding buys 11 nines at ~1.4x storage instead of 3x — at the cost of CPU and network during reconstruction."</em> Then mention scrubbing and throttled rebuild: durability is a background process, not a property you configure once.</div>`,
+<div class="key-point">The habit that marks experience: <em>"I profile before I optimize, and I fix the cheapest thing that removes the bottleneck."</em> Most 10x scaling problems are one index, one N+1, or one missing cache — not a missing microservice architecture. And always name the next bottleneck after the fix: if the database is no longer the limit, say what becomes the limit at the next 10x.</div>`,
       },
     ],
   },

@@ -8,6 +8,7 @@ export const topics: PvTopic[] = [
     name: 'HTML',
     icon: '📄',
     questions: [
+      // ──── 1. HTML FUNDAMENTALS & SEMANTICS ────
       {
         q: 'What is the difference between HTML, XHTML, and HTML5?',
         difficulty: 'easy',
@@ -69,6 +70,95 @@ export const topics: PvTopic[] = [
 <div class="key-point">You can change display behavior with CSS: <code>display: block;</code>, <code>display: inline;</code>, <code>display: inline-block;</code>.</div>`,
       },
       {
+        q: 'What is the difference between &lt;div&gt; and &lt;span&gt;?',
+        difficulty: 'easy',
+        a: `<div class="interview-answer"><p><code>&lt;div&gt;</code> is a generic block-level container and <code>&lt;span&gt;</code> is the inline version, and neither has any meaning. They are used only as hooks for styling or scripting when no semantic element fits. Semantic elements like <code>&lt;article&gt;</code> or <code>&lt;nav&gt;</code> should be preferred when they apply, because they add accessibility and structure.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><code>&lt;div&gt;</code> là container block-level chung chung còn <code>&lt;span&gt;</code> là phiên bản inline, và cả hai đều không mang ý nghĩa gì. Chúng chỉ được dùng làm điểm bám để style hoặc viết script khi không có thẻ semantic nào phù hợp. Nên ưu tiên các thẻ semantic như <code>&lt;article&gt;</code> hay <code>&lt;nav&gt;</code> khi có thể, vì chúng bổ sung tính truy cập được và cấu trúc.</p></details>
+<ul>
+<li><code>&lt;div&gt;</code>: <strong>block-level</strong> container. Used for grouping sections of content.</li>
+<li><code>&lt;span&gt;</code>: <strong>inline</strong> container. Used for styling text within a block.</li>
+</ul>
+<pre>&lt;div class="card"&gt;                    &lt;!-- block container --&gt;
+  &lt;p&gt;Price: &lt;span class="red"&gt;$49.99&lt;/span&gt;&lt;/p&gt;  &lt;!-- inline styling --&gt;
+&lt;/div&gt;</pre>
+<div class="key-point">Neither has semantic meaning. Prefer semantic elements (<code>&lt;article&gt;</code>, <code>&lt;section&gt;</code>, <code>&lt;nav&gt;</code>) when they apply.</div>`,
+      },
+      {
+        q: 'What is the difference between &lt;link&gt;, &lt;a&gt;, and &lt;script&gt; tags?',
+        difficulty: 'easy',
+        a: `<div class="interview-answer"><p><code>&lt;link&gt;</code> connects external resources such as stylesheets and sits in the head. <code>&lt;a&gt;</code> is a hyperlink for navigation and sits in the body. <code>&lt;script&gt;</code> loads or embeds JavaScript. Any link with <code>target="_blank"</code> should include <code>rel="noopener noreferrer"</code> so the opened page cannot control the original tab.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><code>&lt;link&gt;</code> kết nối các tài nguyên bên ngoài như stylesheet và nằm trong head. <code>&lt;a&gt;</code> là siêu liên kết dùng để điều hướng và nằm trong body. <code>&lt;script&gt;</code> tải hoặc nhúng JavaScript. Bất kỳ liên kết nào có <code>target="_blank"</code> nên kèm theo <code>rel="noopener noreferrer"</code> để trang được mở không thể điều khiển tab gốc.</p></details>
+<ul>
+<li><code>&lt;link&gt;</code>: connects external resources (CSS, favicon, preload). Placed in <code>&lt;head&gt;</code>. Self-closing.</li>
+<li><code>&lt;a&gt;</code>: hyperlink for navigation. Inline element. Has <code>href</code>, <code>target</code>, <code>rel</code>.</li>
+<li><code>&lt;script&gt;</code>: embeds or references JavaScript. Can be in <code>&lt;head&gt;</code> or <code>&lt;body&gt;</code>.</li>
+</ul>
+<pre>&lt;link rel="stylesheet" href="styles.css"&gt;
+&lt;link rel="icon" href="favicon.ico"&gt;
+&lt;link rel="preload" href="font.woff2" as="font" crossorigin&gt;
+
+&lt;a href="/about" target="_blank" rel="noopener noreferrer"&gt;About&lt;/a&gt;
+
+&lt;script src="app.js" defer&gt;&lt;/script&gt;</pre>
+<div class="key-point">Always add <code>rel="noopener noreferrer"</code> to <code>target="_blank"</code> links for security (prevents reverse tabnabbing).</div>`,
+      },
+
+      // ──── 2. FORMS & INPUTS ────
+      {
+        q: 'What are HTML forms? Explain validation attributes.',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>HTML forms include built-in validation through attributes like <code>required</code>, <code>min</code>, <code>max</code>, <code>minlength</code>, <code>maxlength</code>, <code>pattern</code>, and <code>type</code>, which the browser checks automatically. This client-side check is only for user experience and is not secure, because it can be bypassed, so the server must validate again. The <code>novalidate</code> attribute turns off browser validation when custom JavaScript validation is used.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Form HTML có sẵn cơ chế kiểm tra hợp lệ thông qua các thuộc tính như <code>required</code>, <code>min</code>, <code>max</code>, <code>minlength</code>, <code>maxlength</code>, <code>pattern</code> và <code>type</code>, được trình duyệt kiểm tra tự động. Việc kiểm tra ở phía client này chỉ nhằm cải thiện trải nghiệm người dùng và không an toàn, vì có thể bị vượt qua, nên server vẫn phải kiểm tra lại. Thuộc tính <code>novalidate</code> tắt kiểm tra của trình duyệt khi ta dùng validation tùy chỉnh bằng JavaScript.</p></details>
+<pre>&lt;form action="/api/register" method="POST" novalidate&gt;
+  &lt;label for="email"&gt;Email:&lt;/label&gt;
+  &lt;input type="email" id="email" name="email" required
+    placeholder="you@example.com"
+    pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}$"&gt;
+
+  &lt;label for="age"&gt;Age:&lt;/label&gt;
+  &lt;input type="number" id="age" name="age" min="18" max="120"&gt;
+
+  &lt;label for="bio"&gt;Bio:&lt;/label&gt;
+  &lt;textarea id="bio" name="bio" maxlength="500"&gt;&lt;/textarea&gt;
+
+  &lt;button type="submit"&gt;Register&lt;/button&gt;
+&lt;/form&gt;</pre>
+<p><strong>Validation attributes</strong>: <code>required</code>, <code>min</code>/<code>max</code>, <code>minlength</code>/<code>maxlength</code>, <code>pattern</code> (regex), <code>type</code> (email, url, number).</p>
+<div class="key-point"><code>novalidate</code> on form disables browser validation (useful when using custom JS validation). Always validate server-side too!</div>`,
+      },
+      {
+        q: 'Why is input type="number" often the wrong choice? How do autocomplete attributes work?',
+        difficulty: 'tricky',
+        a: `<div class="interview-answer"><p><code>type="number"</code> is meant for real quantities used in math, not for numeric-looking identifiers. Card numbers, OTP codes, ZIP codes, and phone numbers can lose leading zeros, pick up separators, or be changed by the scroll wheel, and an invalid entry can read back as an empty string. For identifiers it is better to use <code>type="text"</code> with <code>inputmode="numeric"</code> and a <code>pattern</code>. Correct <code>autocomplete</code> tokens should also be set, since good autofill improves conversion.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><code>type="number"</code> dành cho các đại lượng thật sự dùng trong tính toán, không dành cho những định danh chỉ trông giống số. Số thẻ, mã OTP, mã ZIP và số điện thoại có thể mất số 0 ở đầu, bị thêm dấu phân cách, hoặc bị thay đổi do lăn chuột, và một giá trị không hợp lệ có thể đọc ra thành chuỗi rỗng. Với các định danh thì nên dùng <code>type="text"</code> kèm <code>inputmode="numeric"</code> và một <code>pattern</code>. Cũng nên đặt đúng các token <code>autocomplete</code>, vì autofill tốt sẽ cải thiện tỷ lệ chuyển đổi.</p></details>
+<p>A senior-flavored forms question: the "obvious" input type is frequently a UX and correctness trap.</p>
+<p><strong>Problems with <code>type="number"</code>:</strong></p>
+<ul>
+<li><strong>Scroll-wheel disaster</strong>: hovering + scrolling silently changes the value — users change a dosage/price without noticing.</li>
+<li><strong>Not for "numeric strings"</strong>: credit cards, OTP codes, ZIP codes, phone numbers lose leading zeros (<code>0421</code> → <code>421</code>) and can render with locale thousand separators. They are identifiers, not quantities.</li>
+<li><strong>Silent empty value</strong>: type <code>1e</code> or <code>--5</code> and <code>input.value</code> is <code>""</code> (invalid intermediate state) — your JS sees an empty string while the user sees text.</li>
+<li>Spinner buttons are tiny, unlabeled, and announced inconsistently by screen readers.</li>
+</ul>
+<pre>&lt;!-- Wrong: card number is not a quantity --&gt;
+&lt;input type="number" name="cc"&gt;
+
+&lt;!-- Right: text + numeric keyboard + digit constraint --&gt;
+&lt;input type="text" inputmode="numeric" pattern="[0-9\\s]{13,19}"
+       autocomplete="cc-number" name="cc"&gt;
+
+&lt;!-- type="number" is fine for true quantities --&gt;
+&lt;input type="number" name="qty" min="1" max="99" step="1"&gt;</pre>
+<p><strong>Autocomplete attributes</strong> are a standardized vocabulary, not just on/off — they drive browser autofill, password managers, and one-tap address fill:</p>
+<pre>&lt;input autocomplete="email"&gt;
+&lt;input autocomplete="current-password"&gt;   &lt;!-- login --&gt;
+&lt;input autocomplete="new-password"&gt;       &lt;!-- signup: suggests generated password --&gt;
+&lt;input autocomplete="one-time-code"&gt;      &lt;!-- SMS OTP autofill on mobile --&gt;
+&lt;input autocomplete="shipping street-address"&gt;  &lt;!-- section modifiers --&gt;</pre>
+<div class="key-point">Rule of thumb: <code>type="number"</code> only for real quantities you'd do math on; use <code>inputmode="numeric"</code> + <code>pattern</code> for numeric identifiers, and always ship correct <code>autocomplete</code> tokens — autofill accuracy is a measurable conversion win.</div>`,
+      },
+
+      // ──── 3. DOCUMENT LOADING & RENDERING PERFORMANCE ────
+      {
         q: 'What is the DOM? How does the browser render a page?',
         difficulty: 'hard',
         a: `<div class="interview-answer"><p>The <strong>DOM</strong> is a live tree that the browser builds from the HTML and that JavaScript can change. The browser turns HTML into the DOM and CSS into the CSSOM, combines them into a render tree of visible nodes, then does layout, paint, and composite. Changing layout properties like <code>width</code> or <code>top</code> causes a reflow, which is costly. For animation it is better to use <code>transform</code> and <code>opacity</code>, which run on the GPU.</p></div>
@@ -84,6 +174,169 @@ export const topics: PvTopic[] = [
 <li><strong>Composite</strong>: combine layers (GPU acceleration).</li>
 </ol>
 <div class="key-point">Changing layout-triggering properties (width, top, display) causes reflow → expensive. Prefer transform/opacity for animations (composite-only).</div>`,
+      },
+      {
+        q: 'What happens when you type a URL and press Enter? (browser-side deep dive)',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>The process has two parts, network then rendering. The network part is URL parsing and HSTS, DNS lookup, the TCP handshake, the TLS handshake, then the HTTP request and the first bytes of the response. The rendering part parses HTML into the DOM, builds the CSSOM and render tree, then does layout, paint, and composite, while a preload scanner fetches assets ahead of time. Time can be measured with the Navigation Timing API, and the second visit is faster due to caching, TLS resumption, and bfcache.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Quá trình gồm hai phần, mạng rồi mới đến render. Phần mạng gồm parse URL và HSTS, tra cứu DNS, bắt tay TCP, bắt tay TLS, rồi gửi request HTTP và nhận những byte đầu tiên của response. Phần render parse HTML thành DOM, dựng CSSOM và render tree, rồi thực hiện layout, paint và composite, trong khi một preload scanner tải trước các asset. Có thể đo thời gian bằng Navigation Timing API, và lần truy cập thứ hai sẽ nhanh hơn nhờ cache, TLS resumption và bfcache.</p></details>
+<p>The classic system-design-meets-frontend question. A senior answer covers each stage and where time is actually spent:</p>
+<ol>
+<li><strong>URL parsing + HSTS check</strong>: browser decides search query vs URL, checks HSTS list (forces https), checks service worker registration (may skip network entirely).</li>
+<li><strong>DNS resolution</strong>: browser cache → OS cache → router → ISP resolver → recursive lookup. (~0–120ms)</li>
+<li><strong>TCP handshake</strong>: SYN → SYN-ACK → ACK (1 round trip).</li>
+<li><strong>TLS handshake</strong>: certificate exchange, key agreement — 1 RTT on TLS 1.3 (0-RTT on resumption); HTTP/3/QUIC merges transport + crypto handshakes.</li>
+<li><strong>HTTP request/response</strong>: request with cookies/headers; server responds. First chunk = TTFB. Response streams — the browser does NOT wait for the full document.</li>
+<li><strong>Parsing</strong>: HTML tokenized into the DOM <em>incrementally</em>. A <strong>preload scanner</strong> races ahead of the parser discovering <code>&lt;img&gt;</code>/<code>&lt;link&gt;</code>/<code>&lt;script&gt;</code> URLs even while the parser is blocked. CSS builds the CSSOM; sync scripts pause the parser.</li>
+<li><strong>Render</strong>: DOM + CSSOM → render tree → layout → paint → composite. First paint can happen long before the page finishes loading.</li>
+</ol>
+<pre>// Where did the time go? The Navigation Timing API mirrors these stages:
+const t = performance.getEntriesByType('navigation')[0];
+t.domainLookupEnd - t.domainLookupStart;   // DNS
+t.connectEnd - t.connectStart;             // TCP (+TLS)
+t.responseStart - t.requestStart;          // TTFB (server think time)
+t.domContentLoadedEventEnd - t.startTime;  // parse + sync scripts
+t.loadEventEnd - t.startTime;              // everything</pre>
+<p><strong>Follow-ups to expect:</strong> "Why is the second visit faster?" (DNS/TLS session/HTTP cache/bfcache), "Where would you add a CDN?" (moves TCP/TLS/TTFB closer to the user), "What's the preload scanner?" (it's why a parser-blocking script doesn't stop image downloads).</p>
+<div class="key-point">Structure the answer as network (DNS → TCP → TLS → TTFB) then rendering (parse → CRP), and name the measurement API — showing you can quantify each stage is what separates senior from mid-level.</div>`,
+      },
+      {
+        q: 'What blocks HTML parsing vs rendering? Walk through why a page can stay blank for 3 seconds.',
+        difficulty: 'tricky',
+        a: `<div class="interview-answer"><p>A synchronous <code>&lt;script&gt;</code> is parser-blocking, so the browser stops building the DOM until the script downloads and runs. Stylesheets are render-blocking, so the browser will not paint until the CSSOM is ready, and a pending stylesheet also delays any synchronous script after it. Because of this, one slow CSS file can leave the page blank for seconds even when the HTML arrived quickly. Fixes include deferring scripts, inlining critical CSS, and preconnecting to or self-hosting the slow source.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Một thẻ <code>&lt;script&gt;</code> đồng bộ sẽ chặn parser, nên trình duyệt ngừng dựng DOM cho đến khi script tải về và chạy xong. Stylesheet thì chặn render, nên trình duyệt sẽ không paint cho đến khi CSSOM sẵn sàng, và một stylesheet đang chờ cũng làm trì hoãn mọi script đồng bộ đứng sau nó. Vì vậy, chỉ một file CSS chậm cũng có thể khiến trang trắng trong nhiều giây dù HTML đã về nhanh. Cách khắc phục gồm defer script, đưa critical CSS vào inline, và preconnect tới hoặc tự host nguồn tài nguyên chậm đó.</p></details>
+<p>Two different kinds of "blocking" get conflated, and interviewers love probing the difference:</p>
+<ul>
+<li><strong>Parser-blocking</strong>: a synchronous <code>&lt;script&gt;</code> stops HTML parsing entirely — the browser must download and execute it before it continues, because the script could <code>document.write()</code> or mutate the DOM.</li>
+<li><strong>Render-blocking</strong>: stylesheets do NOT stop parsing, but they block building the render tree — the browser refuses to paint anything until the CSSOM is complete (otherwise you'd see a flash of unstyled content). Worse, a pending stylesheet also <strong>blocks execution of later sync scripts</strong>, because the script might read computed styles (<code>getComputedStyle</code>).</li>
+</ul>
+<p><strong>The "white page for 3s" walkthrough:</strong></p>
+<pre>&lt;head&gt;
+  &lt;link rel="stylesheet" href="https://slow-cdn.com/all.css"&gt;  &lt;!-- 3s download --&gt;
+  &lt;script src="app.js"&gt;&lt;/script&gt;  &lt;!-- can't RUN until all.css arrives --&gt;
+&lt;/head&gt;
+&lt;body&gt;&lt;h1&gt;Hello&lt;/h1&gt;&lt;/body&gt;
+
+&lt;!-- Timeline:
+     0.0s  HTML parsed up to &lt;link&gt;, CSS request starts
+     0.0s  parser reaches &lt;script&gt; — blocked: waits for CSSOM
+     3.0s  all.css arrives → CSSOM ready → app.js executes
+     3.1s  parsing resumes, render tree built, first paint
+     Result: user stares at white for ~3s even though the
+     HTML for &lt;h1&gt; arrived in the first packet. --&gt;</pre>
+<p><strong>Fixes, in order of impact:</strong></p>
+<ul>
+<li><code>defer</code> the script (or move to end of body) — decouples it from the stylesheet.</li>
+<li>Inline <strong>critical CSS</strong> in <code>&lt;head&gt;</code>, load the rest with <code>media="print" onload="this.media='all'"</code> or split by media query (non-matching media = not render-blocking).</li>
+<li><code>&lt;link rel="preconnect"&gt;</code> to the slow CDN, or self-host the CSS.</li>
+</ul>
+<div class="key-point">Sync scripts block the parser; stylesheets block rendering AND any sync script after them — so one slow CSS file on a third-party domain can freeze your entire page even though HTML parsing already delivered the content.</div>`,
+      },
+      {
+        q: 'What is the difference between defer and async in script loading?',
+        difficulty: 'tricky',
+        a: `<div class="interview-answer"><p>A plain script tag blocks HTML parsing while it downloads and runs. <code>async</code> downloads in parallel and runs as soon as it is ready, so the order is not guaranteed, which suits independent scripts like analytics. <code>defer</code> also downloads in parallel but runs after parsing is done and keeps the order, which suits app code that needs the DOM. Both only apply to external scripts, not inline ones.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Một thẻ script thông thường sẽ chặn quá trình parse HTML trong khi nó tải về và chạy. <code>async</code> tải song song và chạy ngay khi sẵn sàng, nên thứ tự không được đảm bảo, phù hợp cho các script độc lập như analytics. <code>defer</code> cũng tải song song nhưng chạy sau khi parse xong và giữ nguyên thứ tự, phù hợp cho mã ứng dụng cần đến DOM. Cả hai chỉ áp dụng cho script bên ngoài chứ không áp dụng cho script inline.</p></details>
+<ul>
+<li><strong>No attribute</strong>: blocks HTML parsing. Script downloaded + executed immediately.</li>
+<li><strong>async</strong>: download in parallel, execute immediately when ready (may interrupt parsing). Order not guaranteed.</li>
+<li><strong>defer</strong>: download in parallel, execute <strong>after</strong> HTML parsing complete. Order preserved.</li>
+</ul>
+<pre>&lt;script src="app.js"&gt;&lt;/script&gt;                 &lt;!-- blocking --&gt;
+&lt;script src="analytics.js" async&gt;&lt;/script&gt;      &lt;!-- async: order doesn't matter --&gt;
+&lt;script src="app.js" defer&gt;&lt;/script&gt;            &lt;!-- defer: needs DOM, order matters --&gt;</pre>
+<div class="key-point">Best practice: use <code>defer</code> for your app scripts, <code>async</code> for independent scripts (analytics, ads).</div>`,
+      },
+      {
+        q: 'Explain resource hints: preload vs prefetch vs preconnect vs dns-prefetch.',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>Resource hints tell the browser to fetch things earlier and cut waiting time. <code>preload</code> fetches a resource needed for the current page at high priority, <code>prefetch</code> fetches something likely needed on the next page when idle, <code>preconnect</code> opens the DNS, TCP, and TLS connection to an origin, and <code>dns-prefetch</code> does only the DNS lookup. Fonts are the main use for <code>preload</code>, but they need the <code>crossorigin</code> attribute or the browser downloads them twice. Hinting resources that are not used wastes priority and bandwidth.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Resource hint báo cho trình duyệt tải trước một số thứ để giảm thời gian chờ. <code>preload</code> tải một tài nguyên cần cho trang hiện tại với độ ưu tiên cao, <code>prefetch</code> tải thứ có khả năng cần ở trang kế tiếp khi trình duyệt rảnh, <code>preconnect</code> mở sẵn kết nối DNS, TCP và TLS tới một origin, còn <code>dns-prefetch</code> chỉ thực hiện tra cứu DNS. Font là trường hợp dùng <code>preload</code> phổ biến nhất, nhưng chúng cần thuộc tính <code>crossorigin</code> nếu không trình duyệt sẽ tải hai lần. Hint những tài nguyên không dùng đến sẽ lãng phí độ ưu tiên và băng thông.</p></details>
+<p>Resource hints let you tell the browser about resources <em>before</em> it discovers them naturally, cutting waterfall latency:</p>
+<pre>&lt;!-- preload: "I WILL need this for THIS page, fetch it NOW, high priority" --&gt;
+&lt;link rel="preload" href="/fonts/inter.woff2" as="font" type="font/woff2" crossorigin&gt;
+&lt;link rel="preload" href="/hero.avif" as="image"&gt;
+
+&lt;!-- prefetch: "the user will LIKELY need this on the NEXT page" (lowest priority, idle time) --&gt;
+&lt;link rel="prefetch" href="/checkout.js"&gt;
+
+&lt;!-- preconnect: "open DNS + TCP + TLS to this origin now" (no specific resource) --&gt;
+&lt;link rel="preconnect" href="https://api.example.com"&gt;
+&lt;link rel="preconnect" href="https://fonts.gstatic.com" crossorigin&gt;
+
+&lt;!-- dns-prefetch: DNS lookup only — cheap fallback for older browsers --&gt;
+&lt;link rel="dns-prefetch" href="https://analytics.example.com"&gt;</pre>
+<table style="width:100%;border-collapse:collapse;margin:10px 0;font-size:.88rem;">
+<tr><th style="text-align:left;padding:6px;border-bottom:1px solid #ccc;">Hint</th><th style="text-align:left;padding:6px;border-bottom:1px solid #ccc;">What it does</th><th style="text-align:left;padding:6px;border-bottom:1px solid #ccc;">Best for</th></tr>
+<tr><td style="padding:6px;"><code>preload</code></td><td style="padding:6px;">Full fetch, current page, high priority</td><td style="padding:6px;">Fonts, LCP hero image, critical CSS found late</td></tr>
+<tr><td style="padding:6px;"><code>prefetch</code></td><td style="padding:6px;">Full fetch, idle priority, cached for next navigation</td><td style="padding:6px;">Next-route bundles (hover on link)</td></tr>
+<tr><td style="padding:6px;"><code>preconnect</code></td><td style="padding:6px;">DNS + TCP + TLS handshake only</td><td style="padding:6px;">Known third-party origins (API, font CDN)</td></tr>
+<tr><td style="padding:6px;"><code>dns-prefetch</code></td><td style="padding:6px;">DNS lookup only</td><td style="padding:6px;">Many/low-priority third-party origins</td></tr>
+</table>
+<p><strong>Classic gotchas interviewers probe:</strong></p>
+<ul>
+<li>Fonts are the #1 preload use case: they're discovered <em>very late</em> (HTML → CSS → @font-face → fetch). Preloading skips two round trips. But you <strong>must add <code>crossorigin</code></strong> — fonts are fetched in CORS mode even same-origin, and a mismatched mode means the preload is ignored and the font downloads twice.</li>
+<li>Preloading things you don't use wastes bandwidth and steals priority from real resources — Chrome even warns "resource was preloaded but not used".</li>
+<li>Don't <code>preconnect</code> to more than a handful of origins; each open socket has a cost.</li>
+</ul>
+<div class="key-point">preload = this page, now; prefetch = next page, when idle; preconnect = warm up the connection. And fonts need <code>preload + as="font" + crossorigin</code> or the hint silently double-fetches.</div>`,
+      },
+      {
+        q: 'What is the &lt;picture&gt; element and how do responsive images work?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p><code>srcset</code> with <code>sizes</code> handles resolution switching, where the same image is provided at several widths and the browser picks the best one. <code>&lt;picture&gt;</code> with <code>&lt;source&gt;</code> handles art direction, serving a different crop or a modern format like WebP with a JPEG fallback. The <code>loading="lazy"</code> attribute gives native lazy loading for images below the fold without any JavaScript.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><code>srcset</code> kết hợp <code>sizes</code> xử lý việc chuyển đổi độ phân giải, trong đó cùng một ảnh được cung cấp ở nhiều chiều rộng và trình duyệt tự chọn cái phù hợp nhất. <code>&lt;picture&gt;</code> cùng <code>&lt;source&gt;</code> xử lý art direction, phục vụ một cách cắt ảnh khác hoặc một định dạng hiện đại như WebP kèm JPEG dự phòng. Thuộc tính <code>loading="lazy"</code> cung cấp lazy loading gốc cho các ảnh nằm dưới màn hình mà không cần JavaScript.</p></details>
+<p>The <code>&lt;picture&gt;</code> element and <code>srcset</code> attribute let the browser choose the most appropriate image based on screen size, resolution, and format support.</p>
+<pre>&lt;!-- srcset: browser picks based on screen density/width --&gt;
+&lt;img
+  src="photo-400.jpg"
+  srcset="photo-400.jpg 400w,
+          photo-800.jpg 800w,
+          photo-1200.jpg 1200w"
+  sizes="(max-width: 600px) 100vw,
+         (max-width: 1200px) 50vw,
+         33vw"
+  alt="Product photo"&gt;
+
+&lt;!-- &lt;picture&gt;: art direction + format fallback --&gt;
+&lt;picture&gt;
+  &lt;source media="(max-width: 768px)" srcset="mobile.webp" type="image/webp"&gt;
+  &lt;source media="(max-width: 768px)" srcset="mobile.jpg"&gt;
+  &lt;source srcset="desktop.webp" type="image/webp"&gt;
+  &lt;img src="desktop.jpg" alt="Hero image"&gt;
+&lt;/picture&gt;
+
+&lt;!-- Lazy loading (native) --&gt;
+&lt;img src="photo.jpg" loading="lazy" alt="..."&gt;</pre>
+<div class="key-point"><code>srcset</code> with <code>sizes</code> lets the browser choose the right resolution. <code>&lt;picture&gt;</code> gives you full control for art direction (different crops for mobile vs desktop) and format fallbacks (WebP → JPEG).</div>`,
+      },
+
+      // ──── 4. METADATA, STORAGE & DATA ATTRIBUTES ────
+      {
+        q: 'What are meta tags and why are they important?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>Meta tags give page information to browsers, search engines, and social media. The <code>charset</code> tag should be UTF-8 and placed first, and the <code>viewport</code> tag is required for correct mobile display. The <code>description</code> tag feeds the search result snippet, and the <code>og:*</code> Open Graph tags control how a shared link looks on social media and chat apps.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Meta tag cung cấp thông tin về trang cho trình duyệt, công cụ tìm kiếm và mạng xã hội. Thẻ <code>charset</code> nên là UTF-8 và đặt đầu tiên, còn thẻ <code>viewport</code> là bắt buộc để hiển thị đúng trên di động. Thẻ <code>description</code> cung cấp đoạn tóm tắt trong kết quả tìm kiếm, và các thẻ Open Graph <code>og:*</code> quyết định cách một liên kết được chia sẻ hiển thị trên mạng xã hội và ứng dụng chat.</p></details>
+<pre>&lt;head&gt;
+  &lt;meta charset="UTF-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+  &lt;meta name="description" content="Interview prep tool for developers"&gt;
+  &lt;meta name="robots" content="index, follow"&gt;
+
+  &lt;!-- Open Graph (social sharing) --&gt;
+  &lt;meta property="og:title" content="My App"&gt;
+  &lt;meta property="og:description" content="Description for social cards"&gt;
+  &lt;meta property="og:image" content="https://example.com/preview.jpg"&gt;
+
+  &lt;!-- Security --&gt;
+  &lt;meta http-equiv="Content-Security-Policy" content="default-src 'self'"&gt;
+&lt;/head&gt;</pre>
+<ul>
+<li><code>charset</code>: character encoding (always UTF-8).</li>
+<li><code>viewport</code>: responsive design (required for mobile).</li>
+<li><code>description</code>: SEO + search result snippet.</li>
+<li><code>og:*</code>: social media preview cards.</li>
+</ul>`,
       },
       {
         q: 'What are data attributes in HTML? How to use them?',
@@ -121,61 +374,8 @@ localStorage.getItem('theme');  // 'dark'
 document.cookie = 'token=abc; path=/; Secure; HttpOnly; SameSite=Strict';</pre>
 <div class="key-point">Use <code>HttpOnly</code> + <code>Secure</code> + <code>SameSite</code> cookies for auth tokens. Never store sensitive data in localStorage (XSS accessible).</div>`,
       },
-      {
-        q: 'What is the difference between defer and async in script loading?',
-        difficulty: 'tricky',
-        a: `<div class="interview-answer"><p>A plain script tag blocks HTML parsing while it downloads and runs. <code>async</code> downloads in parallel and runs as soon as it is ready, so the order is not guaranteed, which suits independent scripts like analytics. <code>defer</code> also downloads in parallel but runs after parsing is done and keeps the order, which suits app code that needs the DOM. Both only apply to external scripts, not inline ones.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Một thẻ script thông thường sẽ chặn quá trình parse HTML trong khi nó tải về và chạy. <code>async</code> tải song song và chạy ngay khi sẵn sàng, nên thứ tự không được đảm bảo, phù hợp cho các script độc lập như analytics. <code>defer</code> cũng tải song song nhưng chạy sau khi parse xong và giữ nguyên thứ tự, phù hợp cho mã ứng dụng cần đến DOM. Cả hai chỉ áp dụng cho script bên ngoài chứ không áp dụng cho script inline.</p></details>
-<ul>
-<li><strong>No attribute</strong>: blocks HTML parsing. Script downloaded + executed immediately.</li>
-<li><strong>async</strong>: download in parallel, execute immediately when ready (may interrupt parsing). Order not guaranteed.</li>
-<li><strong>defer</strong>: download in parallel, execute <strong>after</strong> HTML parsing complete. Order preserved.</li>
-</ul>
-<pre>&lt;script src="app.js"&gt;&lt;/script&gt;                 &lt;!-- blocking --&gt;
-&lt;script src="analytics.js" async&gt;&lt;/script&gt;      &lt;!-- async: order doesn't matter --&gt;
-&lt;script src="app.js" defer&gt;&lt;/script&gt;            &lt;!-- defer: needs DOM, order matters --&gt;</pre>
-<div class="key-point">Best practice: use <code>defer</code> for your app scripts, <code>async</code> for independent scripts (analytics, ads).</div>`,
-      },
-      {
-        q: 'What are meta tags and why are they important?',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p>Meta tags give page information to browsers, search engines, and social media. The <code>charset</code> tag should be UTF-8 and placed first, and the <code>viewport</code> tag is required for correct mobile display. The <code>description</code> tag feeds the search result snippet, and the <code>og:*</code> Open Graph tags control how a shared link looks on social media and chat apps.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Meta tag cung cấp thông tin về trang cho trình duyệt, công cụ tìm kiếm và mạng xã hội. Thẻ <code>charset</code> nên là UTF-8 và đặt đầu tiên, còn thẻ <code>viewport</code> là bắt buộc để hiển thị đúng trên di động. Thẻ <code>description</code> cung cấp đoạn tóm tắt trong kết quả tìm kiếm, và các thẻ Open Graph <code>og:*</code> quyết định cách một liên kết được chia sẻ hiển thị trên mạng xã hội và ứng dụng chat.</p></details>
-<pre>&lt;head&gt;
-  &lt;meta charset="UTF-8"&gt;
-  &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
-  &lt;meta name="description" content="Interview prep tool for developers"&gt;
-  &lt;meta name="robots" content="index, follow"&gt;
 
-  &lt;!-- Open Graph (social sharing) --&gt;
-  &lt;meta property="og:title" content="My App"&gt;
-  &lt;meta property="og:description" content="Description for social cards"&gt;
-  &lt;meta property="og:image" content="https://example.com/preview.jpg"&gt;
-
-  &lt;!-- Security --&gt;
-  &lt;meta http-equiv="Content-Security-Policy" content="default-src 'self'"&gt;
-&lt;/head&gt;</pre>
-<ul>
-<li><code>charset</code>: character encoding (always UTF-8).</li>
-<li><code>viewport</code>: responsive design (required for mobile).</li>
-<li><code>description</code>: SEO + search result snippet.</li>
-<li><code>og:*</code>: social media preview cards.</li>
-</ul>`,
-      },
-      {
-        q: 'What is the difference between &lt;div&gt; and &lt;span&gt;?',
-        difficulty: 'easy',
-        a: `<div class="interview-answer"><p><code>&lt;div&gt;</code> is a generic block-level container and <code>&lt;span&gt;</code> is the inline version, and neither has any meaning. They are used only as hooks for styling or scripting when no semantic element fits. Semantic elements like <code>&lt;article&gt;</code> or <code>&lt;nav&gt;</code> should be preferred when they apply, because they add accessibility and structure.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><code>&lt;div&gt;</code> là container block-level chung chung còn <code>&lt;span&gt;</code> là phiên bản inline, và cả hai đều không mang ý nghĩa gì. Chúng chỉ được dùng làm điểm bám để style hoặc viết script khi không có thẻ semantic nào phù hợp. Nên ưu tiên các thẻ semantic như <code>&lt;article&gt;</code> hay <code>&lt;nav&gt;</code> khi có thể, vì chúng bổ sung tính truy cập được và cấu trúc.</p></details>
-<ul>
-<li><code>&lt;div&gt;</code>: <strong>block-level</strong> container. Used for grouping sections of content.</li>
-<li><code>&lt;span&gt;</code>: <strong>inline</strong> container. Used for styling text within a block.</li>
-</ul>
-<pre>&lt;div class="card"&gt;                    &lt;!-- block container --&gt;
-  &lt;p&gt;Price: &lt;span class="red"&gt;$49.99&lt;/span&gt;&lt;/p&gt;  &lt;!-- inline styling --&gt;
-&lt;/div&gt;</pre>
-<div class="key-point">Neither has semantic meaning. Prefer semantic elements (<code>&lt;article&gt;</code>, <code>&lt;section&gt;</code>, <code>&lt;nav&gt;</code>) when they apply.</div>`,
-      },
+      // ──── 5. ACCESSIBILITY & WEB COMPONENTS ────
       {
         q: 'What is Web Accessibility (a11y)? Name key practices.',
         difficulty: 'hard',
@@ -195,76 +395,6 @@ document.cookie = 'token=abc; path=/; Secure; HttpOnly; SameSite=Strict';</pre>
 
 &lt;!-- Good --&gt;
 &lt;button type="submit" aria-label="Submit form"&gt;Submit&lt;/button&gt;</pre>`,
-      },
-      {
-        q: 'What is the difference between &lt;link&gt;, &lt;a&gt;, and &lt;script&gt; tags?',
-        difficulty: 'easy',
-        a: `<div class="interview-answer"><p><code>&lt;link&gt;</code> connects external resources such as stylesheets and sits in the head. <code>&lt;a&gt;</code> is a hyperlink for navigation and sits in the body. <code>&lt;script&gt;</code> loads or embeds JavaScript. Any link with <code>target="_blank"</code> should include <code>rel="noopener noreferrer"</code> so the opened page cannot control the original tab.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><code>&lt;link&gt;</code> kết nối các tài nguyên bên ngoài như stylesheet và nằm trong head. <code>&lt;a&gt;</code> là siêu liên kết dùng để điều hướng và nằm trong body. <code>&lt;script&gt;</code> tải hoặc nhúng JavaScript. Bất kỳ liên kết nào có <code>target="_blank"</code> nên kèm theo <code>rel="noopener noreferrer"</code> để trang được mở không thể điều khiển tab gốc.</p></details>
-<ul>
-<li><code>&lt;link&gt;</code>: connects external resources (CSS, favicon, preload). Placed in <code>&lt;head&gt;</code>. Self-closing.</li>
-<li><code>&lt;a&gt;</code>: hyperlink for navigation. Inline element. Has <code>href</code>, <code>target</code>, <code>rel</code>.</li>
-<li><code>&lt;script&gt;</code>: embeds or references JavaScript. Can be in <code>&lt;head&gt;</code> or <code>&lt;body&gt;</code>.</li>
-</ul>
-<pre>&lt;link rel="stylesheet" href="styles.css"&gt;
-&lt;link rel="icon" href="favicon.ico"&gt;
-&lt;link rel="preload" href="font.woff2" as="font" crossorigin&gt;
-
-&lt;a href="/about" target="_blank" rel="noopener noreferrer"&gt;About&lt;/a&gt;
-
-&lt;script src="app.js" defer&gt;&lt;/script&gt;</pre>
-<div class="key-point">Always add <code>rel="noopener noreferrer"</code> to <code>target="_blank"</code> links for security (prevents reverse tabnabbing).</div>`,
-      },
-      {
-        q: 'What are HTML forms? Explain validation attributes.',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p>HTML forms include built-in validation through attributes like <code>required</code>, <code>min</code>, <code>max</code>, <code>minlength</code>, <code>maxlength</code>, <code>pattern</code>, and <code>type</code>, which the browser checks automatically. This client-side check is only for user experience and is not secure, because it can be bypassed, so the server must validate again. The <code>novalidate</code> attribute turns off browser validation when custom JavaScript validation is used.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Form HTML có sẵn cơ chế kiểm tra hợp lệ thông qua các thuộc tính như <code>required</code>, <code>min</code>, <code>max</code>, <code>minlength</code>, <code>maxlength</code>, <code>pattern</code> và <code>type</code>, được trình duyệt kiểm tra tự động. Việc kiểm tra ở phía client này chỉ nhằm cải thiện trải nghiệm người dùng và không an toàn, vì có thể bị vượt qua, nên server vẫn phải kiểm tra lại. Thuộc tính <code>novalidate</code> tắt kiểm tra của trình duyệt khi ta dùng validation tùy chỉnh bằng JavaScript.</p></details>
-<pre>&lt;form action="/api/register" method="POST" novalidate&gt;
-  &lt;label for="email"&gt;Email:&lt;/label&gt;
-  &lt;input type="email" id="email" name="email" required
-    placeholder="you@example.com"
-    pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}$"&gt;
-
-  &lt;label for="age"&gt;Age:&lt;/label&gt;
-  &lt;input type="number" id="age" name="age" min="18" max="120"&gt;
-
-  &lt;label for="bio"&gt;Bio:&lt;/label&gt;
-  &lt;textarea id="bio" name="bio" maxlength="500"&gt;&lt;/textarea&gt;
-
-  &lt;button type="submit"&gt;Register&lt;/button&gt;
-&lt;/form&gt;</pre>
-<p><strong>Validation attributes</strong>: <code>required</code>, <code>min</code>/<code>max</code>, <code>minlength</code>/<code>maxlength</code>, <code>pattern</code> (regex), <code>type</code> (email, url, number).</p>
-<div class="key-point"><code>novalidate</code> on form disables browser validation (useful when using custom JS validation). Always validate server-side too!</div>`,
-      },
-      {
-        q: 'What is the &lt;picture&gt; element and how do responsive images work?',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p><code>srcset</code> with <code>sizes</code> handles resolution switching, where the same image is provided at several widths and the browser picks the best one. <code>&lt;picture&gt;</code> with <code>&lt;source&gt;</code> handles art direction, serving a different crop or a modern format like WebP with a JPEG fallback. The <code>loading="lazy"</code> attribute gives native lazy loading for images below the fold without any JavaScript.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><code>srcset</code> kết hợp <code>sizes</code> xử lý việc chuyển đổi độ phân giải, trong đó cùng một ảnh được cung cấp ở nhiều chiều rộng và trình duyệt tự chọn cái phù hợp nhất. <code>&lt;picture&gt;</code> cùng <code>&lt;source&gt;</code> xử lý art direction, phục vụ một cách cắt ảnh khác hoặc một định dạng hiện đại như WebP kèm JPEG dự phòng. Thuộc tính <code>loading="lazy"</code> cung cấp lazy loading gốc cho các ảnh nằm dưới màn hình mà không cần JavaScript.</p></details>
-<p>The <code>&lt;picture&gt;</code> element and <code>srcset</code> attribute let the browser choose the most appropriate image based on screen size, resolution, and format support.</p>
-<pre>&lt;!-- srcset: browser picks based on screen density/width --&gt;
-&lt;img
-  src="photo-400.jpg"
-  srcset="photo-400.jpg 400w,
-          photo-800.jpg 800w,
-          photo-1200.jpg 1200w"
-  sizes="(max-width: 600px) 100vw,
-         (max-width: 1200px) 50vw,
-         33vw"
-  alt="Product photo"&gt;
-
-&lt;!-- &lt;picture&gt;: art direction + format fallback --&gt;
-&lt;picture&gt;
-  &lt;source media="(max-width: 768px)" srcset="mobile.webp" type="image/webp"&gt;
-  &lt;source media="(max-width: 768px)" srcset="mobile.jpg"&gt;
-  &lt;source srcset="desktop.webp" type="image/webp"&gt;
-  &lt;img src="desktop.jpg" alt="Hero image"&gt;
-&lt;/picture&gt;
-
-&lt;!-- Lazy loading (native) --&gt;
-&lt;img src="photo.jpg" loading="lazy" alt="..."&gt;</pre>
-<div class="key-point"><code>srcset</code> with <code>sizes</code> lets the browser choose the right resolution. <code>&lt;picture&gt;</code> gives you full control for art direction (different crops for mobile vs desktop) and format fallbacks (WebP → JPEG).</div>`,
       },
       {
         q: 'What are Web Components and Shadow DOM?',
@@ -311,127 +441,6 @@ customElements.define('user-card', UserCard);
 </ul>
 <div class="key-point">Web Components work with any framework or no framework. Libraries like Lit simplify authoring. They're ideal for design systems shared across React, Angular, and Vue projects.</div>`,
       },
-      {
-        q: 'What blocks HTML parsing vs rendering? Walk through why a page can stay blank for 3 seconds.',
-        difficulty: 'tricky',
-        a: `<div class="interview-answer"><p>A synchronous <code>&lt;script&gt;</code> is parser-blocking, so the browser stops building the DOM until the script downloads and runs. Stylesheets are render-blocking, so the browser will not paint until the CSSOM is ready, and a pending stylesheet also delays any synchronous script after it. Because of this, one slow CSS file can leave the page blank for seconds even when the HTML arrived quickly. Fixes include deferring scripts, inlining critical CSS, and preconnecting to or self-hosting the slow source.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Một thẻ <code>&lt;script&gt;</code> đồng bộ sẽ chặn parser, nên trình duyệt ngừng dựng DOM cho đến khi script tải về và chạy xong. Stylesheet thì chặn render, nên trình duyệt sẽ không paint cho đến khi CSSOM sẵn sàng, và một stylesheet đang chờ cũng làm trì hoãn mọi script đồng bộ đứng sau nó. Vì vậy, chỉ một file CSS chậm cũng có thể khiến trang trắng trong nhiều giây dù HTML đã về nhanh. Cách khắc phục gồm defer script, đưa critical CSS vào inline, và preconnect tới hoặc tự host nguồn tài nguyên chậm đó.</p></details>
-<p>Two different kinds of "blocking" get conflated, and interviewers love probing the difference:</p>
-<ul>
-<li><strong>Parser-blocking</strong>: a synchronous <code>&lt;script&gt;</code> stops HTML parsing entirely — the browser must download and execute it before it continues, because the script could <code>document.write()</code> or mutate the DOM.</li>
-<li><strong>Render-blocking</strong>: stylesheets do NOT stop parsing, but they block building the render tree — the browser refuses to paint anything until the CSSOM is complete (otherwise you'd see a flash of unstyled content). Worse, a pending stylesheet also <strong>blocks execution of later sync scripts</strong>, because the script might read computed styles (<code>getComputedStyle</code>).</li>
-</ul>
-<p><strong>The "white page for 3s" walkthrough:</strong></p>
-<pre>&lt;head&gt;
-  &lt;link rel="stylesheet" href="https://slow-cdn.com/all.css"&gt;  &lt;!-- 3s download --&gt;
-  &lt;script src="app.js"&gt;&lt;/script&gt;  &lt;!-- can't RUN until all.css arrives --&gt;
-&lt;/head&gt;
-&lt;body&gt;&lt;h1&gt;Hello&lt;/h1&gt;&lt;/body&gt;
-
-&lt;!-- Timeline:
-     0.0s  HTML parsed up to &lt;link&gt;, CSS request starts
-     0.0s  parser reaches &lt;script&gt; — blocked: waits for CSSOM
-     3.0s  all.css arrives → CSSOM ready → app.js executes
-     3.1s  parsing resumes, render tree built, first paint
-     Result: user stares at white for ~3s even though the
-     HTML for &lt;h1&gt; arrived in the first packet. --&gt;</pre>
-<p><strong>Fixes, in order of impact:</strong></p>
-<ul>
-<li><code>defer</code> the script (or move to end of body) — decouples it from the stylesheet.</li>
-<li>Inline <strong>critical CSS</strong> in <code>&lt;head&gt;</code>, load the rest with <code>media="print" onload="this.media='all'"</code> or split by media query (non-matching media = not render-blocking).</li>
-<li><code>&lt;link rel="preconnect"&gt;</code> to the slow CDN, or self-host the CSS.</li>
-</ul>
-<div class="key-point">Sync scripts block the parser; stylesheets block rendering AND any sync script after them — so one slow CSS file on a third-party domain can freeze your entire page even though HTML parsing already delivered the content.</div>`,
-      },
-      {
-        q: 'Explain resource hints: preload vs prefetch vs preconnect vs dns-prefetch.',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p>Resource hints tell the browser to fetch things earlier and cut waiting time. <code>preload</code> fetches a resource needed for the current page at high priority, <code>prefetch</code> fetches something likely needed on the next page when idle, <code>preconnect</code> opens the DNS, TCP, and TLS connection to an origin, and <code>dns-prefetch</code> does only the DNS lookup. Fonts are the main use for <code>preload</code>, but they need the <code>crossorigin</code> attribute or the browser downloads them twice. Hinting resources that are not used wastes priority and bandwidth.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Resource hint báo cho trình duyệt tải trước một số thứ để giảm thời gian chờ. <code>preload</code> tải một tài nguyên cần cho trang hiện tại với độ ưu tiên cao, <code>prefetch</code> tải thứ có khả năng cần ở trang kế tiếp khi trình duyệt rảnh, <code>preconnect</code> mở sẵn kết nối DNS, TCP và TLS tới một origin, còn <code>dns-prefetch</code> chỉ thực hiện tra cứu DNS. Font là trường hợp dùng <code>preload</code> phổ biến nhất, nhưng chúng cần thuộc tính <code>crossorigin</code> nếu không trình duyệt sẽ tải hai lần. Hint những tài nguyên không dùng đến sẽ lãng phí độ ưu tiên và băng thông.</p></details>
-<p>Resource hints let you tell the browser about resources <em>before</em> it discovers them naturally, cutting waterfall latency:</p>
-<pre>&lt;!-- preload: "I WILL need this for THIS page, fetch it NOW, high priority" --&gt;
-&lt;link rel="preload" href="/fonts/inter.woff2" as="font" type="font/woff2" crossorigin&gt;
-&lt;link rel="preload" href="/hero.avif" as="image"&gt;
-
-&lt;!-- prefetch: "the user will LIKELY need this on the NEXT page" (lowest priority, idle time) --&gt;
-&lt;link rel="prefetch" href="/checkout.js"&gt;
-
-&lt;!-- preconnect: "open DNS + TCP + TLS to this origin now" (no specific resource) --&gt;
-&lt;link rel="preconnect" href="https://api.example.com"&gt;
-&lt;link rel="preconnect" href="https://fonts.gstatic.com" crossorigin&gt;
-
-&lt;!-- dns-prefetch: DNS lookup only — cheap fallback for older browsers --&gt;
-&lt;link rel="dns-prefetch" href="https://analytics.example.com"&gt;</pre>
-<table style="width:100%;border-collapse:collapse;margin:10px 0;font-size:.88rem;">
-<tr><th style="text-align:left;padding:6px;border-bottom:1px solid #ccc;">Hint</th><th style="text-align:left;padding:6px;border-bottom:1px solid #ccc;">What it does</th><th style="text-align:left;padding:6px;border-bottom:1px solid #ccc;">Best for</th></tr>
-<tr><td style="padding:6px;"><code>preload</code></td><td style="padding:6px;">Full fetch, current page, high priority</td><td style="padding:6px;">Fonts, LCP hero image, critical CSS found late</td></tr>
-<tr><td style="padding:6px;"><code>prefetch</code></td><td style="padding:6px;">Full fetch, idle priority, cached for next navigation</td><td style="padding:6px;">Next-route bundles (hover on link)</td></tr>
-<tr><td style="padding:6px;"><code>preconnect</code></td><td style="padding:6px;">DNS + TCP + TLS handshake only</td><td style="padding:6px;">Known third-party origins (API, font CDN)</td></tr>
-<tr><td style="padding:6px;"><code>dns-prefetch</code></td><td style="padding:6px;">DNS lookup only</td><td style="padding:6px;">Many/low-priority third-party origins</td></tr>
-</table>
-<p><strong>Classic gotchas interviewers probe:</strong></p>
-<ul>
-<li>Fonts are the #1 preload use case: they're discovered <em>very late</em> (HTML → CSS → @font-face → fetch). Preloading skips two round trips. But you <strong>must add <code>crossorigin</code></strong> — fonts are fetched in CORS mode even same-origin, and a mismatched mode means the preload is ignored and the font downloads twice.</li>
-<li>Preloading things you don't use wastes bandwidth and steals priority from real resources — Chrome even warns "resource was preloaded but not used".</li>
-<li>Don't <code>preconnect</code> to more than a handful of origins; each open socket has a cost.</li>
-</ul>
-<div class="key-point">preload = this page, now; prefetch = next page, when idle; preconnect = warm up the connection. And fonts need <code>preload + as="font" + crossorigin</code> or the hint silently double-fetches.</div>`,
-      },
-      {
-        q: 'What happens when you type a URL and press Enter? (browser-side deep dive)',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p>The process has two parts, network then rendering. The network part is URL parsing and HSTS, DNS lookup, the TCP handshake, the TLS handshake, then the HTTP request and the first bytes of the response. The rendering part parses HTML into the DOM, builds the CSSOM and render tree, then does layout, paint, and composite, while a preload scanner fetches assets ahead of time. Time can be measured with the Navigation Timing API, and the second visit is faster due to caching, TLS resumption, and bfcache.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Quá trình gồm hai phần, mạng rồi mới đến render. Phần mạng gồm parse URL và HSTS, tra cứu DNS, bắt tay TCP, bắt tay TLS, rồi gửi request HTTP và nhận những byte đầu tiên của response. Phần render parse HTML thành DOM, dựng CSSOM và render tree, rồi thực hiện layout, paint và composite, trong khi một preload scanner tải trước các asset. Có thể đo thời gian bằng Navigation Timing API, và lần truy cập thứ hai sẽ nhanh hơn nhờ cache, TLS resumption và bfcache.</p></details>
-<p>The classic system-design-meets-frontend question. A senior answer covers each stage and where time is actually spent:</p>
-<ol>
-<li><strong>URL parsing + HSTS check</strong>: browser decides search query vs URL, checks HSTS list (forces https), checks service worker registration (may skip network entirely).</li>
-<li><strong>DNS resolution</strong>: browser cache → OS cache → router → ISP resolver → recursive lookup. (~0–120ms)</li>
-<li><strong>TCP handshake</strong>: SYN → SYN-ACK → ACK (1 round trip).</li>
-<li><strong>TLS handshake</strong>: certificate exchange, key agreement — 1 RTT on TLS 1.3 (0-RTT on resumption); HTTP/3/QUIC merges transport + crypto handshakes.</li>
-<li><strong>HTTP request/response</strong>: request with cookies/headers; server responds. First chunk = TTFB. Response streams — the browser does NOT wait for the full document.</li>
-<li><strong>Parsing</strong>: HTML tokenized into the DOM <em>incrementally</em>. A <strong>preload scanner</strong> races ahead of the parser discovering <code>&lt;img&gt;</code>/<code>&lt;link&gt;</code>/<code>&lt;script&gt;</code> URLs even while the parser is blocked. CSS builds the CSSOM; sync scripts pause the parser.</li>
-<li><strong>Render</strong>: DOM + CSSOM → render tree → layout → paint → composite. First paint can happen long before the page finishes loading.</li>
-</ol>
-<pre>// Where did the time go? The Navigation Timing API mirrors these stages:
-const t = performance.getEntriesByType('navigation')[0];
-t.domainLookupEnd - t.domainLookupStart;   // DNS
-t.connectEnd - t.connectStart;             // TCP (+TLS)
-t.responseStart - t.requestStart;          // TTFB (server think time)
-t.domContentLoadedEventEnd - t.startTime;  // parse + sync scripts
-t.loadEventEnd - t.startTime;              // everything</pre>
-<p><strong>Follow-ups to expect:</strong> "Why is the second visit faster?" (DNS/TLS session/HTTP cache/bfcache), "Where would you add a CDN?" (moves TCP/TLS/TTFB closer to the user), "What's the preload scanner?" (it's why a parser-blocking script doesn't stop image downloads).</p>
-<div class="key-point">Structure the answer as network (DNS → TCP → TLS → TTFB) then rendering (parse → CRP), and name the measurement API — showing you can quantify each stage is what separates senior from mid-level.</div>`,
-      },
-      {
-        q: 'Why is input type="number" often the wrong choice? How do autocomplete attributes work?',
-        difficulty: 'tricky',
-        a: `<div class="interview-answer"><p><code>type="number"</code> is meant for real quantities used in math, not for numeric-looking identifiers. Card numbers, OTP codes, ZIP codes, and phone numbers can lose leading zeros, pick up separators, or be changed by the scroll wheel, and an invalid entry can read back as an empty string. For identifiers it is better to use <code>type="text"</code> with <code>inputmode="numeric"</code> and a <code>pattern</code>. Correct <code>autocomplete</code> tokens should also be set, since good autofill improves conversion.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><code>type="number"</code> dành cho các đại lượng thật sự dùng trong tính toán, không dành cho những định danh chỉ trông giống số. Số thẻ, mã OTP, mã ZIP và số điện thoại có thể mất số 0 ở đầu, bị thêm dấu phân cách, hoặc bị thay đổi do lăn chuột, và một giá trị không hợp lệ có thể đọc ra thành chuỗi rỗng. Với các định danh thì nên dùng <code>type="text"</code> kèm <code>inputmode="numeric"</code> và một <code>pattern</code>. Cũng nên đặt đúng các token <code>autocomplete</code>, vì autofill tốt sẽ cải thiện tỷ lệ chuyển đổi.</p></details>
-<p>A senior-flavored forms question: the "obvious" input type is frequently a UX and correctness trap.</p>
-<p><strong>Problems with <code>type="number"</code>:</strong></p>
-<ul>
-<li><strong>Scroll-wheel disaster</strong>: hovering + scrolling silently changes the value — users change a dosage/price without noticing.</li>
-<li><strong>Not for "numeric strings"</strong>: credit cards, OTP codes, ZIP codes, phone numbers lose leading zeros (<code>0421</code> → <code>421</code>) and can render with locale thousand separators. They are identifiers, not quantities.</li>
-<li><strong>Silent empty value</strong>: type <code>1e</code> or <code>--5</code> and <code>input.value</code> is <code>""</code> (invalid intermediate state) — your JS sees an empty string while the user sees text.</li>
-<li>Spinner buttons are tiny, unlabeled, and announced inconsistently by screen readers.</li>
-</ul>
-<pre>&lt;!-- Wrong: card number is not a quantity --&gt;
-&lt;input type="number" name="cc"&gt;
-
-&lt;!-- Right: text + numeric keyboard + digit constraint --&gt;
-&lt;input type="text" inputmode="numeric" pattern="[0-9\\s]{13,19}"
-       autocomplete="cc-number" name="cc"&gt;
-
-&lt;!-- type="number" is fine for true quantities --&gt;
-&lt;input type="number" name="qty" min="1" max="99" step="1"&gt;</pre>
-<p><strong>Autocomplete attributes</strong> are a standardized vocabulary, not just on/off — they drive browser autofill, password managers, and one-tap address fill:</p>
-<pre>&lt;input autocomplete="email"&gt;
-&lt;input autocomplete="current-password"&gt;   &lt;!-- login --&gt;
-&lt;input autocomplete="new-password"&gt;       &lt;!-- signup: suggests generated password --&gt;
-&lt;input autocomplete="one-time-code"&gt;      &lt;!-- SMS OTP autofill on mobile --&gt;
-&lt;input autocomplete="shipping street-address"&gt;  &lt;!-- section modifiers --&gt;</pre>
-<div class="key-point">Rule of thumb: <code>type="number"</code> only for real quantities you'd do math on; use <code>inputmode="numeric"</code> + <code>pattern</code> for numeric identifiers, and always ship correct <code>autocomplete</code> tokens — autofill accuracy is a measurable conversion win.</div>`,
-      },
     ],
   },
 
@@ -441,6 +450,7 @@ t.loadEventEnd - t.startTime;              // everything</pre>
     name: 'CSS',
     icon: '🎨',
     questions: [
+      // ──── 1. CASCADE, SELECTORS & SPECIFICITY ────
       {
         q: 'Explain CSS specificity and how it determines which styles apply.',
         difficulty: 'hard',
@@ -458,97 +468,6 @@ style="color:red"    /* 1,0,0,0 */
 !important           /* overrides everything (avoid!) */</pre>
 <p><strong>Resolution order</strong>: !important > inline > ID > class > element > inherited > browser default.</p>
 <div class="key-point">When specificity is equal, the <strong>last rule</strong> in source order wins. Avoid <code>!important</code> — it breaks the cascade.</div>`,
-      },
-      {
-        q: 'What is the CSS Box Model? Explain content-box vs border-box.',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p>Every box is made of content, padding, border, and margin. With the default <code>content-box</code>, <code>width</code> sets only the content, so padding and border are added on top and a 200px box becomes larger. With <code>border-box</code>, <code>width</code> is the full size, which matches how people think. A common practice is to apply <code>border-box</code> globally so the layout math is predictable.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Mỗi hộp gồm content, padding, border và margin. Với <code>content-box</code> mặc định, <code>width</code> chỉ đặt kích thước cho phần content, nên padding và border được cộng thêm vào và một hộp 200px sẽ to hơn. Với <code>border-box</code>, <code>width</code> là kích thước tổng, đúng với cách hầu hết mọi người hình dung. Một thói quen phổ biến là áp dụng <code>border-box</code> cho toàn bộ trang để phép tính layout trở nên dễ đoán.</p></details>
-<p>Every element is a rectangular box: <strong>content → padding → border → margin</strong>.</p>
-<pre>/* content-box (default): width = content only */
-.box { width: 200px; padding: 20px; border: 5px solid; }
-/* Total width = 200 + 20*2 + 5*2 = 250px */
-
-/* border-box: width = content + padding + border */
-.box { box-sizing: border-box; width: 200px; padding: 20px; border: 5px solid; }
-/* Total width = 200px (content shrinks to 150px) */</pre>
-<pre>/* Best practice: apply globally */
-*, *::before, *::after {
-  box-sizing: border-box;
-}</pre>
-<div class="key-point">Always use <code>border-box</code>. It makes layout math predictable — <code>width</code> is what you see.</div>`,
-      },
-      {
-        q: 'Explain Flexbox layout. What are the key properties?',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p>Flexbox is used for one-dimensional layout along a single axis. <code>justify-content</code> aligns items on the main axis and <code>align-items</code> aligns them on the cross axis, and which is which changes with <code>flex-direction</code>. The <code>flex</code> shorthand controls grow, shrink, and basis. A common issue is that flex items will not shrink below their content by default, so <code>min-width: 0</code> is needed.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Flexbox dùng cho layout một chiều dọc theo một trục duy nhất. <code>justify-content</code> căn các item theo trục chính còn <code>align-items</code> căn chúng theo trục chéo, và trục nào là trục nào sẽ thay đổi theo <code>flex-direction</code>. Cú pháp rút gọn <code>flex</code> điều khiển grow, shrink và basis. Một vấn đề thường gặp là mặc định các flex item không co nhỏ hơn nội dung của chúng, nên cần đến <code>min-width: 0</code>.</p></details>
-<pre>.container {
-  display: flex;
-  flex-direction: row;          /* row | column | row-reverse | column-reverse */
-  justify-content: center;      /* main axis: flex-start | center | space-between | space-around */
-  align-items: center;          /* cross axis: stretch | flex-start | center | baseline */
-  flex-wrap: wrap;              /* nowrap | wrap | wrap-reverse */
-  gap: 16px;                    /* space between items */
-}
-
-.item {
-  flex: 1;                      /* shorthand: flex-grow flex-shrink flex-basis */
-  flex-grow: 1;                 /* take remaining space */
-  flex-shrink: 0;               /* don't shrink below basis */
-  flex-basis: 200px;            /* initial size */
-  align-self: flex-end;         /* override align-items for one item */
-}</pre>
-<div class="key-point"><code>justify-content</code> = main axis alignment. <code>align-items</code> = cross axis alignment. Main axis depends on <code>flex-direction</code>.</div>`,
-      },
-      {
-        q: 'Explain CSS Grid layout. When to use Grid vs Flexbox?',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p>CSS Grid handles two-dimensional layout with rows and columns together, while Flexbox handles one axis. Grid suits page-level layouts and anything needing alignment in both directions, and the two can be combined. Useful features include named template areas, <code>repeat()</code> with <code>minmax()</code> and <code>auto-fit</code> or <code>auto-fill</code>, and <code>fr</code> units. Note that <code>1fr</code> means <code>minmax(auto, 1fr)</code>, so use <code>minmax(0, 1fr)</code> when tracks must shrink.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>CSS Grid xử lý layout hai chiều với cả hàng và cột cùng lúc, trong khi Flexbox xử lý một trục. Grid phù hợp cho layout cấp trang và mọi thứ cần căn chỉnh theo cả hai chiều, và hai công cụ này có thể kết hợp với nhau. Các tính năng hữu ích gồm template area có tên, <code>repeat()</code> kết hợp <code>minmax()</code> cùng <code>auto-fit</code> hoặc <code>auto-fill</code>, và đơn vị <code>fr</code>. Lưu ý <code>1fr</code> thực chất là <code>minmax(auto, 1fr)</code>, nên hãy dùng <code>minmax(0, 1fr)</code> khi cần cho track co lại.</p></details>
-<pre>.grid-container {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);        /* 3 equal columns */
-  grid-template-columns: 250px 1fr 1fr;          /* fixed + flexible */
-  grid-template-rows: auto 1fr auto;
-  gap: 20px;
-  grid-template-areas:
-    "header header header"
-    "sidebar main   main"
-    "footer footer footer";
-}
-.header  { grid-area: header; }
-.sidebar { grid-area: sidebar; }
-.main    { grid-area: main; }
-
-/* Item placement */
-.item { grid-column: 1 / 3; grid-row: 2 / 4; }</pre>
-<ul>
-<li><strong>Flexbox</strong>: one-dimensional (row OR column). Best for: navbars, card rows, centering.</li>
-<li><strong>Grid</strong>: two-dimensional (rows AND columns). Best for: page layouts, dashboards, galleries.</li>
-</ul>`,
-      },
-      {
-        q: 'What are CSS Positioning types? Explain static, relative, absolute, fixed, sticky.',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p><code>static</code> is the default flow. <code>relative</code> offsets an element from its normal spot while keeping its space. <code>absolute</code> removes it from flow and positions it against the nearest positioned ancestor. <code>fixed</code> pins it to the viewport, and <code>sticky</code> flows normally until it reaches a threshold and then sticks. For <code>absolute</code>, the parent usually needs <code>position: relative</code>, and <code>sticky</code> needs a threshold like <code>top</code> to work.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><code>static</code> là luồng mặc định. <code>relative</code> dịch phần tử khỏi vị trí bình thường của nó nhưng vẫn giữ lại chỗ. <code>absolute</code> tách phần tử khỏi luồng và định vị theo tổ tiên gần nhất có position. <code>fixed</code> ghim nó vào viewport, còn <code>sticky</code> chảy bình thường cho đến khi chạm ngưỡng rồi dính lại. Với <code>absolute</code>, phần tử cha thường cần <code>position: relative</code>, và <code>sticky</code> cần một ngưỡng như <code>top</code> mới hoạt động.</p></details>
-<ul>
-<li><code>static</code> (default): normal flow. <code>top/left</code> have no effect.</li>
-<li><code>relative</code>: offset from its normal position. Space is still reserved.</li>
-<li><code>absolute</code>: removed from flow. Positioned relative to nearest <strong>positioned ancestor</strong> (non-static).</li>
-<li><code>fixed</code>: removed from flow. Positioned relative to <strong>viewport</strong>. Stays on scroll.</li>
-<li><code>sticky</code>: normal flow until scroll threshold, then <strong>sticks</strong>.</li>
-</ul>
-<pre>.parent { position: relative; }
-.tooltip {
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-}
-.navbar  { position: sticky; top: 0; z-index: 100; }
-.modal   { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); }</pre>`,
       },
       {
         q: 'What are CSS pseudo-classes and pseudo-elements? Give examples.',
@@ -571,154 +490,6 @@ button:disabled { opacity: 0.5; }
 p::first-line { font-weight: bold; }
 ::selection { background: yellow; }
 li::marker { color: blue; }        /* bullet/number styling */</pre>`,
-      },
-      {
-        q: 'What are CSS variables (custom properties)? How to use them?',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p>CSS custom properties are live values that exist at runtime, unlike Sass variables that disappear at compile time. They cascade and inherit, so a token defined on <code>:root</code> can be overridden in a scope, which is how dark themes work. They can also be read and written from JavaScript with <code>setProperty</code>, and they accept a fallback as a second argument. Because they resolve at runtime, they respond to the DOM context where they are used.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>CSS custom property là những giá trị sống tồn tại lúc runtime, khác với biến Sass vốn biến mất lúc biên dịch. Chúng cascade và kế thừa, nên một token định nghĩa trên <code>:root</code> có thể được ghi đè trong một phạm vi, và đó là cách các theme tối hoạt động. Chúng cũng có thể được đọc và ghi từ JavaScript bằng <code>setProperty</code>, và nhận một giá trị dự phòng ở tham số thứ hai. Vì được phân giải lúc runtime, chúng phản ứng theo ngữ cảnh DOM nơi chúng được dùng.</p></details>
-<pre>:root {
-  --primary: #4fc3f7;
-  --spacing: 16px;
-  --radius: 8px;
-  --shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.card {
-  padding: var(--spacing);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-}
-
-.btn-primary {
-  background: var(--primary);
-  padding: calc(var(--spacing) / 2) var(--spacing);
-}
-
-/* Override in scope */
-.dark-theme {
-  --primary: #0288d1;
-}
-
-/* Fallback value */
-color: var(--accent, #333);</pre>
-<div class="key-point">CSS variables are inherited, scoped, and can be changed at runtime with JavaScript: <code>document.documentElement.style.setProperty('--primary', 'red')</code>.</div>`,
-      },
-      {
-        q: 'What are CSS Media Queries? How to implement responsive design?',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p>Media queries let styles respond to the viewport size and to device or user conditions. A mobile-first approach with <code>min-width</code> keeps base styles for small screens and adds enhancements at larger breakpoints. Preference queries also matter, such as <code>prefers-color-scheme</code> for dark mode and <code>prefers-reduced-motion</code> to reduce animation. Container queries now handle component-level responsiveness that media queries cannot.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Media query cho phép style phản ứng theo kích thước viewport cũng như theo điều kiện của thiết bị hay người dùng. Cách tiếp cận mobile-first với <code>min-width</code> giữ style nền cho màn hình nhỏ và bổ sung cải tiến ở các breakpoint lớn hơn. Các query về sở thích cũng quan trọng, chẳng hạn <code>prefers-color-scheme</code> cho chế độ tối và <code>prefers-reduced-motion</code> để giảm animation. Giờ đây container query đảm nhận khả năng responsive ở cấp component mà media query không làm được.</p></details>
-<pre>/* Mobile-first approach (min-width) */
-.container { padding: 16px; }
-
-/* Tablet */
-@media (min-width: 768px) {
-  .container { padding: 24px; max-width: 720px; margin: 0 auto; }
-  .grid { grid-template-columns: repeat(2, 1fr); }
-}
-
-/* Desktop */
-@media (min-width: 1024px) {
-  .container { max-width: 960px; }
-  .grid { grid-template-columns: repeat(3, 1fr); }
-}
-
-/* Print */
-@media print {
-  .no-print { display: none; }
-}
-
-/* Preference queries */
-@media (prefers-color-scheme: dark) { body { background: #1a1a2e; } }
-@media (prefers-reduced-motion: reduce) { * { animation: none !important; } }</pre>
-<div class="key-point">Mobile-first (<code>min-width</code>) is preferred over desktop-first (<code>max-width</code>). Common breakpoints: 576px, 768px, 992px, 1200px.</div>`,
-      },
-      {
-        q: 'What is the difference between em, rem, px, %, vh/vw units?',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p><code>px</code> is absolute and predictable but ignores the user's font settings. <code>em</code> is relative to the parent font-size and compounds when nested. <code>rem</code> is relative to the root font-size and stays consistent, which suits type and spacing. <code>%</code> is relative to the parent, and <code>vh</code> and <code>vw</code> are relative to the viewport. Using <code>rem</code> for font-size respects browser zoom, and <code>100vh</code> can overflow on mobile, which <code>dvh</code> fixes.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><code>px</code> là đơn vị tuyệt đối và dễ đoán nhưng bỏ qua thiết lập cỡ chữ của người dùng. <code>em</code> tính theo font-size của phần tử cha và bị nhân dồn khi lồng nhau. <code>rem</code> tính theo font-size gốc và luôn nhất quán, phù hợp cho chữ và khoảng cách. <code>%</code> tính theo phần tử cha, còn <code>vh</code> và <code>vw</code> tính theo viewport. Dùng <code>rem</code> cho font-size sẽ tôn trọng mức zoom của trình duyệt, và <code>100vh</code> có thể bị tràn trên di động, điều mà <code>dvh</code> khắc phục.</p></details>
-<ul>
-<li><code>px</code>: absolute pixels. Precise but doesn't scale.</li>
-<li><code>em</code>: relative to <strong>parent's</strong> font-size. Compounds (1.2em × 1.2em = 1.44).</li>
-<li><code>rem</code>: relative to <strong>root</strong> (<code>&lt;html&gt;</code>) font-size. Consistent, predictable.</li>
-<li><code>%</code>: relative to parent's property (width, height).</li>
-<li><code>vh/vw</code>: viewport height/width percentages (100vh = full viewport).</li>
-</ul>
-<pre>html { font-size: 16px; }     /* 1rem = 16px */
-h1 { font-size: 2rem; }       /* 32px */
-.card { padding: 1.5rem; }    /* 24px */
-.hero { height: 100vh; }      /* full viewport height */
-.sidebar { width: 25%; }      /* 25% of parent */</pre>
-<div class="key-point">Best practice: <code>rem</code> for typography and spacing, <code>px</code> for borders/shadows, <code>%</code> or <code>fr</code> for layouts, <code>vh/vw</code> for full-screen sections.</div>`,
-      },
-      {
-        q: 'What is the z-index? How does stacking context work?',
-        difficulty: 'tricky',
-        a: `<div class="interview-answer"><p><code>z-index</code> only works on positioned elements and only compares elements within the same stacking context. A child with a very high <code>z-index</code> can still sit behind a neighbor if its parent forms a lower stacking context. Stacking contexts are created by more than <code>z-index</code>, including <code>opacity</code> below 1, any <code>transform</code> or <code>filter</code>, and <code>isolation: isolate</code>. The real fix for z-index problems is usually to correct the context hierarchy.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><code>z-index</code> chỉ có tác dụng trên các phần tử có position và chỉ so sánh các phần tử trong cùng một stacking context. Một phần tử con có <code>z-index</code> rất cao vẫn có thể nằm sau một phần tử kế bên nếu phần tử cha của nó tạo ra một stacking context thấp hơn. Stacking context được tạo ra bởi nhiều thứ chứ không chỉ <code>z-index</code>, bao gồm <code>opacity</code> nhỏ hơn 1, bất kỳ <code>transform</code> hay <code>filter</code> nào, và <code>isolation: isolate</code>. Cách khắc phục thật sự cho các vấn đề z-index thường là sửa lại cây phân cấp context.</p></details>
-<p><code>z-index</code> controls the stacking order of positioned elements (non-static).</p>
-<p><strong>A new stacking context is created by</strong>:</p>
-<ul>
-<li>Position <code>relative/absolute/fixed/sticky</code> + <code>z-index</code> value.</li>
-<li><code>opacity</code> less than 1.</li>
-<li><code>transform</code>, <code>filter</code>, <code>perspective</code>, <code>clip-path</code>.</li>
-<li><code>isolation: isolate;</code></li>
-</ul>
-<pre>.parent { position: relative; z-index: 1; }    /* creates stacking context */
-.child  { position: absolute; z-index: 999; }   /* 999 is LOCAL to parent */
-.other  { position: relative; z-index: 2; }     /* beats .child because z:2 > z:1 */</pre>
-<div class="key-point">Trick: a child with z-index: 999999 can still appear behind another element if its parent's z-index is lower. Stacking contexts are hierarchical.</div>`,
-      },
-      {
-        q: "What are CSS animations and transitions? What's the difference?",
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p>Transitions move between two states and need a trigger like <code>:hover</code> or a class change. Animations use <code>@keyframes</code> for multi-step motion that can run on its own and loop. For performance, only <code>transform</code> and <code>opacity</code> should be animated, since they run on the GPU without touching layout or paint. Animating properties like <code>left</code> or <code>width</code> causes a re-layout every frame and stutters.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Transition chuyển giữa hai trạng thái và cần một tác nhân kích hoạt như <code>:hover</code> hoặc thay đổi class. Animation dùng <code>@keyframes</code> cho chuyển động nhiều bước có thể tự chạy và lặp lại. Về hiệu năng, chỉ nên animate <code>transform</code> và <code>opacity</code>, vì chúng chạy trên GPU mà không đụng đến layout hay paint. Animate các thuộc tính như <code>left</code> hay <code>width</code> sẽ gây tính lại layout mỗi khung hình và làm giật.</p></details>
-<pre>/* Transition: A → B on state change */
-.btn {
-  background: blue;
-  transition: background 0.3s ease, transform 0.2s;
-}
-.btn:hover {
-  background: darkblue;
-  transform: scale(1.05);
-}
-
-/* Animation: multi-step, automatic, repeatable */
-@keyframes slideIn {
-  0%   { transform: translateX(-100%); opacity: 0; }
-  100% { transform: translateX(0);     opacity: 1; }
-}
-.card {
-  animation: slideIn 0.5s ease-out forwards;
-  /* name | duration | timing | fill-mode */
-}</pre>
-<ul>
-<li><strong>Transition</strong>: requires trigger (hover, class change). Two states only.</li>
-<li><strong>Animation</strong>: auto-runs, multi-step via keyframes, can loop.</li>
-</ul>
-<div class="key-point">Performance: animate only <code>transform</code> and <code>opacity</code> — they run on the GPU compositor thread without triggering layout/paint.</div>`,
-      },
-      {
-        q: 'How does CSS selector performance work? What are the fastest selectors?',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p>Browsers match selectors right-to-left, so the rightmost part is checked first. This makes a descendant selector like <code>.nav li</code> slower, because every <code>li</code> is matched before ancestors are checked, while IDs and classes are fastest. On modern browsers this rarely matters, since selector matching is tiny compared to layout, paint, and DOM size. It is better to favor readable, low-specificity selectors and a smaller DOM.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Trình duyệt khớp selector từ phải sang trái, nên phần bên phải nhất được kiểm tra trước. Điều này khiến một selector con cháu như <code>.nav li</code> chậm hơn, vì mọi <code>li</code> đều được khớp trước khi kiểm tra tổ tiên, trong khi ID và class là nhanh nhất. Trên các trình duyệt hiện đại điều này hiếm khi đáng kể, vì việc khớp selector nhỏ bé so với layout, paint và kích thước DOM. Tốt hơn là ưu tiên các selector dễ đọc, specificity thấp và một DOM gọn hơn.</p></details>
-<p>CSS selectors are matched <strong>right-to-left</strong>. The rightmost part (key selector) is checked first.</p>
-<p><strong>Speed ranking</strong> (fastest to slowest):</p>
-<ol>
-<li>ID: <code>#header</code></li>
-<li>Class: <code>.nav-item</code></li>
-<li>Element: <code>div</code></li>
-<li>Adjacent/sibling: <code>h2 + p</code></li>
-<li>Child: <code>ul > li</code></li>
-<li>Descendant: <code>.nav li</code> (slowest — matches every <code>li</code>, then walks up)</li>
-<li>Universal: <code>*</code></li>
-<li>Attribute: <code>[type="text"]</code></li>
-</ol>
-<div class="key-point">In practice, CSS selector performance rarely matters for most apps. Focus on reducing the total number of DOM elements and avoiding overly deep nesting.</div>`,
       },
       {
         q: 'What are :has(), :is(), and :where() selectors in modern CSS?',
@@ -755,74 +526,44 @@ article :is(h1, h2, h3) { margin-top: 2em; }
 <div class="key-point"><code>:has()</code> is revolutionary — CSS can now style parents based on children. <code>:is()</code> takes the highest specificity of its arguments, while <code>:where()</code> always has zero specificity. Use <code>:where()</code> for default styles you want to be easily overridden.</div>`,
       },
       {
-        q: 'What are CSS container queries and how do they differ from media queries?',
+        q: 'How does CSS selector performance work? What are the fastest selectors?',
         difficulty: 'hard',
-        a: `<div class="interview-answer"><p>Media queries respond to the viewport size, while container queries respond to the parent's size, which matters for reusable components. A card can switch from row to column based on whether it is in a wide column or a narrow sidebar, which only container queries can express. A parent opts in with <code>container-type: inline-size</code>, then <code>@container</code> rules apply, and <code>cq</code> units are sized to the container. This makes components truly context-independent.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Media query phản ứng theo kích thước viewport, trong khi container query phản ứng theo kích thước của phần tử cha, điều rất quan trọng với các component tái sử dụng. Một card có thể chuyển từ hàng sang cột tùy vào việc nó nằm trong một cột rộng hay một sidebar hẹp, điều mà chỉ container query mới diễn đạt được. Phần tử cha đăng ký bằng <code>container-type: inline-size</code>, sau đó các quy tắc <code>@container</code> mới áp dụng, và các đơn vị <code>cq</code> được tính theo kích thước của container. Điều này khiến component thật sự độc lập với ngữ cảnh.</p></details>
-<p><strong>Media queries</strong> respond to the <em>viewport</em> size. <strong>Container queries</strong> respond to the <em>parent container</em> size — enabling truly reusable components.</p>
-<pre>/* Media query: based on viewport */
-@media (max-width: 768px) {
-  .card { flex-direction: column; }
-}
-
-/* Container query: based on parent container */
-.card-container {
-  container-type: inline-size;  /* declare as container */
-  container-name: card;         /* optional name */
-}
-
-/* When the CONTAINER is small, not the viewport */
-@container card (max-width: 400px) {
-  .card { flex-direction: column; }
-  .card img { width: 100%; }
-}
-
-@container card (min-width: 401px) {
-  .card { flex-direction: row; }
-  .card img { width: 200px; }
-}
-
-/* Container query units */
-.title {
-  font-size: 5cqw;  /* 5% of container width */
-  /* cqw, cqh, cqi, cqb, cqmin, cqmax */
-}</pre>
-<div class="key-point">Container queries solve the problem where a component looks different in a sidebar vs main content area — something media queries can't handle. This is the most significant CSS feature since Flexbox.</div>`,
+        a: `<div class="interview-answer"><p>Browsers match selectors right-to-left, so the rightmost part is checked first. This makes a descendant selector like <code>.nav li</code> slower, because every <code>li</code> is matched before ancestors are checked, while IDs and classes are fastest. On modern browsers this rarely matters, since selector matching is tiny compared to layout, paint, and DOM size. It is better to favor readable, low-specificity selectors and a smaller DOM.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Trình duyệt khớp selector từ phải sang trái, nên phần bên phải nhất được kiểm tra trước. Điều này khiến một selector con cháu như <code>.nav li</code> chậm hơn, vì mọi <code>li</code> đều được khớp trước khi kiểm tra tổ tiên, trong khi ID và class là nhanh nhất. Trên các trình duyệt hiện đại điều này hiếm khi đáng kể, vì việc khớp selector nhỏ bé so với layout, paint và kích thước DOM. Tốt hơn là ưu tiên các selector dễ đọc, specificity thấp và một DOM gọn hơn.</p></details>
+<p>CSS selectors are matched <strong>right-to-left</strong>. The rightmost part (key selector) is checked first.</p>
+<p><strong>Speed ranking</strong> (fastest to slowest):</p>
+<ol>
+<li>ID: <code>#header</code></li>
+<li>Class: <code>.nav-item</code></li>
+<li>Element: <code>div</code></li>
+<li>Adjacent/sibling: <code>h2 + p</code></li>
+<li>Child: <code>ul > li</code></li>
+<li>Descendant: <code>.nav li</code> (slowest — matches every <code>li</code>, then walks up)</li>
+<li>Universal: <code>*</code></li>
+<li>Attribute: <code>[type="text"]</code></li>
+</ol>
+<div class="key-point">In practice, CSS selector performance rarely matters for most apps. Focus on reducing the total number of DOM elements and avoiding overly deep nesting.</div>`,
       },
+
+      // ──── 2. BOX MODEL, UNITS & FORMATTING CONTEXTS ────
       {
-        q: 'What is BEM methodology and why use a CSS naming convention?',
+        q: 'What is the CSS Box Model? Explain content-box vs border-box.',
         difficulty: 'medium',
-        a: `<div class="interview-answer"><p>BEM is a naming convention using Block, Element, and Modifier that makes CSS predictable. Everything becomes a single flat class selector, so specificity stays constant and there are no nesting or cascade fights, which helps in large shared codebases. It is only one way to handle scoping. Modern projects often use CSS Modules or utility-first Tailwind, which enforce the same isolation automatically.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>BEM là một quy ước đặt tên gồm Block, Element và Modifier giúp CSS trở nên dễ đoán. Mọi thứ đều thành một selector class phẳng duy nhất, nên specificity luôn giữ nguyên và không có tranh chấp về lồng nhau hay cascade, điều này rất hữu ích trong các codebase lớn dùng chung. Đây chỉ là một trong nhiều cách xử lý scoping. Các dự án hiện đại thường dùng CSS Modules hoặc Tailwind theo hướng utility-first, vốn tự động áp đặt cùng mức cô lập như vậy.</p></details>
-<p><strong>BEM (Block Element Modifier)</strong> is a naming convention that makes CSS more maintainable and predictable.</p>
-<pre>/* BEM: Block__Element--Modifier */
+        a: `<div class="interview-answer"><p>Every box is made of content, padding, border, and margin. With the default <code>content-box</code>, <code>width</code> sets only the content, so padding and border are added on top and a 200px box becomes larger. With <code>border-box</code>, <code>width</code> is the full size, which matches how people think. A common practice is to apply <code>border-box</code> globally so the layout math is predictable.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Mỗi hộp gồm content, padding, border và margin. Với <code>content-box</code> mặc định, <code>width</code> chỉ đặt kích thước cho phần content, nên padding và border được cộng thêm vào và một hộp 200px sẽ to hơn. Với <code>border-box</code>, <code>width</code> là kích thước tổng, đúng với cách hầu hết mọi người hình dung. Một thói quen phổ biến là áp dụng <code>border-box</code> cho toàn bộ trang để phép tính layout trở nên dễ đoán.</p></details>
+<p>Every element is a rectangular box: <strong>content → padding → border → margin</strong>.</p>
+<pre>/* content-box (default): width = content only */
+.box { width: 200px; padding: 20px; border: 5px solid; }
+/* Total width = 200 + 20*2 + 5*2 = 250px */
 
-/* Block: standalone component */
-.card { }
-
-/* Element: part of a block (double underscore) */
-.card__title { }
-.card__image { }
-.card__body { }
-
-/* Modifier: variation of block or element (double dash) */
-.card--featured { border: 2px solid gold; }
-.card__title--large { font-size: 2rem; }
-
-/* HTML: */
-&lt;div class="card card--featured"&gt;
-  &lt;img class="card__image" src="..." alt="..."&gt;
-  &lt;h2 class="card__title card__title--large"&gt;Title&lt;/h2&gt;
-  &lt;p class="card__body"&gt;Content&lt;/p&gt;
-&lt;/div&gt;</pre>
-<p><strong>Benefits:</strong></p>
-<ul>
-<li>Low specificity (single class selectors) → easy to override</li>
-<li>Self-documenting: class names show relationships</li>
-<li>No nesting → avoids specificity wars</li>
-<li>Scales well in large codebases</li>
-</ul>
-<div class="key-point">BEM looks verbose but prevents the CSS specificity mess that plagues large projects. Modern alternatives: CSS Modules (scoped automatically), Tailwind CSS (utility-first), CSS-in-JS (styled-components).</div>`,
+/* border-box: width = content + padding + border */
+.box { box-sizing: border-box; width: 200px; padding: 20px; border: 5px solid; }
+/* Total width = 200px (content shrinks to 150px) */</pre>
+<pre>/* Best practice: apply globally */
+*, *::before, *::after {
+  box-sizing: border-box;
+}</pre>
+<div class="key-point">Always use <code>border-box</code>. It makes layout math predictable — <code>width</code> is what you see.</div>`,
       },
       {
         q: 'What is margin collapsing? Predict the output: two stacked boxes with margins 30px and 20px.',
@@ -890,38 +631,48 @@ article :is(h1, h2, h3) { margin-top: 2em; }
 <div class="key-point">When floats escape, margins leak, or text wraps under a float, the answer is "create a BFC" — and in modern CSS that means <code>display: flow-root</code>, not <code>overflow: hidden</code>.</div>`,
       },
       {
-        q: 'Why is my position: sticky not working? List the debugging checklist.',
-        difficulty: 'tricky',
-        a: `<div class="interview-answer"><p>Sticky fails quietly, acting like relative with no error, so a checklist helps. First, a threshold like <code>top</code> is required or it does nothing. Second, the most common cause is an ancestor with <code>overflow: hidden</code> or <code>auto</code>, often added to remove a horizontal scrollbar, which makes the element stick inside that box instead of the page. Third, the parent must be taller than the element, and in a flex row the item needs <code>align-self: flex-start</code> so it does not stretch.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Sticky thường hỏng một cách âm thầm, hành xử như relative mà không báo lỗi, nên có một checklist sẽ giúp ích. Thứ nhất, cần một ngưỡng như <code>top</code>, nếu không nó chẳng làm gì cả. Thứ hai, nguyên nhân phổ biến nhất là một phần tử tổ tiên có <code>overflow: hidden</code> hoặc <code>auto</code>, thường được thêm vào để bỏ thanh cuộn ngang, khiến phần tử dính bên trong hộp đó thay vì cả trang. Thứ ba, phần tử cha phải cao hơn phần tử, và trong một hàng flex thì item cần <code>align-self: flex-start</code> để nó không bị kéo giãn.</p></details>
-<p>Sticky is the most silently-failing feature in CSS — it degrades to "just relative" with no error. The checklist, in the order you should check:</p>
-<ol>
-<li><strong>No threshold set</strong>: sticky does nothing without <code>top</code> (or <code>bottom/left/right</code>). <code>position: sticky;</code> alone is a no-op.</li>
-<li><strong>An ancestor has <code>overflow: hidden/auto/scroll</code></strong>: the element then sticks within THAT ancestor's scroll box, not the page — if that ancestor doesn't scroll, sticky never engages. This is the #1 real-world cause, often from an <code>overflow-x: hidden</code> slapped on a wrapper to kill horizontal scrollbars.</li>
-<li><strong>Parent is exactly as tall as the element</strong>: sticky only slides within its parent's box. If the parent has no extra height, there's no room to stick.</li>
-<li><strong>Flex/grid stretch</strong>: inside a flex row, items default to <code>align-items: stretch</code>, so the sticky item is full-height of its parent → case 3. Fix: <code>align-self: flex-start</code>.</li>
-</ol>
-<pre>/* The flex-sidebar case — sticky "not working": */
-.layout  { display: flex; }
-.sidebar { position: sticky; top: 0; }   /* ✗ stretched to full height */
+        q: 'What is the difference between em, rem, px, %, vh/vw units?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p><code>px</code> is absolute and predictable but ignores the user's font settings. <code>em</code> is relative to the parent font-size and compounds when nested. <code>rem</code> is relative to the root font-size and stays consistent, which suits type and spacing. <code>%</code> is relative to the parent, and <code>vh</code> and <code>vw</code> are relative to the viewport. Using <code>rem</code> for font-size respects browser zoom, and <code>100vh</code> can overflow on mobile, which <code>dvh</code> fixes.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><code>px</code> là đơn vị tuyệt đối và dễ đoán nhưng bỏ qua thiết lập cỡ chữ của người dùng. <code>em</code> tính theo font-size của phần tử cha và bị nhân dồn khi lồng nhau. <code>rem</code> tính theo font-size gốc và luôn nhất quán, phù hợp cho chữ và khoảng cách. <code>%</code> tính theo phần tử cha, còn <code>vh</code> và <code>vw</code> tính theo viewport. Dùng <code>rem</code> cho font-size sẽ tôn trọng mức zoom của trình duyệt, và <code>100vh</code> có thể bị tràn trên di động, điều mà <code>dvh</code> khắc phục.</p></details>
+<ul>
+<li><code>px</code>: absolute pixels. Precise but doesn't scale.</li>
+<li><code>em</code>: relative to <strong>parent's</strong> font-size. Compounds (1.2em × 1.2em = 1.44).</li>
+<li><code>rem</code>: relative to <strong>root</strong> (<code>&lt;html&gt;</code>) font-size. Consistent, predictable.</li>
+<li><code>%</code>: relative to parent's property (width, height).</li>
+<li><code>vh/vw</code>: viewport height/width percentages (100vh = full viewport).</li>
+</ul>
+<pre>html { font-size: 16px; }     /* 1rem = 16px */
+h1 { font-size: 2rem; }       /* 32px */
+.card { padding: 1.5rem; }    /* 24px */
+.hero { height: 100vh; }      /* full viewport height */
+.sidebar { width: 25%; }      /* 25% of parent */</pre>
+<div class="key-point">Best practice: <code>rem</code> for typography and spacing, <code>px</code> for borders/shadows, <code>%</code> or <code>fr</code> for layouts, <code>vh/vw</code> for full-screen sections.</div>`,
+      },
 
-/* Fix: */
-.sidebar {
-  position: sticky;
-  top: 0;                    /* 1. threshold */
-  align-self: flex-start;    /* 4. stop stretching */
-  max-height: 100vh;         /* bonus: let long sidebars scroll */
-  overflow-y: auto;
+      // ──── 3. LAYOUT — FLEXBOX, GRID & POSITIONING ────
+      {
+        q: 'Explain Flexbox layout. What are the key properties?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>Flexbox is used for one-dimensional layout along a single axis. <code>justify-content</code> aligns items on the main axis and <code>align-items</code> aligns them on the cross axis, and which is which changes with <code>flex-direction</code>. The <code>flex</code> shorthand controls grow, shrink, and basis. A common issue is that flex items will not shrink below their content by default, so <code>min-width: 0</code> is needed.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Flexbox dùng cho layout một chiều dọc theo một trục duy nhất. <code>justify-content</code> căn các item theo trục chính còn <code>align-items</code> căn chúng theo trục chéo, và trục nào là trục nào sẽ thay đổi theo <code>flex-direction</code>. Cú pháp rút gọn <code>flex</code> điều khiển grow, shrink và basis. Một vấn đề thường gặp là mặc định các flex item không co nhỏ hơn nội dung của chúng, nên cần đến <code>min-width: 0</code>.</p></details>
+<pre>.container {
+  display: flex;
+  flex-direction: row;          /* row | column | row-reverse | column-reverse */
+  justify-content: center;      /* main axis: flex-start | center | space-between | space-around */
+  align-items: center;          /* cross axis: stretch | flex-start | center | baseline */
+  flex-wrap: wrap;              /* nowrap | wrap | wrap-reverse */
+  gap: 16px;                    /* space between items */
 }
 
-/* Debug ancestor overflow in DevTools console: */
-let el = document.querySelector('.sidebar').parentElement;
-while (el) {
-  const o = getComputedStyle(el).overflow;
-  if (o !== 'visible') console.log(el, o);   // culprit found
-  el = el.parentElement;
+.item {
+  flex: 1;                      /* shorthand: flex-grow flex-shrink flex-basis */
+  flex-grow: 1;                 /* take remaining space */
+  flex-shrink: 0;               /* don't shrink below basis */
+  flex-basis: 200px;            /* initial size */
+  align-self: flex-end;         /* override align-items for one item */
 }</pre>
-<div class="key-point">Sticky needs: a threshold (<code>top</code>), a taller parent to slide within, and NO clipping ancestor between it and the scroller — and in flex layouts, <code>align-self: flex-start</code>.</div>`,
+<div class="key-point"><code>justify-content</code> = main axis alignment. <code>align-items</code> = cross axis alignment. Main axis depends on <code>flex-direction</code>.</div>`,
       },
       {
         q: 'Why does content inside a flex item overflow instead of shrinking? (the min-width: auto trap)',
@@ -959,6 +710,238 @@ while (el) {
 <div class="key-point">Text, <code>&lt;pre&gt;</code>, or charts overflowing a flex/grid track? The answer is almost always <code>min-width: 0</code> (or <code>minmax(0, 1fr)</code>) — flex items don't shrink below content size by default.</div>`,
       },
       {
+        q: 'Explain CSS Grid layout. When to use Grid vs Flexbox?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>CSS Grid handles two-dimensional layout with rows and columns together, while Flexbox handles one axis. Grid suits page-level layouts and anything needing alignment in both directions, and the two can be combined. Useful features include named template areas, <code>repeat()</code> with <code>minmax()</code> and <code>auto-fit</code> or <code>auto-fill</code>, and <code>fr</code> units. Note that <code>1fr</code> means <code>minmax(auto, 1fr)</code>, so use <code>minmax(0, 1fr)</code> when tracks must shrink.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>CSS Grid xử lý layout hai chiều với cả hàng và cột cùng lúc, trong khi Flexbox xử lý một trục. Grid phù hợp cho layout cấp trang và mọi thứ cần căn chỉnh theo cả hai chiều, và hai công cụ này có thể kết hợp với nhau. Các tính năng hữu ích gồm template area có tên, <code>repeat()</code> kết hợp <code>minmax()</code> cùng <code>auto-fit</code> hoặc <code>auto-fill</code>, và đơn vị <code>fr</code>. Lưu ý <code>1fr</code> thực chất là <code>minmax(auto, 1fr)</code>, nên hãy dùng <code>minmax(0, 1fr)</code> khi cần cho track co lại.</p></details>
+<pre>.grid-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);        /* 3 equal columns */
+  grid-template-columns: 250px 1fr 1fr;          /* fixed + flexible */
+  grid-template-rows: auto 1fr auto;
+  gap: 20px;
+  grid-template-areas:
+    "header header header"
+    "sidebar main   main"
+    "footer footer footer";
+}
+.header  { grid-area: header; }
+.sidebar { grid-area: sidebar; }
+.main    { grid-area: main; }
+
+/* Item placement */
+.item { grid-column: 1 / 3; grid-row: 2 / 4; }</pre>
+<ul>
+<li><strong>Flexbox</strong>: one-dimensional (row OR column). Best for: navbars, card rows, centering.</li>
+<li><strong>Grid</strong>: two-dimensional (rows AND columns). Best for: page layouts, dashboards, galleries.</li>
+</ul>`,
+      },
+      {
+        q: 'What are CSS Positioning types? Explain static, relative, absolute, fixed, sticky.',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p><code>static</code> is the default flow. <code>relative</code> offsets an element from its normal spot while keeping its space. <code>absolute</code> removes it from flow and positions it against the nearest positioned ancestor. <code>fixed</code> pins it to the viewport, and <code>sticky</code> flows normally until it reaches a threshold and then sticks. For <code>absolute</code>, the parent usually needs <code>position: relative</code>, and <code>sticky</code> needs a threshold like <code>top</code> to work.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><code>static</code> là luồng mặc định. <code>relative</code> dịch phần tử khỏi vị trí bình thường của nó nhưng vẫn giữ lại chỗ. <code>absolute</code> tách phần tử khỏi luồng và định vị theo tổ tiên gần nhất có position. <code>fixed</code> ghim nó vào viewport, còn <code>sticky</code> chảy bình thường cho đến khi chạm ngưỡng rồi dính lại. Với <code>absolute</code>, phần tử cha thường cần <code>position: relative</code>, và <code>sticky</code> cần một ngưỡng như <code>top</code> mới hoạt động.</p></details>
+<ul>
+<li><code>static</code> (default): normal flow. <code>top/left</code> have no effect.</li>
+<li><code>relative</code>: offset from its normal position. Space is still reserved.</li>
+<li><code>absolute</code>: removed from flow. Positioned relative to nearest <strong>positioned ancestor</strong> (non-static).</li>
+<li><code>fixed</code>: removed from flow. Positioned relative to <strong>viewport</strong>. Stays on scroll.</li>
+<li><code>sticky</code>: normal flow until scroll threshold, then <strong>sticks</strong>.</li>
+</ul>
+<pre>.parent { position: relative; }
+.tooltip {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.navbar  { position: sticky; top: 0; z-index: 100; }
+.modal   { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); }</pre>`,
+      },
+      {
+        q: 'What is the z-index? How does stacking context work?',
+        difficulty: 'tricky',
+        a: `<div class="interview-answer"><p><code>z-index</code> only works on positioned elements and only compares elements within the same stacking context. A child with a very high <code>z-index</code> can still sit behind a neighbor if its parent forms a lower stacking context. Stacking contexts are created by more than <code>z-index</code>, including <code>opacity</code> below 1, any <code>transform</code> or <code>filter</code>, and <code>isolation: isolate</code>. The real fix for z-index problems is usually to correct the context hierarchy.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><code>z-index</code> chỉ có tác dụng trên các phần tử có position và chỉ so sánh các phần tử trong cùng một stacking context. Một phần tử con có <code>z-index</code> rất cao vẫn có thể nằm sau một phần tử kế bên nếu phần tử cha của nó tạo ra một stacking context thấp hơn. Stacking context được tạo ra bởi nhiều thứ chứ không chỉ <code>z-index</code>, bao gồm <code>opacity</code> nhỏ hơn 1, bất kỳ <code>transform</code> hay <code>filter</code> nào, và <code>isolation: isolate</code>. Cách khắc phục thật sự cho các vấn đề z-index thường là sửa lại cây phân cấp context.</p></details>
+<p><code>z-index</code> controls the stacking order of positioned elements (non-static).</p>
+<p><strong>A new stacking context is created by</strong>:</p>
+<ul>
+<li>Position <code>relative/absolute/fixed/sticky</code> + <code>z-index</code> value.</li>
+<li><code>opacity</code> less than 1.</li>
+<li><code>transform</code>, <code>filter</code>, <code>perspective</code>, <code>clip-path</code>.</li>
+<li><code>isolation: isolate;</code></li>
+</ul>
+<pre>.parent { position: relative; z-index: 1; }    /* creates stacking context */
+.child  { position: absolute; z-index: 999; }   /* 999 is LOCAL to parent */
+.other  { position: relative; z-index: 2; }     /* beats .child because z:2 > z:1 */</pre>
+<div class="key-point">Trick: a child with z-index: 999999 can still appear behind another element if its parent's z-index is lower. Stacking contexts are hierarchical.</div>`,
+      },
+      {
+        q: 'Why is my position: sticky not working? List the debugging checklist.',
+        difficulty: 'tricky',
+        a: `<div class="interview-answer"><p>Sticky fails quietly, acting like relative with no error, so a checklist helps. First, a threshold like <code>top</code> is required or it does nothing. Second, the most common cause is an ancestor with <code>overflow: hidden</code> or <code>auto</code>, often added to remove a horizontal scrollbar, which makes the element stick inside that box instead of the page. Third, the parent must be taller than the element, and in a flex row the item needs <code>align-self: flex-start</code> so it does not stretch.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Sticky thường hỏng một cách âm thầm, hành xử như relative mà không báo lỗi, nên có một checklist sẽ giúp ích. Thứ nhất, cần một ngưỡng như <code>top</code>, nếu không nó chẳng làm gì cả. Thứ hai, nguyên nhân phổ biến nhất là một phần tử tổ tiên có <code>overflow: hidden</code> hoặc <code>auto</code>, thường được thêm vào để bỏ thanh cuộn ngang, khiến phần tử dính bên trong hộp đó thay vì cả trang. Thứ ba, phần tử cha phải cao hơn phần tử, và trong một hàng flex thì item cần <code>align-self: flex-start</code> để nó không bị kéo giãn.</p></details>
+<p>Sticky is the most silently-failing feature in CSS — it degrades to "just relative" with no error. The checklist, in the order you should check:</p>
+<ol>
+<li><strong>No threshold set</strong>: sticky does nothing without <code>top</code> (or <code>bottom/left/right</code>). <code>position: sticky;</code> alone is a no-op.</li>
+<li><strong>An ancestor has <code>overflow: hidden/auto/scroll</code></strong>: the element then sticks within THAT ancestor's scroll box, not the page — if that ancestor doesn't scroll, sticky never engages. This is the #1 real-world cause, often from an <code>overflow-x: hidden</code> slapped on a wrapper to kill horizontal scrollbars.</li>
+<li><strong>Parent is exactly as tall as the element</strong>: sticky only slides within its parent's box. If the parent has no extra height, there's no room to stick.</li>
+<li><strong>Flex/grid stretch</strong>: inside a flex row, items default to <code>align-items: stretch</code>, so the sticky item is full-height of its parent → case 3. Fix: <code>align-self: flex-start</code>.</li>
+</ol>
+<pre>/* The flex-sidebar case — sticky "not working": */
+.layout  { display: flex; }
+.sidebar { position: sticky; top: 0; }   /* ✗ stretched to full height */
+
+/* Fix: */
+.sidebar {
+  position: sticky;
+  top: 0;                    /* 1. threshold */
+  align-self: flex-start;    /* 4. stop stretching */
+  max-height: 100vh;         /* bonus: let long sidebars scroll */
+  overflow-y: auto;
+}
+
+/* Debug ancestor overflow in DevTools console: */
+let el = document.querySelector('.sidebar').parentElement;
+while (el) {
+  const o = getComputedStyle(el).overflow;
+  if (o !== 'visible') console.log(el, o);   // culprit found
+  el = el.parentElement;
+}</pre>
+<div class="key-point">Sticky needs: a threshold (<code>top</code>), a taller parent to slide within, and NO clipping ancestor between it and the scroller — and in flex layouts, <code>align-self: flex-start</code>.</div>`,
+      },
+
+      // ──── 4. RESPONSIVE DESIGN ────
+      {
+        q: 'What are CSS Media Queries? How to implement responsive design?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>Media queries let styles respond to the viewport size and to device or user conditions. A mobile-first approach with <code>min-width</code> keeps base styles for small screens and adds enhancements at larger breakpoints. Preference queries also matter, such as <code>prefers-color-scheme</code> for dark mode and <code>prefers-reduced-motion</code> to reduce animation. Container queries now handle component-level responsiveness that media queries cannot.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Media query cho phép style phản ứng theo kích thước viewport cũng như theo điều kiện của thiết bị hay người dùng. Cách tiếp cận mobile-first với <code>min-width</code> giữ style nền cho màn hình nhỏ và bổ sung cải tiến ở các breakpoint lớn hơn. Các query về sở thích cũng quan trọng, chẳng hạn <code>prefers-color-scheme</code> cho chế độ tối và <code>prefers-reduced-motion</code> để giảm animation. Giờ đây container query đảm nhận khả năng responsive ở cấp component mà media query không làm được.</p></details>
+<pre>/* Mobile-first approach (min-width) */
+.container { padding: 16px; }
+
+/* Tablet */
+@media (min-width: 768px) {
+  .container { padding: 24px; max-width: 720px; margin: 0 auto; }
+  .grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* Desktop */
+@media (min-width: 1024px) {
+  .container { max-width: 960px; }
+  .grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* Print */
+@media print {
+  .no-print { display: none; }
+}
+
+/* Preference queries */
+@media (prefers-color-scheme: dark) { body { background: #1a1a2e; } }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; } }</pre>
+<div class="key-point">Mobile-first (<code>min-width</code>) is preferred over desktop-first (<code>max-width</code>). Common breakpoints: 576px, 768px, 992px, 1200px.</div>`,
+      },
+      {
+        q: 'What are CSS container queries and how do they differ from media queries?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>Media queries respond to the viewport size, while container queries respond to the parent's size, which matters for reusable components. A card can switch from row to column based on whether it is in a wide column or a narrow sidebar, which only container queries can express. A parent opts in with <code>container-type: inline-size</code>, then <code>@container</code> rules apply, and <code>cq</code> units are sized to the container. This makes components truly context-independent.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Media query phản ứng theo kích thước viewport, trong khi container query phản ứng theo kích thước của phần tử cha, điều rất quan trọng với các component tái sử dụng. Một card có thể chuyển từ hàng sang cột tùy vào việc nó nằm trong một cột rộng hay một sidebar hẹp, điều mà chỉ container query mới diễn đạt được. Phần tử cha đăng ký bằng <code>container-type: inline-size</code>, sau đó các quy tắc <code>@container</code> mới áp dụng, và các đơn vị <code>cq</code> được tính theo kích thước của container. Điều này khiến component thật sự độc lập với ngữ cảnh.</p></details>
+<p><strong>Media queries</strong> respond to the <em>viewport</em> size. <strong>Container queries</strong> respond to the <em>parent container</em> size — enabling truly reusable components.</p>
+<pre>/* Media query: based on viewport */
+@media (max-width: 768px) {
+  .card { flex-direction: column; }
+}
+
+/* Container query: based on parent container */
+.card-container {
+  container-type: inline-size;  /* declare as container */
+  container-name: card;         /* optional name */
+}
+
+/* When the CONTAINER is small, not the viewport */
+@container card (max-width: 400px) {
+  .card { flex-direction: column; }
+  .card img { width: 100%; }
+}
+
+@container card (min-width: 401px) {
+  .card { flex-direction: row; }
+  .card img { width: 200px; }
+}
+
+/* Container query units */
+.title {
+  font-size: 5cqw;  /* 5% of container width */
+  /* cqw, cqh, cqi, cqb, cqmin, cqmax */
+}</pre>
+<div class="key-point">Container queries solve the problem where a component looks different in a sidebar vs main content area — something media queries can't handle. This is the most significant CSS feature since Flexbox.</div>`,
+      },
+      {
+        q: 'What are CSS variables (custom properties)? How to use them?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>CSS custom properties are live values that exist at runtime, unlike Sass variables that disappear at compile time. They cascade and inherit, so a token defined on <code>:root</code> can be overridden in a scope, which is how dark themes work. They can also be read and written from JavaScript with <code>setProperty</code>, and they accept a fallback as a second argument. Because they resolve at runtime, they respond to the DOM context where they are used.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>CSS custom property là những giá trị sống tồn tại lúc runtime, khác với biến Sass vốn biến mất lúc biên dịch. Chúng cascade và kế thừa, nên một token định nghĩa trên <code>:root</code> có thể được ghi đè trong một phạm vi, và đó là cách các theme tối hoạt động. Chúng cũng có thể được đọc và ghi từ JavaScript bằng <code>setProperty</code>, và nhận một giá trị dự phòng ở tham số thứ hai. Vì được phân giải lúc runtime, chúng phản ứng theo ngữ cảnh DOM nơi chúng được dùng.</p></details>
+<pre>:root {
+  --primary: #4fc3f7;
+  --spacing: 16px;
+  --radius: 8px;
+  --shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.card {
+  padding: var(--spacing);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.btn-primary {
+  background: var(--primary);
+  padding: calc(var(--spacing) / 2) var(--spacing);
+}
+
+/* Override in scope */
+.dark-theme {
+  --primary: #0288d1;
+}
+
+/* Fallback value */
+color: var(--accent, #333);</pre>
+<div class="key-point">CSS variables are inherited, scoped, and can be changed at runtime with JavaScript: <code>document.documentElement.style.setProperty('--primary', 'red')</code>.</div>`,
+      },
+
+      // ──── 5. ANIMATION & RENDERING PERFORMANCE ────
+      {
+        q: "What are CSS animations and transitions? What's the difference?",
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>Transitions move between two states and need a trigger like <code>:hover</code> or a class change. Animations use <code>@keyframes</code> for multi-step motion that can run on its own and loop. For performance, only <code>transform</code> and <code>opacity</code> should be animated, since they run on the GPU without touching layout or paint. Animating properties like <code>left</code> or <code>width</code> causes a re-layout every frame and stutters.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Transition chuyển giữa hai trạng thái và cần một tác nhân kích hoạt như <code>:hover</code> hoặc thay đổi class. Animation dùng <code>@keyframes</code> cho chuyển động nhiều bước có thể tự chạy và lặp lại. Về hiệu năng, chỉ nên animate <code>transform</code> và <code>opacity</code>, vì chúng chạy trên GPU mà không đụng đến layout hay paint. Animate các thuộc tính như <code>left</code> hay <code>width</code> sẽ gây tính lại layout mỗi khung hình và làm giật.</p></details>
+<pre>/* Transition: A → B on state change */
+.btn {
+  background: blue;
+  transition: background 0.3s ease, transform 0.2s;
+}
+.btn:hover {
+  background: darkblue;
+  transform: scale(1.05);
+}
+
+/* Animation: multi-step, automatic, repeatable */
+@keyframes slideIn {
+  0%   { transform: translateX(-100%); opacity: 0; }
+  100% { transform: translateX(0);     opacity: 1; }
+}
+.card {
+  animation: slideIn 0.5s ease-out forwards;
+  /* name | duration | timing | fill-mode */
+}</pre>
+<ul>
+<li><strong>Transition</strong>: requires trigger (hover, class change). Two states only.</li>
+<li><strong>Animation</strong>: auto-runs, multi-step via keyframes, can loop.</li>
+</ul>
+<div class="key-point">Performance: animate only <code>transform</code> and <code>opacity</code> — they run on the GPU compositor thread without triggering layout/paint.</div>`,
+      },
+      {
         q: 'Explain reflow vs repaint vs composite. What is layout thrashing and how do you fix it?',
         difficulty: 'hard',
         a: `<div class="interview-answer"><p>Which pipeline stages re-run depends on the property changed: geometry like <code>width</code> or <code>top</code> forces layout, then paint, then composite; colors and shadows skip layout and only repaint; and <code>transform</code> and <code>opacity</code> are composite-only on the GPU. Layout thrashing happens when a layout read like <code>offsetHeight</code> is mixed with a style write inside a loop, forcing a synchronous reflow each time. The fix is to batch all reads and then all writes, or schedule writes in <code>requestAnimationFrame</code>. Animating only <code>transform</code> and <code>opacity</code> keeps it cheap.</p></div>
@@ -987,6 +970,43 @@ boxes.forEach((b, i) => {
 requestAnimationFrame(() => { /* writes here, after style/layout reads */ });</pre>
 <p><strong>Why animate only transform/opacity?</strong> The element gets its own compositor layer; the GPU just re-blends layers each frame — no layout, no paint, and it keeps running even while the main thread executes JS. Animating <code>left</code> instead of <code>translateX</code> re-lays-out every frame. <code>will-change: transform</code> promotes a layer ahead of time (use sparingly — each layer costs memory).</p>
 <div class="key-point">Know your property's pipeline exit: layout properties are the expensive ones, transform/opacity skip straight to the compositor — and never interleave layout reads with style writes in a loop.</div>`,
+      },
+
+      // ──── 6. CSS ARCHITECTURE & CONVENTIONS ────
+      {
+        q: 'What is BEM methodology and why use a CSS naming convention?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>BEM is a naming convention using Block, Element, and Modifier that makes CSS predictable. Everything becomes a single flat class selector, so specificity stays constant and there are no nesting or cascade fights, which helps in large shared codebases. It is only one way to handle scoping. Modern projects often use CSS Modules or utility-first Tailwind, which enforce the same isolation automatically.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>BEM là một quy ước đặt tên gồm Block, Element và Modifier giúp CSS trở nên dễ đoán. Mọi thứ đều thành một selector class phẳng duy nhất, nên specificity luôn giữ nguyên và không có tranh chấp về lồng nhau hay cascade, điều này rất hữu ích trong các codebase lớn dùng chung. Đây chỉ là một trong nhiều cách xử lý scoping. Các dự án hiện đại thường dùng CSS Modules hoặc Tailwind theo hướng utility-first, vốn tự động áp đặt cùng mức cô lập như vậy.</p></details>
+<p><strong>BEM (Block Element Modifier)</strong> is a naming convention that makes CSS more maintainable and predictable.</p>
+<pre>/* BEM: Block__Element--Modifier */
+
+/* Block: standalone component */
+.card { }
+
+/* Element: part of a block (double underscore) */
+.card__title { }
+.card__image { }
+.card__body { }
+
+/* Modifier: variation of block or element (double dash) */
+.card--featured { border: 2px solid gold; }
+.card__title--large { font-size: 2rem; }
+
+/* HTML: */
+&lt;div class="card card--featured"&gt;
+  &lt;img class="card__image" src="..." alt="..."&gt;
+  &lt;h2 class="card__title card__title--large"&gt;Title&lt;/h2&gt;
+  &lt;p class="card__body"&gt;Content&lt;/p&gt;
+&lt;/div&gt;</pre>
+<p><strong>Benefits:</strong></p>
+<ul>
+<li>Low specificity (single class selectors) → easy to override</li>
+<li>Self-documenting: class names show relationships</li>
+<li>No nesting → avoids specificity wars</li>
+<li>Scales well in large codebases</li>
+</ul>
+<div class="key-point">BEM looks verbose but prevents the CSS specificity mess that plagues large projects. Modern alternatives: CSS Modules (scoped automatically), Tailwind CSS (utility-first), CSS-in-JS (styled-components).</div>`,
       },
     ],
   },
