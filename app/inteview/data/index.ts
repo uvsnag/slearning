@@ -59,6 +59,7 @@ const BACKEND_IDS = [
   'security-jwt',
   'cicd',
   'docker',
+  'aws',
   'tools-tech',
   'git',
   'algorithms',
