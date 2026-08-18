@@ -9,6 +9,7 @@ import { topics as java } from './java';
 import { topics as javascript } from './javascript';
 import { topics as orm } from './orm';
 import { topics as react } from './react';
+import { topics as restApi } from './rest-api';
 import { topics as spring } from './spring';
 import { topics as sql } from './sql';
 import { topics as testing } from './testing';
@@ -23,6 +24,7 @@ const ALL_TOPICS: PvTopic[] = [
   ...cicdDocker,
   ...sql,
   ...spring,
+  ...restApi,
   ...testing,
   ...htmlCss,
   ...orm,
@@ -48,6 +50,7 @@ const pick = (ids: string[]): PvTopic[] =>
 const BACKEND_IDS = [
   'java',
   'springboot',
+  'rest-api',
   'testing',
   'mybatis',
   'jpa-hibernate',
