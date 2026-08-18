@@ -334,9 +334,14 @@ let __sheetLoadingCounter = 0;
 const LOADER_ID = 'sheet-data-loading-overlay';
 const LOADER_STYLE_ID = 'sheet-data-loading-style';
 
+/** Overlay is opt-in: it shows only when the user explicitly turned it on ('Y'). */
+const isSheetLoadingEnabled = () => {
+  if (typeof window === 'undefined') return false;
+  return localStorage.getItem(KEY_SHOW_LOADING) === 'Y';
+};
+
 const ensureLoader = () => {
   if (typeof document === 'undefined') return;
-  if (localStorage.getItem(KEY_SHOW_LOADING) === 'N') return;
   if (document.getElementById(LOADER_ID)) return;
 
   if (!document.getElementById(LOADER_STYLE_ID)) {
@@ -359,6 +364,7 @@ const ensureLoader = () => {
 
 export const showSheetLoading = () => {
   if (typeof document === 'undefined') return;
+  if (!isSheetLoadingEnabled()) return;
   ensureLoader();
   __sheetLoadingCounter += 1;
   const el = document.getElementById(LOADER_ID) as HTMLElement | null;
