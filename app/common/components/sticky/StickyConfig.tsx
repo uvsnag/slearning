@@ -90,7 +90,7 @@ const StickyConfig = forwardRef<StickyConfigHandle, StickyConfigProps>(
     const [themeMode, setThemeMode] = useState<ThemeMode>(() => getInitialThemeMode());
     const [isDark, setIsDark] = useState<boolean>(() => getInitialIsDark());
     const [showLoading, setShowLoading] = useState<string>(
-      () => getStoredValue(KEY_SHOW_LOADING) ?? 'Y',
+      () => getStoredValue(KEY_SHOW_LOADING) ?? 'N',
     );
     const [maxHistoryTurns, setMaxHistoryTurns] = useState<string>(
       () => getStoredValue(KEY_MAX_HISTORY_TURNS) ?? '20',
@@ -177,9 +177,7 @@ const StickyConfig = forwardRef<StickyConfigHandle, StickyConfigProps>(
     const handleRenameCustomStore = (range: string, name: string) => {
       // Update local state immediately so the input stays responsive,
       // then persist the change to localStorage.
-      const next = storeList.map((store) =>
-        store.range === range ? { ...store, name } : store,
-      );
+      const next = storeList.map((store) => (store.range === range ? { ...store, name } : store));
       setStoreList(next);
       renameStore(range, name);
     };
