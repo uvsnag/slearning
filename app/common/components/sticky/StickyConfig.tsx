@@ -6,12 +6,14 @@ import {
   toggleCollapse,
   KEY_GEMINI_NM,
   KEY_GITHUB_NM,
+  KEY_OPENROUTER_NM,
   KEY_GOOGLE_SHEET_NM,
   KEY_API_SHEET,
   KEY_DARK_MODE,
   KEY_SHOW_LOADING,
   KEY_MAX_HISTORY_TURNS,
 } from '../../common';
+import { MODEL_AI, modelId, getDisabledModelIds, setModelDisabled } from '../aiModels';
 import { usePracticeContext } from '../../hooks/usePracticeStore';
 import {
   SHEET_LIST,
@@ -83,6 +85,12 @@ const StickyConfig = forwardRef<StickyConfigHandle, StickyConfigProps>(
     // ── API Key states (multiple keys separated by ';') ──
     const [gemKey, setGemKey] = useState<string | null>(() => getStoredValue(KEY_GEMINI_NM));
     const [githubKey, setGithubKey] = useState<string | null>(() => getStoredValue(KEY_GITHUB_NM));
+    const [openRouterKey, setOpenRouterKey] = useState<string | null>(() =>
+      getStoredValue(KEY_OPENROUTER_NM),
+    );
+    const [disabledModelIds, setDisabledModelIds] = useState<string[]>(() =>
+      getDisabledModelIds(),
+    );
     const [googleSheetKey, setGoogleSheetKey] = useState<string | null>(() =>
       getStoredValue(KEY_GOOGLE_SHEET_NM),
     );
@@ -108,6 +116,9 @@ const StickyConfig = forwardRef<StickyConfigHandle, StickyConfigProps>(
     useEffect(() => {
       if (githubKey) localStorage.setItem(KEY_GITHUB_NM, githubKey);
     }, [githubKey]);
+    useEffect(() => {
+      if (openRouterKey) localStorage.setItem(KEY_OPENROUTER_NM, openRouterKey);
+    }, [openRouterKey]);
     useEffect(() => {
       if (googleSheetKey) localStorage.setItem(KEY_GOOGLE_SHEET_NM, googleSheetKey);
     }, [googleSheetKey]);
@@ -235,6 +246,18 @@ const StickyConfig = forwardRef<StickyConfigHandle, StickyConfigProps>(
                     />
                   </label>
                   <label className="home-config-field">
+                    <span>OpenRouter Keys (key1;key2)</span>
+                    <input
+                      className="common-input"
+                      type="text"
+                      value={openRouterKey ?? ''}
+                      onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                        setOpenRouterKey(e.target.value)
+                      }
+                      placeholder="sk-or-key1;sk-or-key2"
+                    />
+                  </label>
+                  <label className="home-config-field">
                     <span>Google Sheet Key</span>
                     <input
                       className="common-input"
@@ -257,6 +280,33 @@ const StickyConfig = forwardRef<StickyConfigHandle, StickyConfigProps>(
                     />
                   </label>
                 </div>
+              </div>
+            </div>
+
+            {/* ─── AI Models Enable/Disable Section ────── */}
+            <div className="sticky-config-section">
+              <div className="common-toggle" onClick={() => toggleCollapse('sticky-ai-models')}>
+                AI Models
+              </div>
+              <div className="collapse-content open" id="sticky-ai-models">
+                {MODEL_AI.map((aiModel) => {
+                  const id = modelId(aiModel);
+                  const isEnabled = !disabledModelIds.includes(id);
+                  return (
+                    <div className="sticky-config-row" key={id}>
+                      <label>
+                        <input
+                          type="checkbox"
+                          checked={isEnabled}
+                          onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                            setDisabledModelIds(setModelDisabled(id, !e.target.checked))
+                          }
+                        />{' '}
+                        {aiModel.name}
+                      </label>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
