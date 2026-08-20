@@ -7,9 +7,20 @@ import {
   toggleCollapse,
   KEY_GEMINI_NM,
   KEY_GITHUB_NM,
+  KEY_OPENROUTER_NM,
   KEY_MAX_HISTORY_TURNS,
   collapseElement,
 } from '@/common/common.js';
+import {
+  TP_GEN,
+  TP_GITHUB,
+  TP_OPENROUTER,
+  MODEL_AI,
+  AI_MODEL_CONFIG_EVENT,
+  getEnabledModels,
+  modelId,
+  type ModelAI,
+} from './aiModels';
 import VoiceToText from '@/app/common/components/VoiceToText';
 import { useSpeechSynthesis } from '@/app/common/hooks/useSpeechSynthesis';
 import '@/slearning/multi-ai/style-ai.css';
@@ -27,15 +38,6 @@ import {
 import SheetDataEditor from './SheetDataEditor';
 import { usePracticeContext, toSpeechConfig } from '@/app/common/hooks/usePracticeStore';
 import TranslatePopup from './TranslatePopup';
-const TP_GEN = 1;
-const TP_GITHUB = 3;
-
-interface ModelAI {
-  value: string;
-  name: string;
-  type: number;
-}
-
 interface ConversationTurn {
   question: string;
   response: string;
@@ -77,10 +79,6 @@ export interface AIBoardProps {
   speakSplitter?: string | null;
 }
 
-const MODEL_AI: ModelAI[] = [
-  { value: 'gemini-2.5-flash', name: 'gemini-2.5-flash', type: TP_GEN },
-  { value: 'openai/gpt-4.1', name: 'github/gpt-4.1', type: TP_GITHUB },
-];
 const CLICK_TO_SPEECH_IGNORE_WORDS: string[] = [
   'a',
   'an',
@@ -135,6 +133,7 @@ function getMaxHistoryTurns(): number {
   return Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : DEFAULT_MAX_HISTORY_TURNS;
 }
 const GITHUB_INFERENCE_BASE_PATH = 'https://models.github.ai/inference';
+const OPENROUTER_BASE_PATH = 'https://openrouter.ai/api/v1';
 
 function parseKeys(raw: string | null): string[] {
   return (raw || '')
@@ -143,49 +142,63 @@ function parseKeys(raw: string | null): string[] {
     .filter(Boolean);
 }
 
-function resolveModel(modelValue?: string | null, modelType?: number | null): ModelAI {
+function resolveModel(
+  models: ModelAI[],
+  modelValue?: string | null,
+  modelType?: number | null,
+): ModelAI {
   if (modelType != null) {
     return (
-      MODEL_AI.find((m) => m.value === modelValue && m.type === modelType) ||
-      MODEL_AI.find((m) => m.value === modelValue) ||
-      MODEL_AI[0]
+      models.find((m) => m.value === modelValue && m.type === modelType) ||
+      models.find((m) => m.value === modelValue) ||
+      models[0]
     );
   }
-  return MODEL_AI.find((m) => m.value === modelValue) || MODEL_AI[0];
+  return models.find((m) => m.value === modelValue) || models[0];
 }
 
 const AIBoard: React.FC<AIBoardProps> = (props) => {
   const keyGeminiNm = `gemi-key-${props.prefix}${props.index}`;
   const keyGithubNm = `github-key-${props.prefix}${props.index}`;
+  const keyOpenRouterNm = `openrouter-key-${props.prefix}${props.index}`;
   const sysPromptNm = `sys-promt-${props.prefix}${props.index}`;
   const modelAiStoreKey = `model-ai-${props.prefix}${props.index}`;
   const modelAiTypeStoreKey = `model-ai-type-${props.prefix}${props.index}`;
   const conversationHistoryKey = `ai-history-${props.prefix}${props.index}`;
   let aiGem = useRef<GoogleGenAI | null>(null);
   let aiGemHis = useRef<any>(null);
+  // Model value the current Gemini chat session was created for; used to
+  // recreate the session when the retry fallback switches models mid-send.
+  const aiGemHisModelRef = useRef<string | null>(null);
   let githubAI = useRef<OpenAIApi | null>(null);
+  const openRouterAI = useRef<OpenAIApi | null>(null);
   const githubHisRef = useRef<OpenAIMessage[]>([]);
+  const openRouterHisRef = useRef<OpenAIMessage[]>([]);
   const historyTurnsRef = useRef<ConversationTurn[]>([]);
   const questionStoreRef = useRef<string[]>([]);
   const responseStoreRef = useRef<string[]>([]);
   const gemKeyIndexRef = useRef<number>(0);
   const githubKeyIndexRef = useRef<number>(0);
+  const openRouterKeyIndexRef = useRef<number>(0);
 
   const [gemKey, setGemKey] = useState<string | null>(null);
   const [githubKey, setGithubKey] = useState<string | null>(null);
+  const [openRouterKey, setOpenRouterKey] = useState<string | null>(null);
   const [aiName, setAIName] = useState<string>('Gemini');
+  const [enabledModels, setEnabledModels] = useState<ModelAI[]>(() => getEnabledModels());
   const [model, setModel] = useState<ModelAI>(() => {
+    const models = getEnabledModels();
     if (props.defaultModel) {
-      return resolveModel(props.defaultModel);
+      return resolveModel(models, props.defaultModel);
     }
     if (typeof window !== 'undefined') {
       const storedModel = localStorage.getItem(modelAiStoreKey);
       const storedType = localStorage.getItem(modelAiTypeStoreKey);
       if (storedModel) {
-        return resolveModel(storedModel, storedType ? Number(storedType) : null);
+        return resolveModel(models, storedModel, storedType ? Number(storedType) : null);
       }
     }
-    return MODEL_AI[0];
+    return models[0];
   });
   const [useHis, setUseHis] = useState<string>(props.enableHis ?? 'N');
   const [useSpeak, setUseSpeak] = useState<'Y' | 'N' | 'F' | 'L'>(
@@ -248,13 +261,29 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
 
   function resetOpenAIHistoryRefs(): void {
     githubHisRef.current = [];
+    openRouterHisRef.current = [];
+  }
+
+  function createGeminiChat(modelValue: string): void {
+    if (!aiGem.current) return;
+    aiGemHis.current = aiGem.current.chats.create({ model: modelValue });
+    aiGemHisModelRef.current = modelValue;
+  }
+
+  function clearGeminiChat(): void {
+    aiGemHis.current = null;
+    aiGemHisModelRef.current = null;
   }
 
   useEffect((): void => {
     let gmLcal = localStorage.getItem(keyGeminiNm);
     let githubLcal = localStorage.getItem(keyGithubNm);
+    const openRouterLcal = localStorage.getItem(keyOpenRouterNm);
     let locGem = gmLcal ? gmLcal : localStorage.getItem(KEY_GEMINI_NM);
     let locGithub = githubLcal ? githubLcal : localStorage.getItem(KEY_GITHUB_NM);
+    const locOpenRouter = openRouterLcal
+      ? openRouterLcal
+      : localStorage.getItem(KEY_OPENROUTER_NM);
     let sysPromptVa = localStorage.getItem(sysPromptNm)
       ? localStorage.getItem(sysPromptNm)
       : (props.defaultPrompt ?? '');
@@ -264,6 +293,9 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
     if (githubLcal) {
       setGithubKey(locGithub);
     }
+    if (openRouterLcal) {
+      setOpenRouterKey(locOpenRouter);
+    }
     setSysPrompt(sysPromptVa || '');
     if (props.collapse !== 'Y') {
       collapseElement(`gemini-${props.prefix}${props.index}`);
@@ -271,13 +303,18 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
     }
     const gemKeys = parseKeys(locGem);
     const githubKeys = parseKeys(locGithub);
+    const openRouterKeys = parseKeys(locOpenRouter);
     gemKeyIndexRef.current = 0;
     githubKeyIndexRef.current = 0;
+    openRouterKeyIndexRef.current = 0;
     if(gemKeys.length > 0) {
       aiGem.current = new GoogleGenAI({ apiKey: gemKeys[0] || undefined });
     }
     if(githubKeys.length > 0) {
       githubAI.current = createOpenAIClient(githubKeys[0] || null, GITHUB_INFERENCE_BASE_PATH);
+    }
+    if(openRouterKeys.length > 0) {
+      openRouterAI.current = createOpenAIClient(openRouterKeys[0] || null, OPENROUTER_BASE_PATH);
     }
     historyTurnsRef.current = loadConversationHistory();
     renderConversationHistory(historyTurnsRef.current);
@@ -290,9 +327,7 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
 
   useEffect((): void => {
     if (useHis === 'Y' && model.type === TP_GEN && aiGem.current) {
-      aiGemHis.current = aiGem.current.chats.create({
-        model: model.value,
-      });
+      createGeminiChat(model.value);
     }
     if (useHis !== 'Y') {
       resetOpenAIHistoryRefs();
@@ -300,10 +335,8 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
   }, [useHis]);
   useEffect((): void => {
     if (useHis === 'Y' && model.type === TP_GEN && aiGem.current) {
-      if (aiGemHis.current) {
-        aiGemHis.current = aiGem.current.chats.create({
-          model: model.value,
-        });
+      if (aiGemHis.current && aiGemHisModelRef.current !== model.value) {
+        createGeminiChat(model.value);
       }
     }
     resetOpenAIHistoryRefs();
@@ -317,9 +350,7 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
     }
     // localStorage.setItem(keyGeminiNm, gemKey || '');
     if (useHis === 'Y' && aiGem.current && model.type === TP_GEN) {
-      aiGemHis.current = aiGem.current.chats.create({
-        model: model.value,
-      });
+      createGeminiChat(model.value);
     }
     // if (gemKey === null) {
     //   setGemKey('');
@@ -339,6 +370,39 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
   }, [githubKey]);
 
   useEffect((): void => {
+    const raw = openRouterKey ? openRouterKey : localStorage.getItem(KEY_OPENROUTER_NM);
+    const keys = parseKeys(raw);
+    openRouterKeyIndexRef.current = 0;
+    openRouterAI.current = createOpenAIClient(keys[0] || null, OPENROUTER_BASE_PATH);
+    openRouterHisRef.current = [];
+  }, [openRouterKey]);
+
+  // Sync the model list with the enable/disable config saved from StickyConfig.
+  useEffect((): (() => void) => {
+    const syncEnabledModels = (): void => {
+      setEnabledModels(getEnabledModels());
+    };
+    syncEnabledModels();
+    window.addEventListener(AI_MODEL_CONFIG_EVENT, syncEnabledModels);
+    window.addEventListener('storage', syncEnabledModels);
+    return () => {
+      window.removeEventListener(AI_MODEL_CONFIG_EVENT, syncEnabledModels);
+      window.removeEventListener('storage', syncEnabledModels);
+    };
+  }, []);
+
+  useEffect((): void => {
+    const isModelEnabled = enabledModels.some(
+      (m) => m.value === model.value && m.type === model.type,
+    );
+    if (!isModelEnabled && enabledModels.length > 0) {
+      const nextModel = enabledModels[0];
+      resetKeyIndex(nextModel.type);
+      setModel(nextModel);
+    }
+  }, [enabledModels]);
+
+  useEffect((): void => {
     localStorage.setItem(sysPromptNm, sysPrompt || '');
     resetOpenAIHistoryRefs();
   }, [sysPrompt]);
@@ -350,17 +414,18 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
   }, [useSpeak, useClickToSpeech]);
 
   useEffect((): void => {
+    const models = getEnabledModels();
     if (props.defaultModel) {
-      setModel(resolveModel(props.defaultModel));
+      setModel(resolveModel(models, props.defaultModel));
       return;
     }
     const storedModel = localStorage.getItem(modelAiStoreKey);
     const storedType = localStorage.getItem(modelAiTypeStoreKey);
     if (storedModel) {
-      setModel(resolveModel(storedModel, storedType ? Number(storedType) : null));
+      setModel(resolveModel(models, storedModel, storedType ? Number(storedType) : null));
       return;
     }
-    setModel(MODEL_AI[0]);
+    setModel(models[0]);
   }, [props.defaultModel, modelAiStoreKey]);
 
   useEffect((): void => {
@@ -397,9 +462,12 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
     collapseElement(`gemini-${props.prefix}${props.index}`);
   }
 
-  async function askGemini(promVal: string): Promise<string> {
-    const aiResponse = await aiGem.current!.models.generateContent({
-      model: model.value,
+  async function askGemini(promVal: string, innerModelObj: ModelAI): Promise<string> {
+    if (!aiGem.current) {
+      throw new Error('Gemini is not initialized.');
+    }
+    const aiResponse = await aiGem.current.models.generateContent({
+      model: innerModelObj.value,
       contents: promVal,
       config: {
         systemInstruction: sysPrompt,
@@ -408,7 +476,15 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
     return aiResponse.text || '';
   }
 
-  async function askGeminiHis(promVal: string): Promise<string> {
+  async function askGeminiHis(promVal: string, innerModelObj: ModelAI): Promise<string> {
+    // The chat session may target another model (retry fallback switched
+    // models mid-send) or another key (rotation replaced the client).
+    if (!aiGemHis.current || aiGemHisModelRef.current !== innerModelObj.value) {
+      createGeminiChat(innerModelObj.value);
+    }
+    if (!aiGemHis.current) {
+      throw new Error('Gemini is not initialized.');
+    }
     const aiResponse = await aiGemHis.current.sendMessage({
       message: promVal,
     });
@@ -470,12 +546,18 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
     return askOpenAICompatible(githubAI.current, promVal, githubHisRef, innerModelObj);
   }
 
+  async function askOpenRouter(promVal: string, innerModelObj: ModelAI): Promise<string> {
+    return askOpenAICompatible(openRouterAI.current, promVal, openRouterHisRef, innerModelObj);
+  }
+
   function advanceKey(modelType: number): boolean {
     if (modelType === TP_GEN) {
       const keys = parseKeys(gemKey || localStorage.getItem(KEY_GEMINI_NM));
       if (gemKeyIndexRef.current + 1 < keys.length) {
         gemKeyIndexRef.current++;
         aiGem.current = new GoogleGenAI({ apiKey: keys[gemKeyIndexRef.current] || undefined });
+        // The old chat session still holds the previous client/key.
+        clearGeminiChat();
         return true;
       }
       return false;
@@ -493,6 +575,19 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
       }
       return false;
     }
+    if (modelType === TP_OPENROUTER) {
+      const keys = parseKeys(openRouterKey || localStorage.getItem(KEY_OPENROUTER_NM));
+      if (openRouterKeyIndexRef.current + 1 < keys.length) {
+        openRouterKeyIndexRef.current++;
+        openRouterAI.current = createOpenAIClient(
+          keys[openRouterKeyIndexRef.current],
+          OPENROUTER_BASE_PATH,
+        );
+        openRouterHisRef.current = [];
+        return true;
+      }
+      return false;
+    }
     return false;
   }
 
@@ -501,16 +596,42 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
       gemKeyIndexRef.current = 0;
       const keys = parseKeys(gemKey || localStorage.getItem(KEY_GEMINI_NM));
       aiGem.current = new GoogleGenAI({ apiKey: keys[0] || undefined });
+      clearGeminiChat();
     } else if (modelType === TP_GITHUB) {
       githubKeyIndexRef.current = 0;
       const keys = parseKeys(githubKey || localStorage.getItem(KEY_GITHUB_NM));
       githubAI.current = createOpenAIClient(keys[0] || null, GITHUB_INFERENCE_BASE_PATH);
       githubHisRef.current = [];
+    } else if (modelType === TP_OPENROUTER) {
+      openRouterKeyIndexRef.current = 0;
+      const keys = parseKeys(openRouterKey || localStorage.getItem(KEY_OPENROUTER_NM));
+      openRouterAI.current = createOpenAIClient(keys[0] || null, OPENROUTER_BASE_PATH);
+      openRouterHisRef.current = [];
     }
   }
 
-  async function askDec(promVal: string, innerModelObj = model, retryCount = 0): Promise<void> {
-    if (retryCount === 0) {
+  function hasKeyForType(modelType: number): boolean {
+    if (modelType === TP_GEN) {
+      return parseKeys(gemKey || localStorage.getItem(KEY_GEMINI_NM)).length > 0;
+    }
+    if (modelType === TP_GITHUB) {
+      return parseKeys(githubKey || localStorage.getItem(KEY_GITHUB_NM)).length > 0;
+    }
+    if (modelType === TP_OPENROUTER) {
+      return parseKeys(openRouterKey || localStorage.getItem(KEY_OPENROUTER_NM)).length > 0;
+    }
+    return false;
+  }
+
+  // triedModelIds: null on the user-initiated call; on retries, the ids of models
+  // that already failed this send (each model is tried at most once).
+  async function askDec(
+    promVal: string,
+    innerModelObj = model,
+    triedModelIds: string[] | null = null,
+  ): Promise<void> {
+    const isFirstAttempt = triedModelIds === null;
+    if (isFirstAttempt) {
       setValue1('');
       setValue2('');
     }
@@ -518,7 +639,7 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
       return;
     }
     let responseTxt: string = '';
-    if (retryCount === 0) {
+    if (isFirstAttempt) {
       setTimeout((): void => {
         setPrompt('');
       }, 100);
@@ -531,9 +652,15 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
       if (innerModelObj.type === TP_GITHUB) {
         responseTxt = await askGitHub(promVal, innerModelObj);
         setAIName('GitHub');
+      } else if (innerModelObj.type === TP_OPENROUTER) {
+        responseTxt = await askOpenRouter(promVal, innerModelObj);
+        setAIName('OpenRouter');
       } else {
         setAIName('Gemini');
-        responseTxt = useHis === 'Y' ? await askGeminiHis(promVal) : await askGemini(promVal);
+        responseTxt =
+          useHis === 'Y'
+            ? await askGeminiHis(promVal, innerModelObj)
+            : await askGemini(promVal, innerModelObj);
       }
       setLastResponseRaw(responseTxt);
       if (useSpeak !== 'N' && responseTxt) {
@@ -554,27 +681,44 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
       setValue2(resStr?.split('<br/>')?.[1]);
     } catch (error) {
       addLog(String(error), false);
-      if (retryCount >= 3) {
-        addLog('Max retries exceeded. Stopping.', false);
-        toggleClass(`loading${props.prefix}${props.index}`, true);
-        return;
-      }
+      // First, rotate through the remaining keys of the current provider.
       const advanced = advanceKey(innerModelObj.type);
       if (advanced) {
         addLog(`Retrying with next key for ${innerModelObj.name}...`, false);
-        await askDec(promVal, innerModelObj, retryCount + 1);
-      } else {
-        const currentIndex = MODEL_AI.findIndex(
-          (m) => m.value === innerModelObj.value && m.type === innerModelObj.type,
-        );
-        const nextIndex = (currentIndex + 1) % MODEL_AI.length;
-        const nextModel = MODEL_AI[nextIndex];
-        resetKeyIndex(nextModel.type);
-        setModel(nextModel);
-        addLog(`👉Switching to ${nextModel.name}...`, false);
-        addLog(`📦📦📦📦📦📦📦📦📦📦📦📦📦📦📦📦📦`, false);
-        await askDec(promVal, nextModel, retryCount + 1);
+        await askDec(promVal, innerModelObj, triedModelIds ?? []);
+        return;
       }
+      // All keys exhausted: switch to the next enabled model that has a key
+      // and was not tried yet during this send.
+      const fallbackModels = enabledModels.length > 0 ? enabledModels : MODEL_AI;
+      const triedIds = [...(triedModelIds ?? []), modelId(innerModelObj)];
+      const currentIndex = fallbackModels.findIndex(
+        (m) => m.value === innerModelObj.value && m.type === innerModelObj.type,
+      );
+      let nextModel: ModelAI | null = null;
+      for (let step = 1; step <= fallbackModels.length; step++) {
+        const candidate = fallbackModels[(currentIndex + step) % fallbackModels.length];
+        if (triedIds.includes(modelId(candidate))) {
+          continue;
+        }
+        if (!hasKeyForType(candidate.type)) {
+          addLog(`⚠️ Skipping ${candidate.name} (no API key configured).`, false);
+          triedIds.push(modelId(candidate));
+          continue;
+        }
+        nextModel = candidate;
+        break;
+      }
+      if (!nextModel) {
+        addLog('All available models/keys failed. Stopping.', false);
+        toggleClass(`loading${props.prefix}${props.index}`, true);
+        return;
+      }
+      resetKeyIndex(nextModel.type);
+      setModel(nextModel);
+      addLog(`👉Switching to ${nextModel.name}...`, false);
+      addLog(`📦📦📦📦📦📦📦📦📦📦📦📦📦📦📦📦📦`, false);
+      await askDec(promVal, nextModel, triedIds);
       return;
     }
     toggleClass(`loading${props.prefix}${props.index}`, true);
@@ -1264,12 +1408,12 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
             value={`${model.value}::${model.type}`}
             onChange={(e: ChangeEvent<HTMLSelectElement>) => {
               const [val, tp] = e.target.value.split('::');
-              const newModel = resolveModel(val, Number(tp));
+              const newModel = resolveModel(enabledModels, val, Number(tp));
               setModel(newModel);
               resetKeyIndex(newModel.type);
             }}
           >
-            {MODEL_AI.map((option, index) => (
+            {enabledModels.map((option, index) => (
               <option
                 key={`${option.value}-${option.type}`}
                 value={`${option.value}::${option.type}`}
@@ -1356,6 +1500,16 @@ const AIBoard: React.FC<AIBoardProps> = (props) => {
               localStorage.setItem(keyGithubNm, String(event.target.value));
             }}
             placeholder="GITHUB (key1;key2)"
+          />
+          <input
+            className="common-input"
+            type="text"
+            value={openRouterKey || ''}
+            onChange={(event: ChangeEvent<HTMLInputElement>) => {
+              setOpenRouterKey(event.target.value);
+              localStorage.setItem(keyOpenRouterNm, String(event.target.value));
+            }}
+            placeholder="OPENROUTER (key1;key2)"
           />
           <br />
           <textarea
