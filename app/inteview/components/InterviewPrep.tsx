@@ -238,7 +238,7 @@ export default function InterviewPrep() {
           >
             ☰
           </button>
-          <h1>Senior Developer Interview Prep</h1>
+          <h1></h1>
           <div className="stats">
             {visibleKeys.size} / {ALL_CARDS.length} questions
           </div>
