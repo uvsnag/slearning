@@ -1402,6 +1402,473 @@ class UserRepositoryTest {
     }
 }</pre>`,
       },
+
+      // ──── 10. REST DESIGN & WEB EXTRAS ────
+      {
+        q: 'What is the difference between @Controller and @RestController?',
+        difficulty: 'easy',
+        a: `<div class="interview-answer"><p><code>@RestController</code> is simply <code>@Controller</code> + <code>@ResponseBody</code>. With <code>@Controller</code>, a returned String is treated as a view name to render (Thymeleaf, JSP); with <code>@RestController</code>, every return value is serialized into the response body as JSON via Jackson. Use <code>@Controller</code> for server-rendered HTML and <code>@RestController</code> for REST APIs; a single method inside a <code>@Controller</code> can still return JSON by adding <code>@ResponseBody</code> on that method.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><code>@RestController</code> thực chất là <code>@Controller</code> cộng thêm <code>@ResponseBody</code>. Khác biệt nằm ở cách xử lý giá trị trả về: với <code>@Controller</code>, chuỗi trả về được hiểu là <strong>tên view</strong> cần render (Thymeleaf, JSP...), còn với <code>@RestController</code>, mọi giá trị trả về đều được Jackson chuyển thành <strong>JSON</strong> và ghi thẳng vào body của response. Làm REST API thì dùng <code>@RestController</code>; làm web render HTML phía server thì dùng <code>@Controller</code>. Nếu trong một <code>@Controller</code> có method muốn trả JSON thì chỉ cần thêm <code>@ResponseBody</code> lên method đó.</p></details>
+<pre>@Controller
+public class PageController {
+    @GetMapping("/home")
+    public String home(Model model) { return "home"; }    // → renders home.html
+
+    @GetMapping("/api/ping")
+    @ResponseBody                                          // this ONE method returns JSON
+    public Map&lt;String, String&gt; ping() { return Map.of("status", "ok"); }
+}
+
+@RestController                     // every method returns data, never a view
+public class UserApi {
+    @GetMapping("/api/users/{id}")
+    public UserDto get(@PathVariable Long id) { ... }      // → JSON body
+}</pre>
+<div class="key-point">@RestController = @Controller + @ResponseBody: return values go through HttpMessageConverter (Jackson) into the response body instead of through the view resolver.</div>`,
+      },
+      {
+        q: 'What is ResponseEntity and when should you use it?',
+        difficulty: 'easy',
+        a: `<div class="interview-answer"><p><code>ResponseEntity&lt;T&gt;</code> represents the complete HTTP response — status code, headers, and body — giving you explicit control over all three. Returning a plain object always produces 200 with default headers; ResponseEntity lets you return 201 with a Location header on create, 404 with no body, or custom cache headers. When you don't need to customize anything, returning the plain object keeps the code cleaner.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><code>ResponseEntity&lt;T&gt;</code> đại diện cho <strong>toàn bộ HTTP response</strong>: status code, header và body — cho phép bạn chủ động quyết định cả ba. Nếu chỉ trả về object thường, Spring luôn trả 200 với header mặc định; còn với ResponseEntity bạn có thể trả 201 kèm header Location khi tạo mới, 404 không có body khi không tìm thấy, hay thêm header cache tùy ý. Khi không cần tùy chỉnh gì thì cứ trả object thường cho code gọn.</p></details>
+<pre>@PostMapping("/users")
+public ResponseEntity&lt;UserDto&gt; create(@Valid @RequestBody CreateUserRequest req) {
+    UserDto created = userService.create(req);
+    return ResponseEntity
+        .created(URI.create("/api/users/" + created.id()))   // 201 + Location header
+        .body(created);
+}
+
+@GetMapping("/users/{id}")
+public ResponseEntity&lt;UserDto&gt; get(@PathVariable Long id) {
+    return userService.find(id)
+        .map(ResponseEntity::ok)                              // 200 + body
+        .orElse(ResponseEntity.notFound().build());           // 404, no body
+}</pre>
+<div class="key-point">Plain return = fixed 200. ResponseEntity = you choose status + headers + body. Common pattern: 201 + Location for POST, Optional → 200/404 for GET.</div>`,
+      },
+      {
+        q: 'POST vs PUT vs PATCH — differences and what does idempotency mean?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>POST creates a resource (the server assigns the ID; calling it N times creates N records — not idempotent). PUT replaces the whole resource at a known URI — idempotent, repeating it yields the same state. PATCH applies a partial update (only the fields sent). Idempotent means calling the operation N times has the same effect as calling it once — this matters because clients and proxies can safely retry idempotent requests after a network failure. GET, PUT, DELETE are idempotent; POST is not.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><strong>POST</strong> tạo mới resource — server tự sinh ID, gọi N lần sẽ tạo ra N bản ghi, nên <strong>không idempotent</strong>. <strong>PUT</strong> thay thế toàn bộ resource tại một URI đã biết — idempotent: gọi lại bao nhiêu lần thì trạng thái cuối vẫn y như vậy. <strong>PATCH</strong> chỉ cập nhật một phần, đúng những field được gửi lên. <strong>Idempotent</strong> nghĩa là gọi N lần cho cùng kết quả như gọi 1 lần — điều này quan trọng vì khi mạng lỗi giữa chừng, client và proxy được phép <strong>tự động retry</strong> các request idempotent một cách an toàn. GET, PUT, DELETE là idempotent; POST thì không, nên retry POST cần cơ chế riêng (ví dụ idempotency key).</p></details>
+<pre>POST   /orders          → create new order, server assigns id   (NOT idempotent)
+PUT    /orders/42       → replace order 42 entirely             (idempotent)
+PATCH  /orders/42       → update only the sent fields           (partial update)
+DELETE /orders/42       → delete; repeating still ends deleted  (idempotent)
+
+// PATCH body: only what changes
+{ "status": "SHIPPED" }
+
+// PUT body: the FULL resource — missing fields are considered removed
+{ "customerId": 7, "items": [...], "status": "SHIPPED", "note": null }</pre>
+<div class="key-point">Interview trap: "why does idempotency matter?" — because retries are safe. For POST retries, real systems use an idempotency key header so a duplicate submit doesn't create a duplicate order.</div>`,
+      },
+      {
+        q: 'What is CORS and how do you configure it in Spring Boot?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>CORS is a browser security mechanism: JavaScript served from origin A calling an API on origin B is blocked unless B's responses carry <code>Access-Control-Allow-*</code> headers; for non-simple requests the browser first sends an OPTIONS preflight. Configure it per controller with <code>@CrossOrigin</code>, globally via <code>WebMvcConfigurer</code>, or — when Spring Security is present — through <code>http.cors()</code> with a <code>CorsConfigurationSource</code>, because the security filter chain rejects the preflight before MVC ever sees it. CORS only affects browsers: Postman and server-to-server calls ignore it.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>CORS là cơ chế bảo vệ <strong>của trình duyệt</strong>: JavaScript chạy ở origin A (ví dụ localhost:3000) gọi API ở origin B (localhost:8080) sẽ bị chặn, trừ khi server B trả về các header <code>Access-Control-Allow-*</code> cho phép. Với các request "không đơn giản" (có header tùy chỉnh, content-type JSON...), trình duyệt còn gửi trước một request OPTIONS gọi là <strong>preflight</strong> để xin phép. Cách cấu hình: <code>@CrossOrigin</code> trên từng controller, hoặc toàn cục qua <code>WebMvcConfigurer</code>; nếu dự án có Spring Security thì <strong>phải cấu hình trong security</strong> (<code>http.cors()</code> + <code>CorsConfigurationSource</code>), vì preflight sẽ bị filter chain chặn trước khi kịp tới MVC. Lưu ý: CORS chỉ là chuyện của trình duyệt — Postman hay các service gọi nhau hoàn toàn không bị ảnh hưởng.</p></details>
+<pre>// Global CORS (no Spring Security)
+@Configuration
+public class WebConfig implements WebMvcConfigurer {
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/api/**")
+            .allowedOrigins("https://app.example.com")
+            .allowedMethods("GET", "POST", "PUT", "DELETE")
+            .allowCredentials(true);
+    }
+}
+
+// With Spring Security — configure it HERE or preflights get rejected
+http.cors(cors -> cors.configurationSource(req -> {
+    CorsConfiguration cfg = new CorsConfiguration();
+    cfg.setAllowedOrigins(List.of("https://app.example.com"));
+    cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
+    cfg.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+    return cfg;
+}));</pre>
+<div class="key-point">Classic bug: "CORS works until I add Spring Security" — the preflight OPTIONS has no Authorization header, gets 401 from the filter chain, and the browser reports it as a CORS failure. Fix it in http.cors(), not with a servlet filter.</div>`,
+      },
+
+      // ──── 11. CONFIGURATION & STARTUP ────
+      {
+        q: 'Two beans of the same type — how does Spring choose? (@Primary, @Qualifier)',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>With two beans of one type, injection by type is ambiguous and startup fails with <code>NoUniqueBeanDefinitionException</code>. Resolve it by marking one bean <code>@Primary</code> (the default choice), or by selecting explicitly at the injection point with <code>@Qualifier("beanName")</code> — a qualifier always beats @Primary. Injecting <code>List&lt;Interface&gt;</code> collects every implementation, which is the idiomatic base for a strategy pattern.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Khi có hai bean cùng kiểu, Spring không biết phải inject cái nào và ứng dụng chết ngay lúc khởi động với <code>NoUniqueBeanDefinitionException</code>. Có ba cách xử lý: đánh dấu <code>@Primary</code> lên bean muốn làm mặc định; hoặc dùng <code>@Qualifier("tênBean")</code> ngay tại chỗ inject để chọn đích danh — khi cả hai cùng xuất hiện thì <strong>@Qualifier thắng @Primary</strong>; hoặc inject cả danh sách <code>List&lt;PaymentService&gt;</code> để lấy tất cả implementation — đây chính là nền của pattern strategy trong Spring. Tên bean mặc định là tên class viết thường chữ cái đầu (MomoPayment → "momoPayment").</p></details>
+<pre>public interface PaymentService { void pay(Order o); }
+
+@Service @Primary
+public class CardPayment implements PaymentService { ... }   // the default
+
+@Service("momo")
+public class MomoPayment implements PaymentService { ... }
+
+@Service
+public class CheckoutService {
+    private final PaymentService defaultPay;                  // → CardPayment (@Primary)
+    private final PaymentService momoPay;
+    private final List&lt;PaymentService&gt; all;                   // → BOTH implementations
+
+    public CheckoutService(PaymentService defaultPay,
+                           @Qualifier("momo") PaymentService momoPay,
+                           List&lt;PaymentService&gt; all) { ... }
+}</pre>
+<div class="key-point">@Primary = "use this unless told otherwise"; @Qualifier = "use exactly this one" (and it wins). Injecting List/Map of an interface is how you build pluggable strategies without a single if/else.</div>`,
+      },
+      {
+        q: 'application.properties vs application.yml — and which configuration source wins?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>Both formats are equivalent in capability; YAML is hierarchical and avoids repeating prefixes but is whitespace-sensitive, while .properties is flat one-key-per-line. The more important interview point is precedence when the same property appears in several places: command-line arguments beat OS environment variables, which beat profile-specific <code>application-{profile}.yml</code>, which beats the base <code>application.yml</code> packaged in the jar — so operations can override configuration without rebuilding. If both files exist, .properties wins over .yml.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Hai định dạng có khả năng như nhau, chỉ khác cú pháp: YAML phân cấp, đỡ lặp lại prefix, nhưng nhạy cảm với thụt lề; .properties phẳng, mỗi dòng một key, khó sai nhưng dài dòng. Điều quan trọng hơn trong phỏng vấn là <strong>thứ tự ưu tiên</strong> khi cùng một property xuất hiện ở nhiều nơi: tham số dòng lệnh (<code>--server.port=9090</code>) &gt; biến môi trường OS (<code>SERVER_PORT</code>) &gt; file theo profile <code>application-{profile}.yml</code> &gt; file gốc <code>application.yml</code> trong jar. Nhờ thứ tự này, đội vận hành có thể override cấu hình lúc deploy mà <strong>không cần build lại</strong>. Chi tiết hay bị hỏi: nếu tồn tại cả hai file thì .properties được ưu tiên hơn .yml.</p></details>
+<pre># Same config, two syntaxes
+# application.properties
+spring.datasource.url=jdbc:postgresql://localhost/app
+spring.datasource.username=app
+
+# application.yml
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost/app
+    username: app
+
+# Precedence (highest wins):
+1. command line        java -jar app.jar --server.port=9090
+2. OS env vars         SERVER_PORT=9090       (relaxed binding maps it)
+3. application-prod.yml   (active profile file)
+4. application.yml        (packaged defaults)</pre>
+<div class="key-point">Remember the direction: the closer to the actual launch, the higher the priority — code ships defaults, environment overrides them. Env var names use relaxed binding: server.port ⇆ SERVER_PORT.</div>`,
+      },
+      {
+        q: 'How do you run code at application startup? CommandLineRunner vs ApplicationRunner',
+        difficulty: 'easy',
+        a: `<div class="interview-answer"><p>Both are functional interfaces whose <code>run()</code> executes exactly once after the ApplicationContext is fully started — typical uses are seeding data, warming caches, or verifying connectivity. The only difference is the argument form: <code>CommandLineRunner</code> receives the raw <code>String[]</code> args, while <code>ApplicationRunner</code> receives a parsed <code>ApplicationArguments</code> (option args like --name=value vs non-option args). Order multiple runners with <code>@Order</code>; an exception thrown from a runner aborts startup.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Cả hai đều là interface có đúng một method <code>run()</code>, chạy <strong>một lần duy nhất sau khi ApplicationContext đã khởi động xong</strong> — thường dùng để seed dữ liệu mẫu, làm nóng cache, hay kiểm tra kết nối tới các hệ thống ngoài. Khác biệt duy nhất là dạng tham số: <code>CommandLineRunner</code> nhận <code>String[]</code> thô, còn <code>ApplicationRunner</code> nhận <code>ApplicationArguments</code> đã được phân tích sẵn thành option (<code>--name=value</code>) và non-option. Có nhiều runner thì xếp thứ tự bằng <code>@Order</code>. Lưu ý: exception ném ra từ runner sẽ làm ứng dụng <strong>dừng khởi động luôn</strong>, nên đừng đặt logic dễ lỗi ở đây mà không bắt exception.</p></details>
+<pre>@Component
+@Order(1)
+public class SeedDataRunner implements CommandLineRunner {
+    @Override
+    public void run(String... args) {          // raw args
+        if (userRepo.count() == 0) userRepo.save(defaultAdmin());
+    }
+}
+
+@Component
+@Order(2)
+public class ReportRunner implements ApplicationRunner {
+    @Override
+    public void run(ApplicationArguments args) {   // parsed args
+        if (args.containsOption("rebuild-index")) searchService.rebuild();
+    }
+}</pre>
+<div class="key-point">Both run after the context is ready (all beans built, proxies in place) — safer than doing startup work in @PostConstruct of a random bean, where other beans may not exist yet.</div>`,
+      },
+      {
+        q: 'How do you change the server port or swap embedded Tomcat for Jetty/Undertow?',
+        difficulty: 'easy',
+        a: `<div class="interview-answer"><p>Set <code>server.port</code> in application.yml, or override at launch with <code>--server.port=8081</code> or the <code>SERVER_PORT</code> environment variable; <code>server.port=0</code> picks a random free port (useful in tests). To swap the server, exclude <code>spring-boot-starter-tomcat</code> from the web starter and add <code>spring-boot-starter-jetty</code> (or undertow) — auto-configuration sees Jetty on the classpath and wires everything else automatically.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Đổi port bằng <code>server.port</code> trong application.yml; lúc chạy có thể override bằng <code>--server.port=8081</code> hoặc biến môi trường <code>SERVER_PORT</code>. Đặt <code>server.port=0</code> để lấy một port ngẫu nhiên còn trống — rất tiện trong integration test để các test chạy song song không giành port của nhau. Muốn đổi Tomcat sang Jetty hay Undertow: exclude <code>spring-boot-starter-tomcat</code> khỏi <code>spring-boot-starter-web</code> rồi thêm starter của server mới — auto-configuration thấy Jetty trên classpath sẽ tự cấu hình toàn bộ phần còn lại, code ứng dụng không phải đổi gì.</p></details>
+<pre>&lt;!-- swap Tomcat → Jetty --&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
+    &lt;exclusions&gt;
+        &lt;exclusion&gt;
+            &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-boot-starter-tomcat&lt;/artifactId&gt;
+        &lt;/exclusion&gt;
+    &lt;/exclusions&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-jetty&lt;/artifactId&gt;
+&lt;/dependency&gt;</pre>
+<div class="key-point">This question really tests whether you understand conditional auto-configuration: the server is chosen by what's on the classpath, which is why an exclude + one dependency is the whole migration.</div>`,
+      },
+      {
+        q: 'What is graceful shutdown and how do you enable it in Spring Boot?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>Graceful shutdown means that on a stop signal (SIGTERM) the application stops accepting new requests but lets in-flight requests finish before exiting, instead of cutting them off. Enable it with <code>server.shutdown=graceful</code> and cap the wait with <code>spring.lifecycle.timeout-per-shutdown-phase</code> (default 30s). It matters most for rolling deployments on Kubernetes — combined with a preStop hook and readiness probe, no request is dropped mid-flight during a deploy.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Graceful shutdown nghĩa là khi nhận tín hiệu dừng (SIGTERM), ứng dụng <strong>ngừng nhận request mới nhưng chờ các request đang xử lý chạy xong</strong> rồi mới tắt, thay vì cắt ngang giữa chừng. Bật bằng <code>server.shutdown=graceful</code>, và giới hạn thời gian chờ tối đa qua <code>spring.lifecycle.timeout-per-shutdown-phase</code> (mặc định 30 giây — quá hạn thì vẫn tắt). Tình huống quan trọng nhất là rolling deploy trên Kubernetes: kết hợp với preStop hook và readiness probe để pod bị loại khỏi load balancer trước, xử lý nốt request đang dở, rồi mới bị kill — người dùng không thấy bất kỳ request nào bị rớt khi deploy.</p></details>
+<pre># application.yml
+server:
+  shutdown: graceful
+spring:
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+
+# What happens on SIGTERM:
+1. stop accepting new connections
+2. in-flight requests keep running (up to the timeout)
+3. @PreDestroy hooks run, context closes, JVM exits
+
+# Kubernetes pairing:
+readinessProbe → pod removed from Service endpoints first
+preStop sleep  → small delay so LB config propagates before SIGTERM</pre>
+<div class="key-point">Without this, every deploy is a mini-outage: whatever was executing when the pod died returned connection-reset to users. One property fixes it — a favorite "production experience" question.</div>`,
+      },
+
+      // ──── 12. SPRING DATA JPA & PERSISTENCE ────
+      {
+        q: 'What is Spring Data JPA? Explain the repository hierarchy (CrudRepository vs JpaRepository).',
+        difficulty: 'easy',
+        a: `<div class="interview-answer"><p>Spring Data JPA generates repository implementations at runtime from interfaces you declare — you write no CRUD code at all. The hierarchy: <code>Repository</code> (marker) → <code>CrudRepository</code> (basic CRUD, returns Iterable) → <code>PagingAndSortingRepository</code> (adds paging and sorting) → <code>JpaRepository</code> (adds JPA specifics: <code>flush()</code>, <code>deleteAllInBatch()</code>, <code>getReferenceById()</code>, and returns List). In practice, extending <code>JpaRepository</code> is the standard choice.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Spring Data JPA <strong>tự sinh implementation cho repository lúc runtime</strong> — bạn chỉ khai báo interface, không phải viết một dòng code CRUD nào. Cây kế thừa: <code>Repository</code> (interface đánh dấu, không có method) → <code>CrudRepository</code> (CRUD cơ bản: save, findById, delete..., trả về Iterable) → <code>PagingAndSortingRepository</code> (thêm phân trang và sắp xếp) → <code>JpaRepository</code> (thêm các method đặc thù của JPA như <code>flush()</code>, <code>deleteAllInBatch()</code>, <code>getReferenceById()</code>, và trả về List cho tiện dùng). Thực tế cứ extends <code>JpaRepository</code> là đủ cho hầu hết nhu cầu; tách interface nhỏ hơn chỉ khi muốn giới hạn repository chỉ đọc chẳng hạn.</p></details>
+<pre>public interface UserRepository extends JpaRepository&lt;User, Long&gt; {
+    // save, findById, findAll, deleteById... all inherited — zero code
+    Optional&lt;User&gt; findByEmail(String email);          // derived query — also zero code
+}
+
+Repository (marker)
+  └─ CrudRepository          save / findById / findAll / delete  (Iterable)
+       └─ PagingAndSortingRepository   findAll(Pageable), findAll(Sort)
+            └─ JpaRepository           List returns, flush(), saveAndFlush(),
+                                       deleteAllInBatch(), getReferenceById()</pre>
+<div class="key-point">Follow-up they like: getReferenceById() returns a lazy proxy WITHOUT hitting the DB — perfect for setting a foreign key (order.setUser(userRepo.getReferenceById(id))) with no extra SELECT.</div>`,
+      },
+      {
+        q: 'How do derived query methods and @Query work in Spring Data JPA?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>Spring Data parses the method name — <code>findByEmailAndStatusOrderByCreatedAtDesc</code> — and generates the query from it. When the name gets long or the condition complex, switch to <code>@Query</code> with JPQL (written against entities, not tables); add <code>nativeQuery = true</code> for database-specific SQL. UPDATE/DELETE queries additionally need <code>@Modifying</code> and must run in a transaction. Rule of thumb: if the method name no longer fits on one line, it should be a @Query.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Spring Data <strong>phân tích tên method để tự sinh query</strong>: <code>findByEmailAndStatusOrderByCreatedAtDesc</code> sẽ thành câu SELECT tương ứng, hỗ trợ các từ khóa như And, Or, Between, Like, In, OrderBy... Khi tên method quá dài hoặc điều kiện phức tạp thì chuyển sang <code>@Query</code> viết JPQL — lưu ý JPQL viết trên <strong>entity và field</strong>, không phải tên bảng và cột; cần tính năng riêng của database thì thêm <code>nativeQuery = true</code>. Query UPDATE/DELETE phải kèm <code>@Modifying</code> và chạy trong transaction. Kinh nghiệm thực tế: tên method dài quá một dòng là lúc nên đổi sang @Query cho dễ đọc và dễ review.</p></details>
+<pre>public interface OrderRepository extends JpaRepository&lt;Order, Long&gt; {
+
+    // 1. Derived query — generated from the method name
+    List&lt;Order&gt; findByStatusAndTotalGreaterThan(Status status, BigDecimal min);
+
+    // 2. JPQL — entity names and fields, not table names
+    @Query("select o from Order o join fetch o.items where o.customer.id = :cid")
+    List&lt;Order&gt; findWithItemsByCustomer(@Param("cid") Long customerId);
+
+    // 3. Native SQL — when you need DB-specific features
+    @Query(value = "select * from orders where total &gt; :min for update skip locked",
+           nativeQuery = true)
+    List&lt;Order&gt; lockNextBatch(@Param("min") BigDecimal min);
+
+    // 4. Update — needs @Modifying + a transaction
+    @Modifying
+    @Query("update Order o set o.status = :s where o.id = :id")
+    int updateStatus(@Param("id") Long id, @Param("s") Status s);
+}</pre>
+<div class="key-point">Derived names for simple lookups, JPQL @Query for joins/projections, native only when JPQL can't express it. @Modifying without a transaction is a classic runtime error.</div>`,
+      },
+      {
+        q: 'What is the N+1 query problem and how do you fix it?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>N+1 happens when you load N parent rows with one query, then iterate and touch a lazy relation on each — triggering N additional queries, so a list of 1000 orders becomes 1001 database calls. Detect it by enabling SQL logging and counting. Fixes: <code>JOIN FETCH</code> in JPQL to load parents and children in one query; <code>@EntityGraph</code> on the repository method; or <code>default_batch_fetch_size</code> so Hibernate batches lazy loads into IN (...) queries. Do not "fix" it by switching to EAGER — that hides the problem and makes every other query heavier.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>N+1 xảy ra khi bạn load N bản ghi cha bằng <strong>1 query</strong>, rồi vòng lặp chạm vào quan hệ lazy của từng bản ghi, làm phát sinh thêm <strong>N query con</strong> — tổng cộng N+1: danh sách 1000 đơn hàng thành 1001 lần gọi database, chậm mà nhìn code không thấy gì sai. Cách phát hiện: bật log SQL rồi đếm số query cho một request. Cách sửa: dùng <code>JOIN FETCH</code> trong JPQL để lấy cả cha lẫn con trong một query; hoặc <code>@EntityGraph</code> trên method repository; hoặc đặt <code>default_batch_fetch_size</code> để Hibernate gom các lần load lazy thành query <code>IN (...)</code> — từ 1001 query còn khoảng 11. <strong>Đừng sửa bằng cách chuyển sang EAGER</strong> — nó chỉ giấu vấn đề và bắt mọi query khác gánh thêm dữ liệu không cần.</p></details>
+<pre>// The bug — looks innocent:
+List&lt;Order&gt; orders = orderRepo.findAll();            // 1 query
+for (Order o : orders) {
+    total += o.getItems().size();                     // +1 query PER order (lazy!)
+}
+
+// Fix 1 — JOIN FETCH: one query, orders + items together
+@Query("select distinct o from Order o join fetch o.items")
+List&lt;Order&gt; findAllWithItems();
+
+// Fix 2 — @EntityGraph: same effect, declarative
+@EntityGraph(attributePaths = "items")
+List&lt;Order&gt; findAll();
+
+// Fix 3 — batch lazy loading (global safety net)
+spring.jpa.properties.hibernate.default_batch_fetch_size: 100
+// → children loaded via IN (id1..id100): 1001 queries become ~11</pre>
+<div class="key-point">Senior answer names the detection step (count queries in SQL log / datasource-proxy) before the fix. JOIN FETCH for the specific hot path, batch_fetch_size as the app-wide safety net.</div>`,
+      },
+      {
+        q: 'FetchType.LAZY vs EAGER — defaults, best practice, and LazyInitializationException',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>LAZY loads a relation only when first accessed; EAGER loads it immediately with the owning entity. JPA defaults: <code>@ManyToOne</code>/<code>@OneToOne</code> are EAGER, <code>@OneToMany</code>/<code>@ManyToMany</code> are LAZY. Best practice is to make everything LAZY and fetch explicitly per query (JOIN FETCH / @EntityGraph), because EAGER taxes every query whether or not the data is used. <code>LazyInitializationException</code> is thrown when a lazy relation is touched after the session closed — typically while Jackson serializes an entity in the controller. Boot's open-in-view default masks this at the cost of holding the connection through the whole request; disable it and fetch what you need in the service layer.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><strong>LAZY</strong> nghĩa là quan hệ chỉ được load khi bạn thật sự chạm vào nó; <strong>EAGER</strong> là load ngay cùng lúc với entity. Mặc định của JPA: <code>@ManyToOne</code> và <code>@OneToOne</code> là EAGER, <code>@OneToMany</code> và <code>@ManyToMany</code> là LAZY. Best practice: để <strong>tất cả là LAZY</strong>, rồi chủ động fetch đúng cái cần cho từng query bằng JOIN FETCH hoặc @EntityGraph — vì EAGER bắt mọi query đều gánh thêm dữ liệu dù có dùng hay không. <code>LazyInitializationException</code> xảy ra khi chạm vào quan hệ lazy lúc session đã đóng — điển hình là lúc Jackson serialize entity ở tầng controller. Spring Boot mặc định bật open-in-view để che lỗi này, nhưng cái giá là giữ connection suốt cả request; nên tắt (<code>spring.jpa.open-in-view=false</code>) và fetch đầy đủ ngay trong tầng service — dùng DTO thì tự nhiên hết luôn lỗi này.</p></details>
+<pre>@Entity
+public class Order {
+    @ManyToOne(fetch = FetchType.LAZY)     // override the EAGER default!
+    private Customer customer;
+
+    @OneToMany(mappedBy = "order")          // LAZY by default — good
+    private List&lt;OrderItem&gt; items;
+}
+
+// LazyInitializationException in the wild:
+@GetMapping("/orders/{id}")
+public Order get(@PathVariable Long id) {
+    return orderRepo.findById(id).orElseThrow();
+    // Jackson later calls order.getItems() → session closed → 💥
+}
+
+# The honest setup:
+spring.jpa.open-in-view: false     # stop masking the problem
+# then: fetch in the service (JOIN FETCH) and return a DTO</pre>
+<div class="key-point">One-liner: "everything LAZY, fetch per use-case, OSIV off, DTO out." Mentioning WHY open-in-view is bad (connection held during rendering/serialization) marks the senior answer.</div>`,
+      },
+      {
+        q: 'Why should you not return JPA entities directly from a REST API? (Entity vs DTO)',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>An entity maps a database table; a DTO is the shape you want clients to see — different jobs. Returning entities leaks new columns automatically (security), couples your API contract to the schema so a DB refactor breaks clients, and invites Jackson problems: LazyInitializationException on unfetched relations and infinite recursion on bidirectional ones. Keep controllers DTO-only and map with MapStruct (or manual mappers); requests get their own DTOs with validation annotations.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Entity là ánh xạ của bảng trong database, còn DTO là <strong>hình dạng dữ liệu bạn muốn cho client thấy</strong> — hai vai trò khác nhau. Trả thẳng entity ra API có ba rủi ro lớn: thứ nhất, bảng thêm cột mới là API tự động lộ cột đó ra ngoài (đã có nhiều sự cố lộ password hash kiểu này); thứ hai, hợp đồng API bị dính chặt vào schema — đổi cấu trúc database là vỡ luôn client; thứ ba, Jackson serialize entity rất dễ dính <code>LazyInitializationException</code> với quan hệ chưa fetch, hoặc <strong>đệ quy vô hạn</strong> với quan hệ hai chiều (Order → Items → Order → ...). Vì vậy tầng controller chỉ nhận và trả DTO; việc chuyển đổi giao cho mapper như MapStruct để không phải viết tay. Request cũng có DTO riêng kèm validation — không bind thẳng dữ liệu người dùng vào entity.</p></details>
+<pre>// DTO — exactly what the client needs, nothing more
+public record OrderDto(Long id, String status, BigDecimal total,
+                       List&lt;OrderItemDto&gt; items) {}
+
+// MapStruct — mapper generated at compile time
+@Mapper(componentModel = "spring")
+public interface OrderMapper {
+    OrderDto toDto(Order order);
+}
+
+@RestController
+public class OrderController {
+    @GetMapping("/orders/{id}")
+    public OrderDto get(@PathVariable Long id) {
+        return mapper.toDto(orderService.getWithItems(id));   // entity never escapes
+    }
+}</pre>
+<div class="key-point">Three reasons, in interview order: security (new columns leak), API-schema coupling, serialization traps (lazy + bidirectional recursion). @JsonIgnore on entities is a band-aid, not the fix.</div>`,
+      },
+      {
+        q: 'Optimistic vs pessimistic locking — how do you handle concurrent updates?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>Optimistic locking adds a <code>@Version</code> column: every UPDATE carries WHERE version = ?, so if another transaction changed the row first, zero rows match and Spring throws <code>OptimisticLockingFailureException</code> — you retry or tell the user. No DB locks held; ideal when conflicts are rare. Pessimistic locking (<code>@Lock(PESSIMISTIC_WRITE)</code> → SELECT ... FOR UPDATE) locks the row at read time so others wait — certain, but reduces throughput and can deadlock; right for hot contention like inventory decrement. Rule: conflicts rare → optimistic; hot rows → pessimistic.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Đây là hai chiến lược xử lý khi nhiều transaction cùng sửa một bản ghi. <strong>Optimistic lock</strong>: thêm field <code>@Version</code> vào entity; mỗi lần update Hibernate tự kèm điều kiện <code>WHERE version = ?</code> — nếu ai đó đã sửa trước thì version bị lệch, update trúng 0 dòng và Spring ném <code>OptimisticLockingFailureException</code> để bạn retry hoặc báo người dùng "dữ liệu đã bị thay đổi". Không giữ khóa database nên rẻ, phù hợp khi <strong>xung đột hiếm khi xảy ra</strong>. <strong>Pessimistic lock</strong>: <code>@Lock(PESSIMISTIC_WRITE)</code> sinh <code>SELECT ... FOR UPDATE</code>, khóa dòng ngay từ lúc đọc, transaction khác phải xếp hàng chờ — chắc chắn không đụng độ nhưng giảm throughput và có nguy cơ deadlock, hợp với nghiệp vụ tranh chấp nóng như trừ tồn kho, trừ số dư. Quy tắc chọn: xung đột hiếm → optimistic; cùng một dòng bị tranh giành liên tục → pessimistic.</p></details>
+<pre>// Optimistic — @Version does everything
+@Entity
+public class Product {
+    @Id private Long id;
+    private int stock;
+    @Version private long version;      // Hibernate manages it
+}
+// UPDATE product SET stock=?, version=version+1 WHERE id=? AND version=?
+// 0 rows updated → OptimisticLockingFailureException → retry
+
+// Pessimistic — row locked from the SELECT onward
+public interface ProductRepository extends JpaRepository&lt;Product, Long&gt; {
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select p from Product p where p.id = :id")
+    Product findForUpdate(@Param("id") Long id);    // SELECT ... FOR UPDATE
+}
+
+@Transactional
+public void decreaseStock(Long id, int qty) {
+    Product p = productRepo.findForUpdate(id);      // others WAIT here
+    if (p.getStock() &lt; qty) throw new OutOfStockException();
+    p.setStock(p.getStock() - qty);
+}</pre>
+<div class="key-point">Optimistic = detect conflict at write time and retry; pessimistic = prevent conflict by locking at read time. Bonus: pessimistic locks must live inside a transaction, and keep it short — you're holding a real DB lock.</div>`,
+      },
+      {
+        q: 'What is HikariCP? How do you size and tune the connection pool?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>HikariCP is Spring Boot's default JDBC connection pool: it keeps a set of open connections for reuse because creating one is expensive. Default max is 10 connections — usually enough, and bigger is often not faster (Hikari's guideline: roughly CPU cores × 2 on the DB side). When the pool is exhausted — usually because transactions hold connections too long — new requests wait and fail with a 30s connection timeout. Key settings: <code>maximum-pool-size</code>, <code>max-lifetime</code> (keep it below the DB/proxy idle timeout), and <code>leak-detection-threshold</code> to log code paths that borrow a connection and never return it.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>HikariCP là connection pool mặc định của Spring Boot: nó giữ sẵn một nhóm connection đang mở để tái sử dụng, vì mở connection mới tới database rất tốn kém. Mặc định pool có tối đa <strong>10 connection</strong> — đủ cho đa số ứng dụng, và tăng lên chưa chắc đã nhanh hơn (gợi ý của chính Hikari: khoảng số core CPU của database × 2; pool quá to chỉ khiến các query xếp hàng ở database thay vì ở pool). Khi pool cạn — thường do transaction giữ connection quá lâu, ví dụ gọi API ngoài bên trong transaction — request mới phải chờ và lỗi timeout sau 30 giây. Các thông số hay chỉnh: <code>maximum-pool-size</code>, <code>max-lifetime</code> (đặt ngắn hơn idle timeout của database/proxy để tránh nhận connection đã chết), và <code>leak-detection-threshold</code> để log ra những đoạn code mượn connection mà quên trả.</p></details>
+<pre># application.yml
+spring:
+  datasource:
+    hikari:
+      maximum-pool-size: 10          # default; measure before raising
+      minimum-idle: 10               # keep equal to max for steady load
+      max-lifetime: 1500000          # 25 min — below DB/proxy timeout
+      connection-timeout: 3000       # fail fast instead of 30s hang
+      leak-detection-threshold: 60000  # log stacks holding a conn &gt; 60s
+
+# Symptom of exhaustion in logs:
+# "Connection is not available, request timed out after 30000ms"
+# → usual cause: long @Transactional doing HTTP calls / big loops</pre>
+<div class="key-point">The interview trap is "pool exhausted → just increase the size." The real fix is shortening transactions; pool size follows the DB's capacity (cores × 2), not the app's thread count.</div>`,
+      },
+      {
+        q: 'How do you manage database schema changes? (Flyway/Liquibase vs ddl-auto)',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>Never let Hibernate mutate a production schema (<code>ddl-auto=update</code>) — it's uncontrolled and cannot roll back. Flyway manages schema through versioned SQL files (V1__init.sql, V2__add_index.sql...): at startup it compares against its <code>flyway_schema_history</code> table and applies pending migrations in order, identically on every environment. Applied files are immutable — any change means a new file. Liquibase is the same idea with XML/YAML changesets and rollback support. Pair it with <code>ddl-auto=validate</code> so Hibernate only verifies that entities match the schema.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Trong production <strong>không được để Hibernate tự sửa schema</strong> (<code>ddl-auto=update</code>): không kiểm soát được nó sẽ làm gì, không review được, và không rollback được. Flyway quản lý schema bằng các file SQL <strong>đánh số phiên bản</strong> (V1__init.sql, V2__add_index.sql...): lúc khởi động nó so với bảng <code>flyway_schema_history</code> và chạy đúng những file chưa được áp dụng, theo thứ tự, giống hệt nhau trên mọi môi trường — schema trở thành một phần của code, được review qua pull request như code. File đã chạy rồi thì <strong>không được sửa</strong> — muốn thay đổi gì thì tạo file mới. Liquibase tương tự nhưng viết changeset bằng XML/YAML và có hỗ trợ rollback. Đi kèm luôn: đặt <code>ddl-auto=validate</code> để Hibernate chỉ kiểm tra entity có khớp schema hay không — lệch là fail ngay lúc khởi động.</p></details>
+<pre># src/main/resources/db/migration/
+V1__create_users.sql
+V2__create_orders.sql
+V3__add_index_orders_status.sql     # new change = NEW file, never edit old ones
+
+# application.yml
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate     # Hibernate checks, Flyway changes
+  flyway:
+    enabled: true
+
+-- V3__add_index_orders_status.sql
+CREATE INDEX idx_orders_status ON orders (status);</pre>
+<div class="key-point">"ddl-auto=update in prod?" is a screening question — the expected answer is no, with Flyway/Liquibase + ddl-auto=validate as the alternative. Migrations are append-only; fixing a bad one means writing V4, not editing V3.</div>`,
+      },
+
+      // ──── 13. SECURITY ESSENTIALS ────
+      {
+        q: 'What is the difference between authentication and authorization?',
+        difficulty: 'easy',
+        a: `<div class="interview-answer"><p>Authentication answers "who are you" — verifying credentials (password, token); failure returns 401 Unauthorized. Authorization answers "what may you do" — checking roles/permissions after identity is established; failure returns 403 Forbidden. In Spring Security, authentication is handled by the AuthenticationManager and its providers, while authorization is configured via <code>authorizeHttpRequests</code> per URL or <code>@PreAuthorize</code> per method.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><strong>Authentication (xác thực)</strong> trả lời câu hỏi "bạn là ai" — kiểm tra username/mật khẩu, token...; thất bại thì trả <strong>401 Unauthorized</strong>. <strong>Authorization (phân quyền)</strong> trả lời "bạn được phép làm gì" — dựa trên role/permission sau khi đã biết bạn là ai; không đủ quyền thì trả <strong>403 Forbidden</strong>. Trong Spring Security: xác thực do AuthenticationManager và các AuthenticationProvider đảm nhiệm, còn phân quyền cấu hình qua <code>authorizeHttpRequests</code> theo URL hoặc <code>@PreAuthorize</code> theo từng method. Mẹo nhớ nhanh: 401 = chưa đăng nhập (hoặc đăng nhập sai), 403 = đăng nhập rồi nhưng không đủ quyền.</p></details>
+<pre>// Authorization — by URL
+http.authorizeHttpRequests(auth -> auth
+    .requestMatchers("/api/admin/**").hasRole("ADMIN")
+    .requestMatchers("/api/**").authenticated()
+    .anyRequest().permitAll());
+
+// Authorization — by method
+@PreAuthorize("hasRole('ADMIN') or #userId == authentication.principal.id")
+public void updateProfile(Long userId, ProfileDto dto) { ... }
+
+401 Unauthorized → authentication failed (who are you?)
+403 Forbidden    → authenticated, but not allowed (you can't do that)</pre>
+<div class="key-point">AuthN = identity (401), AuthZ = permission (403). Getting the two status codes right is the quick senior signal in this question.</div>`,
+      },
+      {
+        q: 'How does JWT authentication work in a Spring Boot REST API?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>The flow: (1) client posts credentials to /login; (2) the server authenticates and returns a JWT signed with a secret, carrying claims (sub, roles, exp); (3) the client sends it on every request as <code>Authorization: Bearer &lt;token&gt;</code>; (4) a custom <code>OncePerRequestFilter</code> registered before <code>UsernamePasswordAuthenticationFilter</code> verifies signature and expiry and puts an Authentication into the SecurityContext; (5) the server stores no session — fully stateless, scales horizontally. Practical caveats: keep access tokens short-lived with a refresh token, since issued JWTs cannot be revoked; and never put sensitive data in the payload — it is base64-encoded, not encrypted.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Luồng chuẩn gồm 5 bước: (1) client gọi <code>/login</code> với username/password; (2) server xác thực thành công thì tạo JWT chứa các claim (sub, roles, exp), <strong>ký bằng secret key</strong> rồi trả về; (3) từ đó mỗi request client gửi kèm header <code>Authorization: Bearer &lt;token&gt;</code>; (4) một filter tự viết (<code>OncePerRequestFilter</code>, đăng ký trước <code>UsernamePasswordAuthenticationFilter</code>) kiểm tra chữ ký và hạn của token, hợp lệ thì dựng đối tượng Authentication đưa vào SecurityContext; (5) server <strong>không lưu session</strong> — stateless nên scale ngang thoải mái. Lưu ý thực tế hay được hỏi thêm: access token nên có hạn ngắn (5–15 phút) kèm refresh token, vì JWT đã phát hành thì <strong>không thu hồi được</strong>; và đừng nhét dữ liệu nhạy cảm vào payload — nó chỉ được encode base64 chứ không hề mã hóa, ai cũng đọc được.</p></details>
+<pre>public class JwtFilter extends OncePerRequestFilter {
+    @Override
+    protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res,
+                                    FilterChain chain) throws ServletException, IOException {
+        String header = req.getHeader("Authorization");
+        if (header != null &amp;&amp; header.startsWith("Bearer ")) {
+            String token = header.substring(7);
+            if (jwtService.isValid(token)) {                  // signature + expiry
+                var auth = new UsernamePasswordAuthenticationToken(
+                    jwtService.getUsername(token), null, jwtService.getAuthorities(token));
+                SecurityContextHolder.getContext().setAuthentication(auth);
+            }
+        }
+        chain.doFilter(req, res);
+    }
+}
+
+// Registration + stateless mode
+http.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+    .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);</pre>
+<div class="key-point">The three follow-ups to be ready for: why stateless (no session store, easy scaling), why short expiry + refresh token (JWTs can't be revoked), and where NOT to store it in the browser (localStorage is XSS-readable; httpOnly cookie is the safer default).</div>`,
+      },
+      {
+        q: 'How should passwords be stored? Explain PasswordEncoder and BCrypt.',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>Never store plaintext, and never use fast hashes like MD5/SHA-256 — GPUs try billions of guesses per second against them. The standard is BCrypt (or Argon2): deliberately slow with a tunable cost factor, and it auto-generates a per-password salt, so two identical passwords produce different hashes. Register with <code>encoder.encode(raw)</code>, log in with <code>encoder.matches(raw, hashed)</code> — hashes are one-way, there is no decode. Spring recommends <code>DelegatingPasswordEncoder</code>: hashes are stored with a prefix like {bcrypt}, so you can migrate algorithms later while old hashes remain verifiable.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Không bao giờ lưu mật khẩu dạng thô, và cũng <strong>không dùng MD5/SHA-256</strong> — đó là các hash "nhanh", GPU có thể thử hàng tỷ mật khẩu mỗi giây để dò ngược. Chuẩn hiện nay là <strong>BCrypt</strong> (hoặc Argon2): cố tình chậm, có tham số cost tăng dần theo sức mạnh phần cứng, và <strong>tự sinh salt riêng cho từng mật khẩu</strong> — nên hai người dùng trùng mật khẩu vẫn ra hai hash khác nhau, chặn được kiểu tra bảng rainbow table. Khi đăng ký gọi <code>encoder.encode(rawPassword)</code>; khi đăng nhập gọi <code>encoder.matches(raw, hashed)</code> — hash là một chiều, không tồn tại chuyện "giải mã" mật khẩu. Spring khuyến nghị dùng <code>DelegatingPasswordEncoder</code>: hash được lưu kèm tiền tố như <code>{bcrypt}</code>, nhờ đó sau này đổi sang thuật toán mạnh hơn thì hash cũ vẫn xác thực được bình thường.</p></details>
+<pre>@Bean
+public PasswordEncoder passwordEncoder() {
+    // DelegatingPasswordEncoder: {bcrypt} prefix, future-proof
+    return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+}
+
+// Register
+user.setPassword(passwordEncoder.encode(request.rawPassword()));
+// stored: {bcrypt}$2a$10$N9qo8uLOickgx2ZMRZoMye...   (salt embedded)
+
+// Login — NEVER compare strings yourself
+if (!passwordEncoder.matches(request.rawPassword(), user.getPassword())) {
+    throw new BadCredentialsException("Invalid credentials");
+}</pre>
+<div class="key-point">Three-word answer: slow, salted, one-way. "Why not SHA-256?" — because it's fast, and fast is exactly what attackers want. The cost factor exists so hashing stays slow as hardware improves.</div>`,
+      },
     ],
   },
 
