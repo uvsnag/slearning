@@ -8,6 +8,133 @@ export const topics: PvTopic[] = [
     name: 'ReactJS',
     icon: '⚛️',
     questions: [
+      // ──── 0. REACT SUMMARY — version-by-version knowledge map ────
+      {
+        q: 'React Summary — Version-by-Version Knowledge Map',
+        difficulty: 'easy',
+        a: `<div class="interview-answer"><p>A complete revision checklist for React — fundamentals, every major version's features, advanced internals, ecosystem, and senior-level topics. Concept names only; use it to spot gaps, not as a tutorial.</p></div>
+<h3>1. Fundamentals</h3>
+<ul>
+<li><strong>Core model</strong>
+  <ul>
+  <li>Declarative UI, "UI as a function of state"</li>
+  <li>Virtual DOM, reconciliation, diffing heuristics</li>
+  <li>Components (function vs class), component tree</li>
+  <li>JSX (syntax, expressions, transpilation, JSX transform)</li>
+  <li>One-way data flow</li>
+  </ul>
+</li>
+<li><strong>Props &amp; State</strong>
+  <ul>
+  <li>Props (read-only, children, prop drilling)</li>
+  <li>State (immutability, functional updates, batching)</li>
+  <li>Lifting state up, controlled vs uncontrolled components</li>
+  <li>Derived state, single source of truth</li>
+  </ul>
+</li>
+<li><strong>Rendering basics</strong>
+  <ul>
+  <li>Render → commit phases, re-render triggers</li>
+  <li>Lists &amp; keys (key stability, index-as-key pitfalls)</li>
+  <li>Conditional rendering, fragments, portals</li>
+  <li>Events (SyntheticEvent, delegation, pooling history)</li>
+  <li>Forms (controlled inputs, onChange patterns)</li>
+  </ul>
+</li>
+</ul>
+<h3>2. Core / Cross-Version Knowledge</h3>
+<ul>
+<li><strong>Hooks</strong>
+  <ul>
+  <li>useState, useEffect (dependencies, cleanup, effect lifecycle)</li>
+  <li>useContext, useReducer, useRef (DOM refs vs mutable values)</li>
+  <li>useMemo, useCallback (referential equality)</li>
+  <li>useLayoutEffect vs useEffect</li>
+  <li>Custom hooks, Rules of Hooks (call order, top-level only)</li>
+  </ul>
+</li>
+<li><strong>Component patterns</strong>
+  <ul>
+  <li>Composition vs inheritance, children as API</li>
+  <li>Higher-Order Components, render props, compound components</li>
+  <li>Container/presentational split, headless components</li>
+  <li>Error boundaries (componentDidCatch, fallback UI)</li>
+  </ul>
+</li>
+<li><strong>Context</strong>
+  <ul>
+  <li>Provider/consumer, default values</li>
+  <li>Re-render behavior of context consumers, context splitting</li>
+  </ul>
+</li>
+<li><strong>Class component legacy</strong>
+  <ul>
+  <li>Lifecycle methods (mount/update/unmount), this binding</li>
+  <li>setState (async batching, callback form)</li>
+  <li>Deprecated lifecycles (componentWillMount etc.)</li>
+  </ul>
+</li>
+</ul>
+<h3>3. Version-Specific Knowledge</h3>
+<ul>
+<li><strong>React 16 "Fiber"</strong> — Fiber architecture rewrite, error boundaries, portals, fragments &amp; returning arrays/strings, custom DOM attributes, improved SSR (renderToNodeStream)</li>
+<li><strong>React 16.3–16.6</strong> — new Context API, createRef/forwardRef, getDerivedStateFromProps, getSnapshotBeforeUpdate, StrictMode, React.memo, React.lazy, Suspense for code splitting, contextType</li>
+<li><strong>React 16.8</strong> — Hooks (useState, useEffect, useContext, useReducer, useMemo, useCallback, useRef, custom hooks), Rules of Hooks, eslint-plugin-react-hooks</li>
+<li><strong>React 17</strong> — no new features ("stepping stone"), event delegation moved from document to root, new JSX transform (no React import needed), gradual upgrades support, effect cleanup timing change</li>
+<li><strong>React 18</strong> — concurrent rendering, createRoot API, automatic batching everywhere, transitions (useTransition, startTransition), useDeferredValue, Suspense on the server, streaming SSR (renderToPipeableStream), selective hydration, useId, useSyncExternalStore, useInsertionEffect, StrictMode double-invoke in dev</li>
+<li><strong>React 19</strong> — Actions, useActionState, useFormStatus, useOptimistic, use() API (promises &amp; context), Server Components stable, Server Actions, ref as a prop (forwardRef unnecessary), ref cleanup functions, Context as provider, document metadata support, improved hydration errors, React Compiler (automatic memoization)</li>
+</ul>
+<h3>4. Advanced Knowledge</h3>
+<ul>
+<li><strong>Internals</strong> — Fiber nodes, work loop, lanes &amp; priorities, double buffering, render vs commit phase, scheduler, time slicing</li>
+<li><strong>Concurrent features</strong> — interruptible rendering, tearing, useSyncExternalStore contract</li>
+<li><strong>Server-side</strong> — SSR vs SSG vs streaming, hydration (mismatches, selective hydration), React Server Components (server/client boundary, serialization, "use client" / "use server")</li>
+<li><strong>Suspense</strong> — data fetching with Suspense, fallback orchestration, SuspenseList concepts, lazy loading boundaries</li>
+<li><strong>State management internals</strong> — external stores, subscription models, context propagation</li>
+</ul>
+<h3>5. Ecosystem</h3>
+<ul>
+<li><strong>Frameworks</strong> — Next.js, Remix / React Router v7, Expo (React Native)</li>
+<li><strong>Routing</strong> — React Router, TanStack Router</li>
+<li><strong>State management</strong> — Redux Toolkit, Zustand, Jotai, MobX, XState</li>
+<li><strong>Data fetching</strong> — TanStack Query, SWR, Apollo Client, RTK Query</li>
+<li><strong>Styling</strong> — CSS Modules, Tailwind CSS, styled-components, CSS-in-JS trade-offs</li>
+<li><strong>Forms</strong> — React Hook Form, TanStack Form, Formik</li>
+<li><strong>Build tools</strong> — Vite, Webpack, Babel/SWC, ESLint rules for hooks</li>
+</ul>
+<h3>6. Performance</h3>
+<ul>
+<li>Re-render analysis (React DevTools Profiler), wasted renders</li>
+<li>React.memo, useMemo/useCallback (when they help, when they hurt)</li>
+<li>Key-based remounting, state colocation, component splitting</li>
+<li>Code splitting (lazy + Suspense), bundle size, tree shaking</li>
+<li>List virtualization (react-window, TanStack Virtual)</li>
+<li>Transitions for heavy updates, deferring values</li>
+<li>React Compiler &amp; automatic memoization</li>
+</ul>
+<h3>7. Testing</h3>
+<ul>
+<li>React Testing Library (queries, user-event, accessibility-first testing)</li>
+<li>Jest / Vitest, mocking modules &amp; timers</li>
+<li>Testing hooks (renderHook), async utilities (waitFor, findBy)</li>
+<li>Component vs integration vs E2E (Cypress, Playwright)</li>
+<li>Snapshot testing trade-offs, MSW for API mocking</li>
+</ul>
+<h3>8. Senior / Interview Hot Topics</h3>
+<ul>
+<li>Reconciliation &amp; keys: why index keys break list state</li>
+<li>Stale closures in useEffect, dependency array pitfalls</li>
+<li>useEffect vs derived state vs event handlers (when not to use an effect)</li>
+<li>Controlled vs uncontrolled trade-offs, form architecture</li>
+<li>Context re-render performance, when to reach for external stores</li>
+<li>Server Components vs client components: boundaries &amp; data flow</li>
+<li>Hydration errors: causes and debugging</li>
+<li>Concurrent rendering &amp; tearing, StrictMode double render reasoning</li>
+<li>Memoization strategy: measure first, React Compiler implications</li>
+<li>Migration paths: class → hooks, legacy ReactDOM.render → createRoot</li>
+</ul>
+<div class="key-point">Use this map top-down before an interview: hooks rules, reconciliation/keys, and re-render control are asked everywhere; React 18 concurrent features and React 19 Actions/Server Components are the most common "what's new in React" questions.</div>`,
+      },
       // ──── 1. CORE — VIRTUAL DOM, RENDERING & LIFECYCLE ────
       {
         q: 'What is the Virtual DOM and how does React reconciliation work?',

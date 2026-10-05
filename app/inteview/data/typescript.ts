@@ -8,6 +8,186 @@ export const topics: PvTopic[] = [
     name: 'TypeScript',
     icon: '🔷',
     questions: [
+      // ──── 0. TYPESCRIPT SUMMARY — knowledge map ────
+      {
+        q: 'TypeScript Summary — Version-by-Version Knowledge Map',
+        difficulty: 'easy',
+        a: `<div class="interview-answer"><p>A complete revision checklist for TypeScript — the type system from basics to advanced type-level programming, version milestones from 1.x to 5.x, configuration, and senior-level topics. Concept names only; use it to spot gaps, not as a tutorial.</p></div>
+<h3>1. Fundamentals</h3>
+<ul>
+<li><strong>Language model</strong>
+  <ul>
+  <li>Typed superset of JavaScript, compiles to plain JS</li>
+  <li>Structural typing (duck typing) vs nominal typing</li>
+  <li>Type erasure — types exist only at compile time</li>
+  <li>Compiler (tsc) vs transpile-only tools (Babel, esbuild, swc)</li>
+  <li>Gradual typing, any as escape hatch</li>
+  </ul>
+</li>
+<li><strong>Basic types</strong>
+  <ul>
+  <li>Primitives: string, number, boolean, bigint, symbol, null, undefined</li>
+  <li>any vs unknown vs never vs void</li>
+  <li>Arrays, tuples (fixed-length, optional &amp; rest elements), readonly arrays</li>
+  <li>Object types, optional (?) and readonly properties, index signatures</li>
+  <li>Literal types (string/number/boolean literals), enums (numeric, string, const enum)</li>
+  <li>Type annotations vs type inference, contextual typing</li>
+  </ul>
+</li>
+<li><strong>Functions</strong>
+  <ul>
+  <li>Parameter &amp; return type annotations, optional/default parameters</li>
+  <li>Function type expressions, call signatures, overloads</li>
+  <li>void vs undefined returns, this parameter typing</li>
+  </ul>
+</li>
+<li><strong>Interfaces &amp; type aliases</strong>
+  <ul>
+  <li>interface vs type — differences and when to use each</li>
+  <li>Declaration merging, extends vs intersection (&amp;)</li>
+  <li>Implementing interfaces in classes</li>
+  </ul>
+</li>
+<li><strong>Classes</strong>
+  <ul>
+  <li>Access modifiers (public, private, protected), # private fields vs private</li>
+  <li>readonly, parameter properties, abstract classes</li>
+  <li>Generics in classes, static members, implements</li>
+  </ul>
+</li>
+</ul>
+<h3>2. Core / Cross-Version Knowledge</h3>
+<ul>
+<li><strong>Union &amp; intersection types</strong>
+  <ul>
+  <li>Union (|), intersection (&amp;), discriminated unions (tagged unions)</li>
+  <li>Exhaustiveness checking with never</li>
+  </ul>
+</li>
+<li><strong>Narrowing &amp; type guards</strong>
+  <ul>
+  <li>typeof / instanceof / in narrowing, truthiness narrowing</li>
+  <li>Equality narrowing, control-flow analysis</li>
+  <li>User-defined type guards (is), assertion functions (asserts)</li>
+  </ul>
+</li>
+<li><strong>Generics</strong>
+  <ul>
+  <li>Generic functions, interfaces, classes, type aliases</li>
+  <li>Constraints (extends), default type parameters</li>
+  <li>keyof with generics, generic inference</li>
+  <li>Variance (covariance/contravariance), in/out modifiers</li>
+  </ul>
+</li>
+<li><strong>Type manipulation</strong>
+  <ul>
+  <li>keyof, typeof (type context), indexed access types (T[K])</li>
+  <li>Conditional types (T extends U ? X : Y), infer keyword</li>
+  <li>Distributive conditional types</li>
+  <li>Mapped types ({ [K in keyof T]: ... }), key remapping (as)</li>
+  <li>Template literal types, intrinsic string types (Uppercase, Capitalize)</li>
+  </ul>
+</li>
+<li><strong>Utility types</strong>
+  <ul>
+  <li>Partial, Required, Readonly, Pick, Omit, Record</li>
+  <li>Exclude, Extract, NonNullable, ReturnType, Parameters</li>
+  <li>Awaited, InstanceType, ThisType</li>
+  </ul>
+</li>
+<li><strong>Assertions &amp; special syntax</strong>
+  <ul>
+  <li>as assertions, as const, non-null assertion (!), satisfies</li>
+  <li>Definite assignment (!), double assertion via unknown</li>
+  </ul>
+</li>
+<li><strong>Modules &amp; declarations</strong>
+  <ul>
+  <li>ES modules in TS, import type / export type</li>
+  <li>Declaration files (.d.ts), ambient declarations (declare)</li>
+  <li>DefinitelyTyped (@types), module augmentation, global augmentation</li>
+  <li>Namespaces (legacy)</li>
+  </ul>
+</li>
+<li><strong>tsconfig essentials</strong>
+  <ul>
+  <li>strict family (strictNullChecks, noImplicitAny, strictFunctionTypes)</li>
+  <li>target, module, moduleResolution (node16, bundler), lib</li>
+  <li>esModuleInterop, skipLibCheck, paths/baseUrl, declaration, sourceMap</li>
+  <li>noUncheckedIndexedAccess, exactOptionalPropertyTypes</li>
+  </ul>
+</li>
+</ul>
+<h3>3. Version-Specific Knowledge</h3>
+<ul>
+<li><strong>TS 1.x (2014)</strong> — core type annotations, interfaces, classes, enums, generics, namespaces, union types (1.4), tuple types, let/const support</li>
+<li><strong>TS 2.x (2016–2017)</strong> — strictNullChecks &amp; non-null assertion, control-flow narrowing, tagged unions, readonly, keyof &amp; indexed access &amp; mapped types (2.1), object type, async/await downlevel, mixins, default generic params, strict flag</li>
+<li><strong>TS 3.x (2018–2019)</strong> — project references, tuples in rest/spread, unknown type (3.0), composite projects, const assertions (as const, 3.4), optional chaining &amp; nullish coalescing (3.7), assertion functions, ES private fields (3.8), import type/export type</li>
+<li><strong>TS 4.x (2020–2022)</strong> — variadic tuple types (4.0), labeled tuples, template literal types &amp; key remapping (4.1), abstract construct signatures, separate write types (4.3), control flow of aliased conditions (4.4), Awaited type (4.5), es2022 output, in/out variance annotations (4.7), node16 module resolution, satisfies operator (4.9)</li>
+<li><strong>TS 5.x (2023–2025)</strong> — ECMAScript decorators (5.0), const type parameters, enum unification, decorator metadata (5.2), using declarations (explicit resource management), import attributes (5.3), NoInfer utility (5.4), inferred type predicates (5.5), regex syntax checking, isolated declarations (5.5), arbitrary module identifiers, strict builtin iterator checks (5.6), direct .ts imports via rewriteRelativeImportExtensions (5.7), erasableSyntaxOnly for Node type stripping (5.8), expandable hovers &amp; import defer (5.9); native Go-based compiler port announced (project Corsa / TS 7 preview)</li>
+</ul>
+<h3>4. Advanced Knowledge</h3>
+<ul>
+<li><strong>Type-level programming</strong> — recursive conditional types, tail-recursion elimination in types, type-level string parsing, arithmetic with tuples, branded/nominal types, opaque types</li>
+<li><strong>Inference mechanics</strong> — inference sites &amp; priority, contextual typing details, generic inference from multiple candidates, widening &amp; narrowing of literals, fresh object literal checks (excess property checking)</li>
+<li><strong>Soundness &amp; gaps</strong> — unsoundness by design (bivariant method params, array covariance), type assertions bypassing checks, any propagation</li>
+<li><strong>Compiler API &amp; tooling internals</strong> — AST, transformers, language service plugins, incremental builds (.tsbuildinfo)</li>
+<li><strong>Declaration authoring</strong> — publishing types with packages, exports map &amp; types field, dual CJS/ESM typing pitfalls</li>
+</ul>
+<h3>5. Real-World Development</h3>
+<ul>
+<li><strong>Project setup</strong> — tsconfig layering (extends), monorepo project references, path aliases &amp; bundler alignment</li>
+<li><strong>Build pipelines</strong> — tsc vs esbuild/swc/Babel (transpile + separate type-check), Vite, ts-node / tsx, source maps</li>
+<li><strong>Migration</strong> — JS → TS incremental migration (allowJs, checkJs, JSDoc types), tightening strictness gradually</li>
+<li><strong>Runtime validation</strong> — zod / valibot schema-first typing, io-ts, validating API boundaries, type-safe env config</li>
+<li><strong>Linting &amp; style</strong> — typescript-eslint (type-aware rules), banning any, consistent type imports</li>
+</ul>
+<h3>6. Ecosystem</h3>
+<ul>
+<li><strong>Frameworks with first-class TS</strong> — React (typing props, hooks, generics in components), Next.js, NestJS, Angular</li>
+<li><strong>Type-safe data layers</strong> — Prisma, Drizzle, tRPC, GraphQL codegen, TanStack Query typing</li>
+<li><strong>Testing</strong> — Vitest/Jest with TS, type testing (expect-type, tsd)</li>
+<li><strong>Runtimes</strong> — Node (type stripping), Deno &amp; Bun native TS</li>
+</ul>
+<h3>7. Architecture &amp; Design</h3>
+<ul>
+<li>Domain modeling with discriminated unions &amp; exhaustive switches</li>
+<li>Making illegal states unrepresentable, parse-don't-validate</li>
+<li>Branded types for IDs/units, result types vs exceptions</li>
+<li>Public API surface design: interfaces at boundaries, type-only contracts</li>
+<li>Monorepo type sharing, API client generation from schemas (OpenAPI)</li>
+</ul>
+<h3>8. Performance</h3>
+<ul>
+<li>Type-check performance: skipLibCheck, incremental, project references</li>
+<li>Avoiding expensive types (deep recursion, huge unions), interface vs intersection performance</li>
+<li>Editor responsiveness, tracing with --generateTrace, build parallelization</li>
+</ul>
+<h3>9. Security</h3>
+<ul>
+<li>Types are not runtime guarantees — validating untrusted input (API, JSON, forms)</li>
+<li>any/assertion abuse hiding injection-prone code, unsafe casts at boundaries</li>
+<li>Supply-chain: typosquatted @types packages, npm audit</li>
+</ul>
+<h3>10. Testing</h3>
+<ul>
+<li>Typing test utilities, mocks with correct types (vi.mocked, jest.Mocked)</li>
+<li>Type-level tests (expectTypeOf, assert-type), testing public type APIs</li>
+<li>Avoiding as any in tests, factory/builder helpers for fixtures</li>
+</ul>
+<h3>11. Senior / Interview Hot Topics</h3>
+<ul>
+<li>interface vs type, unknown vs any vs never, satisfies vs as</li>
+<li>Structural typing consequences, excess property checks</li>
+<li>Discriminated unions + exhaustiveness with never</li>
+<li>Implementing utility types from scratch (Partial, Pick, DeepReadonly)</li>
+<li>Conditional types + infer puzzles, distributivity gotchas</li>
+<li>Variance: why method params are bivariant, strictFunctionTypes</li>
+<li>Enum pitfalls (const enum, numeric reverse mapping) vs union of literals</li>
+<li>Type erasure implications, ESM/CJS typing interop, declaration merging use cases</li>
+</ul>
+<div class="key-point">Use this map top-down before an interview: narrowing, generics, utility types, and interface-vs-type are asked everywhere; satisfies (4.9), decorators (5.0), and the strict tsconfig flags are the most common "modern TypeScript" questions.</div>`,
+      },
       // ──── 1. TYPESCRIPT BASICS & PROJECT CONFIGURATION ────
       {
         q: 'What is TypeScript? Why use it over JavaScript?',

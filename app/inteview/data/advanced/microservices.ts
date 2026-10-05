@@ -7,6 +7,171 @@ export const topics: PvTopic[] = [
     name: 'Microservices',
     icon: '🧩',
     questions: [
+      // ──── 0. MICROSERVICES SUMMARY — knowledge map ────
+      {
+        q: 'Microservices Summary — Knowledge Map',
+        difficulty: 'easy',
+        a: `<div class="interview-answer"><p>A complete revision checklist for microservices — every concept worth knowing, organized thematically from fundamentals to distributed-data patterns, resilience, operations, and senior-level trade-offs. Concept names only; use it to spot gaps, not as a tutorial.</p></div>
+<h3>1. Fundamentals</h3>
+<ul>
+<li><strong>Architecture styles</strong>
+  <ul>
+  <li>Monolith vs modular monolith vs microservices</li>
+  <li>Distributed monolith (anti-pattern)</li>
+  <li>SOA vs microservices</li>
+  <li>Self-contained systems, serverless/FaaS comparison</li>
+  </ul>
+</li>
+<li><strong>Core characteristics</strong>
+  <ul>
+  <li>Single business capability per service</li>
+  <li>Independent deployability, decentralized governance</li>
+  <li>Smart endpoints, dumb pipes</li>
+  <li>Polyglot persistence &amp; technology</li>
+  <li>Conway's Law, team topologies, two-pizza teams</li>
+  </ul>
+</li>
+<li><strong>Adoption drivers &amp; costs</strong>
+  <ul>
+  <li>Organizational scaling, independent release cadence</li>
+  <li>Operational overhead, network latency, eventual consistency</li>
+  <li>Monolith-first strategy, strangler fig migration</li>
+  </ul>
+</li>
+</ul>
+<h3>2. Service Decomposition</h3>
+<ul>
+<li><strong>Domain-Driven Design</strong>
+  <ul>
+  <li>Bounded contexts, ubiquitous language</li>
+  <li>Aggregates, entities, value objects</li>
+  <li>Context mapping (shared kernel, anti-corruption layer, conformist)</li>
+  <li>Event storming</li>
+  </ul>
+</li>
+<li><strong>Decomposition strategies</strong>
+  <ul>
+  <li>By business capability vs by subdomain</li>
+  <li>Service granularity, nanoservices (anti-pattern)</li>
+  <li>Shared libraries vs duplication</li>
+  <li>Database decomposition, breaking foreign keys</li>
+  </ul>
+</li>
+</ul>
+<h3>3. Communication</h3>
+<ul>
+<li><strong>Synchronous</strong>
+  <ul>
+  <li>REST, gRPC, GraphQL federation</li>
+  <li>API versioning &amp; backward compatibility</li>
+  <li>Client-side vs server-side load balancing</li>
+  </ul>
+</li>
+<li><strong>Asynchronous</strong>
+  <ul>
+  <li>Message brokers (Kafka, RabbitMQ, SQS)</li>
+  <li>Queues vs topics (point-to-point vs pub/sub)</li>
+  <li>Event notification vs event-carried state transfer</li>
+  <li>Delivery guarantees (at-most-once, at-least-once, exactly-once)</li>
+  <li>Idempotent consumers, message ordering, dead-letter queues</li>
+  <li>Choreography vs orchestration</li>
+  </ul>
+</li>
+<li><strong>Contracts</strong>
+  <ul>
+  <li>Schema registry, Avro/Protobuf</li>
+  <li>Consumer-driven contract testing (Pact)</li>
+  </ul>
+</li>
+</ul>
+<h3>4. API Gateway &amp; Service Discovery</h3>
+<ul>
+<li>API gateway responsibilities (routing, auth, rate limiting, aggregation)</li>
+<li>Backend-for-Frontend (BFF) pattern</li>
+<li>Service registry (Eureka, Consul), client-side vs server-side discovery</li>
+<li>DNS-based discovery, Kubernetes Services</li>
+<li>Edge security, TLS termination</li>
+</ul>
+<h3>5. Data Management</h3>
+<ul>
+<li><strong>Data ownership</strong>
+  <ul>
+  <li>Database-per-service, no shared database</li>
+  <li>Reporting &amp; cross-service queries (API composition, data warehouse, CDC)</li>
+  </ul>
+</li>
+<li><strong>Distributed transactions</strong>
+  <ul>
+  <li>Why 2PC/XA fails at scale</li>
+  <li>Saga pattern (choreography &amp; orchestration), compensating transactions</li>
+  <li>Transactional outbox, inbox pattern, change data capture (Debezium)</li>
+  </ul>
+</li>
+<li><strong>CQRS &amp; Event Sourcing</strong>
+  <ul>
+  <li>Command/query separation, read models/projections</li>
+  <li>Event store, snapshots, replay</li>
+  <li>Eventual consistency, read-your-own-writes</li>
+  </ul>
+</li>
+</ul>
+<h3>6. Resilience</h3>
+<ul>
+<li>Timeouts, retries with exponential backoff &amp; jitter</li>
+<li>Circuit breaker (closed/open/half-open), fallbacks</li>
+<li>Bulkhead isolation, rate limiting, load shedding, backpressure</li>
+<li>Idempotency keys, retry storms, cascading failures</li>
+<li>Health checks (liveness/readiness), graceful degradation</li>
+<li>Chaos engineering</li>
+<li>Libraries: Resilience4j, Hystrix (legacy), Envoy-level resilience</li>
+</ul>
+<h3>7. Observability</h3>
+<ul>
+<li>Three pillars: logs, metrics, traces</li>
+<li>Centralized logging (ELK/EFK), correlation IDs</li>
+<li>Distributed tracing (OpenTelemetry, Jaeger, Zipkin), trace context propagation</li>
+<li>Metrics &amp; alerting (Prometheus, Grafana), RED/USE methods</li>
+<li>SLI / SLO / SLA, error budgets</li>
+</ul>
+<h3>8. Deployment &amp; Infrastructure</h3>
+<ul>
+<li>Containers &amp; orchestration (Docker, Kubernetes)</li>
+<li>CI/CD per service, independent pipelines</li>
+<li>Deployment strategies: blue-green, canary, rolling</li>
+<li>Feature flags, config management, secrets management</li>
+<li>Service mesh (Istio, Linkerd): sidecar proxy, mTLS, traffic shifting</li>
+<li>Autoscaling (horizontal, vertical), multi-region considerations</li>
+</ul>
+<h3>9. Security</h3>
+<ul>
+<li>Edge authentication vs service-to-service auth</li>
+<li>OAuth2 / OIDC, JWT propagation, token exchange</li>
+<li>mTLS, zero-trust networking</li>
+<li>API keys, rate limiting, secrets rotation</li>
+</ul>
+<h3>10. Testing</h3>
+<ul>
+<li>Test pyramid for microservices</li>
+<li>Unit, component, integration tests</li>
+<li>Consumer-driven contract tests</li>
+<li>End-to-end tests (scope &amp; cost), testing in production</li>
+<li>Testcontainers, service virtualization/mocking</li>
+</ul>
+<h3>11. Senior / Interview Hot Topics</h3>
+<ul>
+<li>When NOT to use microservices; monolith-first argument</li>
+<li>Strangler fig migration of a legacy monolith</li>
+<li>Saga vs 2PC; outbox pattern rationale</li>
+<li>Choreography vs orchestration trade-offs</li>
+<li>Exactly-once delivery myth &amp; idempotency design</li>
+<li>Distributed monolith symptoms, shared-database pitfalls</li>
+<li>Versioning &amp; backward-compatible API evolution</li>
+<li>Data duplication vs joins across services</li>
+<li>Service granularity debates, merging services back</li>
+<li>Cost of observability &amp; operational maturity prerequisites</li>
+</ul>
+<div class="key-point">Interviews focus on trade-offs: expect "monolith vs microservices", "how do you keep data consistent across services" (saga + outbox), and "what happens when a downstream service is slow" (timeout + retry + circuit breaker + bulkhead). Know the failure story, not just the happy path.</div>`,
+      },
       // ──── 1. FUNDAMENTALS & SERVICE DECOMPOSITION ────
       {
         q: 'What is microservice architecture and when should you choose it?',

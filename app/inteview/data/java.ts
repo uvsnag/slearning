@@ -8,6 +8,192 @@ export const topics: PvTopic[] = [
     name: 'Java',
     icon: '☕',
     questions: [
+      // ──── 0. JAVA SUMMARY — version-by-version knowledge map ────
+      {
+        q: 'Java Summary — Version-by-Version Knowledge Map',
+        difficulty: 'easy',
+        a: `<div class="interview-answer"><p>A complete revision checklist for Java — everything worth knowing, organized from fundamentals to version-specific features, advanced internals, and senior-level topics. Concept names only; use it to spot gaps, not as a tutorial.</p></div>
+<h3>1. Fundamentals</h3>
+<ul>
+<li><strong>Platform</strong>
+  <ul>
+  <li>JDK vs JRE vs JVM</li>
+  <li>Compilation model (javac → bytecode → JIT)</li>
+  <li>"Write once, run anywhere"</li>
+  <li>Classpath vs module path</li>
+  </ul>
+</li>
+<li><strong>Syntax &amp; Types</strong>
+  <ul>
+  <li>Primitives vs wrapper classes, autoboxing/unboxing, Integer cache</li>
+  <li>Literals, operators, control flow, enhanced switch</li>
+  <li>Pass-by-value semantics (references copied by value)</li>
+  <li>Type casting, widening/narrowing, instanceof</li>
+  </ul>
+</li>
+<li><strong>OOP</strong>
+  <ul>
+  <li>Encapsulation, inheritance, polymorphism, abstraction</li>
+  <li>Classes, objects, constructors, initializer blocks</li>
+  <li>Interfaces vs abstract classes, default/static/private interface methods</li>
+  <li>Overloading vs overriding, dynamic dispatch</li>
+  <li>static, final, access modifiers, nested/inner/anonymous classes</li>
+  <li>Object methods: equals/hashCode contract, toString, clone</li>
+  <li>Enums, records, sealed classes</li>
+  </ul>
+</li>
+<li><strong>Strings</strong>
+  <ul>
+  <li>Immutability, String pool, intern()</li>
+  <li>String vs StringBuilder vs StringBuffer</li>
+  <li>Text blocks, compact strings</li>
+  </ul>
+</li>
+<li><strong>Exceptions</strong>
+  <ul>
+  <li>Checked vs unchecked vs Error, exception hierarchy</li>
+  <li>try/catch/finally, try-with-resources (AutoCloseable)</li>
+  <li>Custom exceptions, chaining, suppressed exceptions</li>
+  </ul>
+</li>
+<li><strong>Memory basics</strong>
+  <ul>
+  <li>Stack vs heap, reference types (strong/soft/weak/phantom)</li>
+  <li>Garbage collection basics, finalize() deprecation</li>
+  </ul>
+</li>
+</ul>
+<h3>2. Core / Cross-Version Knowledge</h3>
+<ul>
+<li><strong>Collections Framework</strong>
+  <ul>
+  <li>List / Set / Map / Queue / Deque hierarchies</li>
+  <li>ArrayList vs LinkedList, HashMap vs TreeMap vs LinkedHashMap, HashSet vs TreeSet</li>
+  <li>HashMap internals (buckets, hashing, treeification, resize)</li>
+  <li>Comparable vs Comparator, fail-fast vs fail-safe iterators</li>
+  <li>Immutable collections (List.of), Collections utility methods</li>
+  <li>Concurrent collections: ConcurrentHashMap, CopyOnWriteArrayList, BlockingQueue</li>
+  </ul>
+</li>
+<li><strong>Generics</strong>
+  <ul>
+  <li>Type parameters, bounded types, wildcards (? extends / ? super), PECS</li>
+  <li>Type erasure, bridge methods, raw types, generic arrays limitation</li>
+  </ul>
+</li>
+<li><strong>Functional Programming</strong>
+  <ul>
+  <li>Lambdas, method references, functional interfaces (Function, Supplier, Consumer, Predicate)</li>
+  <li>Stream API: intermediate vs terminal ops, laziness, collectors, parallel streams</li>
+  <li>Optional: creation, mapping, anti-patterns</li>
+  </ul>
+</li>
+<li><strong>Concurrency</strong>
+  <ul>
+  <li>Thread lifecycle, Runnable vs Callable, daemon threads</li>
+  <li>synchronized, intrinsic locks, volatile, atomic classes (CAS)</li>
+  <li>java.util.concurrent: ExecutorService, thread pools, Future, CompletableFuture</li>
+  <li>Locks (ReentrantLock, ReadWriteLock), synchronizers (CountDownLatch, Semaphore, CyclicBarrier)</li>
+  <li>ThreadLocal, ForkJoinPool, work stealing</li>
+  <li>Java Memory Model: happens-before, safe publication, visibility vs atomicity</li>
+  <li>Deadlock, livelock, starvation, race conditions</li>
+  </ul>
+</li>
+<li><strong>I/O &amp; Networking</strong>
+  <ul>
+  <li>Byte vs character streams, buffering, serialization (and its pitfalls)</li>
+  <li>NIO / NIO.2: channels, buffers, selectors, Path/Files API</li>
+  <li>Sockets, HttpClient (HTTP/2, async)</li>
+  </ul>
+</li>
+<li><strong>Other core APIs</strong>
+  <ul>
+  <li>java.time (Instant, LocalDateTime, ZonedDateTime, Duration/Period)</li>
+  <li>Reflection, annotations (retention, targets, processors)</li>
+  <li>Class loading: delegation model, custom class loaders</li>
+  <li>JDBC: connections, prepared statements, transactions, pooling</li>
+  <li>Regular expressions, Scanner, Formatter</li>
+  </ul>
+</li>
+</ul>
+<h3>3. Version-Specific Knowledge</h3>
+<ul>
+<li><strong>Java 8 (LTS)</strong> — lambdas, Stream API, Optional, default/static interface methods, java.time, CompletableFuture, Metaspace replaces PermGen, Nashorn</li>
+<li><strong>Java 9</strong> — module system (JPMS), JShell, collection factory methods (List.of), private interface methods, Stream/Optional improvements, VarHandles, multi-release JARs, G1 as default GC</li>
+<li><strong>Java 10</strong> — var (local-variable type inference), application class-data sharing, parallel full GC for G1</li>
+<li><strong>Java 11 (LTS)</strong> — standard HttpClient, var in lambda params, new String methods (isBlank, lines, repeat), Files.readString, single-file source launch, ZGC &amp; Epsilon (experimental), Java EE/CORBA modules removed, no separate JRE</li>
+<li><strong>Java 12–13</strong> — switch expressions (preview), text blocks (preview), Shenandoah GC, CDS archives by default</li>
+<li><strong>Java 14</strong> — switch expressions (standard), records (preview), pattern matching for instanceof (preview), helpful NullPointerExceptions</li>
+<li><strong>Java 15</strong> — text blocks (standard), sealed classes (preview), hidden classes, ZGC/Shenandoah production-ready</li>
+<li><strong>Java 16</strong> — records (standard), pattern matching for instanceof (standard), Stream.toList, strong encapsulation of JDK internals begins</li>
+<li><strong>Java 17 (LTS)</strong> — sealed classes (standard), pattern matching for switch (preview), always-strict floating point, strong encapsulation enforced, SecurityManager deprecated</li>
+<li><strong>Java 18–20</strong> — UTF-8 by default, simple web server, virtual threads (preview), structured concurrency (incubator), record patterns (preview), Foreign Function &amp; Memory API (preview)</li>
+<li><strong>Java 21 (LTS)</strong> — virtual threads (standard), sequenced collections, record patterns &amp; pattern matching for switch (standard), generational ZGC, string templates (preview), scoped values (preview), KEM API</li>
+<li><strong>Java 22–23</strong> — unnamed variables (_), Foreign Function &amp; Memory API (standard), statements before super(...) (preview), stream gatherers (preview), Markdown doc comments, launch multi-file source programs</li>
+<li><strong>Java 24–25 (LTS 25, latest)</strong> — compact object headers, class-file API (standard), scoped values (standard), stream gatherers (standard), module import declarations, flexible constructor bodies, ahead-of-time class loading &amp; linking (Project Leyden), quantum-resistant crypto algorithms</li>
+</ul>
+<h3>4. Advanced Knowledge</h3>
+<ul>
+<li><strong>JVM internals</strong> — class file structure, bytecode, interpreter vs JIT (C1/C2, tiered compilation), escape analysis, inlining, intrinsics, deoptimization, GraalVM &amp; native image (AOT)</li>
+<li><strong>Memory &amp; GC</strong> — heap regions/generations, TLAB, GC algorithms (Serial, Parallel, G1, ZGC, Shenandoah), GC tuning flags, OutOfMemoryError types, memory leaks, string deduplication</li>
+<li><strong>Concurrency advanced</strong> — virtual threads internals (carrier threads, pinning), structured concurrency, scoped values, false sharing, lock-free algorithms, double-checked locking</li>
+<li><strong>Interop &amp; instrumentation</strong> — JNI, Foreign Function &amp; Memory API, sun.misc.Unsafe, Java agents, bytecode manipulation (ASM, ByteBuddy)</li>
+</ul>
+<h3>5. Real-World Development</h3>
+<ul>
+<li><strong>Build &amp; dependencies</strong> — Maven (lifecycle, scopes, BOM), Gradle, semantic versioning, dependency conflicts</li>
+<li><strong>Packaging &amp; deployment</strong> — JAR/WAR, fat/uber jars, jlink, jpackage, Docker (container-aware JVM flags), CI/CD</li>
+<li><strong>Logging</strong> — SLF4J facade, Logback, Log4j2, structured logging, MDC</li>
+<li><strong>Observability &amp; troubleshooting</strong> — JMX, Java Flight Recorder, Micrometer, heap dumps, thread dumps, jcmd/jstack/jmap/jstat</li>
+<li><strong>Migration</strong> — Java 8 → 11 → 17 → 21 upgrade concerns, removed APIs, --add-opens</li>
+</ul>
+<h3>6. Ecosystem</h3>
+<ul>
+<li><strong>Frameworks</strong> — Spring / Spring Boot, Jakarta EE, Quarkus, Micronaut</li>
+<li><strong>Persistence</strong> — JPA / Hibernate, connection pools (HikariCP), Flyway/Liquibase</li>
+<li><strong>Libraries</strong> — Jackson/Gson, Lombok, MapStruct, Guava, Apache Commons, Netty, gRPC</li>
+<li><strong>Tooling</strong> — IntelliJ IDEA, SonarQube, Checkstyle, SpotBugs, Error Prone</li>
+</ul>
+<h3>7. Architecture &amp; Design</h3>
+<ul>
+<li>SOLID principles, GoF design patterns, composition over inheritance</li>
+<li>Dependency injection / IoC, layered &amp; hexagonal architecture</li>
+<li>Immutability as a design tool, API design &amp; evolution, modularity (JPMS)</li>
+<li>Monolith vs microservices, event-driven architecture</li>
+</ul>
+<h3>8. Performance</h3>
+<ul>
+<li>JIT warm-up, benchmarking with JMH (avoiding dead-code elimination)</li>
+<li>Allocation pressure, object pooling trade-offs, caching</li>
+<li>GC selection &amp; tuning (latency vs throughput), heap sizing</li>
+<li>Profiling (JFR, async-profiler), I/O and connection pooling bottlenecks</li>
+</ul>
+<h3>9. Security</h3>
+<ul>
+<li>Input validation, injection prevention (PreparedStatement)</li>
+<li>Deserialization vulnerabilities, serialization filters</li>
+<li>JCA/JCE cryptography, TLS, keystores/truststores</li>
+<li>Dependency scanning (OWASP, Log4Shell lessons), SecurityManager removal</li>
+</ul>
+<h3>10. Testing</h3>
+<ul>
+<li>JUnit 5 (lifecycle, parameterized, nested tests), AssertJ</li>
+<li>Mockito (mocks vs stubs vs spies), integration testing, Testcontainers</li>
+<li>Code coverage (JaCoCo), mutation testing (PIT), property-based testing (jqwik)</li>
+</ul>
+<h3>11. Senior / Interview Hot Topics</h3>
+<ul>
+<li>equals/hashCode contract &amp; HashMap behavior, String pool &amp; Integer cache</li>
+<li>Type erasure trade-offs, checked exceptions debate</li>
+<li>Java Memory Model &amp; happens-before, volatile vs synchronized vs atomic</li>
+<li>Virtual threads vs reactive programming, thread-pool sizing</li>
+<li>GC choice trade-offs, diagnosing memory leaks (ThreadLocal, static collections, classloader leaks)</li>
+<li>ConcurrentModificationException, fail-fast iteration, deadlock analysis</li>
+<li>Immutability &amp; defensive copies, records vs Lombok, sealed hierarchies for domain modeling</li>
+<li>Backward compatibility &amp; LTS upgrade strategy</li>
+</ul>
+<div class="key-point">Use this map top-down before an interview: fundamentals and collections/concurrency are asked everywhere; version features from Java 8, 11, 17, and 21 (the LTS releases) are the most common "what's new in Java" questions.</div>`,
+      },
       // ──── 1. CORE JAVA FUNDAMENTALS — JVM, syntax, strings, numbers ────
       {
         q: 'What is the difference between JDK, JRE, and JVM?',

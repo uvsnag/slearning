@@ -7,6 +7,128 @@ export const topics: PvTopic[] = [
     name: 'Unit Testing',
     icon: '🧪',
     questions: [
+      // ──── 0. TESTING SUMMARY — knowledge map ────
+      {
+        q: 'Testing Summary — Knowledge Map',
+        difficulty: 'easy',
+        a: `<div class="interview-answer"><p>A complete revision checklist for software testing — everything worth knowing, from the test pyramid and JUnit/Mockito mechanics to integration testing, JS testing, and senior-level strategy. Concept names only; use it to spot gaps, not as a tutorial.</p></div>
+<h3>1. Fundamentals</h3>
+<ul>
+<li><strong>Test types &amp; strategy</strong>
+  <ul>
+  <li>Test pyramid (unit → integration → e2e), testing trophy, ice-cream cone anti-pattern</li>
+  <li>Unit vs integration vs end-to-end vs contract vs smoke vs regression tests</li>
+  <li>Black-box vs white-box, functional vs non-functional testing</li>
+  <li>Sociable vs solitary unit tests (classical vs mockist / Detroit vs London schools)</li>
+  </ul>
+</li>
+<li><strong>Qualities of a good test</strong>
+  <ul>
+  <li>FIRST principles (Fast, Isolated, Repeatable, Self-validating, Timely)</li>
+  <li>Arrange-Act-Assert (Given-When-Then), one reason to fail</li>
+  <li>Testing behavior vs implementation, test naming conventions</li>
+  <li>Determinism, flaky tests &amp; their causes (time, randomness, shared state, async)</li>
+  </ul>
+</li>
+<li><strong>Test doubles</strong>
+  <ul>
+  <li>Dummy, stub, fake, spy, mock — distinctions</li>
+  <li>State verification vs behavior verification</li>
+  <li>Over-mocking as a design smell</li>
+  </ul>
+</li>
+</ul>
+<h3>2. JUnit 5 (Java)</h3>
+<ul>
+<li>Architecture: Platform, Jupiter, Vintage</li>
+<li>Lifecycle: @Test, @BeforeEach/@AfterEach, @BeforeAll/@AfterAll, test instance lifecycle (PER_CLASS)</li>
+<li>Assertions: assertEquals, assertThrows, assertAll, assertTimeout</li>
+<li>@ParameterizedTest (ValueSource, CsvSource, MethodSource, EnumSource)</li>
+<li>@Nested tests, @DisplayName, @Tag &amp; filtering, @Disabled</li>
+<li>Conditional execution (@EnabledOnOs, @EnabledIfEnvironmentVariable)</li>
+<li>@RepeatedTest, @Timeout, parallel execution config</li>
+<li>Extensions model (@ExtendWith, custom extensions), @TempDir</li>
+<li>Dynamic tests (@TestFactory)</li>
+</ul>
+<h3>3. Mockito &amp; Assertion Libraries</h3>
+<ul>
+<li><strong>Mockito</strong>
+  <ul>
+  <li>mock(), @Mock, @InjectMocks, @ExtendWith(MockitoExtension.class)</li>
+  <li>Stubbing: when/thenReturn, thenThrow, thenAnswer, doReturn vs when</li>
+  <li>Verification: verify, times/never, InOrder, verifyNoMoreInteractions</li>
+  <li>Argument matchers (any, eq, argThat), ArgumentCaptor</li>
+  <li>Spies (partial mocks), mocking statics (mockStatic), strict stubbing &amp; UnnecessaryStubbingException</li>
+  <li>BDDMockito (given/willReturn)</li>
+  <li>What not to mock: value objects, types you don't own</li>
+  </ul>
+</li>
+<li><strong>AssertJ</strong> — fluent assertions, collection/exception assertions, extracting(), usingRecursiveComparison(), soft assertions</li>
+<li>Hamcrest matchers (legacy), Awaitility for async assertions</li>
+</ul>
+<h3>4. Spring Boot Testing</h3>
+<ul>
+<li>@SpringBootTest, webEnvironment (MOCK vs RANDOM_PORT)</li>
+<li>Test slices: @WebMvcTest, @DataJpaTest, @JsonTest, @RestClientTest</li>
+<li>MockMvc, WebTestClient, TestRestTemplate</li>
+<li>@MockBean / @MockitoBean, @SpyBean, @TestConfiguration</li>
+<li>Context caching, @DirtiesContext cost</li>
+<li>@Transactional rollback in tests, @Sql, test properties &amp; @ActiveProfiles</li>
+<li>@DataJpaTest with H2 vs real database trade-off</li>
+</ul>
+<h3>5. Integration &amp; E2E Testing</h3>
+<ul>
+<li><strong>Testcontainers</strong> — @Container, singleton containers, @ServiceConnection, database/Kafka/Redis modules</li>
+<li>WireMock / MockWebServer for HTTP stubs</li>
+<li>Contract testing: Pact (consumer-driven), Spring Cloud Contract</li>
+<li>Database migration testing (Flyway in tests), test data builders / object mothers / fixtures</li>
+<li>E2E tools: Selenium, Playwright, Cypress</li>
+<li>API testing: REST Assured, Postman/newman</li>
+</ul>
+<h3>6. JavaScript / Frontend Testing</h3>
+<ul>
+<li>Jest / Vitest: describe/it, matchers, mocks (jest.fn, jest.mock), fake timers, snapshot testing</li>
+<li>React Testing Library: render, screen queries (getBy/findBy/queryBy), userEvent, testing hooks</li>
+<li>Querying by role/accessibility — testing like a user</li>
+<li>MSW (Mock Service Worker) for network mocking</li>
+<li>Component vs e2e (Playwright/Cypress) boundaries</li>
+</ul>
+<h3>7. Methodologies</h3>
+<ul>
+<li>TDD: red-green-refactor, test-first discipline, when TDD pays off</li>
+<li>BDD: Gherkin, Cucumber, executable specifications</li>
+<li>Property-based testing (jqwik, fast-check)</li>
+<li>Mutation testing (PIT, Stryker) — testing the tests</li>
+<li>Approval/golden-master testing for legacy code</li>
+<li>Characterization tests, seams, breaking dependencies for testability</li>
+</ul>
+<h3>8. Coverage &amp; Quality Metrics</h3>
+<ul>
+<li>Line vs branch vs mutation coverage, JaCoCo / Istanbul</li>
+<li>Coverage as a gate vs a guide — why 100% is the wrong target</li>
+<li>Test smells: fragile tests, slow suites, assertion-free tests, logic in tests</li>
+<li>Flaky test management: quarantine, retry policy, root-causing</li>
+</ul>
+<h3>9. CI &amp; Non-Functional Testing</h3>
+<ul>
+<li>Tests in CI pipelines: staging by speed, parallelization, fail-fast</li>
+<li>Performance/load testing (JMeter, Gatling, k6)</li>
+<li>Security testing (SAST/DAST basics), accessibility testing</li>
+<li>Test environments &amp; test data management</li>
+</ul>
+<h3>10. Senior / Interview Hot Topics</h3>
+<ul>
+<li>What to unit test vs integration test — drawing the boundary</li>
+<li>Mockist vs classical debate, over-mocking symptoms</li>
+<li>Testing time, randomness, and concurrency deterministically (Clock injection)</li>
+<li>Testing legacy code without tests (seams, characterization)</li>
+<li>Why private methods aren't tested directly</li>
+<li>Test design for async code and message-driven systems</li>
+<li>Balancing suite speed vs confidence, context caching in Spring</li>
+<li>Designing a test strategy for a new microservice</li>
+</ul>
+<div class="key-point">Interviews focus on judgment, not syntax: when to mock vs use the real thing, where the unit/integration boundary sits, how to kill flaky tests, and how you'd test-strategize a real service. Have one concrete war story for each.</div>`,
+      },
       // ──── 1. FUNDAMENTALS — WHAT A GOOD TEST IS ────
       {
         q: 'What makes a good unit test? (FIRST principles, AAA, one reason to fail)',

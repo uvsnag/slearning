@@ -8,6 +8,75 @@ export const topics: PvTopic[] = [
     name: 'Zustand',
     icon: '🐻',
     questions: [
+      // ──── 0. ZUSTAND SUMMARY — knowledge map ────
+      {
+        q: 'Zustand Summary — Knowledge Map',
+        difficulty: 'easy',
+        a: `<div class="interview-answer"><p>A complete revision checklist for Zustand — core API, selector model, patterns, middleware, SSR usage, and interview topics. Concept names only; use it to spot gaps, not as a tutorial.</p></div>
+<h3>1. Core Concepts</h3>
+<ul>
+<li><strong>Store basics</strong>
+  <ul>
+  <li>create(), set / get, store as a hook</li>
+  <li>No provider needed, store lives outside React</li>
+  <li>Partial state merge vs replace (set second argument)</li>
+  <li>Actions colocated in the store</li>
+  </ul>
+</li>
+<li><strong>Selectors &amp; re-renders</strong>
+  <ul>
+  <li>Selector functions, subscribe-to-slice model</li>
+  <li>Strict equality by default, shallow comparison (useShallow)</li>
+  <li>Selecting objects/arrays pitfalls (new reference every render)</li>
+  <li>Atomic selectors vs whole-store selection</li>
+  </ul>
+</li>
+<li><strong>Positioning</strong> — client/UI state tool; vs Redux, Context API, Jotai; not for server state (TanStack Query's job)</li>
+</ul>
+<h3>2. Patterns</h3>
+<ul>
+<li>Slices pattern (combining feature slices into one store)</li>
+<li>Multiple stores vs single store</li>
+<li>Derived/computed state (compute in selector, or subscribeWithSelector)</li>
+<li>Async actions (plain async functions calling set)</li>
+<li>Transient updates (subscribe without re-render)</li>
+<li>Resetting state (initial-state snapshot pattern)</li>
+<li>Vanilla stores — createStore, useStore, usage outside React</li>
+<li>Immutability discipline (spread updates vs immer)</li>
+</ul>
+<h3>3. Middleware</h3>
+<ul>
+<li>persist (storage adapters, partialize, versioning/migrate, skipHydration, onRehydrateStorage)</li>
+<li>devtools (Redux DevTools integration, action names)</li>
+<li>immer (mutable-style updates)</li>
+<li>subscribeWithSelector, combine</li>
+<li>Middleware composition order, custom middleware</li>
+</ul>
+<h3>4. SSR &amp; Next.js</h3>
+<ul>
+<li>Per-request store instances (avoiding shared server state)</li>
+<li>Provider + context pattern for App Router</li>
+<li>Hydration mismatch with persist, skipHydration / manual rehydrate</li>
+<li>Store initialization with server data</li>
+</ul>
+<h3>5. TypeScript &amp; Testing</h3>
+<ul>
+<li>Typing stores (create&lt;State&gt;()(...), curried create), typing slices</li>
+<li>StateCreator type, middleware typing (mutators)</li>
+<li>Testing stores in isolation (vanilla store, getState/setState)</li>
+<li>Resetting stores between tests, mocking in component tests</li>
+</ul>
+<h3>6. Senior / Interview Hot Topics</h3>
+<ul>
+<li>Why Zustand avoids Context's re-render problem (external store + useSyncExternalStore)</li>
+<li>Selector granularity &amp; render performance</li>
+<li>Zustand vs Redux Toolkit: boilerplate, middleware ecosystem, devtools, team scale</li>
+<li>Server state vs client state boundary (Query + Zustand together)</li>
+<li>Common mistakes: fetching API data into the store, selecting the whole store, unstable selector results</li>
+<li>persist versioning &amp; migrations in production</li>
+</ul>
+<div class="key-point">Use this map top-down before an interview: the selector re-render model, slices pattern, and persist middleware are the most asked areas — plus the classic "why not Context/Redux, and where does TanStack Query fit" comparison.</div>`,
+      },
       // ──── 1. ZUSTAND BASICS & HOW IT COMPARES ────
       {
         q: 'What is Zustand and how does it compare to Redux and Context API?',
@@ -432,6 +501,98 @@ const total = useStore((s) => s.items.reduce((sum, i) => sum + i.price, 0));
     name: 'TanStack (Query/Form)',
     icon: '🔥',
     questions: [
+      // ──── 0. TANSTACK SUMMARY — knowledge map ────
+      {
+        q: 'TanStack Summary — Knowledge Map',
+        difficulty: 'easy',
+        a: `<div class="interview-answer"><p>A complete revision checklist for TanStack Query (and Form) — server-state fundamentals, caching and invalidation, mutations, advanced query patterns, SSR, and interview topics. Concept names only; use it to spot gaps, not as a tutorial.</p></div>
+<h3>1. Core Concepts (Query)</h3>
+<ul>
+<li><strong>Server state model</strong>
+  <ul>
+  <li>Server state vs client state, why a cache-first library</li>
+  <li>QueryClient, QueryClientProvider, query cache</li>
+  </ul>
+</li>
+<li><strong>useQuery</strong>
+  <ul>
+  <li>queryKey design (arrays, hierarchical keys, params in keys)</li>
+  <li>queryFn, error throwing contract, AbortSignal</li>
+  <li>status (pending/error/success) vs fetchStatus (fetching/paused/idle)</li>
+  <li>enabled option, dependent queries</li>
+  <li>retry &amp; retry delay, throwOnError</li>
+  </ul>
+</li>
+<li><strong>Freshness lifecycle</strong>
+  <ul>
+  <li>staleTime vs gcTime (cacheTime rename), fresh → stale → inactive → garbage-collected</li>
+  <li>Automatic refetch triggers: mount, window focus, reconnect, interval</li>
+  <li>Background refetch, isFetching vs isLoading/isPending</li>
+  </ul>
+</li>
+</ul>
+<h3>2. Caching &amp; Invalidation</h3>
+<ul>
+<li>invalidateQueries (key matching, exact vs prefix, predicates)</li>
+<li>setQueryData (manual cache writes), getQueryData</li>
+<li>refetchQueries vs invalidation, resetQueries, removeQueries</li>
+<li>initialData vs placeholderData, keepPreviousData pattern</li>
+<li>select (data transformation &amp; render optimization)</li>
+<li>prefetchQuery, ensureQueryData, hover/route prefetching</li>
+<li>Query key factories (centralized key management)</li>
+</ul>
+<h3>3. Mutations</h3>
+<ul>
+<li>useMutation — mutate vs mutateAsync, lifecycle callbacks (onMutate, onError, onSuccess, onSettled)</li>
+<li>Invalidate-on-success pattern</li>
+<li>Optimistic updates — cancelQueries, snapshot, rollback in onError</li>
+<li>Mutation keys, pending states for UI, serial vs parallel mutations</li>
+</ul>
+<h3>4. Advanced Patterns</h3>
+<ul>
+<li>useInfiniteQuery (pages, getNextPageParam, bidirectional), pagination strategies</li>
+<li>useQueries (dynamic parallel queries)</li>
+<li>Polling (refetchInterval), realtime sync (websocket → setQueryData / invalidate)</li>
+<li>Offline support — networkMode, persistQueryClient, mutation queue</li>
+<li>Suspense — useSuspenseQuery, error boundaries integration</li>
+<li>useQueryClient, cache subscriptions, QueryObserver</li>
+<li>Request deduplication, structural sharing</li>
+</ul>
+<h3>5. SSR &amp; Next.js</h3>
+<ul>
+<li>QueryClient per request (avoiding cross-user cache leaks)</li>
+<li>Server prefetch + dehydrate + HydrationBoundary</li>
+<li>staleTime tuning to avoid immediate client refetch</li>
+<li>RSC + Query division of labor (when Query is still needed)</li>
+</ul>
+<h3>6. TanStack Form</h3>
+<ul>
+<li>useForm, Field component / field API, form vs field state</li>
+<li>Validation — sync &amp; async, onChange/onBlur/onSubmit timing, debounced async validators</li>
+<li>Schema adapters (Zod/Valibot/Yup)</li>
+<li>Submission handling, isSubmitting/canSubmit, reset</li>
+<li>Headless &amp; framework-agnostic design, TypeScript-first type inference</li>
+<li>Comparison: React Hook Form, Formik</li>
+</ul>
+<h3>7. Tooling &amp; Testing</h3>
+<ul>
+<li>React Query Devtools (cache inspection, query states)</li>
+<li>Testing — QueryClient wrapper per test, turning off retries, MSW for API mocking</li>
+<li>ESLint plugin (@tanstack/eslint-plugin-query)</li>
+</ul>
+<h3>8. Senior / Interview Hot Topics</h3>
+<ul>
+<li>staleTime vs gcTime (the classic question)</li>
+<li>Why fetching into Zustand/Redux duplicates a source of truth</li>
+<li>Optimistic update rollback flow step-by-step</li>
+<li>Query key design for large apps (factories, invalidation granularity)</li>
+<li>isLoading vs isFetching vs isPending UX decisions</li>
+<li>Race conditions — query cancellation with AbortSignal</li>
+<li>Caching strategy per data type (volatile vs static data)</li>
+<li>Common mistakes: forgetting params in queryKey, over-invalidation, global staleTime 0 refetch storms</li>
+</ul>
+<div class="key-point">Use this map top-down before an interview: staleTime vs gcTime, queryKey design, invalidation, and optimistic updates are the most asked areas — plus the server-state vs client-state split that motivates the whole library.</div>`,
+      },
       // ──── 1. CORE CONCEPTS — SERVER STATE, KEYS & CACHING ────
       {
         q: 'What is the difference between server state and client state? How does TanStack Query fit?',

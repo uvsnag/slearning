@@ -9,6 +9,126 @@ export const topics: PvTopic[] = [
     name: 'Next.js',
     icon: '▲',
     questions: [
+      // ──── 0. NEXT.JS SUMMARY — knowledge map ────
+      {
+        q: 'Next.js Summary — Version-by-Version Knowledge Map',
+        difficulty: 'easy',
+        a: `<div class="interview-answer"><p>A complete revision checklist for Next.js — rendering fundamentals, the Pages Router era, the App Router generations (13/14/15), caching internals, deployment, and senior-level topics. Concept names only; use it to spot gaps, not as a tutorial.</p></div>
+<h3>1. Fundamentals</h3>
+<ul>
+<li><strong>Rendering strategies</strong>
+  <ul>
+  <li>CSR vs SSR vs SSG vs ISR, per-route choice</li>
+  <li>Hydration, pre-rendering, SEO implications</li>
+  <li>Static vs dynamic rendering, build-time vs request-time</li>
+  </ul>
+</li>
+<li><strong>Framework basics</strong>
+  <ul>
+  <li>File-based routing, dynamic segments, catch-all routes</li>
+  <li>next/link (client navigation, prefetching), next/router &amp; useRouter</li>
+  <li>Built-in optimization: next/image, next/font, next/script</li>
+  <li>Environment variables (NEXT_PUBLIC_ prefix, server-only)</li>
+  <li>next.config (redirects, rewrites, headers)</li>
+  </ul>
+</li>
+</ul>
+<h3>2. Pages Router Era (Next 9–12)</h3>
+<ul>
+<li>pages/ directory, _app and _document</li>
+<li>Data fetching: getServerSideProps, getStaticProps, getStaticPaths (fallback modes), getInitialProps (legacy)</li>
+<li>Incremental Static Regeneration (revalidate), on-demand revalidation</li>
+<li>API routes (pages/api), dynamic API routes</li>
+<li>Middleware introduction (Next 12), Edge runtime beginnings</li>
+<li>Rust compiler (SWC) replacing Babel (Next 12)</li>
+<li>Automatic static optimization, shallow routing</li>
+</ul>
+<h3>3. Next 13 — App Router Generation</h3>
+<ul>
+<li><strong>App Router (beta → stable in 13.4)</strong>
+  <ul>
+  <li>app/ directory, React Server Components by default</li>
+  <li>Special files: layout, page, loading, error, not-found, template, route</li>
+  <li>Nested layouts, route groups (parentheses), parallel &amp; intercepting routes</li>
+  <li>"use client" boundary, server vs client component rules</li>
+  <li>Streaming with Suspense, loading UI</li>
+  </ul>
+</li>
+<li>Data fetching with fetch in Server Components, async components</li>
+<li>Server Actions (alpha, 13.4)</li>
+<li>next/image overhaul, next/font (zero layout shift), Turbopack alpha</li>
+<li>Metadata API replacing next/head</li>
+</ul>
+<h3>4. Next 14</h3>
+<ul>
+<li>Server Actions stable (forms, mutations, progressive enhancement)</li>
+<li>Partial Prerendering (preview)</li>
+<li>Metadata improvements (viewport split)</li>
+<li>Turbopack dev improvements, next/image &amp; caching refinements</li>
+</ul>
+<h3>5. Next 15</h3>
+<ul>
+<li>React 19 support, React Compiler (experimental)</li>
+<li>Caching defaults changed: fetch, GET route handlers &amp; client router cache uncached by default</li>
+<li>Async request APIs (await cookies(), headers(), params, searchParams)</li>
+<li>Turbopack dev stable, after() API, instrumentation</li>
+<li>Form component, unstable_cache → "use cache" direction</li>
+</ul>
+<h3>6. Core / Cross-Version Knowledge</h3>
+<ul>
+<li><strong>Caching layers (App Router)</strong>
+  <ul>
+  <li>Request memoization, Data Cache, Full Route Cache, Router Cache</li>
+  <li>revalidatePath, revalidateTag, fetch cache &amp; next.revalidate options</li>
+  <li>Dynamic functions opting out (cookies, headers, searchParams)</li>
+  </ul>
+</li>
+<li><strong>Route Handlers</strong> — route.ts, HTTP methods, streaming responses</li>
+<li><strong>Middleware</strong> — matcher config, rewrites/redirects, auth gating, edge constraints</li>
+<li><strong>Metadata &amp; SEO</strong> — generateMetadata, sitemap/robots, Open Graph images</li>
+<li><strong>Rendering control</strong> — dynamic/revalidate route segment config, generateStaticParams</li>
+<li><strong>Error handling</strong> — error.tsx boundaries, global-error, notFound()/redirect()</li>
+</ul>
+<h3>7. Advanced Knowledge</h3>
+<ul>
+<li>RSC payload &amp; serialization (what crosses the server/client boundary)</li>
+<li>Streaming SSR internals, selective hydration, Suspense orchestration</li>
+<li>Partial Prerendering model (static shell + dynamic holes)</li>
+<li>Edge runtime vs Node.js runtime trade-offs</li>
+<li>Server Actions internals (POST encoding, security considerations)</li>
+<li>Request waterfalls vs parallel data fetching, preload pattern</li>
+<li>Draft mode, on-demand ISR, multi-tenant patterns</li>
+</ul>
+<h3>8. Real-World Development</h3>
+<ul>
+<li>Deployment: Vercel vs self-hosted, standalone output, Docker</li>
+<li>Monorepo setups, shared packages, transpilePackages</li>
+<li>Auth patterns (middleware + server-side session checks, NextAuth/Auth.js)</li>
+<li>Internationalization (i18n routing), analytics, logging</li>
+<li>Bundle analysis (@next/bundle-analyzer), ISR cache persistence across instances</li>
+<li>Migration: Pages Router → App Router incremental adoption</li>
+</ul>
+<h3>9. Performance</h3>
+<ul>
+<li>Core Web Vitals in Next (LCP via image priority, CLS via next/font)</li>
+<li>Code splitting per route, dynamic imports (next/dynamic, ssr: false)</li>
+<li>Prefetching behavior &amp; tuning, client bundle minimization ("use client" discipline)</li>
+<li>Streaming to improve TTFB, caching strategy per route</li>
+</ul>
+<h3>10. Senior / Interview Hot Topics</h3>
+<ul>
+<li>SSR vs SSG vs ISR vs CSR: choosing per page, trade-offs</li>
+<li>Server Components vs Client Components: data flow, composition patterns (children as slots)</li>
+<li>Why fetch-in-component replaces getServerSideProps, request memoization</li>
+<li>Caching debugging: stale data causes, Next 14 → 15 default changes</li>
+<li>Hydration mismatch errors: causes &amp; fixes</li>
+<li>Server Actions vs API routes: when each</li>
+<li>Middleware limits (edge runtime, no Node APIs)</li>
+<li>SEO architecture, metadata strategy</li>
+<li>Common mistakes: "use client" at the top of the tree, fetching in client when server works, secrets leaking via NEXT_PUBLIC_</li>
+</ul>
+<div class="key-point">Use this map top-down before an interview: rendering strategies, App Router caching layers, and Server vs Client Components are the most asked areas; the Next 15 caching-defaults change is the current favourite "what's new" question.</div>`,
+      },
       // ──── 1. NEXT.JS FUNDAMENTALS & ROUTING ────
       {
         q: 'What is Next.js and how is it different from Create React App?',
@@ -507,6 +627,100 @@ const nextConfig = {
     name: 'Web Performance',
     icon: '🚀',
     questions: [
+      // ──── 0. WEB PERFORMANCE SUMMARY — knowledge map ────
+      {
+        q: 'Web Performance Summary — Knowledge Map',
+        difficulty: 'easy',
+        a: `<div class="interview-answer"><p>A complete revision checklist for web performance — metrics, measurement, loading, network, JavaScript/CSS optimization, media, rendering, and React-specific techniques. Concept names only; use it to spot gaps, not as a tutorial.</p></div>
+<h3>1. Metrics</h3>
+<ul>
+<li><strong>Core Web Vitals</strong>
+  <ul>
+  <li>LCP (Largest Contentful Paint, &lt;2.5s)</li>
+  <li>INP (Interaction to Next Paint, &lt;200ms) — FID successor</li>
+  <li>CLS (Cumulative Layout Shift, &lt;0.1)</li>
+  </ul>
+</li>
+<li><strong>Supporting metrics</strong> — TTFB, FCP, TBT, TTI, Speed Index</li>
+<li><strong>Methodology</strong> — lab vs field data, p75 thresholds, RUM vs synthetic, performance budgets</li>
+</ul>
+<h3>2. Measurement &amp; Tooling</h3>
+<ul>
+<li>Lighthouse (scoring model, throttling), PageSpeed Insights</li>
+<li>Chrome DevTools: Performance panel, flame charts, long tasks, Coverage, Network waterfall</li>
+<li>WebPageTest (filmstrip, connection profiles)</li>
+<li>CrUX (Chrome UX Report), web-vitals library, custom RUM</li>
+<li>Performance API — PerformanceObserver, marks/measures, navigation &amp; resource timing, Long Tasks API</li>
+<li>Bundle analysis — source-map-explorer, webpack-bundle-analyzer</li>
+</ul>
+<h3>3. Loading &amp; Critical Rendering Path</h3>
+<ul>
+<li>Critical rendering path — HTML parsing, DOM/CSSOM, render tree, layout, paint</li>
+<li>Render-blocking resources (CSS, sync scripts)</li>
+<li>Script loading — async vs defer vs module, inline trade-offs</li>
+<li>Resource hints — preload, prefetch, preconnect, dns-prefetch, fetchpriority, modulepreload</li>
+<li>Lazy loading — images/iframes (loading="lazy"), dynamic import, route-based code splitting</li>
+<li>Critical CSS, above-the-fold prioritization</li>
+<li>Early hints (103), SSR/SSG/streaming for faster first paint</li>
+</ul>
+<h3>4. Network &amp; Caching</h3>
+<ul>
+<li>HTTP/1.1 vs HTTP/2 (multiplexing) vs HTTP/3 (QUIC)</li>
+<li>Compression — gzip vs Brotli, minification</li>
+<li>Caching headers — Cache-Control (max-age, immutable, stale-while-revalidate), ETag, content hashing</li>
+<li>CDN — edge caching, cache invalidation, edge compute</li>
+<li>Service workers — offline caching strategies (cache-first, network-first, SWR)</li>
+<li>TLS/connection cost, domain sharding obsolescence, request waterfalls</li>
+</ul>
+<h3>5. JavaScript Optimization</h3>
+<ul>
+<li>Bundle size — tree shaking, dead code elimination, dependency auditing, polyfill strategy</li>
+<li>Code splitting — entry points, dynamic imports, vendor chunking</li>
+<li>Main-thread work — long tasks (&gt;50ms), task chunking (setTimeout, scheduler.yield, requestIdleCallback)</li>
+<li>Web Workers, OffscreenCanvas, WASM for heavy compute</li>
+<li>Event handling — debounce, throttle, passive listeners</li>
+<li>Memory — leaks (listeners, closures, detached DOM), heap snapshots</li>
+<li>Third-party scripts — audit, async loading, facades, tag manager discipline</li>
+</ul>
+<h3>6. CSS &amp; Rendering</h3>
+<ul>
+<li>Reflow (layout) vs repaint vs composite, layout thrashing (read/write batching)</li>
+<li>GPU-accelerated properties (transform, opacity), will-change</li>
+<li>CSS containment (contain, content-visibility)</li>
+<li>Selector performance, unused CSS removal</li>
+<li>Animations — requestAnimationFrame, FLIP technique, View Transitions API</li>
+<li>Virtualization / windowing for long lists</li>
+</ul>
+<h3>7. Images, Fonts &amp; Media</h3>
+<ul>
+<li>Formats — WebP, AVIF, SVG; quality/size trade-offs</li>
+<li>Responsive images — srcset, sizes, picture, DPR</li>
+<li>Dimension attributes / aspect-ratio (CLS prevention), LCP image priority</li>
+<li>Fonts — font-display (swap/optional), preloading, subsetting, variable fonts, FOUT/FOIT</li>
+<li>Video — poster, preload metadata, adaptive streaming</li>
+</ul>
+<h3>8. React / SPA Specific</h3>
+<ul>
+<li>Re-render minimization — memo, useMemo/useCallback, state colocation</li>
+<li>React DevTools Profiler, why-did-you-render</li>
+<li>Suspense + lazy for route/component splitting</li>
+<li>useTransition / useDeferredValue for responsiveness</li>
+<li>List virtualization (react-window, TanStack Virtual)</li>
+<li>Hydration cost, islands/RSC to reduce client JS</li>
+<li>SPA pitfalls — bundle bloat, client-side data waterfalls</li>
+</ul>
+<h3>9. Senior / Interview Hot Topics</h3>
+<ul>
+<li>Diagnosing a slow page end-to-end (TTFB → render → interaction)</li>
+<li>Why Lighthouse score ≠ field Core Web Vitals pass</li>
+<li>INP debugging: long tasks, input delay, presentation delay</li>
+<li>CLS root causes: images without dimensions, injected banners, font swaps</li>
+<li>Performance budgets &amp; CI regression gates</li>
+<li>Caching strategy design (HTML vs hashed assets)</li>
+<li>Trade-offs: SSR vs CSR, preloading vs bandwidth, memoization overhead</li>
+</ul>
+<div class="key-point">Use this map top-down before an interview: Core Web Vitals (and the FID→INP change), the critical rendering path, and concrete fixes (preload LCP image, set image dimensions, split long tasks) are the most asked areas.</div>`,
+      },
       // ──── 1. METRICS & MEASUREMENT ────
       {
         q: 'What are Core Web Vitals? Explain LCP, FID, CLS.',

@@ -1,306 +1,91 @@
-// Tools & Technologies — migrations, jobs, config/discovery, IdP & secrets, load testing, profiling
+// Tools & Technologies — platform services: Flyway, Liquibase, Prisma, Quartz, Spring Batch, BullMQ,
+// Consul, Keycloak, Auth0, k6, JMeter, Gatling, VisualVM, Java Flight Recorder
+// One entry per tool. Title = tool name. Answer = what it is, in English then Vietnamese.
 import type { PvQuestion } from '../../types';
 
 export const questions: PvQuestion[] = [
   {
-    q: 'How do you manage database migrations with Flyway, Liquibase or Prisma?',
-    difficulty: 'hard',
-    a: `<div class="interview-answer"><p>Schema changes belong in version control, applied by a tool that records what has run — never by hand and never by <code>hibernate.ddl-auto=update</code>, which will happily drop a column in production. <strong>Flyway</strong> runs ordered, immutable SQL files (<code>V1__init.sql</code>) and tracks them with a checksum, so editing an applied migration fails the build; <strong>Liquibase</strong> describes changesets in XML/YAML with rollback support and database abstraction; <strong>Prisma Migrate</strong> or <strong>TypeORM</strong> do the same in the Node world from a schema file. The senior part is not the tool but the discipline: migrations must be backward compatible because old and new application versions run simultaneously during a rolling deploy, so anything destructive goes through <strong>expand → migrate → contract</strong> across releases, and large tables need index creation that does not lock writes.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Thay đổi schema phải nằm trong version control và được áp bởi một công cụ có ghi lại những gì đã chạy — không làm tay, và cũng đừng dùng <code>hibernate.ddl-auto=update</code>, vì nó có thể vui vẻ xoá mất một cột trên production. <strong>Flyway</strong> chạy các file SQL theo thứ tự và không được sửa lại (<code>V1__init.sql</code>), có lưu checksum nên sửa một migration đã chạy là build fail ngay; <strong>Liquibase</strong> mô tả changeset bằng XML/YAML, hỗ trợ rollback và trừu tượng hoá theo loại database; còn <strong>Prisma Migrate</strong> hay <strong>TypeORM</strong> làm việc tương tự trong thế giới Node từ một file schema. Phần "senior" không nằm ở công cụ mà ở tính kỷ luật: migration phải tương thích ngược, vì trong lúc rolling deploy thì phiên bản cũ và mới của ứng dụng chạy song song — nên mọi thao tác phá hỏng dữ liệu đều phải đi qua ba bước <strong>expand → migrate → contract</strong> trải trên nhiều lần release, và với bảng lớn thì tạo index phải theo cách không chặn ghi.</p></details>
-<pre># Flyway layout: immutable, ordered, checksummed
-src/main/resources/db/migration/
-  V1__create_orders.sql
-  V2__add_status_index.sql
-  V3__backfill_currency.sql
-  R__reporting_view.sql          # repeatable (re-runs when it changes)
-# flyway_schema_history: version, checksum, success, installed_on
-# Editing V2 after it ran → "Migration checksum mismatch" → correct
-# behaviour: add V4 instead. Use \`flyway repair\` only when you truly must.
-
-spring.jpa.hibernate.ddl-auto=validate    # ✅ verify, never generate
-spring.flyway.enabled=true                # migrations own the schema</pre>
-<pre># The rename that takes three releases (expand → migrate → contract)
-R1  ALTER TABLE users ADD COLUMN full_name text;      -- add, nullable
-    app writes BOTH name and full_name, reads name
-R2  backfill: UPDATE users SET full_name = name WHERE full_name IS NULL;
-    app reads full_name, still writes both
-R3  app stops using name;  ALTER TABLE users DROP COLUMN name;
-# Doing it in one release breaks every pod still running the old version.
-
-# Postgres operations that surprise people (locks!)
-CREATE INDEX CONCURRENTLY ...            -- ✅ no write lock (cannot be in a tx)
-ALTER TABLE t ADD COLUMN c int;           -- ✅ fast (no default rewrite in 11+)
-ALTER TABLE t ADD COLUMN c int NOT NULL DEFAULT 0;  -- ✅ 11+, ⚠ older = rewrite
-ALTER TABLE t ALTER COLUMN c TYPE bigint; -- ⚠ full rewrite + ACCESS EXCLUSIVE
-ADD CONSTRAINT ... NOT VALID; then VALIDATE CONSTRAINT;  -- ✅ two-step, no lock
-SET lock_timeout = '3s';                  -- ✅ fail fast instead of queueing
-# A migration that waits for a lock behind a long transaction blocks every
-# subsequent query on that table — that is how a "small ALTER" becomes an outage.</pre>
-<pre># Practices
-- one migration per PR, reviewed like code; never edit an applied file
-- run migrations as a separate step (init container / CI job), not from N
-  application replicas racing each other (Flyway locks, but keep it simple)
-- test migrations on a production-sized copy; time them
-- data migrations for millions of rows: batch with LIMIT and sleep, or a
-  background job — not one transaction holding locks for 20 minutes
-- keep a tested rollback plan; for destructive steps, the plan is "the
-  previous release still works", which is exactly why expand/contract wins
-- Prisma/TypeORM: commit the generated migration, never run \`db push\` in prod</pre>
-<div class="key-point">Version migrations with Flyway/Liquibase/Prisma, set Hibernate to <code>validate</code>, and treat every change as backward compatible: expand → migrate → contract across releases. Know the lock behaviour of your ALTERs, use <code>CONCURRENTLY</code> and <code>lock_timeout</code>, and batch large data migrations.</div>`,
+    q: 'Flyway',
+    difficulty: 'easy',
+    a: `<div class="interview-answer"><p>Flyway is a database migration tool. A migration is a versioned SQL script that changes the schema, such as <code>V3__add_orders_table.sql</code>, and Flyway runs the scripts that have not been applied yet, in version order, when the application starts or when you run its command. It records what it has run in a table in the database, so every environment ends up with the same schema and you can see exactly which version a database is at. This replaces the old habit of changing tables by hand, which drifted between developers' machines, staging, and production. Flyway is plain SQL, so you can use every feature of your database, and it integrates with Spring Boot out of the box. The rules to respect are that a migration that has already run must never be edited, because Flyway checks its checksum, and that changes should be backward compatible with the previous version of the app so you can deploy without downtime.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Flyway là công cụ migration cho database. Migration là một script SQL có đánh phiên bản dùng để thay đổi schema, ví dụ <code>V3__add_orders_table.sql</code>, và Flyway sẽ chạy những script chưa được áp dụng, theo đúng thứ tự phiên bản, khi ứng dụng khởi động hoặc khi bạn chạy lệnh của nó. Nó ghi lại những gì đã chạy vào một bảng trong database, nên mọi môi trường đều có schema giống nhau và bạn biết chính xác database đang ở phiên bản nào. Cách này thay thế thói quen cũ là sửa bảng bằng tay, dễ dẫn tới schema lệch nhau giữa máy dev, staging và production. Flyway dùng SQL thuần nên tận dụng được mọi tính năng của database, và tích hợp sẵn với Spring Boot. Hai quy tắc cần tuân thủ: migration đã chạy rồi thì không bao giờ được sửa, vì Flyway kiểm tra checksum; và thay đổi nên tương thích ngược với phiên bản ứng dụng trước đó để deploy không bị gián đoạn.</p></details>`,
   },
   {
-    q: 'How do you run scheduled and background jobs — Quartz, Spring Batch, BullMQ?',
-    difficulty: 'hard',
-    a: `<div class="interview-answer"><p>Three different problems, three different tools. Simple periodic work in a single instance is <code>@Scheduled</code> or a Kubernetes <strong>CronJob</strong>; the moment you run multiple replicas you need coordination, or every pod fires the same job — that is what <strong>Quartz</strong> with a JDBC job store (or ShedLock, or a database advisory lock) provides. Large data processing with chunking, restartability, and metrics is <strong>Spring Batch</strong>. Event-driven asynchronous work triggered by users — emails, thumbnails, exports — belongs in a queue with workers: <strong>BullMQ</strong>/Redis in Node, or a real broker with Spring's listeners in Java. Whatever the tool, the same properties decide whether it survives: exactly one execution per schedule, idempotent handlers, bounded retries with backoff and a dead-letter destination, visibility (last run, duration, failures), and no unbounded run that outlives a deploy.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Ba bài toán khác nhau thì dùng ba loại công cụ khác nhau. Việc định kỳ đơn giản trên một instance thì dùng <code>@Scheduled</code> hoặc <strong>CronJob</strong> của Kubernetes; nhưng ngay khi chạy nhiều replica thì cần cơ chế phối hợp, nếu không mọi pod đều chạy cùng một job — đó là việc của <strong>Quartz</strong> với job store lưu trong JDBC (hoặc ShedLock, hoặc một advisory lock trong database). Xử lý dữ liệu lớn cần chia lô, chạy lại được từ điểm dừng và có metric thì dùng <strong>Spring Batch</strong>. Còn công việc bất đồng bộ phát sinh từ hành động người dùng — gửi mail, tạo thumbnail, xuất file — thì thuộc về queue kèm worker: <strong>BullMQ</strong>/Redis trong Node, hoặc một broker thật với listener của Spring trong Java. Dù dùng gì thì vẫn là những tính chất sau quyết định nó có sống nổi hay không: mỗi lần lên lịch chỉ chạy đúng một lần, handler idempotent, retry có giới hạn kèm backoff và có nơi chứa message chết, có khả năng quan sát (lần chạy cuối, thời gian chạy, số lỗi), và không có tiến trình chạy vô hạn sống dai hơn cả lần deploy.</p></details>
-<pre>// Problem 1: "@Scheduled runs 3 times because we have 3 pods"
-@Scheduled(cron = "0 0 2 * * *")
-@SchedulerLock(name = "nightlyReconcile", lockAtMostFor = "30m")  // ShedLock
-void reconcile() { ... }
-// ShedLock/Quartz take a row lock in Postgres/Redis → exactly one runner.
-// Alternative: a Kubernetes CronJob (one pod per schedule, by definition)
-// which also gives you resource isolation and its own logs:
-apiVersion: batch/v1
-kind: CronJob
-spec:
-  schedule: "0 2 * * *"
-  concurrencyPolicy: Forbid        # ← do not overlap a slow run
-  failedJobsHistoryLimit: 3
-  jobTemplate: { spec: { backoffLimit: 2, template: { ... } } }</pre>
-<pre>// Problem 2: heavy data processing → Spring Batch
-@Bean Job importJob(JobRepository repo, Step step) { ... }
-@Bean Step step(...) {
-  return new StepBuilder("import", repo)
-    .&lt;InputRow, Entity&gt;chunk(500, txManager)      // commit every 500 rows
-    .reader(csvReader()).processor(validator()).writer(jpaWriter())
-    .faultTolerant().skipLimit(50).skip(ValidationException.class)
-    .retry(TransientDataAccessException.class).retryLimit(3)
-    .build();
-}
-// What you get: chunked transactions, restart from the last commit point,
-// skip/retry policies, and a job repository you can query for history.
-// Do NOT hand-roll this with a while-loop and a 2 GB in-memory list.</pre>
-<pre>// Problem 3: user-triggered async work → a queue with workers (BullMQ)
-await emailQueue.add('welcome', { userId },
-  { jobId: \`welcome:\${userId}\`,          // dedup key → idempotency
-    attempts: 5,
-    backoff: { type: 'exponential', delay: 2000 },
-    removeOnComplete: 1000, removeOnFail: false });   // keep failures visible
-
-new Worker('email', async (job) => { await sendWelcome(job.data.userId); },
-  { concurrency: 10, limiter: { max: 100, duration: 1000 } });  // rate limit
-// Features you will want: delayed jobs, repeatable jobs, priorities,
-// flows (parent/child), and a UI (bull-board) for inspection and retry.
-
-// Cross-cutting rules for ANY background work
-idempotent handlers      : a retry must not double-charge or double-send
-bounded retries + DLQ    : then alert; silent infinite retries hide bugs
-timeouts                 : every external call, and a max job duration
-graceful shutdown        : stop accepting, finish or requeue in-flight work
-                           within terminationGracePeriodSeconds
-observability            : duration, success/failure counters, queue depth
-                           and oldest-job age (the real "are we behind?")
-no business logic in cron only: a nightly job that is the ONLY way state
-                           advances makes every bug a 24-hour feedback loop</pre>
-<div class="key-point">Pick by shape: locked <code>@Scheduled</code>/ShedLock or a K8s CronJob for periodic work, Spring Batch for chunked restartable data processing, BullMQ or a broker for user-triggered async tasks. Then make handlers idempotent with dedup keys, bound retries into a DLQ, shut down gracefully, and alert on queue depth and job age.</div>`,
+    q: 'Liquibase',
+    difficulty: 'easy',
+    a: `<div class="interview-answer"><p>Liquibase is a database migration tool that does the same job as Flyway, keeping schema changes versioned and applied consistently across environments, but with a different style. Changes are written as <strong>changesets</strong> in XML, YAML, JSON, or SQL, and each changeset has an author and an ID. When written in the abstract format, for example "create table with these columns", Liquibase translates it to the correct SQL for PostgreSQL, MySQL, Oracle, or SQL Server, so one changelog can target several databases. It also supports automatic <strong>rollback</strong> for many change types, preconditions that check the state before running, and diffing two databases to generate a changelog. Those features make it popular in enterprises with multiple database vendors or strict rollback requirements. The cost is more verbosity and a steeper learning curve than Flyway's plain SQL files, so for a single database most teams find Flyway simpler.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Liquibase là công cụ migration database làm cùng việc với Flyway, tức là giữ các thay đổi schema có phiên bản và áp dụng nhất quán trên mọi môi trường, nhưng theo một phong cách khác. Thay đổi được viết thành các <strong>changeset</strong> bằng XML, YAML, JSON hoặc SQL, mỗi changeset có tác giả và ID. Khi viết theo dạng trừu tượng, ví dụ "tạo bảng với các cột này", Liquibase sẽ dịch sang đúng SQL của PostgreSQL, MySQL, Oracle hay SQL Server, nên một changelog dùng được cho nhiều loại database. Nó cũng hỗ trợ <strong>rollback</strong> tự động cho nhiều loại thay đổi, điều kiện tiên quyết kiểm tra trạng thái trước khi chạy, và so sánh hai database để sinh changelog. Những tính năng này khiến nó phổ biến ở các doanh nghiệp dùng nhiều hãng database hoặc có yêu cầu rollback nghiêm ngặt. Cái giá là dài dòng hơn và học khó hơn so với file SQL thuần của Flyway, nên với một database duy nhất thì đa số team thấy Flyway đơn giản hơn.</p></details>`,
   },
   {
-    q: 'How do you manage configuration and service discovery across environments?',
+    q: 'Prisma',
+    difficulty: 'easy',
+    a: `<div class="interview-answer"><p>Prisma is an ORM for Node.js and TypeScript. You describe your tables in a single <code>schema.prisma</code> file, and Prisma generates a fully typed client, so <code>prisma.user.findMany({ where: { active: true }, include: { posts: true } })</code> is checked by the TypeScript compiler and the editor autocompletes every field and relation. That type safety is its main selling point: a typo in a column name or a wrong filter type is an error before the code runs. It also includes <strong>Prisma Migrate</strong>, which generates SQL migration files from changes to the schema and applies them, and <strong>Prisma Studio</strong>, a small web UI to browse the data. It supports PostgreSQL, MySQL, SQLite, SQL Server, and MongoDB. The limitations are that complex queries sometimes need raw SQL, the generated queries are not always the most efficient, and it has no concept of entities with behavior like a traditional ORM; it is closer to a typed query builder. Drizzle and TypeORM are the usual alternatives.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Prisma là ORM cho Node.js và TypeScript. Bạn mô tả các bảng trong một file <code>schema.prisma</code> duy nhất, và Prisma sinh ra một client có kiểu đầy đủ, nên <code>prisma.user.findMany({ where: { active: true }, include: { posts: true } })</code> được trình biên dịch TypeScript kiểm tra, còn editor thì tự gợi ý mọi trường và quan hệ. Chính sự an toàn về kiểu đó là điểm bán hàng lớn nhất: gõ sai tên cột hay sai kiểu điều kiện lọc là báo lỗi ngay trước khi code chạy. Nó còn kèm <strong>Prisma Migrate</strong>, sinh file migration SQL từ thay đổi trong schema rồi áp dụng, và <strong>Prisma Studio</strong>, một giao diện web nhỏ để xem dữ liệu. Prisma hỗ trợ PostgreSQL, MySQL, SQLite, SQL Server và MongoDB. Hạn chế là các truy vấn phức tạp đôi khi phải viết SQL thuần, câu query sinh ra không phải lúc nào cũng tối ưu nhất, và nó không có khái niệm entity kèm hành vi như ORM truyền thống; nó gần với một query builder có kiểu hơn. Drizzle và TypeORM là các lựa chọn thay thế thường gặp.</p></details>`,
+  },
+  {
+    q: 'Quartz Scheduler',
+    difficulty: 'easy',
+    a: `<div class="interview-answer"><p>Quartz is a job scheduling library for Java. You define a <strong>Job</strong> class with the work to do and a <strong>Trigger</strong> that says when to run it, either at a fixed interval or with a cron expression like "every weekday at 6 am", and Quartz runs it inside your application. What makes it more than a timer is its <strong>JDBC job store</strong>: schedules and job state are saved in the database, so if the application restarts the jobs are not lost, misfired jobs can be recovered, and when you run several instances of the app in a cluster, Quartz uses database locks to make sure each job fires on exactly one node. Spring Boot provides auto-configuration for it. Use Quartz when you need durable, clustered, cron-style scheduling inside a Java app; the simpler <code>@Scheduled</code> annotation in Spring is enough for in-memory timers on a single instance, and for very large job volumes a dedicated queue system is a better fit.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Quartz là thư viện lập lịch công việc cho Java. Bạn định nghĩa một class <strong>Job</strong> chứa việc cần làm và một <strong>Trigger</strong> cho biết khi nào chạy, theo khoảng thời gian cố định hoặc theo biểu thức cron kiểu "6 giờ sáng mỗi ngày trong tuần", rồi Quartz chạy nó ngay trong ứng dụng của bạn. Điểm khiến nó hơn một cái timer thường là <strong>JDBC job store</strong>: lịch và trạng thái job được lưu trong database, nên ứng dụng khởi động lại thì job không mất, job bị lỡ có thể được chạy bù, và khi chạy nhiều instance trong cluster, Quartz dùng khóa trong database để đảm bảo mỗi job chỉ chạy trên đúng một node. Spring Boot có cấu hình tự động cho nó. Dùng Quartz khi cần lập lịch kiểu cron bền vững và chạy được trong cluster bên trong ứng dụng Java; annotation <code>@Scheduled</code> của Spring là đủ cho timer trong bộ nhớ trên một instance, còn với khối lượng job rất lớn thì hệ thống queue chuyên dụng sẽ hợp hơn.</p></details>`,
+  },
+  {
+    q: 'Spring Batch',
     difficulty: 'medium',
-    a: `<div class="interview-answer"><p>The baseline is the twelve-factor rule: configuration comes from the environment, not from files baked into the artifact, so the same image runs in dev, staging, and production. In Spring that means profiles plus environment variables (which override <code>application.yml</code>), in Node it means <code>process.env</code> validated at startup — and <em>validated</em> matters: fail fast with a clear error if a required variable is missing rather than throwing a null pointer at 3am. Beyond that, config comes from ConfigMaps and Secrets in Kubernetes, or a config server (Spring Cloud Config, Consul, Nacos) when you need dynamic refresh and central auditing. For <strong>service discovery</strong>, Kubernetes DNS makes a registry unnecessary in most cases; Eureka/Consul remain relevant outside Kubernetes or for multi-cluster, and a service mesh takes over discovery plus retries and mTLS when you have one.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Mức nền tảng là nguyên tắc twelve-factor: cấu hình đến từ môi trường, không nằm trong file được đóng cứng vào artifact — nhờ vậy cùng một image chạy được ở dev, staging và production. Với Spring thì đó là profile cộng biến môi trường (biến môi trường ghi đè <code>application.yml</code>); với Node thì là <code>process.env</code> nhưng phải được <em>validate</em> ngay khi khởi động — chỗ này quan trọng: thiếu biến bắt buộc thì phải fail ngay với thông báo rõ ràng, chứ đừng để 3 giờ sáng mới nhận một lỗi null. Xa hơn nữa, cấu hình đến từ ConfigMap và Secret trong Kubernetes, hoặc từ một config server (Spring Cloud Config, Consul, Nacos) khi cần refresh động và cần audit tập trung. Về <strong>service discovery</strong>, DNS của Kubernetes khiến phần lớn trường hợp không cần registry riêng; Eureka/Consul vẫn còn giá trị khi chạy ngoài Kubernetes hoặc khi nhiều cluster, còn khi đã có service mesh thì chính mesh lo discovery cùng retry và mTLS.</p></details>
-<pre># Spring: precedence (later wins) — know this order
-application.yml → application-{profile}.yml → env vars → --args → config server
-SPRING_DATASOURCE_URL=...        # relaxed binding: maps to spring.datasource.url
---spring.profiles.active=prod
-
-# Fail fast on bad config
-@ConfigurationProperties("payments") @Validated
-record PaymentProps(@NotBlank String apiBase, @Min(1) int timeoutMs) {}
-// Missing/invalid → the app refuses to start, with the property name.
-
-// Node: validate once, export a typed object
-const env = z.object({
-  NODE_ENV: z.enum(['development','test','production']),
-  DATABASE_URL: z.string().url(),
-  STRIPE_SECRET: z.string().min(1),
-  PORT: z.coerce.number().default(3000),
-}).parse(process.env);      // throws at boot with the offending key
-export default env;         // never sprinkle process.env across the codebase</pre>
-<pre># Kubernetes: the same image, different config
-envFrom:
-  - configMapRef: { name: orders-config }     # non-secret settings
-  - secretRef:    { name: orders-secrets }    # from Vault/ESO, not git
-volumeMounts:
-  - { name: config, mountPath: /app/config }  # files when you need reload
-# ⚠ env vars do NOT update in a running pod: changing a ConfigMap requires
-# a rollout (or use a mounted file + a watcher). Mounted secrets DO update,
-# with a delay — but most apps cache them at boot anyway.
-# Use a checksum annotation so a ConfigMap change triggers a rollout:
-#   annotations: { checksum/config: "{{ sha256 .Values.config }}" }
-
-# Dynamic config / feature flags — a different problem
-# Spring Cloud Config + Bus, Consul KV, Nacos, or a flag service
-# (LaunchDarkly, Unleash, Flagsmith) for runtime toggles with audit,
-# targeting and kill switches. Do NOT redeploy to turn a feature off.</pre>
-<pre># Service discovery, decided by platform
-Kubernetes            → CoreDNS: http://orders-api.shop.svc.cluster.local
-                        (Service = discovery + client-side-free load balancing)
-Service mesh          → discovery + retries + timeouts + mTLS + traffic split
-Outside Kubernetes    → Consul or Eureka + client-side LB (Spring Cloud
-                        LoadBalancer), or an internal DNS/LB pair
-Serverless / managed  → the provider's endpoints + IAM
-# Anti-patterns: hardcoded IPs/hostnames per environment in code; a
-# config file per environment inside the jar; and "discovery" that is
-# really a hand-maintained spreadsheet of ports.</pre>
-<div class="key-point">One artifact, environment-supplied config, validated at startup so misconfiguration fails fast — ConfigMaps/Secrets in Kubernetes, a config server or flag service when you need runtime changes with audit. For discovery, Kubernetes DNS is usually enough; Consul/Eureka or a mesh cover the rest.</div>`,
+    a: `<div class="interview-answer"><p>Spring Batch is a framework for processing large volumes of data in Java, such as importing a 10-million-row file every night, generating monthly invoices, or migrating records between systems. A batch <strong>Job</strong> is made of <strong>Steps</strong>, and the typical step is chunk-based: an <em>ItemReader</em> reads records from a file, database, or queue, an <em>ItemProcessor</em> transforms or validates each one, and an <em>ItemWriter</em> saves them, committing a transaction every N items instead of once per record or once for everything. The framework stores the progress of every job execution in database tables, so a job that fails at row 400,000 can be <strong>restarted</strong> from there instead of from the beginning. It also provides skip and retry policies for bad records, parallel steps, and partitioning of a large step across threads or machines. It is the standard choice for scheduled bulk processing in Spring applications; it is not meant for real-time event handling, where a message consumer is the better tool.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Spring Batch là framework để xử lý dữ liệu khối lượng lớn trong Java, ví dụ nhập một file 10 triệu dòng mỗi đêm, sinh hóa đơn hàng tháng, hay chuyển dữ liệu giữa các hệ thống. Một <strong>Job</strong> gồm nhiều <strong>Step</strong>, và step điển hình xử lý theo khối (chunk): <em>ItemReader</em> đọc bản ghi từ file, database hoặc queue, <em>ItemProcessor</em> biến đổi hoặc kiểm tra từng bản ghi, rồi <em>ItemWriter</em> lưu lại, và cứ N bản ghi thì commit một transaction thay vì mỗi bản ghi một lần hoặc tất cả trong một lần. Framework lưu tiến độ của mọi lần chạy vào các bảng trong database, nên job hỏng ở dòng 400.000 có thể <strong>chạy tiếp</strong> từ đó thay vì làm lại từ đầu. Nó cũng có chính sách bỏ qua và thử lại cho bản ghi lỗi, chạy song song các step, và chia một step lớn ra nhiều thread hoặc nhiều máy. Đây là lựa chọn chuẩn cho xử lý hàng loạt theo lịch trong ứng dụng Spring; nó không dành cho xử lý sự kiện thời gian thực, việc đó dùng message consumer sẽ hợp hơn.</p></details>`,
   },
   {
-    q: 'Keycloak vs Auth0 vs Cognito vs building your own — how do you choose an identity provider?',
-    difficulty: 'hard',
-    a: `<div class="interview-answer"><p>Almost nobody should build authentication from scratch: an IdP gives you login flows, MFA, social and enterprise federation, token issuance and rotation, session management, password policies, and audit — each of which is weeks of work and a permanent security liability. <strong>Keycloak</strong> is the choice when you need self-hosting for data-residency or cost reasons and are willing to operate it (HA, database, upgrades, realm config as code). <strong>Auth0/Okta</strong> is the choice when you want the best developer experience and enterprise SSO connectors and can accept per-MAU pricing that grows with success. <strong>AWS Cognito</strong> (or Azure AD B2C / Firebase Auth) wins when you are already deep in that cloud and want the cheapest managed option, accepting rougher edges and weaker customization. Build your own only for the narrow case of a simple internal app with no federation requirements — and even then, use the framework's battle-tested pieces.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Gần như không ai nên tự viết hệ thống xác thực từ đầu: một IdP cho bạn sẵn các luồng login, MFA, federation với social và với doanh nghiệp, việc phát và xoay token, quản lý session, chính sách mật khẩu và audit — mỗi thứ trong đó là vài tuần công sức cộng một khoản nợ bảo mật vĩnh viễn. <strong>Keycloak</strong> phù hợp khi bạn cần tự host vì lý do lưu trú dữ liệu hoặc chi phí, và sẵn sàng vận hành nó (HA, database, nâng cấp, cấu hình realm dưới dạng code). <strong>Auth0/Okta</strong> phù hợp khi bạn muốn trải nghiệm lập trình tốt nhất cùng các connector SSO doanh nghiệp, và chấp nhận mức giá theo số người dùng hoạt động — càng thành công thì càng đắt. <strong>AWS Cognito</strong> (hay Azure AD B2C, Firebase Auth) thắng khi bạn đã ở sâu trong cloud đó và muốn phương án managed rẻ nhất, đổi lại là vài chỗ thô ráp và khả năng tuỳ biến yếu hơn. Chỉ nên tự làm trong trường hợp hẹp: một app nội bộ đơn giản, không có yêu cầu federation — và ngay cả khi đó cũng hãy dùng các thành phần đã được kiểm chứng của framework.</p></details>
-<pre>                 Keycloak         Auth0/Okta        Cognito          DIY
-hosting          self-hosted      SaaS              managed (AWS)    yours
-cost             infra + your     per MAU           cheapest managed  "free"
-                 time             (grows fast)                        until it isn't
-customization    very high        high (Actions)    limited           total
-enterprise SSO   SAML/LDAP incl.  best connectors   basic SAML/OIDC   you write it
-MFA/passkeys     yes              yes, polished     yes (basic UX)     you write it
-ops burden       HIGH (HA, DB,    none              low               HIGHEST
-                 upgrades)                                             (forever)
-data residency   full control     regions           AWS regions        control
-lock-in          low (OIDC std)   medium            high (SDK-shaped)  none
-# Whatever you choose, integrate through STANDARDS (OIDC discovery, JWKS,
-# authorization code + PKCE) so the provider is replaceable. Wrapping the
-# vendor SDK in your own thin auth module is what keeps migration possible.</pre>
-<pre>// What you must NOT rebuild yourself
-- password hashing + reset flows + breach checks + enumeration-safe replies
-- MFA enrolment/recovery, WebAuthn/passkey ceremonies
-- OAuth/OIDC endpoints, token signing, JWKS rotation, refresh rotation
-- SAML for enterprise customers (signature validation is a CVE minefield)
-- session management, device tracking, suspicious-login detection
-- audit logs, admin console, user lifecycle (invite, disable, delete)
-
-// What stays YOUR responsibility no matter the provider
-- authorization: roles/permissions/tenant scoping and ownership checks
-  (the IdP tells you WHO; only you know what they may touch)
-- provisioning users into your own tables (map sub → internal user id;
-  never key your data on email — people change it)
-- token validation in every service (iss, aud, exp, signature via JWKS)
-- logout propagation and revocation on ban/password change
-- SCIM provisioning if enterprise customers ask for directory sync</pre>
-<p><strong>Migration reality check</strong> (a good senior answer): moving IdPs means migrating users and password hashes — Auth0 and Keycloak can import bcrypt hashes, Cognito historically could not without a lazy-migration Lambda, so ask that question <em>before</em> choosing. And run the numbers: an app expecting 500k monthly active users can pay more for authentication than for compute, which is exactly when self-hosted Keycloak starts to look attractive.</p>
-<div class="key-point">Buy or self-host an IdP, do not build one: Keycloak for control and cost at scale, Auth0/Okta for DX and enterprise connectors, Cognito/Firebase when the cloud is already chosen. Integrate over OIDC standards so it stays replaceable, and remember authorization, user provisioning, and revocation remain yours.</div>`,
+    q: 'BullMQ',
+    difficulty: 'easy',
+    a: `<div class="interview-answer"><p>BullMQ is a job queue library for Node.js that uses Redis as its backend. Your API adds a job to a queue, for example "send welcome email to user 42" or "generate PDF report", and responds to the user immediately; a separate <strong>Worker</strong> process picks jobs off the queue and runs them. Redis stores the jobs, so they survive a restart, and several workers can share one queue to process in parallel. BullMQ handles the details that make queues reliable in practice: automatic retries with exponential backoff, delayed and scheduled jobs including cron-style repeats, priorities, rate limiting, job progress reporting, and events for completed or failed jobs. There is a web dashboard, Bull Board, to inspect queues. It is the most common way to run background work in Express and NestJS applications, where NestJS has first-class integration. The main thing to remember is that a worker can crash mid-job and the job will run again, so job handlers must be safe to repeat.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>BullMQ là thư viện hàng đợi công việc cho Node.js, dùng Redis làm nơi lưu trữ. API của bạn thêm một job vào queue, ví dụ "gửi email chào mừng cho user 42" hay "tạo báo cáo PDF", rồi trả lời người dùng ngay lập tức; một tiến trình <strong>Worker</strong> riêng sẽ lấy job từ queue ra và thực hiện. Redis giữ các job nên khởi động lại không mất, và nhiều worker có thể dùng chung một queue để xử lý song song. BullMQ lo các chi tiết giúp queue đáng tin cậy trong thực tế: tự thử lại với thời gian giãn cách tăng dần, job trễ và job theo lịch kể cả lặp kiểu cron, độ ưu tiên, giới hạn tần suất, báo cáo tiến độ, và sự kiện khi job hoàn thành hoặc thất bại. Có dashboard web tên Bull Board để xem các queue. Đây là cách phổ biến nhất để chạy việc nền trong ứng dụng Express và NestJS, trong đó NestJS tích hợp sẵn. Điều quan trọng nhất cần nhớ là worker có thể chết giữa chừng và job sẽ chạy lại, nên code xử lý job phải an toàn khi lặp lại.</p></details>`,
   },
   {
-    q: 'How do you load test a system, and what do you look for — k6, JMeter, Gatling?',
-    difficulty: 'hard',
-    a: `<div class="interview-answer"><p>Load testing is how you find the breaking point before your users do. <strong>k6</strong> (JavaScript scripts, Go engine, CI-friendly) is the modern default; <strong>Gatling</strong> (Scala/Java DSL) and <strong>JMeter</strong> (GUI, huge plugin ecosystem, still common in enterprises) do the same job. The important part is designing the test: use realistic scenarios and think-time rather than a single hammered endpoint, ramp up in stages to find the knee of the curve, and drive from an environment that resembles production — testing against one local container tells you nothing about connection pools or the database. Then read the right numbers: p95/p99 latency and error rate against your SLO, throughput at saturation, and — most importantly — <em>what</em> saturates first: CPU, the DB connection pool, thread pool queueing, GC pauses, or a downstream dependency.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Load test là cách bạn tìm ra điểm sụp của hệ thống trước khi người dùng tìm ra. <strong>k6</strong> (viết script bằng JavaScript, engine Go, dễ đưa vào CI) là lựa chọn mặc định hiện nay; <strong>Gatling</strong> (DSL Scala/Java) và <strong>JMeter</strong> (có GUI, hệ plugin khổng lồ, vẫn rất phổ biến trong doanh nghiệp) cũng làm được việc tương tự. Phần quan trọng là thiết kế bài test: dùng các kịch bản thực tế có think-time thay vì nện vào một endpoint duy nhất, tăng tải theo từng bậc để tìm điểm gãy của đường cong, và bắn tải từ một môi trường giống production — test vào một container ở máy cá nhân thì không nói lên điều gì về connection pool hay về database. Sau đó phải đọc đúng số liệu: p95/p99 và tỉ lệ lỗi so với SLO, throughput ở điểm bão hoà, và quan trọng nhất là <em>thứ gì</em> cạn trước: CPU, connection pool của DB, hàng đợi thread pool, thời gian GC, hay một dependency phía dưới.</p></details>
-<pre>// k6: scenarios, thresholds, and stages — thresholds turn a test into a gate
-import http from 'k6/http';
-import { check, sleep } from 'k6';
-
-export const options = {
-  stages: [                      // find the knee, do not jump to 1000 VUs
-    { duration: '2m', target: 50 },
-    { duration: '5m', target: 200 },
-    { duration: '2m', target: 400 },
-    { duration: '2m', target: 0 },
-  ],
-  thresholds: {
-    http_req_failed:   ['rate<0.01'],            // < 1% errors
-    http_req_duration: ['p(95)<300', 'p(99)<800'],  // matches the SLO
-    checks:            ['rate>0.99'],
-  },
-};
-export default function () {
-  const res = http.get(\`\${__ENV.BASE}/api/products?page=1\`,
-    { headers: { Authorization: \`Bearer \${__ENV.TOKEN}\` } });
-  check(res, { 'status 200': (r) => r.status === 200 });
-  sleep(Math.random() * 3);        // think time — real users pause
-}
-// k6 run --out experimental-prometheus-rw script.js  → graphs in Grafana</pre>
-<pre># Test types, each answering a different question
-smoke      : 1-5 users, does it work at all (run on every deploy)
-load       : expected peak — does it meet the SLO?
-stress     : push past peak — where does it break, and HOW? (graceful
-             degradation with 429s, or a cascading collapse?)
-soak       : hours at moderate load — memory leaks, connection leaks,
-             disk fill, cache growth (the bugs only time reveals)
-spike      : instant 10x — autoscaling reaction time, queue absorption
-breakpoint : ramp until failure — the number to plan capacity against
-
-# Reading results: correlate the load test with your own dashboards
-- latency percentiles per endpoint (averages hide everything)
-- errors by type: 5xx vs 429 vs timeouts (429 under stress is SUCCESS)
-- saturation: CPU, DB pool wait time, thread pool queue, GC pause time,
-  connection counts, Kafka lag
-- the coordinated-omission trap: if the client blocks waiting, it stops
-  issuing requests and your latency looks better than reality — use an
-  open model / constant-arrival-rate executor for realistic pressure</pre>
-<pre># Doing it responsibly
-- test in a production-like environment with production-like data volume
-  (an empty table plus a warm cache lies to you)
-- never load test third-party APIs; stub them (WireMock/Mountebank) or
-  you will get rate-limited or invoiced
-- announce it, or you will be the incident
-- keep tests in the repo, run smoke + a short load test in CI, and full
-  suites before big releases; track results over time to catch regressions
-- profile WHILE loading (async-profiler, JFR, node --prof, py-spy) —
-  a load test tells you it is slow, a profiler tells you why</pre>
-<div class="key-point">Design realistic staged scenarios with think time, set thresholds so the test is a pass/fail gate, and run against production-like infrastructure. Then look past averages: p95/p99 versus the SLO, error types, and which resource saturates first — and profile during the run to find the actual bottleneck.</div>`,
+    q: 'Consul',
+    difficulty: 'medium',
+    a: `<div class="interview-answer"><p>Consul, from HashiCorp, is a tool for <strong>service discovery</strong> and distributed configuration. In a system with many services that start, stop, and move between machines, hard-coding IP addresses does not work. Each service registers itself with Consul when it starts, along with a health check, and other services ask Consul "where is the payment service?" and get back the list of healthy instances, either through its HTTP API or simply through DNS. It also has a <strong>key-value store</strong> for shared configuration and feature flags that services can watch for changes, and a Connect feature that sets up encrypted service-to-service communication. Consul was very common in the virtual machine era and with Nomad; in Kubernetes, the platform's own Services and ConfigMaps cover most of the same needs, so Consul is now used mainly across mixed environments or multiple data centers. Eureka with Spring Cloud and etcd solve similar problems.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Consul của HashiCorp là công cụ cho <strong>service discovery</strong> (tìm địa chỉ service) và cấu hình phân tán. Trong hệ thống có nhiều service liên tục khởi động, dừng, và chuyển qua lại giữa các máy, việc ghi cứng địa chỉ IP không dùng được. Mỗi service khi khởi động sẽ tự đăng ký với Consul kèm một health check, và service khác hỏi Consul "service thanh toán ở đâu?" sẽ nhận lại danh sách các instance đang khỏe, qua HTTP API hoặc đơn giản qua DNS. Nó còn có <strong>kho key-value</strong> để chứa cấu hình dùng chung và feature flag mà service có thể theo dõi thay đổi, cùng tính năng Connect để thiết lập giao tiếp mã hóa giữa các service. Consul rất phổ biến thời máy ảo và khi dùng với Nomad; trên Kubernetes thì Service và ConfigMap có sẵn đã đáp ứng phần lớn nhu cầu này, nên Consul hiện chủ yếu dùng cho môi trường hỗn hợp hoặc nhiều trung tâm dữ liệu. Eureka với Spring Cloud và etcd giải quyết bài toán tương tự.</p></details>`,
   },
   {
-    q: 'What tools do you use to debug and profile a slow or leaking application?',
-    difficulty: 'hard',
-    a: `<div class="interview-answer"><p>I work from evidence, in a fixed order: metrics tell me <em>what</em> is slow and when it started, a trace tells me <em>where</em> the time goes, and only then do I attach a profiler to find the exact code. On the JVM that means <strong>JFR</strong> plus JDK Mission Control or <strong>async-profiler</strong> for CPU and allocation flame graphs, a heap dump analysed in <strong>MAT</strong> for leaks (dominator tree → who holds the retained set), and GC logs for pause and allocation-rate problems. In Node it is <code>--inspect</code> with Chrome DevTools or Clinic for CPU and heap snapshots, comparing two snapshots to see what grew. In the browser it is the Performance and Network panels plus Lighthouse. The habit that matters more than any tool is measuring before and after a change, so you can prove the fix rather than believe it.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Tôi làm theo bằng chứng và theo đúng thứ tự: metric cho biết <em>cái gì</em> chậm và chậm từ lúc nào, trace cho biết thời gian <em>đi đâu</em>, rồi mới gắn profiler để tìm ra đúng đoạn code. Trên JVM thì đó là <strong>JFR</strong> cùng JDK Mission Control, hoặc <strong>async-profiler</strong> để có flame graph về CPU và về cấp phát bộ nhớ; với memory leak thì lấy heap dump rồi phân tích bằng <strong>MAT</strong> (dominator tree để biết ai đang giữ vùng nhớ); còn GC log để soi vấn đề pause và tốc độ cấp phát. Với Node thì dùng <code>--inspect</code> cùng Chrome DevTools hoặc Clinic để xem CPU và heap snapshot, và so sánh hai snapshot để biết cái gì phình lên. Với browser thì dùng panel Performance và Network cộng Lighthouse. Nhưng thói quen quan trọng hơn mọi công cụ là đo trước và đo sau khi sửa, để chứng minh được bản sửa có tác dụng chứ không chỉ tin là có.</p></details>
-<pre># JVM — CPU / latency
-java -XX:StartFlightRecording=duration=60s,filename=app.jfr -jar app.jar
-jcmd &lt;pid&gt; JFR.start duration=60s filename=/tmp/app.jfr   # on a running app
-# async-profiler (best flame graphs, low overhead, safepoint-free)
-./profiler.sh -d 60 -e cpu -f cpu.html &lt;pid&gt;
-./profiler.sh -d 60 -e alloc -f alloc.html &lt;pid&gt;     # allocation pressure
-jstack &lt;pid&gt;            # thread dump ×3, 5s apart → find BLOCKED threads
-jcmd &lt;pid&gt; Thread.print | grep -A5 "waiting to lock"
-
-# JVM — memory
-jcmd &lt;pid&gt; GC.heap_info ; jstat -gcutil &lt;pid&gt; 1s
--Xlog:gc*:file=gc.log   # then GCEasy / GCViewer: pause times, promotion
-jcmd &lt;pid&gt; GC.heap_dump /tmp/heap.hprof     # analyse in Eclipse MAT
-# MAT workflow: Leak Suspects → Dominator Tree → "Path to GC Roots"
-# Classic culprits: unbounded HashMap cache, ThreadLocal not cleared,
-# listeners never unregistered, a static list, ClassLoader leaks on redeploy.</pre>
-<pre># Node.js
-node --inspect=0.0.0.0:9229 app.js      # chrome://inspect → Profiler/Memory
-clinic doctor -- node app.js             # diagnoses event loop / GC / I/O
-clinic flame -- node app.js              # CPU flame graph
-# Heap leak: take snapshot → run traffic → snapshot → "Comparison" view,
-# sort by delta → find the retaining path. Usual suspects: caches without
-# limits, listeners added per request, closures capturing big objects,
-# global arrays "for metrics", unresolved promises holding contexts.
-node --heap-prof / --cpu-prof            # write profiles to disk in prod-ish
-# Event loop lag is THE Node metric: monitor it (perf_hooks.monitorEventLoopDelay);
-# a blocking sync call or a ReDoS regex shows up here first.
-
-# Database (usually the real answer)
-EXPLAIN (ANALYZE, BUFFERS) SELECT ...    # is it a seq scan? bad estimate?
-pg_stat_statements                        # top queries by total time
-# Java: Hibernate statistics / datasource-proxy to catch N+1 in tests
-# APM (Datadog/New Relic/Elastic APM) does most of this continuously.</pre>
-<pre># The workflow that finds root causes instead of symptoms
-1. reproduce and quantify: which endpoint, which percentile, since when
-   (a deploy? a data-volume threshold? a traffic change?)
-2. trace one slow request end-to-end → which span owns the time
-3. if it is in-process → profile CPU/alloc; if it is I/O → look at the
-   query plan, pool waits, or the downstream service
-4. form a hypothesis, change ONE thing, measure again
-5. add a regression guard: a metric, an alert, or a test
-# Anti-patterns: adding caches before understanding the cost, bumping
-# pool sizes to hide a slow query (queueing moves, not disappears), and
-# "optimizing" code that a profiler never showed as hot.</pre>
-<div class="key-point">Metrics → traces → profiler, in that order. On the JVM: JFR/async-profiler for CPU and allocations, heap dumps in MAT for leaks, GC logs for pauses. In Node: inspector/clinic profiles, snapshot diffs, and event-loop lag. Always measure before and after so the fix is proven, not assumed.</div>`,
+    q: 'Keycloak',
+    difficulty: 'medium',
+    a: `<div class="interview-answer"><p>Keycloak is an open-source identity server, originally from Red Hat. It handles everything around logging users in so your applications do not have to: user registration, password storage and reset, two-factor authentication, social login with Google or GitHub, single sign-on across many apps, and connecting to a corporate LDAP or Active Directory. Applications talk to it using the standard protocols <strong>OpenID Connect</strong> and SAML. A user is redirected to Keycloak's login page, logs in once, and comes back with a token that any of your services can verify. Users, roles, and client applications are organized into <strong>realms</strong>, and there is an admin console for managing them. Because it is self-hosted, you control the data and pay no per-user fee, which matters for internal tools, regulated industries, and products with many users. The trade-off is that you run and upgrade it yourself, and its configuration is large enough that it takes time to learn.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Keycloak là máy chủ định danh mã nguồn mở, ban đầu do Red Hat phát triển. Nó lo toàn bộ những việc liên quan tới đăng nhập để ứng dụng của bạn không phải tự làm: đăng ký tài khoản, lưu và đặt lại mật khẩu, xác thực hai yếu tố, đăng nhập bằng Google hay GitHub, đăng nhập một lần dùng cho nhiều ứng dụng (SSO), và kết nối với LDAP hoặc Active Directory của công ty. Ứng dụng nói chuyện với nó qua các giao thức chuẩn <strong>OpenID Connect</strong> và SAML. Người dùng được chuyển tới trang đăng nhập của Keycloak, đăng nhập một lần, rồi quay lại với một token mà mọi service của bạn đều kiểm tra được. Người dùng, vai trò và ứng dụng client được tổ chức thành các <strong>realm</strong>, và có giao diện quản trị để quản lý. Vì tự host nên bạn kiểm soát được dữ liệu và không trả phí theo số người dùng, điều này quan trọng với công cụ nội bộ, ngành có quy định chặt, và sản phẩm đông người dùng. Đánh đổi là bạn phải tự vận hành và nâng cấp, và cấu hình của nó khá đồ sộ nên cần thời gian để nắm.</p></details>`,
+  },
+  {
+    q: 'Auth0',
+    difficulty: 'easy',
+    a: `<div class="interview-answer"><p>Auth0 is a hosted identity service, now part of Okta. It solves the same problem as Keycloak, taking login, signup, password reset, multi-factor authentication, social login, and single sign-on out of your application, but as a cloud service you do not run yourself. You create a tenant, configure your applications and login options in its dashboard, add its SDK to your frontend or backend, and users are sent to Auth0's hosted login page and return with standard OpenID Connect tokens. It has polished SDKs for every major framework, built-in protections such as breached-password detection and bot blocking, and a rules engine for customizing the login flow. For a startup or a small team it is the fastest way to get secure authentication right. The costs are the monthly bill, which grows with monthly active users and can become significant, and the fact that your user data lives in a third party's system. Amazon Cognito, Firebase Auth, and Clerk are the common hosted alternatives.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Auth0 là dịch vụ định danh dạng hosted, hiện thuộc Okta. Nó giải quyết cùng bài toán với Keycloak, tức là đưa việc đăng nhập, đăng ký, đặt lại mật khẩu, xác thực nhiều yếu tố, đăng nhập mạng xã hội và SSO ra khỏi ứng dụng của bạn, nhưng dưới dạng dịch vụ cloud không phải tự vận hành. Bạn tạo một tenant, cấu hình ứng dụng và các cách đăng nhập trên dashboard của nó, thêm SDK vào frontend hoặc backend, và người dùng được chuyển tới trang đăng nhập do Auth0 host rồi quay lại với token OpenID Connect chuẩn. Nó có SDK chỉn chu cho mọi framework lớn, các cơ chế bảo vệ sẵn như phát hiện mật khẩu đã bị lộ và chặn bot, và một bộ quy tắc để tùy biến luồng đăng nhập. Với startup hoặc team nhỏ, đây là cách nhanh nhất để có xác thực an toàn và đúng chuẩn. Cái giá là hóa đơn hàng tháng tăng theo số người dùng hoạt động và có thể thành con số lớn, cùng việc dữ liệu người dùng nằm trong hệ thống của bên thứ ba. Amazon Cognito, Firebase Auth và Clerk là các dịch vụ hosted thay thế phổ biến.</p></details>`,
+  },
+  {
+    q: 'k6',
+    difficulty: 'easy',
+    a: `<div class="interview-answer"><p>k6 is a load testing tool from Grafana Labs. You write a test as a small JavaScript file that describes what a virtual user does, for example log in, open the product list, and add an item to the cart, then tell k6 to run that script with, say, 500 virtual users for 10 minutes. It reports response times as percentiles, request rate, error rate, and whether the <strong>thresholds</strong> you defined, such as "95% of requests under 300 ms", were met. The engine is written in Go, so a single machine can generate a lot of traffic, and because tests are code they live in Git and run in CI to catch performance regressions before release. It supports HTTP, WebSocket, gRPC, and browser-based tests, and results can be streamed to Grafana for dashboards. It is the modern choice for developer-driven load testing; JMeter is older and GUI-based, and Gatling fills a similar role in the Scala and Java world.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>k6 là công cụ kiểm thử tải của Grafana Labs. Bạn viết bài test dưới dạng một file JavaScript nhỏ mô tả một người dùng ảo sẽ làm gì, ví dụ đăng nhập, mở danh sách sản phẩm, thêm một món vào giỏ, rồi bảo k6 chạy kịch bản đó với chẳng hạn 500 người dùng ảo trong 10 phút. Nó báo cáo thời gian phản hồi theo phân vị, số request mỗi giây, tỉ lệ lỗi, và các <strong>ngưỡng</strong> bạn đặt ra, như "95% request dưới 300 ms", có đạt hay không. Lõi viết bằng Go nên một máy có thể tạo ra lượng truy cập rất lớn, và vì test là code nên nó nằm trong Git và chạy được trong CI để bắt lỗi hiệu năng trước khi phát hành. k6 hỗ trợ HTTP, WebSocket, gRPC và cả test qua trình duyệt, kết quả có thể đẩy lên Grafana để vẽ dashboard. Đây là lựa chọn hiện đại cho kiểm thử tải do lập trình viên tự làm; JMeter cũ hơn và dựa trên giao diện đồ họa, còn Gatling giữ vai trò tương tự trong thế giới Scala và Java.</p></details>`,
+  },
+  {
+    q: 'JMeter',
+    difficulty: 'easy',
+    a: `<div class="interview-answer"><p>Apache JMeter is a long-standing open-source tool for load and performance testing. You build a <strong>test plan</strong> in its desktop GUI: thread groups that represent virtual users, samplers that send HTTP, JDBC, JMS, or other requests, logic controllers for loops and conditions, and listeners that collect results into tables and graphs. The plan is saved as an XML file and can be run without the GUI from the command line or in CI, usually generating an HTML report with response-time percentiles, throughput, and error rates. Its strengths are the huge range of protocols it supports out of the box, a mature plugin ecosystem, and the fact that testers without programming experience can build scenarios visually. Its weaknesses are that it is written in Java and uses a thread per virtual user, so it needs a lot of memory for high loads, and the XML test plans are hard to review in Git. For code-centric teams k6 or Gatling are usually preferred, but JMeter remains common in QA departments and enterprises.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Apache JMeter là công cụ mã nguồn mở lâu đời để kiểm thử tải và hiệu năng. Bạn dựng một <strong>test plan</strong> trong giao diện desktop của nó: thread group đại diện cho người dùng ảo, sampler gửi request HTTP, JDBC, JMS hoặc giao thức khác, controller để lặp và rẽ nhánh, và listener để gom kết quả thành bảng và biểu đồ. Test plan được lưu thành file XML và có thể chạy không cần giao diện từ dòng lệnh hoặc trong CI, thường sinh ra báo cáo HTML gồm phân vị thời gian phản hồi, throughput và tỉ lệ lỗi. Điểm mạnh là hỗ trợ sẵn rất nhiều giao thức, hệ sinh thái plugin trưởng thành, và tester không biết lập trình vẫn dựng được kịch bản bằng cách kéo thả. Điểm yếu là viết bằng Java và mỗi người dùng ảo là một thread, nên tốn nhiều bộ nhớ khi tải cao, và file XML rất khó review trong Git. Các team thiên về code thường chọn k6 hoặc Gatling, nhưng JMeter vẫn rất phổ biến ở các bộ phận QA và doanh nghiệp.</p></details>`,
+  },
+  {
+    q: 'Gatling',
+    difficulty: 'medium',
+    a: `<div class="interview-answer"><p>Gatling is a load testing tool where scenarios are written as code, originally in Scala and now also in Java and Kotlin. A simulation describes a user journey with a readable DSL, for example "go to the home page, pause 2 seconds, search for a product, then check out", and then defines the load profile: ramp up to 1,000 users over 5 minutes, hold for 20 minutes, and so on. It is built on an asynchronous, non-blocking engine, so a single machine can simulate far more users than a thread-per-user tool like JMeter. After a run it produces a detailed HTML report with response-time distributions, requests per second, and active users over time, and <strong>assertions</strong> in the simulation can fail the CI build when performance drops below a target. It fits naturally into Maven and Gradle builds, which is why Java teams often prefer it. A recorder can capture browser traffic to bootstrap a scenario. k6 is the equivalent choice for JavaScript-oriented teams.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Gatling là công cụ kiểm thử tải mà kịch bản được viết bằng code, ban đầu là Scala, nay có cả Java và Kotlin. Một simulation mô tả hành trình người dùng bằng DSL dễ đọc, ví dụ "vào trang chủ, dừng 2 giây, tìm một sản phẩm, rồi thanh toán", sau đó định nghĩa hồ sơ tải: tăng dần lên 1.000 người dùng trong 5 phút, giữ 20 phút, và tương tự. Lõi của nó là engine bất đồng bộ, không chặn, nên một máy có thể giả lập số người dùng lớn hơn nhiều so với công cụ dùng mỗi người dùng một thread như JMeter. Sau mỗi lần chạy, nó tạo báo cáo HTML chi tiết với phân bố thời gian phản hồi, số request mỗi giây và số người dùng theo thời gian; các <strong>assertion</strong> trong simulation có thể làm CI thất bại khi hiệu năng tụt dưới mục tiêu. Gatling tích hợp tự nhiên vào Maven và Gradle, nên các team Java hay chọn nó. Có cả công cụ ghi lại lưu lượng trình duyệt để tạo nhanh kịch bản. k6 là lựa chọn tương đương cho các team thiên về JavaScript.</p></details>`,
+  },
+  {
+    q: 'VisualVM',
+    difficulty: 'easy',
+    a: `<div class="interview-answer"><p>VisualVM is a free desktop tool for looking inside a running Java application. You open it, pick a JVM process from the list, and immediately see live graphs of CPU usage, heap memory, loaded classes, and threads. From there you can take a <strong>thread dump</strong> to see what every thread is doing, which is how you find a deadlock or a thread pool stuck waiting on a database. You can take a <strong>heap dump</strong> and browse which objects are using the memory, sorted by class and size, which is how you find a memory leak such as a cache that never evicts. The sampler and profiler tabs show which methods consume the most CPU time or allocate the most memory. It connects to local processes automatically and to remote ones through JMX. It is a good first tool because it needs no setup and no code changes; for deeper, lower-overhead analysis in production, Java Flight Recorder is the next step, and commercial tools like YourKit and JProfiler offer more detail.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>VisualVM là công cụ desktop miễn phí để nhìn vào bên trong một ứng dụng Java đang chạy. Bạn mở nó lên, chọn một tiến trình JVM trong danh sách, và thấy ngay biểu đồ trực tiếp về CPU, bộ nhớ heap, số class đã nạp và các thread. Từ đó bạn có thể lấy <strong>thread dump</strong> để xem từng thread đang làm gì, đây là cách tìm deadlock hoặc một thread pool bị kẹt chờ database. Bạn có thể lấy <strong>heap dump</strong> và duyệt xem object nào đang chiếm bộ nhớ, sắp theo class và kích thước, đây là cách tìm rò rỉ bộ nhớ, ví dụ một cache không bao giờ xóa bớt. Các tab sampler và profiler cho thấy method nào tốn nhiều CPU hoặc cấp phát nhiều bộ nhớ nhất. Nó tự kết nối với tiến trình trên máy local, và kết nối với máy từ xa qua JMX. Đây là công cụ tốt để bắt đầu vì không cần cài đặt gì thêm và không phải sửa code; để phân tích sâu hơn với chi phí thấp trong production thì bước tiếp theo là Java Flight Recorder, còn các công cụ thương mại như YourKit và JProfiler cho nhiều chi tiết hơn.</p></details>`,
+  },
+  {
+    q: 'Java Flight Recorder (JFR)',
+    difficulty: 'medium',
+    a: `<div class="interview-answer"><p>Java Flight Recorder is a profiler built into the JVM itself, free since JDK 11. Like the black box in an airplane, it continuously records what the application is doing with very low overhead, typically around 1 percent, so it is safe to leave running in production. It captures CPU samples showing hot methods, memory allocations, garbage collection pauses, thread states and lock contention, file and socket I/O, exceptions, and JVM events, all with timestamps. You start it with a JVM flag or at any moment with the <code>jcmd</code> command, and it writes a <code>.jfr</code> file that you open in <strong>JDK Mission Control</strong> to browse flame graphs, allocation reports, and timelines. The usual workflow is: production is slow, you trigger a 60-second recording on one instance, download the file, and see that most CPU time is spent in JSON serialization or that one lock is contended by 50 threads. It can also keep a rolling buffer and dump it automatically when the JVM crashes. It is the most powerful free tool for diagnosing Java performance problems in real environments.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Java Flight Recorder là profiler được tích hợp sẵn trong JVM, miễn phí từ JDK 11. Giống hộp đen trên máy bay, nó liên tục ghi lại ứng dụng đang làm gì với chi phí rất thấp, thường chỉ khoảng 1 phần trăm, nên có thể bật trong production một cách an toàn. Nó ghi mẫu CPU để biết method nào nóng nhất, các lần cấp phát bộ nhớ, thời gian dừng của garbage collector, trạng thái thread và tranh chấp khóa, I/O file và socket, exception, và các sự kiện của JVM, tất cả đều có mốc thời gian. Bạn bật nó bằng tham số JVM hoặc bất cứ lúc nào bằng lệnh <code>jcmd</code>, và nó ghi ra file <code>.jfr</code> để mở trong <strong>JDK Mission Control</strong> xem flame graph, báo cáo cấp phát và dòng thời gian. Quy trình thường gặp: production chạy chậm, bạn bật ghi 60 giây trên một instance, tải file về, và thấy phần lớn CPU nằm ở việc tuần tự hóa JSON hoặc một cái khóa đang bị 50 thread tranh nhau. Nó cũng có thể giữ một bộ đệm xoay vòng và tự xuất ra khi JVM sập. Đây là công cụ miễn phí mạnh nhất để chẩn đoán vấn đề hiệu năng Java trong môi trường thật.</p></details>`,
   },
 ];

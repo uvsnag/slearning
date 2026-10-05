@@ -8,6 +8,144 @@ export const topics: PvTopic[] = [
     name: 'Spring Boot',
     icon: '🍃',
     questions: [
+      // ──── 0. SPRING BOOT SUMMARY — knowledge map ────
+      {
+        q: 'Spring Boot Summary — Version-by-Version Knowledge Map',
+        difficulty: 'easy',
+        a: `<div class="interview-answer"><p>A complete revision checklist for Spring &amp; Spring Boot — everything worth knowing, from the IoC container to version-specific features, production operations, and senior-level topics. Concept names only; use it to spot gaps, not as a tutorial.</p></div>
+<h3>1. Fundamentals</h3>
+<ul>
+<li><strong>Spring Framework core</strong>
+  <ul>
+  <li>Inversion of Control (IoC), Dependency Injection (constructor / setter / field)</li>
+  <li>ApplicationContext vs BeanFactory</li>
+  <li>Bean definition, registration (@Component, @Bean, @Configuration), component scanning</li>
+  <li>Bean scopes (singleton, prototype, request, session), lazy initialization</li>
+  <li>Bean lifecycle (instantiation → populate → aware callbacks → @PostConstruct → @PreDestroy)</li>
+  <li>BeanPostProcessor, BeanFactoryPostProcessor</li>
+  <li>@Autowired, @Qualifier, @Primary, @Value, circular dependency resolution</li>
+  <li>Profiles (@Profile), SpEL (Spring Expression Language)</li>
+  </ul>
+</li>
+<li><strong>AOP</strong>
+  <ul>
+  <li>Aspect, advice types, pointcut, join point</li>
+  <li>JDK dynamic proxies vs CGLIB</li>
+  <li>Proxy limitations (self-invocation, final methods)</li>
+  <li>@Transactional / @Cacheable / @Async as AOP applications</li>
+  </ul>
+</li>
+<li><strong>Spring Boot essentials</strong>
+  <ul>
+  <li>Auto-configuration (@EnableAutoConfiguration, @Conditional*, spring.factories → AutoConfiguration.imports)</li>
+  <li>Starter dependencies, dependency management BOM</li>
+  <li>@SpringBootApplication composition</li>
+  <li>Embedded servers (Tomcat, Jetty, Undertow)</li>
+  <li>Externalized configuration: application.properties / YAML, precedence order</li>
+  <li>@ConfigurationProperties vs @Value, relaxed binding</li>
+  <li>Profiles per environment, spring.config.import</li>
+  <li>DevTools, banner, SpringApplication customization</li>
+  </ul>
+</li>
+</ul>
+<h3>2. Core / Cross-Version Knowledge</h3>
+<ul>
+<li><strong>Web layer</strong>
+  <ul>
+  <li>Spring MVC: DispatcherServlet flow, HandlerMapping, @Controller vs @RestController</li>
+  <li>Request mapping annotations, @PathVariable, @RequestParam, @RequestBody, ResponseEntity</li>
+  <li>Message converters (Jackson), content negotiation</li>
+  <li>Validation (Bean Validation, @Valid, BindingResult)</li>
+  <li>Exception handling: @ExceptionHandler, @ControllerAdvice, ProblemDetail</li>
+  <li>Filters vs interceptors vs AOP</li>
+  <li>CORS configuration, multipart uploads</li>
+  <li>WebFlux: reactive stack, Mono/Flux, WebClient vs RestTemplate</li>
+  </ul>
+</li>
+<li><strong>Data access</strong>
+  <ul>
+  <li>Spring Data JPA: repositories, derived queries, @Query, specifications, projections, paging &amp; sorting</li>
+  <li>JdbcTemplate, transaction management (@Transactional propagation, isolation, rollback rules)</li>
+  <li>Entity lifecycle, lazy vs eager fetching, N+1 problem</li>
+  <li>Connection pooling (HikariCP), multiple datasources</li>
+  <li>Spring Data JDBC, Spring Data Redis / Mongo</li>
+  </ul>
+</li>
+<li><strong>Security</strong>
+  <ul>
+  <li>SecurityFilterChain (component-based config), filter chain order</li>
+  <li>Authentication vs authorization, UserDetailsService, PasswordEncoder</li>
+  <li>Session vs stateless JWT, OAuth2 client / resource server, OIDC</li>
+  <li>Method security (@PreAuthorize), CSRF, CORS vs CSRF</li>
+  </ul>
+</li>
+<li><strong>Other core features</strong>
+  <ul>
+  <li>Caching abstraction (@Cacheable, @CacheEvict), cache providers</li>
+  <li>Async (@Async, TaskExecutor), scheduling (@Scheduled)</li>
+  <li>Events (ApplicationEventPublisher, @EventListener, @TransactionalEventListener)</li>
+  <li>Spring Boot testing slices, messaging integrations (Kafka, RabbitMQ)</li>
+  </ul>
+</li>
+</ul>
+<h3>3. Version-Specific Knowledge</h3>
+<ul>
+<li><strong>Spring Boot 1.x</strong> — original auto-configuration model, spring.factories, Boot CLI</li>
+<li><strong>Spring Boot 2.0–2.3 (Spring 5)</strong> — WebFlux reactive stack, Actuator rework, Micrometer metrics, Kotlin support, HikariCP default, layered jars, graceful shutdown, liveness/readiness probes</li>
+<li><strong>Spring Boot 2.4–2.7</strong> — spring.config.import, config data API, Java 17 support, spring.factories deprecation path</li>
+<li><strong>Spring Boot 3.0 (Spring 6)</strong> — Java 17 baseline, Jakarta EE 9+ namespace (javax → jakarta), GraalVM native image (AOT) support, Micrometer Observation / tracing, ProblemDetail (RFC 7807), declarative HTTP interface clients</li>
+<li><strong>Spring Boot 3.1</strong> — Testcontainers at development time, Docker Compose integration, SSL bundles</li>
+<li><strong>Spring Boot 3.2</strong> — virtual threads support (spring.threads.virtual.enabled), JdbcClient, RestClient, CDS support, Kafka/Pulsar SSL bundles</li>
+<li><strong>Spring Boot 3.3–3.5 (latest)</strong> — CDS &amp; Project Leyden-friendly startup, service connection improvements, structured logging, observability polish, Java 21+ optimizations</li>
+<li><strong>Spring Framework 7 / Boot 4 (upcoming)</strong> — Jakarta EE 11, JSpecify null safety, API versioning support</li>
+</ul>
+<h3>4. Advanced Knowledge</h3>
+<ul>
+<li>Auto-configuration internals: conditions evaluation report, ordering (@AutoConfigureBefore/After)</li>
+<li>Custom starters &amp; custom auto-configuration</li>
+<li>AOT processing &amp; GraalVM native images (hints, reflection config)</li>
+<li>Reactive internals: backpressure, Reactor schedulers, R2DBC</li>
+<li>Virtual threads vs WebFlux trade-offs</li>
+<li>Context hierarchies, conditional beans, environment post-processors</li>
+<li>Classloading &amp; fat jar structure (nested jars), layertools</li>
+</ul>
+<h3>5. Real-World Development &amp; Production</h3>
+<ul>
+<li><strong>Actuator</strong> — health, metrics, info, env, loggers endpoints; exposure &amp; security</li>
+<li><strong>Observability</strong> — Micrometer, Prometheus/Grafana, distributed tracing (OpenTelemetry), structured logging, MDC</li>
+<li><strong>Packaging &amp; deployment</strong> — executable jar, buildpacks (bootBuildImage), Docker layering, Kubernetes probes, graceful shutdown</li>
+<li><strong>Configuration management</strong> — secrets, Spring Cloud Config, Vault, environment variables</li>
+<li><strong>Migration</strong> — Boot 2 → 3 (jakarta, deprecations), dependency upgrades</li>
+</ul>
+<h3>6. Ecosystem</h3>
+<ul>
+<li>Spring Cloud (Gateway, Config, OpenFeign, Resilience4j, Eureka)</li>
+<li>Spring Batch, Spring Integration, Spring AMQP / Kafka, Spring Session</li>
+<li>Spring AI, Spring Modulith, Spring GraphQL</li>
+<li>Build: Maven/Gradle Spring Boot plugins, spring-boot-configuration-processor</li>
+</ul>
+<h3>7. Testing</h3>
+<ul>
+<li>@SpringBootTest (webEnvironment modes), test slices (@WebMvcTest, @DataJpaTest, @JsonTest)</li>
+<li>MockMvc / WebTestClient, @MockBean (→ @MockitoBean), @TestConfiguration</li>
+<li>Testcontainers, @ServiceConnection, context caching &amp; @DirtiesContext</li>
+<li>@Transactional in tests, test profiles &amp; properties</li>
+</ul>
+<h3>8. Senior / Interview Hot Topics</h3>
+<ul>
+<li>How auto-configuration actually works (conditions, back-off)</li>
+<li>@Transactional pitfalls: self-invocation, checked exceptions, private methods, readOnly</li>
+<li>Proxy semantics &amp; why @Cacheable/@Async fail on internal calls</li>
+<li>Constructor injection vs field injection debate</li>
+<li>Singleton beans &amp; thread safety, stateless design</li>
+<li>N+1 queries, OSIV (open-session-in-view) debate, fetch strategies</li>
+<li>MVC vs WebFlux vs virtual threads — when each wins</li>
+<li>Startup time &amp; memory tuning, native image trade-offs</li>
+<li>Circular dependencies: detection and refactoring</li>
+<li>Designing custom starters for platform teams</li>
+</ul>
+<div class="key-point">Interviews cluster around four areas: the IoC container and bean lifecycle, how auto-configuration works, @Transactional/proxy pitfalls, and what changed in Spring Boot 3 (Jakarta, native images, virtual threads in 3.2). Know those cold.</div>`,
+      },
       // ──── 1. SPRING & SPRING BOOT FUNDAMENTALS ────
       {
         q: 'What is the Spring Framework? Explain its architecture and all the main modules (and where Spring Boot fits).',

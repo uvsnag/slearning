@@ -1,292 +1,60 @@
-// Tools & Technologies — OpenAPI, gRPC, GraphQL, WebSocket, webhooks, gateways
+// Tools & Technologies — API & integration: OpenAPI, gRPC, Protobuf, GraphQL, WebSocket, SSE, Webhooks, Kong, Postman
+// One entry per tool. Title = tool name. Answer = what it is, in English then Vietnamese.
 import type { PvQuestion } from '../../types';
 
 export const questions: PvQuestion[] = [
   {
-    q: 'How do you use OpenAPI/Swagger properly in a Java or Node project?',
+    q: 'OpenAPI (Swagger)',
+    difficulty: 'easy',
+    a: `<div class="interview-answer"><p>OpenAPI is a standard way to describe a REST API in a YAML or JSON file: every endpoint, its parameters, request and response bodies, status codes, and authentication. Swagger is the original name and now refers to the set of tools around it, such as <strong>Swagger UI</strong>, which turns that file into an interactive web page where you can read the docs and try requests directly. Having a machine-readable description unlocks a lot: you can generate client SDKs in any language, generate server stubs, validate that requests match the contract, and run the file through a linter in CI to catch breaking changes. There are two ways to work with it. "Code first" means annotating your controllers (Springdoc for Spring, swagger-jsdoc for Express, or built in with NestJS and FastAPI) and generating the file from the running app. "Design first" means writing the file by hand before coding so frontend and backend teams agree on the contract early.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>OpenAPI là một chuẩn để mô tả REST API trong một file YAML hoặc JSON: từng endpoint, tham số, body của request và response, mã trạng thái, cách xác thực. Swagger là tên gọi ban đầu, giờ dùng để chỉ bộ công cụ xung quanh chuẩn này, ví dụ <strong>Swagger UI</strong> biến file đó thành một trang web tương tác, vừa đọc tài liệu vừa gọi thử API ngay tại chỗ. Khi có một bản mô tả mà máy đọc được, bạn làm được rất nhiều việc: sinh SDK client cho bất kỳ ngôn ngữ nào, sinh khung server, kiểm tra request có đúng hợp đồng không, và chạy file qua linter trong CI để bắt các thay đổi làm hỏng tương thích. Có hai cách làm. "Code first" là gắn annotation vào controller (Springdoc với Spring, swagger-jsdoc với Express, hoặc có sẵn trong NestJS và FastAPI) rồi sinh file từ ứng dụng đang chạy. "Design first" là viết file trước khi code, để đội frontend và backend thống nhất hợp đồng từ sớm.</p></details>`,
+  },
+  {
+    q: 'gRPC',
     difficulty: 'medium',
-    a: `<div class="interview-answer"><p>OpenAPI is a machine-readable contract for a REST API, and its value only appears when the spec is <em>generated from or generating</em> code rather than hand-maintained beside it. Two workflows exist: <strong>code-first</strong> (springdoc-openapi or NestJS decorators produce the spec from annotations — least friction, and the spec never lies) and <strong>design-first</strong> (write the YAML, review it with consumers, then generate server stubs and typed clients — better when several teams or external partners depend on it). Either way the payoff is the same: generated typed clients instead of hand-written fetch wrappers, mock servers (Prism, MSW) for frontend work before the backend exists, contract tests in CI, and a breaking-change diff that fails the build. Swagger UI is a side effect, not the point.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>OpenAPI là bản hợp đồng mà máy đọc được cho một REST API, và nó chỉ thật sự có giá trị khi spec được <em>sinh ra từ code</em> hoặc <em>dùng để sinh code</em>, chứ không phải viết tay song song rồi lệch nhau. Có hai cách làm: <strong>code-first</strong> (springdoc-openapi hoặc decorator của NestJS sinh spec từ annotation — ít ma sát nhất, và spec không bao giờ nói dối) và <strong>design-first</strong> (viết YAML trước, cùng review với bên tiêu thụ, rồi sinh server stub và client có type — hợp hơn khi nhiều team hoặc đối tác bên ngoài phụ thuộc vào API). Cách nào thì lợi ích cũng như nhau: có client sinh tự động kèm type thay vì tự viết wrapper fetch, có mock server (Prism, MSW) để frontend làm trước khi backend xong, có contract test trong CI, và có bản diff phát hiện breaking change để fail build. Swagger UI chỉ là sản phẩm phụ, không phải mục đích chính.</p></details>
-<pre>// Code-first in Spring Boot (springdoc-openapi)
-// dependency: org.springdoc:springdoc-openapi-starter-webmvc-ui
-@Operation(summary = "Create an order")
-@ApiResponses({
-  @ApiResponse(responseCode = "201", description = "Created"),
-  @ApiResponse(responseCode = "409", description = "Duplicate idempotency key")
-})
-@PostMapping("/orders")
-ResponseEntity&lt;OrderDto&gt; create(@Valid @RequestBody CreateOrderRequest req) { }
-// → /v3/api-docs (JSON) + /swagger-ui.html
-// Bean Validation annotations become schema constraints automatically:
-// @NotBlank, @Size, @Min → required/minLength/minimum in the spec.
-
-// Design-first: generate both sides from one YAML
-openapi-generator-cli generate -i openapi.yaml -g java -o ./client
-openapi-generator-cli generate -i openapi.yaml -g typescript-axios -o ./web/api
-// or orval / openapi-typescript for React Query hooks + types</pre>
-<pre># The spec, and the parts people forget
-paths:
-  /orders/{id}:
-    get:
-      parameters: [{ name: id, in: path, required: true,
-                     schema: { type: string, format: uuid } }]
-      responses:
-        "200": { content: { application/json:
-                 { schema: { \$ref: "#/components/schemas/Order" } } } }
-        "404": { \$ref: "#/components/responses/NotFound" }
-components:
-  securitySchemes:
-    bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }
-security: [{ bearerAuth: [] }]        # ← document auth, not just happy paths
-# Also model: error shape (RFC 7807 problem+json), pagination params,
-# idempotency headers, and rate-limit headers. Consumers need those.
-
-# CI checks that make the contract real
-spectral lint openapi.yaml                  # style/consistency rules
-openapi-diff old.yaml new.yaml --fail-on-incompatible   # breaking changes
-schemathesis run openapi.yaml                # property-based API fuzzing</pre>
-<p><strong>Versioning and evolution:</strong> additive changes (new optional fields, new endpoints) do not need a version bump; removing or renaming does. Publish the spec as a build artifact per release so consumers can diff, and keep it in the repo next to the code so a PR that changes behaviour also changes the contract. If the API is public, the spec plus generated SDKs is most of your developer documentation.</p>
-<div class="key-point">Make the spec authoritative in one direction — generated from annotations or generating stubs — never hand-synced. Then harvest the real benefits: typed clients, mock servers, contract linting, and automated breaking-change detection in CI.</div>`,
+    a: `<div class="interview-answer"><p>gRPC is a framework for calling functions on another server as if they were local, built by Google. You define the service in a <code>.proto</code> file: the methods, their input and output message types. A code generator then produces client and server code for your language, so calling a remote method is a typed function call, not a hand-built HTTP request. Messages are encoded with Protocol Buffers, a compact binary format, and sent over HTTP/2, which gives small payloads, multiplexed connections, and built-in support for <strong>streaming</strong> in either or both directions. It is much faster than JSON over REST and catches type mismatches at compile time. The main uses are communication between microservices inside a data center and mobile or IoT clients where bandwidth matters. Its weaknesses are that browsers cannot call it directly without a proxy (gRPC-Web), the binary payloads are not human-readable, and debugging with curl is harder, so public APIs usually stay REST.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>gRPC là framework do Google tạo ra để gọi hàm trên một server khác như thể gọi hàm local. Bạn định nghĩa service trong file <code>.proto</code>: các method, kiểu dữ liệu đầu vào và đầu ra. Một trình sinh code sẽ tạo ra code client và server cho ngôn ngữ của bạn, nên gọi một method từ xa chỉ là một lời gọi hàm có kiểu rõ ràng, không phải tự dựng HTTP request. Message được mã hóa bằng Protocol Buffers, một định dạng nhị phân gọn, và gửi qua HTTP/2, nhờ đó payload nhỏ, nhiều lời gọi dùng chung một kết nối, và hỗ trợ sẵn <strong>streaming</strong> theo một hoặc cả hai chiều. Nó nhanh hơn nhiều so với JSON qua REST và bắt được lỗi sai kiểu ngay lúc biên dịch. Ứng dụng chính là giao tiếp giữa các microservice trong cùng trung tâm dữ liệu, và client di động hoặc IoT nơi băng thông quan trọng. Điểm yếu là trình duyệt không gọi trực tiếp được nếu không có proxy (gRPC-Web), payload nhị phân không đọc được bằng mắt, và debug bằng curl khó hơn, nên API công khai thường vẫn dùng REST.</p></details>`,
   },
   {
-    q: 'When would you choose gRPC over REST, and how does Protobuf work?',
-    difficulty: 'hard',
-    a: `<div class="interview-answer"><p>gRPC is a binary RPC framework over HTTP/2 with <strong>Protobuf</strong> as its schema and serialization format: you define services and messages in a <code>.proto</code> file and generate strongly typed client and server code for every language. Compared with REST+JSON it gives smaller payloads, faster serialization, multiplexed streams on one connection, native bidirectional <strong>streaming</strong>, deadlines, and a schema that is enforced at compile time — which makes it a strong fit for internal service-to-service traffic, high-volume or low-latency paths, and streaming APIs. REST stays the better choice for public APIs and browsers, because it is human-debuggable, cacheable by intermediaries, and works everywhere without a proxy (browsers need grpc-web). Protobuf's field <em>numbers</em> are the contract, so evolution rules are strict: add new fields with new numbers, never reuse or renumber, and reserve what you delete.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>gRPC là một framework RPC nhị phân chạy trên HTTP/2, dùng <strong>Protobuf</strong> làm schema và định dạng tuần tự hoá: bạn định nghĩa service và message trong file <code>.proto</code> rồi sinh code client/server có type mạnh cho mọi ngôn ngữ. So với REST+JSON, nó cho payload nhỏ hơn, tuần tự hoá nhanh hơn, nhiều stream ghép trên một kết nối, hỗ trợ <strong>streaming</strong> hai chiều sẵn có, có deadline, và schema được kiểm tra ngay lúc biên dịch — nên rất hợp cho traffic nội bộ giữa các service, cho các đường có lưu lượng lớn hoặc yêu cầu độ trễ thấp, và cho các API kiểu streaming. REST vẫn là lựa chọn tốt hơn cho API công khai và cho browser, vì dễ debug bằng mắt, các tầng trung gian cache được, và chạy ở đâu cũng được mà không cần proxy (browser thì phải qua grpc-web). Với Protobuf, <em>số hiệu field</em> mới là hợp đồng thật, nên quy tắc tiến hoá rất chặt: thêm field thì dùng số mới, không bao giờ dùng lại hay đổi số, và phải <code>reserved</code> những số đã xoá.</p></details>
-<pre>// order.proto — the single source of truth for both sides
-syntax = "proto3";
-package acme.orders.v1;
-
-service OrderService {
-  rpc GetOrder    (GetOrderRequest)  returns (Order);              // unary
-  rpc WatchOrders (WatchRequest)     returns (stream OrderEvent);  // server stream
-  rpc Upload      (stream Chunk)     returns (UploadResult);       // client stream
-  rpc Chat        (stream Msg)       returns (stream Msg);         // bidirectional
-}
-message Order {
-  string id        = 1;      // ← the NUMBER is the wire contract, not the name
-  string customer  = 2;
-  int64  total_cents = 3;
-  reserved 4;                // deleted field: never reuse the number
-  repeated Item items = 5;
-}
-// Generate: protoc / buf → Java stubs, TS clients, Go, Python...
-// Evolution rules: adding a field is backward compatible; renaming is fine
-// on the wire (numbers matter); changing a type or number is BREAKING.</pre>
-<pre>                gRPC                        REST + JSON
-payload         binary, compact             text, verbose but readable
-schema          .proto, compile-time        OpenAPI, optional at runtime
-transport       HTTP/2 multiplexed          HTTP/1.1 or 2
-streaming       first-class, bidirectional  SSE / WebSocket bolted on
-browser         needs grpc-web + proxy      native
-caching         no HTTP caching semantics   GET is cacheable everywhere
-debugging       needs grpcurl/buf tooling   curl and a browser
-best for        internal microservices,     public APIs, browser clients,
-                mobile↔backend, streaming   webhooks, third parties
-
-// Things to mention as a senior
-- deadlines are mandatory in practice: stub.withDeadlineAfter(2, SECONDS)
-  — a gRPC call without a deadline is a resource leak waiting to happen
-- status codes are gRPC's own (NOT_FOUND, DEADLINE_EXCEEDED, UNAVAILABLE)
-  and retries belong in the service config with backoff for UNAVAILABLE only
-- load balancing: HTTP/2 keeps one long-lived connection, so an L4 balancer
-  (or plain ClusterIP) will NOT spread load → use client-side LB, a mesh,
-  or a proxy that speaks HTTP/2 (Envoy)
-- health checking + reflection for tooling; buf for lint/breaking-change CI</pre>
-<div class="key-point">gRPC + Protobuf for internal, high-throughput, or streaming traffic where both ends are yours and code generation pays off; REST + JSON at the public edge and for browsers. Protobuf field numbers are the contract — add, never renumber or reuse — and always set deadlines and use HTTP/2-aware load balancing.</div>`,
+    q: 'Protocol Buffers (Protobuf)',
+    difficulty: 'easy',
+    a: `<div class="interview-answer"><p>Protocol Buffers, usually called Protobuf, is a format for serializing structured data, created by Google as a smaller and faster alternative to JSON and XML. You describe your data in a <code>.proto</code> file, giving each field a name, a type, and a number, then a compiler generates classes for Java, JavaScript, Go, Python, and many other languages that can read and write that data. The encoded output is binary and typically several times smaller than JSON, and parsing it is much faster because there are no field names or quotes to scan. The field numbers are the key to <strong>backward compatibility</strong>: as long as you never reuse or change a number, old code can read new messages and new code can read old ones, simply ignoring fields it does not know. Protobuf is the wire format of gRPC and is also used for Kafka messages, configuration files, and storing data compactly. The cost is that you need the schema to make sense of the bytes, so it is not something you can inspect in a browser.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Protocol Buffers, thường gọi là Protobuf, là định dạng để tuần tự hóa dữ liệu có cấu trúc, do Google tạo ra như một lựa chọn nhỏ hơn và nhanh hơn JSON và XML. Bạn mô tả dữ liệu trong file <code>.proto</code>, mỗi trường có tên, kiểu và một số thứ tự, rồi trình biên dịch sinh ra class cho Java, JavaScript, Go, Python và nhiều ngôn ngữ khác để đọc và ghi dữ liệu đó. Kết quả mã hóa là nhị phân, thường nhỏ hơn JSON vài lần, và parse nhanh hơn nhiều vì không phải quét tên trường hay dấu ngoặc kép. Số thứ tự của trường chính là chìa khóa của <strong>tương thích ngược</strong>: miễn là không bao giờ dùng lại hay đổi số, code cũ vẫn đọc được message mới và code mới đọc được message cũ, chỉ cần bỏ qua trường mình không biết. Protobuf là định dạng truyền tải của gRPC, và cũng được dùng cho message Kafka, file cấu hình, hay lưu dữ liệu gọn. Cái giá là phải có schema mới hiểu được chuỗi byte, nên không thể mở lên xem trong trình duyệt.</p></details>`,
   },
   {
-    q: 'What does the GraphQL toolchain look like on the server and the client?',
+    q: 'GraphQL',
     difficulty: 'medium',
-    a: `<div class="interview-answer"><p>On the server you pick between a <strong>schema-first</strong> stack (Apollo Server, GraphQL Java, Spring for GraphQL: write SDL, implement resolvers) and a <strong>code-first</strong> one (NestJS or type-graphql generating SDL from classes). The two pieces that make it production-grade are <strong>DataLoader</strong>, which batches and caches per request to kill the N+1 problem that resolvers create by design, and cost controls — depth and complexity limits, pagination everywhere, and persisted queries for public clients. On the client, Apollo Client, urql, or Relay handle normalized caching and optimistic updates, while <strong>GraphQL Code Generator</strong> turns the schema and your documents into typed hooks so the compiler catches a renamed field. Federation (Apollo Federation) composes multiple services into one graph when several teams own different slices.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Ở phía server, bạn chọn giữa hướng <strong>schema-first</strong> (Apollo Server, GraphQL Java, Spring for GraphQL: viết SDL rồi hiện thực resolver) và hướng <strong>code-first</strong> (NestJS hay type-graphql sinh SDL từ class). Hai thứ khiến GraphQL đủ chuẩn production là <strong>DataLoader</strong> — gom và cache theo từng request để triệt tiêu vấn đề N+1 mà chính mô hình resolver sinh ra — và các biện pháp kiểm soát chi phí truy vấn: giới hạn độ sâu và độ phức tạp, phân trang ở mọi danh sách, và dùng persisted query cho client công khai. Ở phía client, Apollo Client, urql hay Relay lo phần cache đã chuẩn hoá và optimistic update, còn <strong>GraphQL Code Generator</strong> biến schema cùng các document của bạn thành hook có type để compiler bắt được khi một field bị đổi tên. Federation (Apollo Federation) thì ghép nhiều service thành một graph duy nhất khi mỗi team sở hữu một phần.</p></details>
-<pre># Schema is the contract (SDL)
-type Order { id: ID!  total: Int!  customer: Customer!  items: [Item!]! }
-type Query  { order(id: ID!): Order  orders(first: Int!, after: String): OrderConnection! }
-type Mutation { placeOrder(input: PlaceOrderInput!): PlaceOrderPayload! }
-# Connection/edge pagination (cursor-based) is the convention — offset
-# pagination breaks with concurrent inserts.</pre>
-<pre>// The N+1 problem is the default, not an accident
-// query { orders(first:50) { customer { name } } }
-//   → 1 query for orders + 50 queries for customers
-const customerLoader = new DataLoader(async (ids) =>
-  orderBy(await db.customers.findMany({ where: { id: { in: ids } } }), ids));
-const resolvers = {
-  Order: { customer: (o, _a, ctx) => ctx.loaders.customer.load(o.customerId) },
-};
-// → 1 + 1 queries. Create loaders PER REQUEST (they cache; a global
-// loader would serve stale data across users).
-// Java: Spring for GraphQL @BatchMapping does the same thing declaratively.
-
-// Cost + safety controls (see also the GraphQL security question)
-depthLimit(10), costAnalysis({ maximumCost: 1000 }),
-introspection: false in production, persisted queries for public apps,
-field-level authorization inside resolvers — never assume the parent check.</pre>
-<pre>// Client side
-// codegen.ts → typed hooks from schema + your .graphql documents
-const { data } = useOrderQuery({ variables: { id } });   // fully typed
-// Apollo normalized cache: entities keyed by __typename + id, so one
-// mutation result updates every screen showing that entity.
-// Cache invalidation options: refetchQueries, cache.modify, or returning
-// the updated entity from the mutation (best — the cache self-heals).
-
-// When NOT to use GraphQL
-- a small internal API with one consumer → REST is less machinery
-- file uploads/downloads and binary streaming → HTTP endpoints
-- heavy caching at the CDN edge → GraphQL POSTs are not cacheable
-  (persisted queries over GET can be)
-// GraphQL earns its cost with many clients, deeply related data, and
-// mobile apps that need to minimize round trips and payload size.</pre>
-<div class="key-point">Server: schema (SDL or code-first) + resolvers + DataLoader per request + depth/complexity limits. Client: a normalized cache (Apollo/urql/Relay) plus generated types. GraphQL's flexibility moves N+1 and authorization into resolvers — solve both deliberately or it will not survive production.</div>`,
+    a: `<div class="interview-answer"><p>GraphQL is a query language for APIs where the client, not the server, decides what data comes back. The server publishes a <strong>schema</strong> describing all available types and fields, and the client sends a query listing exactly the fields it needs, possibly across several related objects, through a single endpoint. The server responds with JSON in exactly that shape. This solves two problems of REST: <em>over-fetching</em>, where an endpoint returns many fields you do not use, and <em>under-fetching</em>, where a screen needs five round trips to five endpoints. It is popular for frontends and mobile apps with many different screens, and for gluing several backend services into one API. Common tools are Apollo Server and GraphQL Yoga on the backend and Apollo Client or urql on the frontend. The trade-offs are server-side complexity, the N+1 query problem (solved with DataLoader batching), harder HTTP caching since everything is a POST to one URL, and the need to limit query depth so clients cannot overload the server.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>GraphQL là ngôn ngữ truy vấn cho API, trong đó client chứ không phải server quyết định dữ liệu trả về gồm những gì. Server công bố một <strong>schema</strong> mô tả tất cả kiểu và trường có sẵn, còn client gửi một câu truy vấn liệt kê đúng những trường mình cần, có thể xuyên qua nhiều object liên quan, tất cả qua một endpoint duy nhất. Server trả về JSON có đúng hình dạng đó. Cách này giải quyết hai vấn đề của REST: <em>lấy thừa</em>, khi một endpoint trả về nhiều trường bạn không dùng, và <em>lấy thiếu</em>, khi một màn hình phải gọi năm endpoint mới đủ dữ liệu. GraphQL phổ biến với frontend và ứng dụng di động có nhiều màn hình khác nhau, và để gom nhiều backend service thành một API. Công cụ hay dùng là Apollo Server và GraphQL Yoga ở backend, Apollo Client hoặc urql ở frontend. Đánh đổi là server phức tạp hơn, vấn đề N+1 query (giải bằng DataLoader để gom truy vấn), cache HTTP khó hơn vì mọi thứ đều là POST tới một URL, và phải giới hạn độ sâu truy vấn để client không làm quá tải server.</p></details>`,
   },
   {
-    q: 'How do you implement real-time features — WebSocket, SSE, and scaling across instances?',
-    difficulty: 'hard',
-    a: `<div class="interview-answer"><p>Pick the simplest transport that fits the direction of data. <strong>SSE</strong> is one-way server→client over plain HTTP with automatic reconnection and <code>Last-Event-ID</code> resume — perfect for notifications, live dashboards, and streaming LLM tokens. <strong>WebSocket</strong> is a full-duplex upgraded connection for chat, collaborative editing, and games. Long polling remains the fallback. The hard part is never the first connection, it is scaling: connections are <em>stateful</em>, so with N instances a message published on one instance must reach subscribers on the others — that is what a <strong>Redis pub/sub adapter</strong> (Socket.IO), a message broker, or a purpose-built service (Ably, Pusher, Centrifugo) is for. Then you must handle authentication on the handshake, heartbeats and idle timeouts through proxies, backpressure, and reconnect-with-replay so a client that drops for ten seconds does not miss events.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Hãy chọn transport đơn giản nhất phù hợp với chiều dữ liệu. <strong>SSE</strong> là một chiều server→client trên HTTP thường, có sẵn tự động kết nối lại và resume bằng <code>Last-Event-ID</code> — rất hợp cho thông báo, dashboard trực tiếp và stream token của LLM. <strong>WebSocket</strong> là kết nối song công sau khi upgrade, dùng cho chat, soạn thảo cộng tác và game. Long polling vẫn còn giá trị làm phương án dự phòng. Phần khó không bao giờ là kết nối đầu tiên, mà là chuyện scale: kết nối là <em>có trạng thái</em>, nên khi có N instance, một message publish ở instance này phải tới được các subscriber đang nằm ở instance khác — đó là việc của <strong>Redis pub/sub adapter</strong> (Socket.IO), của một message broker, hoặc của một dịch vụ chuyên biệt (Ably, Pusher, Centrifugo). Sau đó còn phải lo: xác thực ngay ở bước handshake, heartbeat và idle timeout khi đi qua proxy, xử lý backpressure, và cơ chế kết nối lại có phát lại dữ liệu để client mất mạng mười giây không bị hụt event.</p></details>
-<pre>// SSE — often the right answer, and far simpler than WebSocket
-// Server (Node)
-res.writeHead(200, { 'Content-Type': 'text/event-stream',
-  'Cache-Control': 'no-cache', Connection: 'keep-alive',
-  'X-Accel-Buffering': 'no' });          // ← or nginx buffers your stream
-res.write(\`id: \${event.id}\\nevent: order\\ndata: \${JSON.stringify(e)}\\n\\n\`);
-// Client
-const es = new EventSource('/api/stream');   // auto-reconnects
-es.addEventListener('order', (e) => update(JSON.parse(e.data)));
-// Spring: return a Flux&lt;ServerSentEvent&lt;T&gt;&gt; or SseEmitter
-// Keep a heartbeat comment (": ping\\n\\n") every 15-30s so proxies and
-// load balancers do not kill an idle connection.
-
-// WebSocket — when the client also sends continuously
-// Java: Spring WebSocket + STOMP (@MessageMapping, SimpMessagingTemplate)
-// Node: ws / Socket.IO
-io.on('connection', (socket) => {          // authenticate FIRST
-  const user = verifyJwt(socket.handshake.auth.token);   // no cookies-only
-  socket.join(\`tenant:\${user.tenantId}\`); // rooms = authorization boundary
-  socket.on('message', (m) => { /* validate + authorize every message */ });
-});</pre>
-<pre>// Scaling: the instance that holds the socket is rarely the one with the news
-[pod A] ws clients 1..5000        [pod B] ws clients 5001..10000
-      ↖ subscribe ─ Redis pub/sub (or Kafka topic) ─ publish ↗
-// Socket.IO: io.adapter(createAdapter(pubClient, subClient))
-// Spring: an external broker relay (RabbitMQ/ActiveMQ STOMP) instead of
-//         the in-memory SimpleBroker, which only works on one instance.
-// Sticky sessions are needed for Socket.IO's HTTP long-poll fallback
-// (ingress annotation: affinity: cookie), and always for STOMP over
-// multiple nodes without a broker relay.
-
-// Production concerns that get missed
-auth        : token in the handshake (query string is logged — prefer the
-              Sec-WebSocket-Protocol header or a short-lived ticket),
-              re-check authorization per message, and expire the socket
-              when the token expires
-resume      : give every event a monotonic id; on reconnect the client
-              sends the last id and you replay the gap (Redis stream/list)
-backpressure: drop or coalesce for slow consumers; never buffer unbounded
-limits      : max connections per user, message size, rate per socket
-ops         : connection count and message lag as metrics; graceful
-              shutdown must close sockets so clients reconnect elsewhere
-mobile      : real push (APNs/FCM) for background delivery — a socket
-              cannot stay open when the app is suspended</pre>
-<div class="key-point">SSE for server→client streams, WebSocket for two-way, push services for mobile background. The engineering is in scale-out: a Redis/broker fan-out layer between instances, authentication on the handshake plus per-message authorization, heartbeats through proxies, and event ids so reconnects can replay the gap.</div>`,
+    q: 'WebSocket',
+    difficulty: 'easy',
+    a: `<div class="interview-answer"><p>WebSocket is a protocol that keeps a single two-way connection open between a browser and a server. Normal HTTP is request-response: the client asks, the server answers, and the connection is done. With WebSocket, the client starts with an HTTP request that asks to "upgrade", and from then on both sides can send messages to each other at any time with very little overhead. That is what you need for chat, live notifications, collaborative editing, multiplayer games, trading dashboards, and anything where the server must push data the instant it changes. In the browser it is the built-in <code>WebSocket</code> object; on the server, Java uses Spring WebSocket or STOMP, and Node uses the <code>ws</code> library or Socket.IO, which adds reconnection and fallbacks. The main operational challenge is scale: each connection is long-lived and tied to one server, so when you run several instances you need a shared broker like Redis Pub/Sub so a message sent on one server reaches users connected to another.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>WebSocket là giao thức giữ một kết nối hai chiều luôn mở giữa trình duyệt và server. HTTP bình thường theo kiểu hỏi đáp: client hỏi, server trả lời, rồi kết nối kết thúc. Với WebSocket, client bắt đầu bằng một HTTP request xin "nâng cấp", và từ đó cả hai bên có thể gửi message cho nhau bất cứ lúc nào với chi phí rất thấp. Đó chính là thứ cần cho chat, thông báo thời gian thực, soạn thảo cộng tác, game nhiều người chơi, bảng giá chứng khoán, và mọi trường hợp server phải đẩy dữ liệu ngay khi có thay đổi. Trên trình duyệt có sẵn object <code>WebSocket</code>; phía server, Java dùng Spring WebSocket hoặc STOMP, Node dùng thư viện <code>ws</code> hoặc Socket.IO, thứ có thêm tự kết nối lại và phương án dự phòng. Thách thức vận hành lớn nhất là scale: mỗi kết nối sống lâu và gắn với một server cụ thể, nên khi chạy nhiều instance bạn cần một broker dùng chung như Redis Pub/Sub để message gửi ở server này tới được người dùng đang nối vào server khác.</p></details>`,
   },
   {
-    q: 'How do you design and consume webhooks reliably?',
-    difficulty: 'hard',
-    a: `<div class="interview-answer"><p>A webhook is someone else's HTTP call into your system (or yours into theirs), so both sides need the same three properties: <strong>authenticity</strong>, <strong>idempotency</strong>, and <strong>durability</strong>. As a consumer: verify an HMAC signature over the <em>raw</em> body with a timestamp to stop replay, respond 2xx immediately after persisting the event, and process asynchronously — never do the work inside the request, because a slow handler causes the provider to time out and retry. As a producer: sign every delivery, include a stable event id and type, retry with exponential backoff and jitter, expose a delivery log with manual replay, and disable endpoints that fail for days. On both sides, expect duplicates and out-of-order arrival, and treat the webhook as a hint rather than the source of truth — reconcile against the provider's API for anything financial.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Webhook là một lời gọi HTTP từ hệ thống của người khác vào hệ thống của bạn (hoặc ngược lại), nên cả hai phía đều cần đúng ba tính chất: <strong>xác thực được nguồn</strong>, <strong>idempotent</strong>, và <strong>bền vững</strong>. Khi là bên nhận: verify HMAC signature trên <em>raw body</em> kèm timestamp để chống replay, lưu event xuống rồi trả 2xx ngay, và xử lý bất đồng bộ — đừng làm việc nặng ngay trong request, vì handler chậm sẽ khiến bên gửi timeout rồi retry. Khi là bên gửi: ký mọi lần gửi, kèm một event id ổn định và loại event, retry với backoff luỹ thừa cộng jitter, cung cấp log các lần gửi kèm khả năng replay thủ công, và tự tắt endpoint nào lỗi liên tục nhiều ngày. Ở cả hai phía, hãy giả định sẽ có trùng lặp và sai thứ tự, và coi webhook chỉ là một tín hiệu gợi ý chứ không phải nguồn sự thật — với mọi thứ liên quan tới tiền thì phải đối chiếu lại bằng API của bên kia.</p></details>
-<pre>// CONSUMING a webhook — the correct shape
-app.post('/webhooks/stripe',
-  express.raw({ type: 'application/json' }),      // raw body, not parsed!
-  async (req, res) => {
-    // 1. verify signature over the raw bytes + timestamp
-    const [t, sig] = parseHeader(req.headers['stripe-signature']);
-    if (Math.abs(Date.now()/1000 - t) > 300) return res.sendStatus(400);
-    const expected = hmacSha256(secret, \`\${t}.\${req.body}\`);
-    if (!timingSafeEqual(expected, sig)) return res.sendStatus(401);
-
-    // 2. persist + dedup by the provider's event id (unique constraint)
-    const event = JSON.parse(req.body);
-    const inserted = await db.webhookEvents.insertIfAbsent(event.id, event);
-
-    // 3. ACK FAST, then work asynchronously
-    res.sendStatus(200);
-    if (inserted) await queue.add('process-webhook', { id: event.id });
-  });
-// Why raw body: any re-serialization (key order, whitespace) breaks HMAC.
-// Why ack first: providers time out in 5-30s and then retry — a slow
-// handler multiplies your load exactly when you are already slow.</pre>
-<pre>// PRODUCING webhooks — what subscribers need from you
-POST https://customer.example.com/hooks
-X-Event-Id: evt_01H...            # stable across retries → dedup key
-X-Event-Type: order.paid
-X-Timestamp: 1722330000
-X-Signature: sha256=...           # HMAC over timestamp + "." + raw body
-{ "id":"evt_01H...", "type":"order.paid", "created":...,
-  "data": { "orderId":"o_77", "amountCents": 4990 } }
-
-// Delivery rules
-- retries: 1m, 5m, 15m, 1h, 6h, 24h with jitter; give up after ~3 days
-- treat 2xx as success; 410 Gone → disable the endpoint; 4xx → do not retry
-  (except 408/429); 5xx/timeout → retry
-- per-endpoint concurrency + circuit breaker so one dead subscriber cannot
-  consume your worker pool
-- a delivery log UI (payload, response, attempts) + "resend" button —
-  this removes 90% of integration support tickets
-- send events, not commands, and include enough data that the consumer
-  usually does not need to call back (but let them, for reconciliation)
-- offer secret rotation with two active signing secrets during overlap</pre>
-<p><strong>Ordering and reconciliation:</strong> HTTP delivery cannot guarantee order, so include a sequence number or version per entity and let consumers ignore an older version; for money, always reconcile with a scheduled pull of the provider's API rather than trusting that every webhook arrived. For local development use a tunnel (ngrok, Stripe CLI, smee.io), and in tests replay stored real payloads — hand-written fixtures drift from reality.</p>
-<div class="key-point">Verify HMAC over the raw body with a timestamp, dedup on the provider's event id, acknowledge immediately and process from a queue. As a producer: sign, retry with backoff, keep a replayable delivery log, and disable dead endpoints — and never treat webhooks as ordered or guaranteed.</div>`,
+    q: 'Server-Sent Events (SSE)',
+    difficulty: 'easy',
+    a: `<div class="interview-answer"><p>Server-Sent Events is a simple way for a server to push updates to a browser over a normal HTTP connection. The client opens a request, the server keeps the response open and writes small text events to it whenever something happens, and the browser's built-in <code>EventSource</code> object receives them and reconnects automatically if the connection drops. It is one-directional, server to client only, which is exactly what many features need: live news feeds, progress bars for long jobs, notification badges, stock tickers, and streaming the tokens of an AI chat response as they are generated. Compared with WebSocket, SSE is easier to implement, works through ordinary proxies and load balancers because it is just HTTP, and supports automatic reconnection with a last-event ID out of the box. Choose SSE when only the server needs to talk; choose WebSocket when the client also sends frequent messages or you need binary data.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Server-Sent Events là cách đơn giản để server đẩy cập nhật xuống trình duyệt qua một kết nối HTTP bình thường. Client mở một request, server giữ response mở và ghi vào đó từng sự kiện dạng text mỗi khi có chuyện gì xảy ra, còn object <code>EventSource</code> có sẵn trong trình duyệt sẽ nhận các sự kiện đó và tự kết nối lại nếu rớt mạng. Nó chỉ đi một chiều, từ server xuống client, và đó chính là thứ nhiều tính năng cần: bảng tin trực tiếp, thanh tiến độ cho tác vụ dài, số thông báo chưa đọc, bảng giá, hay stream từng từ của câu trả lời AI chat khi nó đang được sinh ra. So với WebSocket, SSE dễ cài hơn, đi qua proxy và load balancer thông thường vì nó chỉ là HTTP, và có sẵn cơ chế tự kết nối lại kèm ID của sự kiện cuối. Chọn SSE khi chỉ server cần nói; chọn WebSocket khi client cũng gửi nhiều message hoặc cần truyền dữ liệu nhị phân.</p></details>`,
   },
   {
-    q: 'What does an API gateway do, and how do you choose one?',
+    q: 'Webhooks',
+    difficulty: 'easy',
+    a: `<div class="interview-answer"><p>A webhook is a way for one system to notify another when something happens, by sending an HTTP POST to a URL you registered. Instead of your code asking Stripe every minute "has the payment finished?", you give Stripe a URL and it calls you the moment the payment completes, with the details in the body. GitHub, Stripe, Slack, Shopify, and almost every SaaS product offer them. They are simple to receive, just an endpoint in your API, but doing it reliably needs a few habits. Verify the <strong>signature</strong> header so you know the call really came from the provider. Respond quickly with a 200 and do the real work in a background job, because the sender will time out and retry if you are slow. Make the handler <strong>idempotent</strong>, since retries mean you will receive the same event more than once. And log every event with its ID so you can replay it if your processing failed. When you provide webhooks to others, you need the mirror image: signing, retries with backoff, and a dashboard showing delivery status.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Webhook là cách để một hệ thống báo cho hệ thống khác biết khi có chuyện gì xảy ra, bằng cách gửi một HTTP POST tới URL mà bạn đã đăng ký. Thay vì code của bạn cứ mỗi phút lại hỏi Stripe "thanh toán xong chưa?", bạn đưa cho Stripe một URL và Stripe sẽ gọi bạn ngay khi thanh toán hoàn tất, kèm chi tiết trong body. GitHub, Stripe, Slack, Shopify và gần như mọi sản phẩm SaaS đều có webhook. Nhận webhook thì dễ, chỉ là một endpoint trong API, nhưng làm cho đáng tin cậy cần vài thói quen. Kiểm tra <strong>chữ ký</strong> trong header để chắc chắn request thật sự đến từ nhà cung cấp. Trả về 200 thật nhanh rồi xử lý thật trong background job, vì bên gửi sẽ timeout và gửi lại nếu bạn chậm. Viết handler <strong>idempotent</strong>, vì có gửi lại nghĩa là bạn sẽ nhận cùng một sự kiện nhiều lần. Và ghi log mọi sự kiện kèm ID để có thể chạy lại nếu xử lý thất bại. Khi chính bạn cung cấp webhook cho người khác, bạn cần làm điều ngược lại: ký request, gửi lại có giãn cách, và có dashboard cho thấy trạng thái giao sự kiện.</p></details>`,
+  },
+  {
+    q: 'Kong (API Gateway)',
     difficulty: 'medium',
-    a: `<div class="interview-answer"><p>A gateway is the single front door that holds the concerns no individual service should re-implement: TLS termination, routing and path rewriting, authentication and token validation, rate limiting and quotas, CORS, request/response transformation, retries and timeouts, and consistent access logging and metrics. That is genuinely valuable — but the failure mode is putting <em>business logic</em> in it, which turns the gateway into a shared bottleneck that every team must queue behind to deploy. Choosing is mostly about your existing platform: <strong>Kong</strong> or <strong>Apigee</strong> for API-product features (developer portal, monetization, plugins), <strong>Spring Cloud Gateway</strong> when the team is Java and wants filters in code, <strong>Nginx/Traefik/Envoy or an ingress controller</strong> when you mainly need routing and TLS in Kubernetes, and a managed <strong>AWS API Gateway</strong> when you want zero operations and are already serverless.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Gateway là cửa vào duy nhất, nơi tập trung những việc mà không service nào nên làm lại: terminate TLS, routing và rewrite path, xác thực và verify token, rate limit và quota, CORS, biến đổi request/response, retry và timeout, cùng với access log và metric nhất quán. Đó là giá trị thật — nhưng cái bẫy là nhét <em>logic nghiệp vụ</em> vào gateway, khiến nó thành một điểm nghẽn dùng chung mà mọi team phải xếp hàng chờ mỗi lần deploy. Việc chọn công cụ chủ yếu phụ thuộc nền tảng bạn đang có: <strong>Kong</strong> hoặc <strong>Apigee</strong> nếu cần các tính năng của một sản phẩm API (cổng dành cho developer, thu phí, hệ plugin); <strong>Spring Cloud Gateway</strong> khi team làm Java và muốn viết filter bằng code; <strong>Nginx/Traefik/Envoy hay ingress controller</strong> khi chủ yếu chỉ cần routing và TLS trong Kubernetes; còn <strong>AWS API Gateway</strong> dạng managed thì hợp khi muốn khỏi phải vận hành gì và đã dùng serverless.</p></details>
-<pre>// What belongs in the gateway (cross-cutting, identical for everyone)
-✅ TLS termination, HTTP/2, compression
-✅ routing by host/path/header, canary weights, blue-green switching
-✅ authentication: validate the JWT once (signature, iss, aud, exp) and
-   pass identity downstream; or exchange an opaque token for a short JWT
-   ("phantom token") so services never call the auth server
-✅ rate limiting and quotas per API key/user/tenant
-✅ CORS, request size limits, timeouts, retries with budgets
-✅ observability: one place with request id generation, access logs, RED metrics
-
-// What does NOT belong (the anti-pattern)
-❌ business rules ("if order.total > 100 then …")
-❌ data aggregation across services → that is a BFF, owned by the client team
-❌ per-team custom plugins deployed on a shared gateway release train
-❌ authorization decisions that need domain data → services own those</pre>
-<pre>// Spring Cloud Gateway — code/config in a Java shop
-spring.cloud.gateway.routes:
-  - id: orders
-    uri: lb://orders-api                     # service discovery
-    predicates: [Path=/api/orders/**]
-    filters:
-      - StripPrefix=1
-      - name: RequestRateLimiter
-        args: { redis-rate-limiter.replenishRate: 20, burstCapacity: 40 }
-      - name: CircuitBreaker
-        args: { name: ordersCB, fallbackUri: forward:/fallback/orders }
-
-# Kong (declarative, plugin-driven)
-services: [{ name: orders, url: http://orders-api:8080 }]
-routes:   [{ name: orders, service: orders, paths: ["/api/orders"] }]
-plugins:  [{ name: jwt }, { name: rate-limiting, config: { minute: 60 } },
-           { name: correlation-id }, { name: prometheus }]</pre>
-<pre>// Choosing, in one pass
-Kubernetes-native, just routing + TLS      → ingress-nginx / Traefik / Gateway API
-Service-to-service policy, mTLS, retries   → service mesh (Istio/Linkerd),
-                                             not a gateway
-Java team, custom filters, Spring ecosystem → Spring Cloud Gateway
-API as a product: portal, keys, plans      → Kong / Apigee / Gravitee
-Serverless / minimal ops on AWS            → API Gateway + Lambda authorizer
-Client-shaped aggregation per app          → BFF service, owned by that
-                                             frontend team
-// And keep it stateless + horizontally scaled: the gateway must never be
-// the single point of failure it was introduced to protect you from.</pre>
-<div class="key-point">Put cross-cutting edge concerns in the gateway — TLS, routing, token validation, rate limits, CORS, observability — and keep business logic and cross-service aggregation out (that is a BFF). Choose by platform fit, and remember a mesh handles east-west traffic while a gateway handles north-south.</div>`,
+    a: `<div class="interview-answer"><p>Kong is an open-source API gateway: a single entry point that sits in front of all your backend services and handles the concerns every API shares. Instead of each microservice implementing authentication, rate limiting, logging, and CORS on its own, the gateway does it once. A request comes in, Kong checks the API key or JWT, enforces the client's quota, adds tracing headers, and routes the request to the right service based on the path or host. It is built on Nginx, so it is fast, and its behavior is extended through <strong>plugins</strong> for things like OAuth2, request transformation, caching, and metrics. Configuration can be done through an admin API, a declarative YAML file, or Kubernetes resources when it runs as an Ingress controller. Alternatives include AWS API Gateway, Apigee, Traefik, and Envoy-based gateways like Ambassador. The thing to remember is that a gateway centralizes cross-cutting rules; it should not contain business logic, or it becomes a bottleneck that every team has to change.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Kong là một API gateway mã nguồn mở: điểm vào duy nhất đứng trước tất cả backend service và xử lý những việc mà API nào cũng cần. Thay vì mỗi microservice tự làm xác thực, giới hạn tần suất, ghi log và CORS, gateway làm một lần cho tất cả. Request đi vào, Kong kiểm tra API key hoặc JWT, áp hạn mức của client, thêm header để trace, rồi chuyển request tới đúng service dựa trên đường dẫn hoặc tên miền. Nó xây trên Nginx nên rất nhanh, và được mở rộng bằng <strong>plugin</strong> cho các việc như OAuth2, biến đổi request, cache, metric. Cấu hình có thể qua admin API, file YAML khai báo, hoặc resource của Kubernetes khi chạy như Ingress controller. Các lựa chọn khác gồm AWS API Gateway, Apigee, Traefik, và các gateway dựa trên Envoy như Ambassador. Điều cần nhớ là gateway tập trung các quy tắc dùng chung; không nên nhét logic nghiệp vụ vào đó, nếu không nó sẽ thành điểm nghẽn mà team nào cũng phải sửa.</p></details>`,
+  },
+  {
+    q: 'Postman',
+    difficulty: 'easy',
+    a: `<div class="interview-answer"><p>Postman is a desktop and web application for working with APIs. At its simplest it is a friendly way to send an HTTP request: pick the method, type the URL, add headers and a body, and see the formatted response, without writing any code or remembering curl flags. Its real value comes from organizing that work. Requests are saved into <strong>collections</strong> that can be shared with the team, <strong>environments</strong> hold variables such as the base URL and auth token so the same request runs against local, staging, and production, and small JavaScript <strong>tests</strong> can assert on the response so a collection doubles as an integration test suite. The command-line runner, Newman, executes collections in CI. It can also import an OpenAPI file to generate requests, mock a server from examples, and handle OAuth2 login flows. Alternatives include Insomnia, Bruno, which stores collections as plain files in Git, and the REST Client extension in VS Code.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Postman là ứng dụng desktop và web để làm việc với API. Ở mức đơn giản nhất, nó là cách thân thiện để gửi một HTTP request: chọn method, gõ URL, thêm header và body, rồi xem response đã được định dạng đẹp, không cần viết code hay nhớ các tham số của curl. Giá trị thật của nó nằm ở việc tổ chức công việc đó. Request được lưu vào <strong>collection</strong> để chia sẻ cho cả team; <strong>environment</strong> chứa các biến như URL gốc và token xác thực để cùng một request chạy được với local, staging và production; và các đoạn <strong>test</strong> JavaScript nhỏ có thể kiểm tra response, nên một collection cũng có thể dùng làm bộ test tích hợp. Công cụ dòng lệnh Newman chạy collection trong CI. Postman còn import được file OpenAPI để sinh request, giả lập server từ các ví dụ, và xử lý luồng đăng nhập OAuth2. Các lựa chọn khác gồm Insomnia, Bruno (lưu collection dưới dạng file thường trong Git), và extension REST Client của VS Code.</p></details>`,
   },
 ];

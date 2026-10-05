@@ -1,169 +1,36 @@
-// Tools & Technologies — Redis, Elasticsearch, object storage
+// Tools & Technologies — caching, search, storage: Redis, Memcached, Elasticsearch, S3, MinIO
+// One entry per tool. Title = tool name. Answer = what it is, in English then Vietnamese.
 import type { PvQuestion } from '../../types';
 
 export const questions: PvQuestion[] = [
   {
-    q: 'What are the Redis data types and what do you actually use each one for?',
+    q: 'Redis',
+    difficulty: 'easy',
+    a: `<div class="interview-answer"><p>Redis is an in-memory data store. Everything lives in RAM, so reads and writes take well under a millisecond, which is far faster than any disk-based database. It is most often used as a <strong>cache</strong>: you store the result of an expensive database query or API call under a key, give it an expiry time, and serve it from Redis until it expires. But Redis is more than a key-value cache. It has rich data types such as lists, sets, sorted sets, hashes, and streams, which make it a natural fit for session storage, rate limiting, leaderboards, counters, distributed locks, and lightweight job queues. It can also publish messages to subscribers. Redis can write snapshots to disk so data survives a restart, but it should be treated as a fast, possibly lossy store rather than the system of record. It is single-threaded for commands, so one slow command blocks everyone, and memory is the main limit.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Redis là kho dữ liệu nằm hoàn toàn trong bộ nhớ RAM, nên đọc ghi chỉ mất chưa tới một mili giây, nhanh hơn rất nhiều so với database lưu trên đĩa. Nó được dùng nhiều nhất làm <strong>cache</strong>: bạn lưu kết quả của một câu query nặng hoặc một lần gọi API bên ngoài dưới một key, đặt thời gian hết hạn, rồi trả về từ Redis cho tới khi key hết hạn. Nhưng Redis không chỉ là cache kiểu key-value. Nó có nhiều kiểu dữ liệu như list, set, sorted set, hash, stream, nên rất hợp để lưu session, giới hạn tần suất gọi (rate limit), bảng xếp hạng, bộ đếm, khóa phân tán, và queue job đơn giản. Nó cũng có cơ chế pub/sub để phát message. Redis có thể ghi snapshot xuống đĩa để dữ liệu còn sau khi khởi động lại, nhưng nên coi nó là kho nhanh và có thể mất dữ liệu, chứ không phải nguồn dữ liệu chính. Redis xử lý lệnh trên một thread duy nhất, nên một lệnh chậm sẽ chặn tất cả, và giới hạn lớn nhất là dung lượng RAM.</p></details>`,
+  },
+  {
+    q: 'Memcached',
+    difficulty: 'easy',
+    a: `<div class="interview-answer"><p>Memcached is a simple, very fast in-memory cache. It does one thing: store a value under a string key with an optional expiry, and return it later. There are no data types beyond bytes, no persistence, no replication, and no scripting. That simplicity is the point: it is multi-threaded, uses memory efficiently, and scales horizontally by having clients hash keys across many independent servers. It is a good choice when you only need a plain cache for things like rendered page fragments, query results, or session blobs, and you do not care if the cache is empty after a restart. Redis has largely replaced it in new projects because Redis offers the same cache use case plus many more features, but Memcached is still common in older large-scale systems and is sometimes preferred for pure caching because it is harder to misuse.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Memcached là một cache trong bộ nhớ, đơn giản và rất nhanh. Nó chỉ làm đúng một việc: lưu một giá trị dưới một key dạng chuỗi, có thể kèm thời gian hết hạn, rồi trả lại khi được hỏi. Không có kiểu dữ liệu nào ngoài byte, không ghi xuống đĩa, không replication, không script. Chính sự đơn giản đó là điểm mạnh: nó chạy đa luồng, dùng bộ nhớ hiệu quả, và scale ngang bằng cách để client tự băm key ra nhiều server độc lập. Memcached hợp khi bạn chỉ cần một cache thuần túy cho những thứ như mảnh giao diện đã render, kết quả query, hay dữ liệu session, và không bận tâm nếu cache trống sau khi khởi động lại. Trong dự án mới thì Redis gần như đã thay thế nó vì làm được tất cả những gì Memcached làm và thêm rất nhiều thứ khác, nhưng Memcached vẫn phổ biến trong các hệ thống lớn đã có từ lâu, và đôi khi được chọn cho mục đích cache thuần vì khó dùng sai hơn.</p></details>`,
+  },
+  {
+    q: 'Elasticsearch',
     difficulty: 'medium',
-    a: `<div class="interview-answer"><p>Redis is a single-threaded in-memory data-structure server, so the value is not "a fast key-value store" — it is that the server can manipulate structures atomically. <strong>Strings</strong> hold cached JSON, counters, and rate-limit buckets (<code>INCR</code> + <code>EXPIRE</code>); <strong>hashes</strong> hold objects you update field by field; <strong>lists</strong> act as simple queues; <strong>sets</strong> give membership and deduplication; <strong>sorted sets</strong> are the workhorse for leaderboards, sliding-window rate limiters, and delayed-job scheduling by score; <strong>streams</strong> give an append-only log with consumer groups when you want Kafka-like semantics without Kafka. Add TTLs, Lua scripts for atomic multi-step logic, and pub/sub, and most caching, locking, and queueing problems have a one-command answer.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Redis là một server cấu trúc dữ liệu trong bộ nhớ, chạy đơn luồng — nên giá trị của nó không nằm ở chỗ "key-value nhanh", mà ở chỗ server thao tác được trên các cấu trúc dữ liệu một cách nguyên tử. <strong>String</strong> để cache JSON, làm counter và bucket cho rate limit (<code>INCR</code> + <code>EXPIRE</code>); <strong>hash</strong> để lưu object và cập nhật từng field; <strong>list</strong> làm queue đơn giản; <strong>set</strong> để kiểm tra thành viên và chống trùng; <strong>sorted set</strong> là công cụ đa năng nhất — leaderboard, rate limit theo cửa sổ trượt, và hẹn giờ job theo score; <strong>stream</strong> cho bạn một log append-only kèm consumer group, khi muốn kiểu Kafka mà chưa cần tới Kafka. Cộng thêm TTL, Lua script cho các bước cần nguyên tử và pub/sub, thì phần lớn bài toán cache, lock và queue đều có một câu lệnh giải quyết gọn.</p></details>
-<pre># String — cache, counter, rate limit, distributed lock
-SET user:42 '{"name":"Bob"}' EX 300            # cache with TTL
-INCR api:42:minute  →  EXPIRE api:42:minute 60 # fixed-window limiter
-SET lock:job1 &lt;token&gt; NX PX 30000              # lock: NX + TTL + token
-
-# Hash — partial updates without re-serializing the whole object
-HSET cart:42 item:9 2 item:11 1
-HINCRBY cart:42 item:9 1
-
-# Set / Sorted set — the two most underused types
-SADD online:users 42            SISMEMBER online:users 42
-ZADD leaderboard 9500 user:42   ZREVRANGE leaderboard 0 9 WITHSCORES
-ZADD delayed 1722330000 job:77  ZRANGEBYSCORE delayed 0 &lt;now&gt;  # scheduler
-ZREMRANGEBYSCORE window 0 &lt;now-60s&gt;  → ZCARD window   # sliding-window limit
-
-# Stream — durable log + consumer groups (at-least-once, acks, pending list)
-XADD events * type order.paid id 77
-XREADGROUP GROUP billing c1 COUNT 10 STREAMS events &gt;
-XACK events billing 1722330000-0</pre>
-<pre>// Atomicity: single-threaded means commands never interleave, but a
-// read-then-write from your app DOES race. Two safe options:
-// 1) Lua — runs as one atomic unit on the server
-EVAL "local n = redis.call('INCR', KEYS[1])
-      if n == 1 then redis.call('EXPIRE', KEYS[1], ARGV[1]) end
-      return n" 1 rate:42 60
-// 2) Native atomic commands: INCR, SETNX, ZADD GT, GETDEL, SET ... KEEPTTL
-
-// Cache-aside, the pattern you will be asked to write
-const hit = await redis.get(key);
-if (hit) return JSON.parse(hit);
-const row = await db.find(id);
-await redis.set(key, JSON.stringify(row), 'EX', 300 + jitter());  // jitter!
-return row;
-// Invalidate on write (DEL key), never rely on TTL alone for correctness.</pre>
-<p><strong>Beyond caching:</strong> Redis is commonly the session store (fast, revocable, TTL-based), the rate limiter, the distributed lock (with the caveats of Redlock — always use a token and a TTL, and never assume a lock is a correctness guarantee for money), the pub/sub bus for websocket fan-out across instances, and a job queue via BullMQ (Node) or Redisson (Java).</p>
-<div class="key-point">Pick the structure, not just the key: sorted sets for windows/leaderboards/schedules, hashes for partial object updates, streams for durable fan-out, Lua for atomic multi-step logic — and always set TTLs plus jitter to avoid synchronized expiry storms.</div>`,
+    a: `<div class="interview-answer"><p>Elasticsearch is a search engine built for full-text search over large amounts of data. A normal database is good at exact matches, but it struggles with "find documents that mention these words, tolerate typos, rank the best matches first". Elasticsearch solves that by building an <strong>inverted index</strong>: for every word it records which documents contain it, the same way the index at the back of a book works. On top of that it adds relevance scoring, fuzzy matching, autocomplete, filtering, and <strong>aggregations</strong> for fast counts and statistics across millions of records. It is distributed, so an index is split into shards across many nodes and can scale horizontally. Typical uses are product search in an e-commerce site, log search in the ELK stack, and analytics dashboards. It is not a primary database: data is usually copied into it from the system of record, and writes become searchable after a short delay rather than immediately.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Elasticsearch là công cụ tìm kiếm được xây để tìm toàn văn (full-text) trên lượng dữ liệu lớn. Database thông thường rất giỏi tìm khớp chính xác, nhưng gặp khó với yêu cầu kiểu "tìm các tài liệu có nhắc tới những từ này, chấp nhận gõ sai chính tả, xếp cái khớp nhất lên đầu". Elasticsearch giải quyết bằng <strong>inverted index</strong>: với mỗi từ, nó ghi lại những tài liệu nào chứa từ đó, giống như phần mục lục từ khóa ở cuối sách. Trên nền đó nó thêm chấm điểm độ liên quan, tìm gần đúng, gợi ý tự động, lọc, và <strong>aggregation</strong> để đếm và thống kê rất nhanh trên hàng triệu bản ghi. Nó là hệ phân tán, một index được chia thành nhiều shard nằm trên nhiều node nên có thể scale ngang. Ứng dụng tiêu biểu là tìm sản phẩm trong trang thương mại điện tử, tìm log trong bộ ELK, và dashboard phân tích. Nó không phải database chính: dữ liệu thường được sao chép từ nguồn gốc sang, và dữ liệu mới ghi phải chờ một lát mới tìm thấy được chứ không tức thì.</p></details>`,
   },
   {
-    q: 'How do you run Redis safely in production? Persistence, eviction, clustering and the classic failure modes.',
-    difficulty: 'hard',
-    a: `<div class="interview-answer"><p>Three decisions define a production Redis. <strong>Persistence</strong>: RDB snapshots are compact but lose the window since the last save, AOF replays every write for near-zero loss at some throughput cost — a cache needs neither, a session store or queue needs AOF plus replication. <strong>Memory policy</strong>: set <code>maxmemory</code> and an eviction policy (<code>allkeys-lru</code> for caches, <code>noeviction</code> when losing data is unacceptable — then be ready for write errors). <strong>Topology</strong>: a single node with a replica plus Sentinel for failover, or Cluster (16384 hash slots) when one node's memory or bandwidth is the limit, remembering that multi-key operations then require hash tags. The failure modes to know: big keys and <code>KEYS *</code> blocking the single thread, hot keys saturating one node, unbounded memory growth from missing TTLs, and treating Redis as a database until the first failover loses data.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Có ba quyết định định hình một hệ Redis chạy production. <strong>Persistence</strong>: RDB snapshot thì gọn nhưng mất phần dữ liệu kể từ lần snapshot cuối, còn AOF ghi lại từng lệnh nên gần như không mất dữ liệu nhưng tốn hiệu năng hơn — làm cache thì không cần cái nào, làm session store hay queue thì cần AOF cộng replication. <strong>Chính sách bộ nhớ</strong>: phải đặt <code>maxmemory</code> và chọn eviction policy (<code>allkeys-lru</code> cho cache, <code>noeviction</code> khi không được phép mất dữ liệu — nhưng lúc đó phải chuẩn bị xử lý lỗi khi ghi). <strong>Topology</strong>: một node kèm replica và Sentinel để tự failover, hoặc dùng Cluster (16384 hash slot) khi bộ nhớ/băng thông của một node đã là giới hạn — nhớ rằng khi đó các lệnh nhiều key cần hash tag. Những kiểu sự cố nên biết: key quá lớn và lệnh <code>KEYS *</code> làm nghẽn luồng đơn, hot key làm quá tải một node, bộ nhớ phình vô hạn vì thiếu TTL, và coi Redis như database cho tới lần failover đầu tiên làm mất dữ liệu.</p></details>
-<pre># Persistence — pick per use case
-save 900 1                 # RDB: snapshot; fast restart, loses recent writes
-appendonly yes             # AOF: replay log
-appendfsync everysec       # good default (fsync always = safest, slowest)
-# cache        → persistence off (rebuild from the source of truth)
-# sessions/jobs→ AOF everysec + replica; accept ~1s worst-case loss
-# "source of truth" → use a real database, or Redis with AOF always +
-#   replication + backups, and know you are paying for it
-
-# Memory
-maxmemory 4gb
-maxmemory-policy allkeys-lru     # cache: evict coldest
-# volatile-lru  → only keys with a TTL (mixed workloads)
-# noeviction    → writes fail with OOM instead of silently dropping data
-INFO memory | grep evicted_keys  # rising evictions = cache too small</pre>
-<pre>// The failure modes, and how they show up
-1. Blocking the single thread
-   KEYS *  / FLUSHALL on a big DB / SMEMBERS on a 5M-member set /
-   a slow Lua script → EVERY client stalls. Use SCAN, SSCAN, and keep
-   Lua tiny. Watch SLOWLOG.
-2. Big keys — a 200 MB list or a hash with 10M fields: slow to serialize,
-   slow to replicate, and one key cannot be split across cluster nodes.
-   → shard the key (cart:42:{part}), cap sizes, alert on MEMORY USAGE.
-3. Hot keys — one popular key pins one core/node. → client-side cache,
-   local caffeine/LRU in front, or replicate the value across N keys.
-4. No TTL → memory grows until eviction or OOM. Make TTL the default.
-5. Cache stampede — 10k requests miss simultaneously after an expiry.
-   → jittered TTLs, single-flight (lock + rebuild), or serve stale
-     while refreshing in the background.
-6. Failover data loss — replication is ASYNC. An accepted write can
-   vanish when a replica is promoted. Never store money-critical state
-   only in Redis; use WAIT or a database for correctness.
-
-// Cluster caveat: multi-key ops must land in one slot
-MGET user:1 user:2                  ❌ CROSSSLOT error
-MGET {tenant42}:user:1 {tenant42}:user:2   ✅ hash tag pins the slot</pre>
-<p><strong>Also worth stating:</strong> connection pooling matters (Lettuce/Jedis, ioredis) because thousands of short-lived connections cost more than the commands; run Redis with protected mode and auth (there is a long history of open Redis instances being mined); prefer server-assisted client-side caching (RESP3 tracking) for very hot read paths; and instrument hit ratio, latency percentiles, evictions, and memory fragmentation rather than just uptime.</p>
-<div class="key-point">Decide persistence, eviction and topology from the data's value, not from defaults. Keep keys small with mandatory TTLs, never run O(N) commands on the hot path, plan for async-replication loss, and remember Redis Cluster forbids cross-slot multi-key operations without hash tags.</div>`,
+    q: 'Amazon S3',
+    difficulty: 'easy',
+    a: `<div class="interview-answer"><p>Amazon S3 (Simple Storage Service) is object storage in the cloud. You create a <strong>bucket</strong> and put files in it as objects, each identified by a key that looks like a file path. There is no limit on how much you can store, the files are copied across multiple data centers so they are almost never lost, and you pay only for what you use. It is accessed over HTTP, so any language can upload and download with a simple SDK. It is the standard place to keep user uploads, images, videos, backups, logs, static website files, and data lake files for analytics. Two features come up constantly: <strong>presigned URLs</strong>, which let a browser upload or download a private file directly without going through your server, and <strong>storage classes</strong>, which move rarely accessed data to cheaper tiers. S3 is not a file system: you cannot append to an object or edit part of it, you replace the whole thing.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Amazon S3 (Simple Storage Service) là dịch vụ lưu trữ object trên cloud. Bạn tạo một <strong>bucket</strong> rồi đưa file vào dưới dạng object, mỗi object có một key trông giống đường dẫn file. Không giới hạn dung lượng, file được sao chép ra nhiều trung tâm dữ liệu nên gần như không bao giờ mất, và chỉ trả tiền cho phần đã dùng. S3 truy cập qua HTTP nên ngôn ngữ nào cũng upload và download được bằng SDK đơn giản. Đây là nơi chuẩn để chứa file người dùng tải lên, ảnh, video, bản sao lưu, log, file tĩnh của website, và dữ liệu cho hệ thống phân tích. Hai tính năng hay được hỏi: <strong>presigned URL</strong> cho phép trình duyệt upload hoặc download thẳng một file riêng tư mà không cần đi qua server của bạn, và <strong>storage class</strong> để chuyển dữ liệu ít dùng sang tầng rẻ hơn. S3 không phải file system: bạn không thể ghi nối thêm hay sửa một phần object, mà phải thay cả object.</p></details>`,
   },
   {
-    q: 'How does Elasticsearch work, and when should you use it instead of your database?',
-    difficulty: 'hard',
-    a: `<div class="interview-answer"><p>Elasticsearch is a distributed search engine built on Lucene's <strong>inverted index</strong>: text is run through an <em>analyzer</em> (tokenize, lowercase, stem, remove stopwords) and stored as a term → document-list mapping, which is why full-text relevance search over millions of documents is milliseconds fast and why it is nothing like a <code>LIKE '%term%'</code> scan. Use it for full-text search, faceted filtering and aggregations, log and metric analytics, and geo or vector search — not as a system of record, because it has no transactions, no joins, and is <em>near</em> real-time (documents become visible after a refresh, by default one second). The standard architecture is therefore: database as source of truth, Elasticsearch as a rebuildable read model kept in sync by CDC or events.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Elasticsearch là một search engine phân tán dựng trên Lucene với <strong>inverted index</strong>: văn bản được đưa qua một <em>analyzer</em> (tách từ, hạ chữ thường, đưa về từ gốc, bỏ stopword) rồi lưu thành ánh xạ term → danh sách document. Nhờ vậy, tìm kiếm toàn văn có tính điểm liên quan trên hàng triệu document chỉ mất vài milli giây, và nó hoàn toàn khác việc quét <code>LIKE '%term%'</code>. Hãy dùng nó cho full-text search, cho lọc theo facet và aggregation, cho phân tích log và metric, cho tìm kiếm theo vị trí hoặc theo vector — nhưng đừng dùng làm nơi lưu dữ liệu gốc, vì nó không có transaction, không có join, và chỉ <em>gần</em> real-time (document chỉ thấy được sau một lần refresh, mặc định là một giây). Vì vậy kiến trúc chuẩn là: database là nguồn sự thật, Elasticsearch là một read model có thể dựng lại, được đồng bộ bằng CDC hoặc bằng event.</p></details>
-<pre># Why it is fast: the inverted index
-doc1 "Fast Java tutorial"   → analyzer → [fast, java, tutorial]
-doc2 "Java performance"     → analyzer → [java, performance]
-index:  java → [doc1, doc2]   fast → [doc1]   tutorial → [doc1]
-# query "java" = one lookup + a scored merge, not a table scan.
-
-# text vs keyword — the mapping mistake everyone makes once
-"title":  { "type": "text",    "analyzer": "english" }  # analyzed → search
-"status": { "type": "keyword" }                          # exact → filter,
-                                                         # aggregate, sort
-# A "text" field cannot be sorted/aggregated reliably; a "keyword" field
-# will not match a partial word. Use multi-fields when you need both:
-"name": { "type":"text", "fields": { "raw": { "type":"keyword" } } }</pre>
-<pre>// query (scored, affects relevance) vs filter (cacheable, yes/no)
-GET /products/_search
-{ "query": { "bool": {
-    "must":   [ { "match": { "name": "wireless headphone" } } ],   // scored
-    "filter": [ { "term":  { "inStock": true } },                  // cached
-                { "range": { "price": { "lte": 200 } } } ] } },
-  "aggs": { "by_brand": { "terms": { "field": "brand" } } },       // facets
-  "sort": [ "_score", { "createdAt": "desc" } ],
-  "search_after": [ ... ] }        // deep pagination: NOT from+size 10000
-
-// Keeping it in sync (never dual-write from application code and hope)
-Postgres → Debezium/CDC → Kafka → indexer → Elasticsearch
-// Index a DENORMALIZED document (no joins in ES), version each document
-// so out-of-order updates cannot overwrite newer data, and make the whole
-// index REBUILDABLE from the database — then reindex behind an alias:
-POST /_aliases {"actions":[{"remove":{"index":"p_v1","alias":"products"}},
-                           {"add":{"index":"p_v2","alias":"products"}}]}</pre>
-<p><strong>Operational essentials:</strong> shard count is fixed at creation (aim for 10–50 GB per shard; too many small shards is the most common performance bug); replicas give both HA and read throughput; time-series data belongs in time-based indices with ILM so old data can be rolled over and deleted cheaply; and mapping explosion (dynamic fields from user JSON) will take a cluster down — set <code>dynamic: strict</code>. In Java use the official client (not deprecated TransportClient) and in Node use <code>@elastic/elasticsearch</code>; if you only need "search in one table", Postgres full-text or <code>pg_trgm</code> may be enough and avoids a second datastore entirely.</p>
-<div class="key-point">Elasticsearch = inverted index + distributed shards: excellent for relevance search, facets, and analytics; not a source of truth (no transactions or joins, near-real-time). Model documents denormalized with the right text/keyword mappings, sync from the database via CDC/events, and keep the index disposable and rebuildable behind an alias.</div>`,
-  },
-  {
-    q: 'How do you handle file storage and uploads with S3 or MinIO?',
-    difficulty: 'medium',
-    a: `<div class="interview-answer"><p>Files do not belong in your database or on a pod's local disk — they belong in object storage (S3, GCS, Azure Blob, or MinIO for self-hosted and local development), with the database holding only metadata and the object key. The pattern that scales is to keep bytes out of your application entirely: the client asks your API for a <strong>pre-signed URL</strong>, uploads directly to the bucket, and later downloads through another short-lived pre-signed URL or a CDN — your service never streams gigabytes and never becomes the bottleneck. Around that, the essentials are private buckets with no public access, server-side encryption, versioning plus lifecycle rules to control cost, multipart upload for large files, and keys designed so you never need to list a bucket to find something.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>File không nên nằm trong database hay trên đĩa cục bộ của pod — nó thuộc về object storage (S3, GCS, Azure Blob, hoặc MinIO khi tự host và khi dev ở máy), còn database chỉ giữ metadata và object key. Cách làm co giãn tốt là đừng để dữ liệu đi qua ứng dụng: client xin API của bạn một <strong>pre-signed URL</strong>, upload trực tiếp lên bucket, rồi sau này tải về qua một pre-signed URL ngắn hạn khác hoặc qua CDN — service của bạn không phải truyền hàng gigabyte và không trở thành điểm nghẽn. Xung quanh đó, những thứ bắt buộc: bucket ở chế độ private hoàn toàn, bật mã hóa phía server, bật versioning cùng lifecycle rule để kiểm soát chi phí, dùng multipart upload cho file lớn, và thiết kế key sao cho không bao giờ phải list cả bucket mới tìm được file.</p></details>
-<pre>// The upload flow that does not melt your service
-1. POST /api/uploads  { filename, contentType, size }
-   → authorize, validate type/size, generate a key, insert a DB row
-   → return a pre-signed PUT URL (expires in ~5 min)
-2. Browser PUTs the bytes DIRECTLY to S3/MinIO (progress, resumable)
-3. S3 event / client callback → mark the row "ready", enqueue processing
-   (thumbnail, virus scan, text extraction) via a queue
-
-// Key design — no listing, no collisions, no user input in the path
-const key = \`tenant/\${tenantId}/2026/07/\${crypto.randomUUID()}.jpg\`;
-// store { key, ownerId, originalName, mime, size, checksum } in the DB
-
-// Node
-const url = await getSignedUrl(s3, new PutObjectCommand({
-  Bucket: 'uploads', Key: key, ContentType: mime,
-  ServerSideEncryption: 'aws:kms',
-}), { expiresIn: 300 });
-// Java: S3Presigner.presignPutObject(...) — same idea</pre>
-<pre># Bucket configuration checklist
-- Block Public Access ON; no bucket policy granting "*" (the classic breach)
-- SSE-S3 or SSE-KMS encryption at rest; TLS in transit
-- Versioning ON (protects against overwrite/delete) + MFA delete for critical
-- Lifecycle: Standard → IA after 30d → Glacier after 90d → expire; and
-  "abort incomplete multipart uploads after 7 days" (silent cost leak)
-- Least-privilege IAM per service (s3:GetObject on one prefix, not s3:*)
-- CORS only for the origins that upload directly
-- CloudFront/CDN in front for downloads, with signed URLs or signed cookies
-
-# Downloads: authorize in YOUR service, then hand out a short-lived URL
-GET /api/files/:id → check ownership → 302 to a 60s pre-signed GET URL
-# Never serve user files from your app origin (stored-XSS risk) and never
-# make the bucket public "temporarily".</pre>
-<p><strong>MinIO</strong> is S3-API compatible, which makes it the pragmatic choice for on-premise deployments and for local development and integration tests (Testcontainers has a MinIO/LocalStack module) — write your code against the AWS SDK with a configurable endpoint and the same code runs in both places. Also remember object storage is eventually consistent for some operations, has no rename (copy + delete), and charges for requests and egress, so batch small files rather than doing thousands of tiny puts.</p>
-<div class="key-point">Store bytes in object storage and metadata in the database, and move data with pre-signed URLs so uploads and downloads bypass your service. Keep buckets private and encrypted with lifecycle rules, generate keys server-side, and use MinIO/LocalStack to keep local and production code identical.</div>`,
+    q: 'MinIO',
+    difficulty: 'easy',
+    a: `<div class="interview-answer"><p>MinIO is an open-source object storage server that speaks the same API as Amazon S3. You run it yourself, on your own servers, in Docker, or in Kubernetes, and any code written for S3 works against it without changes: the same SDKs, the same bucket and object model, the same presigned URLs. That makes it useful in three situations. For local development and automated tests, you can run MinIO in a container instead of hitting a real AWS account. For on-premise or private cloud deployments where data is not allowed to leave the company's data center, it provides S3-style storage behind the firewall. And for cost or vendor independence, it lets you move large volumes of data off a cloud provider. It supports erasure coding for durability, versioning, encryption, and a web console. The trade-off is that you are now responsible for the disks, backups, and availability that AWS would otherwise handle.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>MinIO là server lưu trữ object mã nguồn mở, dùng đúng API của Amazon S3. Bạn tự chạy nó trên server riêng, trong Docker hoặc trên Kubernetes, và mọi code viết cho S3 đều chạy được với MinIO mà không phải sửa gì: cùng SDK, cùng mô hình bucket và object, cùng presigned URL. Điều đó hữu ích trong ba tình huống. Khi phát triển và chạy test tự động ở máy local, bạn chạy MinIO trong container thay vì gọi lên tài khoản AWS thật. Khi triển khai on-premise hoặc private cloud, nơi dữ liệu không được phép rời khỏi trung tâm dữ liệu của công ty, MinIO cung cấp kho kiểu S3 ngay sau tường lửa. Và khi muốn tiết kiệm chi phí hoặc không phụ thuộc nhà cung cấp, nó cho phép chuyển khối lượng dữ liệu lớn ra khỏi cloud. MinIO hỗ trợ erasure coding để bền dữ liệu, versioning, mã hóa, và có giao diện web. Đánh đổi là bạn phải tự lo ổ đĩa, sao lưu và tính sẵn sàng, những việc mà AWS đáng lẽ sẽ làm thay.</p></details>`,
   },
 ];

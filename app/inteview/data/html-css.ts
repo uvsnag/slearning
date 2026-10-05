@@ -8,6 +8,96 @@ export const topics: PvTopic[] = [
     name: 'HTML',
     icon: '📄',
     questions: [
+      // ──── 0. HTML SUMMARY — knowledge map ────
+      {
+        q: 'HTML Summary — Knowledge Map',
+        difficulty: 'easy',
+        a: `<div class="interview-answer"><p>A complete revision checklist for HTML — document structure, semantics, forms, accessibility, and the platform features that hang off markup. Concept names only; use it to spot gaps, not as a tutorial.</p></div>
+<h3>1. Document Fundamentals</h3>
+<ul>
+<li>Doctype &amp; standards vs quirks mode, HTML vs XHTML vs HTML5</li>
+<li>Document skeleton: html, head, body; lang attribute</li>
+<li>Head contents: title, meta charset, viewport, base, link, style, script</li>
+<li>Parsing model: DOM construction, render-blocking resources</li>
+<li>Block vs inline content model, void elements, entities (&amp;lt;, &amp;amp;)</li>
+<li>Global attributes: id, class, data-*, hidden, tabindex, contenteditable</li>
+</ul>
+<h3>2. Semantic Elements</h3>
+<ul>
+<li>Layout landmarks: header, nav, main, section, article, aside, footer</li>
+<li>Headings hierarchy (h1–h6), document outline</li>
+<li>div/span as last resort, semantics for SEO &amp; accessibility</li>
+<li>figure/figcaption, time, address, mark, blockquote/cite</li>
+<li>details/summary, dialog element</li>
+</ul>
+<h3>3. Text, Links &amp; Lists</h3>
+<ul>
+<li>a: href, target (_blank + rel="noopener noreferrer"), download, anchors</li>
+<li>strong/em vs b/i, abbr, code/pre, sub/sup</li>
+<li>ul/ol/li, dl/dt/dd, nested lists</li>
+</ul>
+<h3>4. Forms &amp; Validation</h3>
+<ul>
+<li>form: action, method (GET vs POST), enctype (multipart/form-data)</li>
+<li>Input types: text, email, number, date, file, range, color, checkbox, radio, hidden</li>
+<li>label association (for/id), fieldset/legend, select/option/optgroup, textarea, datalist</li>
+<li>Built-in validation: required, pattern, min/max, minlength, Constraint Validation API</li>
+<li>autocomplete, autofocus, disabled vs readonly, name vs id</li>
+<li>button types (submit/button/reset), form submission without JS</li>
+</ul>
+<h3>5. Media &amp; Graphics</h3>
+<ul>
+<li>img: src, alt, width/height (layout shift), loading="lazy", decoding</li>
+<li>Responsive images: srcset, sizes, picture, modern formats (WebP, AVIF)</li>
+<li>audio/video: controls, autoplay (muted requirement), track/captions</li>
+<li>svg inline vs img, canvas, iframe (sandbox, allow)</li>
+</ul>
+<h3>6. Tables</h3>
+<ul>
+<li>table/thead/tbody/tfoot, th scope, caption, colspan/rowspan</li>
+<li>Tables for data only — never layout</li>
+</ul>
+<h3>7. Metadata &amp; SEO</h3>
+<ul>
+<li>meta description, robots, canonical link</li>
+<li>Open Graph &amp; Twitter cards, favicon/manifest</li>
+<li>Structured data: JSON-LD, schema.org</li>
+<li>Semantic markup's role in ranking &amp; rich snippets</li>
+</ul>
+<h3>8. Accessibility (a11y)</h3>
+<ul>
+<li>Semantic HTML first, ARIA as supplement (first rule of ARIA)</li>
+<li>ARIA: roles, aria-label/labelledby, aria-expanded, aria-live, aria-hidden</li>
+<li>Keyboard navigation: tabindex, focus management, skip links, focus-visible</li>
+<li>alt text strategy, form labels, color contrast, screen reader behavior</li>
+<li>WCAG levels (A/AA/AAA), accessibility tree</li>
+</ul>
+<h3>9. Platform APIs Hanging off Markup</h3>
+<ul>
+<li>Web storage touchpoints: localStorage vs sessionStorage vs cookies</li>
+<li>Web Components: custom elements, template, slot, shadow DOM</li>
+<li>Geolocation, drag and drop, clipboard, fullscreen</li>
+<li>popover attribute, inert attribute</li>
+</ul>
+<h3>10. Performance Attributes</h3>
+<ul>
+<li>script loading: defer vs async vs module, placement</li>
+<li>Resource hints: preload, prefetch, preconnect, dns-prefetch, fetchpriority</li>
+<li>loading="lazy" for images/iframes, width/height to prevent CLS</li>
+<li>Critical rendering path awareness, minimizing render-blocking CSS</li>
+</ul>
+<h3>11. Senior / Interview Hot Topics</h3>
+<ul>
+<li>Why semantics matter (a11y, SEO, maintainability) beyond "it works"</li>
+<li>defer vs async decision-making</li>
+<li>srcset/picture responsive image strategy</li>
+<li>Form accessibility &amp; native validation vs JS validation</li>
+<li>Shadow DOM encapsulation trade-offs</li>
+<li>Security attributes: rel="noopener", iframe sandbox, escaping user content (XSS)</li>
+<li>Cookies vs localStorage for auth (HttpOnly, Secure, SameSite)</li>
+</ul>
+<div class="key-point">The highest-signal HTML questions are semantics ("why not all divs?"), defer vs async, responsive images, and accessibility basics — strong answers always connect markup choices to users and browsers, not just syntax.</div>`,
+      },
       // ──── 1. HTML FUNDAMENTALS & SEMANTICS ────
       {
         q: 'What is the difference between HTML, XHTML, and HTML5?',
@@ -450,6 +540,113 @@ customElements.define('user-card', UserCard);
     name: 'CSS',
     icon: '🎨',
     questions: [
+      // ──── 0. CSS SUMMARY — knowledge map ────
+      {
+        q: 'CSS Summary — Knowledge Map',
+        difficulty: 'easy',
+        a: `<div class="interview-answer"><p>A complete revision checklist for CSS — cascade mechanics, layout systems, responsive techniques, modern features, and architecture at scale. Concept names only; use it to spot gaps, not as a tutorial.</p></div>
+<h3>1. Cascade, Selectors &amp; Specificity</h3>
+<ul>
+<li>Cascade order: origin, importance, specificity, source order</li>
+<li>Specificity weights (inline, id, class/attribute/pseudo-class, element)</li>
+<li>!important and its proper uses, inheritance (inherit, initial, unset, revert)</li>
+<li>Selectors: combinators (descendant, &gt;, +, ~), attribute selectors</li>
+<li>Pseudo-classes (:hover, :focus-visible, :nth-child vs :nth-of-type, :not, :is, :where, :has)</li>
+<li>Pseudo-elements (::before, ::after, ::placeholder, ::selection)</li>
+<li>Cascade layers (@layer), scope (@scope)</li>
+</ul>
+<h3>2. Box Model &amp; Display</h3>
+<ul>
+<li>content-box vs border-box, margin collapsing</li>
+<li>display: block, inline, inline-block, none vs visibility vs opacity</li>
+<li>width/height, min/max constraints, overflow, box-sizing reset</li>
+<li>Replaced elements, intrinsic vs extrinsic sizing, aspect-ratio</li>
+</ul>
+<h3>3. Positioning &amp; Stacking</h3>
+<ul>
+<li>static, relative, absolute (containing block), fixed, sticky</li>
+<li>z-index &amp; stacking contexts (what creates one, why z-index "doesn't work")</li>
+<li>Floats &amp; clearing (legacy awareness), inset shorthand</li>
+</ul>
+<h3>4. Flexbox</h3>
+<ul>
+<li>Main vs cross axis, flex-direction, wrap</li>
+<li>justify-content, align-items, align-self, align-content, gap</li>
+<li>flex-grow / flex-shrink / flex-basis (flex shorthand), order</li>
+<li>min-width:auto overflow gotcha, centering patterns</li>
+</ul>
+<h3>5. Grid</h3>
+<ul>
+<li>grid-template-columns/rows, fr unit, repeat(), minmax()</li>
+<li>auto-fill vs auto-fit, implicit vs explicit grid, grid-auto-flow</li>
+<li>Line-based placement, named areas (grid-template-areas), subgrid</li>
+<li>Grid vs Flexbox decision (2D vs 1D)</li>
+</ul>
+<h3>6. Responsive Design</h3>
+<ul>
+<li>Media queries (width, prefers-color-scheme, prefers-reduced-motion, print)</li>
+<li>Mobile-first vs desktop-first, breakpoints strategy</li>
+<li>Container queries (@container, container units)</li>
+<li>Fluid sizing: clamp(), min()/max(), viewport units (vw, dvh/svh/lvh)</li>
+<li>Responsive typography, fluid grids, viewport meta</li>
+</ul>
+<h3>7. Units, Values &amp; Custom Properties</h3>
+<ul>
+<li>px vs em vs rem, %, ch, ex; when each fits</li>
+<li>CSS custom properties (--var, var() fallbacks, runtime theming)</li>
+<li>calc(), color functions (rgb, hsl, oklch, color-mix)</li>
+<li>Logical properties (margin-inline, inset-block) &amp; writing modes</li>
+</ul>
+<h3>8. Visual Styling</h3>
+<ul>
+<li>Backgrounds (multiple, size, position), gradients (linear, radial, conic)</li>
+<li>Borders, border-radius, box-shadow, outline vs border</li>
+<li>Typography: font shorthand, line-height, @font-face, font-display, variable fonts</li>
+<li>filter, backdrop-filter, blend modes, clip-path, mask</li>
+</ul>
+<h3>9. Transitions, Animations &amp; Transforms</h3>
+<ul>
+<li>transition (property, duration, timing-function, delay)</li>
+<li>@keyframes, animation properties, fill-mode, play-state</li>
+<li>transform (translate, scale, rotate, 3D), transform-origin</li>
+<li>Compositor-friendly properties (transform/opacity), will-change</li>
+<li>Scroll-driven animations, View Transitions API, prefers-reduced-motion</li>
+</ul>
+<h3>10. Modern CSS Features</h3>
+<ul>
+<li>:has() parent selector, native nesting</li>
+<li>Container queries, cascade layers, @scope</li>
+<li>Scroll snap, position: sticky patterns, anchor positioning</li>
+<li>accent-color, color-scheme, text-wrap: balance</li>
+<li>@supports feature queries, progressive enhancement</li>
+</ul>
+<h3>11. Architecture &amp; Methodologies</h3>
+<ul>
+<li>BEM, OOCSS, SMACSS, ITCSS</li>
+<li>Utility-first (Tailwind), CSS Modules, CSS-in-JS (styled-components) trade-offs</li>
+<li>Preprocessors (Sass: variables, mixins, partials) vs modern native CSS</li>
+<li>Design tokens, resets vs normalize, component encapsulation (shadow DOM)</li>
+</ul>
+<h3>12. Performance &amp; Rendering</h3>
+<ul>
+<li>Rendering pipeline: style → layout → paint → composite</li>
+<li>Reflow/repaint triggers, layout thrashing</li>
+<li>content-visibility, contain, critical CSS, unused CSS removal</li>
+<li>Selector performance (mostly a non-issue), CLS from web fonts/images</li>
+</ul>
+<h3>13. Senior / Interview Hot Topics</h3>
+<ul>
+<li>Specificity wars &amp; how :where()/layers/BEM prevent them</li>
+<li>Stacking contexts explaining "broken" z-index</li>
+<li>Grid vs Flexbox selection rationale</li>
+<li>Centering a div — the canonical answers (flex, grid place-items, margin auto)</li>
+<li>Margin collapsing edge cases, box-sizing: border-box rationale</li>
+<li>Container queries vs media queries for component-driven design</li>
+<li>Animating transform/opacity vs layout properties (jank)</li>
+<li>Theming strategy with custom properties (dark mode)</li>
+</ul>
+<div class="key-point">Interviews cluster around four areas: specificity/cascade, box model, Flexbox vs Grid, and "how do you center a div". Modern differentiators are :has(), container queries, and cascade layers — mentioning them signals you're current.</div>`,
+      },
       // ──── 1. CASCADE, SELECTORS & SPECIFICITY ────
       {
         q: 'Explain CSS specificity and how it determines which styles apply.',

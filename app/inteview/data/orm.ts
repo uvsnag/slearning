@@ -8,6 +8,105 @@ export const topics: PvTopic[] = [
     name: 'MyBatis',
     icon: '🗺️',
     questions: [
+      // ──── 0. MYBATIS SUMMARY — knowledge map ────
+      {
+        q: 'MyBatis Summary — Knowledge Map',
+        difficulty: 'easy',
+        a: `<div class="interview-answer"><p>A complete revision checklist for MyBatis — mappers, dynamic SQL, result mapping, caching, transactions, and ecosystem. Concept names only; use it to spot gaps, not as a tutorial.</p></div>
+<h3>1. Fundamentals</h3>
+<ul>
+<li><strong>Positioning</strong>
+  <ul>
+  <li>SQL mapper vs full ORM (MyBatis vs JPA/Hibernate)</li>
+  <li>When to choose MyBatis (complex SQL, legacy schemas, DBA-reviewed SQL)</li>
+  </ul>
+</li>
+<li><strong>Core architecture</strong>
+  <ul>
+  <li>SqlSessionFactory, SqlSessionFactoryBuilder, SqlSession lifecycle</li>
+  <li>Mapper interfaces &amp; dynamic proxies, namespaces</li>
+  <li>Configuration: mybatis-config.xml, typeAliases, settings (mapUnderscoreToCamelCase, lazyLoadingEnabled)</li>
+  <li>Executor types: SIMPLE, REUSE, BATCH</li>
+  </ul>
+</li>
+<li><strong>Statement mapping</strong>
+  <ul>
+  <li>select / insert / update / delete elements</li>
+  <li>XML mappers vs annotations (@Select, @Insert, @Update, @Delete), trade-offs</li>
+  <li>parameterType, single vs multiple parameters, @Param</li>
+  <li>#{} vs \${} (prepared parameter vs string substitution, SQL injection risk)</li>
+  <li>Generated keys: useGeneratedKeys, keyProperty, selectKey</li>
+  </ul>
+</li>
+</ul>
+<h3>2. Result Mapping</h3>
+<ul>
+<li>resultType vs resultMap, automatic vs explicit column→property mapping</li>
+<li>resultMap elements: id, result, constructor, discriminator</li>
+<li>Associations (one-to-one): nested results vs nested select</li>
+<li>Collections (one-to-many): nested results, columnPrefix, fan-out handling</li>
+<li>Lazy loading of associations (fetchType, aggressive lazy loading)</li>
+<li>TypeHandlers: built-in, custom (enums, JSON columns), typeHandler registration</li>
+<li>Handling NULLs, jdbcType hints</li>
+</ul>
+<h3>3. Dynamic SQL</h3>
+<ul>
+<li>if, choose / when / otherwise</li>
+<li>where, set, trim (prefix/suffix overrides)</li>
+<li>foreach (IN clauses, batch values), separator/open/close</li>
+<li>bind variables, reusable sql fragments &amp; include</li>
+<li>OGNL expressions, common pitfalls (string vs number comparison)</li>
+</ul>
+<h3>4. Caching</h3>
+<ul>
+<li>L1 cache: SqlSession-scoped, default on, cleared by writes/commit</li>
+<li>L2 cache: namespace-scoped, cache element, readOnly/serializable entries</li>
+<li>Eviction policies (LRU, FIFO), flushInterval, size</li>
+<li>cache-ref across namespaces, flushCache/useCache per statement</li>
+<li>Stale-data risks with multi-table queries and multiple nodes; third-party caches (Redis, Ehcache)</li>
+</ul>
+<h3>5. Transactions &amp; Batch</h3>
+<ul>
+<li>Transaction managers: JDBC vs MANAGED; Spring-managed transactions (@Transactional)</li>
+<li>Commit/rollback semantics, autoCommit</li>
+<li>Batch execution: ExecutorType.BATCH, flushStatements, JDBC rewriteBatchedStatements</li>
+<li>Streaming large results: ResultHandler, cursor queries, fetchSize</li>
+</ul>
+<h3>6. Spring &amp; Spring Boot Integration</h3>
+<ul>
+<li>mybatis-spring: SqlSessionTemplate (thread-safe session), MapperScannerConfigurer</li>
+<li>mybatis-spring-boot-starter, @MapperScan / @Mapper</li>
+<li>DataSource &amp; connection pooling (HikariCP)</li>
+<li>Multiple datasources, mapper XML locations, configuration properties</li>
+</ul>
+<h3>7. Extensibility &amp; Ecosystem</h3>
+<ul>
+<li>Plugins (interceptors): Executor, StatementHandler, ParameterHandler, ResultSetHandler interception points</li>
+<li>Pagination: RowBounds (in-memory) vs PageHelper / dialect plugins (physical)</li>
+<li>MyBatis-Plus: BaseMapper CRUD, wrappers/QueryWrapper, code generation, logical delete, optimistic-lock plugin</li>
+<li>MyBatis Generator (MBG), SQL builders</li>
+<li>Migration/coexistence with JPA in one project</li>
+</ul>
+<h3>8. Production &amp; Troubleshooting</h3>
+<ul>
+<li>SQL logging configuration, slow-SQL interceptors</li>
+<li>N+1 from nested selects — switching to joins/nested results</li>
+<li>Parameter binding errors (BindingException), mapper not found issues</li>
+<li>Mapper XML hot reload in dev, testing mappers (@MybatisTest, H2/Testcontainers)</li>
+<li>Versioning SQL with schema migrations (Flyway/Liquibase)</li>
+</ul>
+<h3>9. Senior / Interview Hot Topics</h3>
+<ul>
+<li>#{} vs \${} and SQL injection</li>
+<li>L1 vs L2 cache behavior and invalidation</li>
+<li>resultType vs resultMap; mapping one-to-many without row duplication bugs</li>
+<li>How mapper interfaces work without implementations (dynamic proxy)</li>
+<li>Batch insert strategies and their pitfalls</li>
+<li>RowBounds vs physical pagination</li>
+<li>MyBatis vs JPA trade-off discussion</li>
+</ul>
+<div class="key-point">Interviews focus on #{} vs \${}, the two cache levels, dynamic SQL tags, and how one-to-many result maps avoid the N+1 problem — know the proxy mechanism behind mapper interfaces.</div>`,
+      },
       // ──── 1. MYBATIS BASICS, SETUP & MAPPING ────
       {
         q: 'What is MyBatis? How is it different from JPA/Hibernate?',
@@ -440,6 +539,118 @@ Page&lt;User&gt; page = userMapper.selectPage(
     name: 'JPA / Hibernate',
     icon: '🔗',
     questions: [
+      // ──── 0. JPA / HIBERNATE SUMMARY — knowledge map ────
+      {
+        q: 'JPA / Hibernate Summary — Knowledge Map',
+        difficulty: 'easy',
+        a: `<div class="interview-answer"><p>A complete revision checklist for JPA and Hibernate — entity lifecycle, mappings, fetching, caching, transactions, locking, and Spring Data JPA. Concept names only; use it to spot gaps, not as a tutorial.</p></div>
+<h3>1. Fundamentals</h3>
+<ul>
+<li><strong>Spec vs implementation</strong>
+  <ul>
+  <li>JPA specification vs Hibernate / EclipseLink implementations</li>
+  <li>jakarta.persistence vs org.hibernate APIs, Session vs EntityManager</li>
+  <li>persistence.xml / EntityManagerFactory, ORM impedance mismatch</li>
+  </ul>
+</li>
+<li><strong>Persistence context</strong>
+  <ul>
+  <li>First-level cache, identity guarantee within a context</li>
+  <li>Entity states: new/transient, managed, detached, removed</li>
+  <li>persist / merge / remove / find / getReference / detach / refresh</li>
+  <li>Dirty checking &amp; automatic flush, flush modes (AUTO, COMMIT)</li>
+  <li>Transaction-scoped vs extended persistence context</li>
+  </ul>
+</li>
+</ul>
+<h3>2. Entity Mapping</h3>
+<ul>
+<li>@Entity, @Table, @Id, @Column basics, access type (field vs property)</li>
+<li>ID generation: IDENTITY, SEQUENCE, TABLE, AUTO, UUID; allocation size &amp; batching impact</li>
+<li>@Enumerated (STRING vs ORDINAL), @Temporal, @Lob, @Convert / AttributeConverter</li>
+<li>@Embeddable / @Embedded, @EmbeddedId vs @IdClass (composite keys)</li>
+<li>Inheritance strategies: SINGLE_TABLE, JOINED, TABLE_PER_CLASS; @MappedSuperclass</li>
+<li>@Transient, @Version, naming strategies</li>
+<li>equals/hashCode for entities, natural IDs</li>
+</ul>
+<h3>3. Relationships</h3>
+<ul>
+<li>@OneToOne, @OneToMany, @ManyToOne, @ManyToMany (@JoinColumn, @JoinTable)</li>
+<li>Owning side vs inverse side (mappedBy), bidirectional sync helpers</li>
+<li>Cascade types (PERSIST, MERGE, REMOVE, ALL), orphanRemoval vs CascadeType.REMOVE</li>
+<li>Replacing @ManyToMany with an explicit join entity</li>
+<li>@ElementCollection, ordering (@OrderBy, @OrderColumn)</li>
+</ul>
+<h3>4. Fetching &amp; the N+1 Problem</h3>
+<ul>
+<li>LAZY vs EAGER defaults per relationship type, why EAGER is dangerous</li>
+<li>Proxies, LazyInitializationException, Open Session in View debate</li>
+<li>N+1 detection and fixes: JOIN FETCH, @EntityGraph, batch fetching (@BatchSize, default_batch_fetch_size), subselect fetching</li>
+<li>Pagination with fetch joins (HHH firstResult/maxResults in memory warning)</li>
+<li>DTO projections vs entity fetching, interface/record projections</li>
+</ul>
+<h3>5. Querying</h3>
+<ul>
+<li>JPQL: syntax, joins, named parameters, named queries, bulk UPDATE/DELETE (bypassing the context)</li>
+<li>Criteria API, JPA Metamodel, dynamic queries</li>
+<li>Native queries &amp; result set mapping (@SqlResultSetMapping)</li>
+<li>QueryDSL / Specifications as alternatives</li>
+<li>getSingleResult vs getResultList, streaming results</li>
+</ul>
+<h3>6. Caching</h3>
+<ul>
+<li>L1 (persistence context) vs L2 (SessionFactory-wide) cache</li>
+<li>L2 providers (Ehcache, Infinispan, Redis via adapters), @Cacheable, concurrency strategies (READ_ONLY, READ_WRITE, NONSTRICT_READ_WRITE, TRANSACTIONAL)</li>
+<li>Query cache and its invalidation cost</li>
+<li>Collection caching, cache regions, stale data in clusters</li>
+</ul>
+<h3>7. Transactions &amp; Locking</h3>
+<ul>
+<li>EntityTransaction vs JTA vs Spring @Transactional</li>
+<li>Flush/commit ordering, write-behind, transactional write ordering</li>
+<li>Optimistic locking: @Version, OptimisticLockException handling/retry</li>
+<li>Pessimistic locking: PESSIMISTIC_READ/WRITE, lock timeouts</li>
+<li>Isolation levels interaction, read-only transactions/hints</li>
+</ul>
+<h3>8. Performance</h3>
+<ul>
+<li>Statement batching (hibernate.jdbc.batch_size, ordered inserts/updates), IDENTITY disabling batching</li>
+<li>SQL logging &amp; statistics (show_sql, format_sql, Hibernate Statistics, datasource-proxy)</li>
+<li>Entity vs DTO reads, @Immutable entities, read-only queries</li>
+<li>StatelessSession, bulk operations for large volumes</li>
+<li>Connection pool sizing, slow-query analysis alongside EXPLAIN</li>
+<li>Second-level cache vs application cache decisions</li>
+</ul>
+<h3>9. Spring Data JPA</h3>
+<ul>
+<li>Repository hierarchy: CrudRepository, JpaRepository; derived query methods</li>
+<li>@Query (JPQL/native), @Modifying, Pageable/Sort, Slice vs Page</li>
+<li>Specifications, Example (QBE), projections</li>
+<li>Auditing (@CreatedDate, @LastModifiedDate), @Transactional defaults on repositories</li>
+<li>save vs saveAndFlush, deleteInBatch semantics, persist-vs-merge inside save</li>
+</ul>
+<h3>10. Production &amp; Migration</h3>
+<ul>
+<li>hbm2ddl.auto policies (validate in prod), schema migration with Flyway/Liquibase</li>
+<li>Testing: @DataJpaTest, Testcontainers vs H2 dialect pitfalls</li>
+<li>Handling detached entities in web apps, DTO mapping (MapStruct)</li>
+<li>Multi-tenancy, soft delete (@SQLDelete, @Where / @SoftDelete)</li>
+<li>Envers auditing, Hibernate 5 → 6 migration notes</li>
+</ul>
+<h3>11. Senior / Interview Hot Topics</h3>
+<ul>
+<li>Entity lifecycle states and what triggers SQL</li>
+<li>persist vs merge, why merge returns a new instance</li>
+<li>LazyInitializationException causes and proper fixes</li>
+<li>N+1: spotting it in logs and all fix options with trade-offs</li>
+<li>Owning side rules; why mappedBy updates alone don't write the FK</li>
+<li>Optimistic vs pessimistic locking use cases</li>
+<li>IDENTITY vs SEQUENCE and batch insert performance</li>
+<li>equals/hashCode pitfalls with proxies and generated IDs</li>
+<li>Open Session in View pros/cons, JPA vs MyBatis trade-off discussion</li>
+</ul>
+<div class="key-point">The persistence context explains almost every interview question — dirty checking, L1 caching, LazyInitializationException, and merge semantics all follow from how managed entities are tracked until flush.</div>`,
+      },
       // ──── 1. JPA FUNDAMENTALS & THE PERSISTENCE CONTEXT ────
       {
         q: 'What is JPA? What is the relationship between JPA and Hibernate?',

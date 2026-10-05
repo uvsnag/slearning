@@ -7,6 +7,109 @@ export const topics: PvTopic[] = [
     name: 'CV-Based Questions',
     icon: '📋',
     questions: [
+      // ──── 0. CV QUESTIONS SUMMARY — knowledge map ────
+      {
+        q: 'CV Questions Summary — Knowledge Map',
+        difficulty: 'easy',
+        a: `<div class="interview-answer"><p>A preparation map for CV- and experience-based interviews — every theme an interviewer can pull from your CV, organized so you can rehearse each area before the real conversation.</p></div>
+<h3>1. How Interviewers Read a CV</h3>
+<ul>
+<li>Every listed skill is an invitation for a deep-dive question</li>
+<li>Claims vs evidence (what you did vs what the team did)</li>
+<li>Years of experience vs depth of experience</li>
+<li>Red flags they probe: short stints, gaps, buzzword stacking, vague titles</li>
+<li>Seniority signals: ownership, impact, mentoring, decisions made</li>
+</ul>
+<h3>2. Opening — Background &amp; Motivation</h3>
+<ul>
+<li>"Tell me about yourself" structure
+  <ul>
+  <li>Present → past → future, ~2 minutes</li>
+  <li>Role, years, main stack, next goal</li>
+  </ul>
+</li>
+<li>Growth trajectory story (junior → senior → lead responsibilities)</li>
+<li>Reason for leaving (positive framing, pull not push)</li>
+<li>Why this company / why this role</li>
+</ul>
+<h3>3. Technical Depth — Defend Every CV Claim</h3>
+<ul>
+<li><strong>Architecture</strong>
+  <ul>
+  <li>Architectures you name (e.g., hexagonal, modular monolith) — benefits, trade-offs, where you applied them</li>
+  <li>API standardization: conventions, error format, versioning, pagination</li>
+  </ul>
+</li>
+<li><strong>Data &amp; backend</strong>
+  <ul>
+  <li>ORM choices (e.g., MyBatis vs JPA) — when and why</li>
+  <li>SQL optimization approach: measure → explain plan → index → rewrite</li>
+  <li>Databases you list (e.g., PostgreSQL vs SQL Server) — real differences you hit</li>
+  <li>High-volume / batch processing: chunking, transactions, restartability</li>
+  </ul>
+</li>
+<li><strong>Per-skill rule</strong>
+  <ul>
+  <li>For each technology on the CV: one real problem solved, one limitation, one alternative</li>
+  </ul>
+</li>
+</ul>
+<h3>4. Projects, Delivery &amp; Tooling</h3>
+<ul>
+<li>Project walkthrough structure
+  <ul>
+  <li>Context → your role → stack → challenges → decisions → results</li>
+  <li>STAR (Situation, Task, Action, Result) for each story</li>
+  </ul>
+</li>
+<li>Prepared stories
+  <ul>
+  <li>Most challenging project</li>
+  <li>Legacy migration / upgrade project</li>
+  <li>Personal / side project and what it taught you</li>
+  </ul>
+</li>
+<li>Delivery workflow: Docker, CI/CD pipeline, environments, release process</li>
+<li>Niche tools on your CV (be ready to explain what and why)</li>
+<li>AI-assisted development: how you use it, how you verify its output</li>
+</ul>
+<h3>5. Leadership, Process &amp; Collaboration</h3>
+<ul>
+<li>Code review approach: what you look for, how you give feedback</li>
+<li>Mentoring juniors: delegation, pairing, growth plans</li>
+<li>Conflict story: disagreeing with a technical decision (STAR)</li>
+<li>Agile/Scrum: ceremonies, estimation, working with PO/QA</li>
+<li>Prioritization under multiple urgent requests (urgent/important framing)</li>
+<li>Working in English / with international teams</li>
+</ul>
+<h3>6. Metrics &amp; Impact Framing</h3>
+<ul>
+<li>Quantify results: latency, throughput, cost, defect rate, delivery time</li>
+<li>Before/after numbers for optimization stories</li>
+<li>Scope markers: users, data volume, team size, duration</li>
+<li>"I" vs "we" — own your contribution precisely</li>
+</ul>
+<h3>7. Common Traps</h3>
+<ul>
+<li>Buzzwords you cannot defend two questions deep</li>
+<li>Blaming previous employers or teammates</li>
+<li>Unexplained gaps or frequent job changes without a narrative</li>
+<li>Claiming sole credit for team outcomes</li>
+<li>Rehearsed answers that ignore the actual question</li>
+</ul>
+<h3>8. Closing — Expectations &amp; Your Questions</h3>
+<ul>
+<li>3–5 year vision aligned with the role</li>
+<li>Salary expectations: range, research, timing</li>
+<li>Questions to ask the interviewer
+  <ul>
+  <li>Team structure, tech stack decisions, code review culture</li>
+  <li>Success criteria for the role, growth path, current challenges</li>
+  </ul>
+</li>
+</ul>
+<div class="key-point">Rule of thumb: for every line on your CV, prepare one concrete story with numbers. Interviewers trust specifics ("cut report query from 40s to 2s by adding a covering index") far more than adjectives ("strong SQL optimization skills").</div>`,
+      },
       // ──── 1. OPENING — BACKGROUND & MOTIVATION ────
       {
         q: 'Tell me about yourself and your experience.',

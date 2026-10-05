@@ -7,6 +7,89 @@ export const topics: PvTopic[] = [
     name: 'Git',
     icon: '🌿',
     questions: [
+      // ──── 0. GIT SUMMARY — knowledge map ────
+      {
+        q: 'Git Summary — Knowledge Map',
+        difficulty: 'easy',
+        a: `<div class="interview-answer"><p>A complete revision checklist for Git — internals, everyday commands, branching strategies, history surgery, and team workflows. Concept names only; use it to spot gaps, not as a tutorial.</p></div>
+<h3>1. Internals / Object Model</h3>
+<ul>
+<li>Content-addressable store: blobs, trees, commits, annotated tags</li>
+<li>SHA-1/SHA-256 hashing, .git directory layout, packfiles &amp; delta compression</li>
+<li>Refs: branches as movable pointers, HEAD, detached HEAD, symbolic refs</li>
+<li>Commit graph (DAG), parent links, immutability of history</li>
+<li>The index (staging area) as a third tree</li>
+</ul>
+<h3>2. Everyday Workflow</h3>
+<ul>
+<li>Three areas: working directory → index → repository</li>
+<li>init, clone, status, add (incl. add -p), commit, commit --amend</li>
+<li>diff (working vs staged vs HEAD), log (--oneline, --graph, -p, -S)</li>
+<li>.gitignore (tracked-file caveat), .gitattributes (line endings, diff drivers)</li>
+<li>show, blame, shortlog</li>
+</ul>
+<h3>3. Branching &amp; Merging</h3>
+<ul>
+<li>branch, switch/checkout, fast-forward vs merge commit (--no-ff)</li>
+<li>Merge conflicts: markers, resolution, rerere, merge tools</li>
+<li>Rebase vs merge (linear history vs true history), golden rule of rebase</li>
+<li>Interactive rebase: squash, fixup, reword, edit, drop, autosquash</li>
+<li>Squash merge, merge strategies (ort, ours/theirs options)</li>
+<li>cherry-pick (and its duplicate-commit implications)</li>
+</ul>
+<h3>4. Remotes &amp; Collaboration</h3>
+<ul>
+<li>remote add, fetch vs pull (merge vs --rebase), push</li>
+<li>Tracking branches, upstream (-u), origin vs upstream convention, fork model</li>
+<li>push --force vs --force-with-lease, protected branches</li>
+<li>Pull requests / merge requests, code review flow, draft PRs</li>
+<li>Shallow clone (--depth), partial clone, sparse-checkout</li>
+</ul>
+<h3>5. Undoing Changes</h3>
+<ul>
+<li>restore (worktree vs --staged), checkout -- (legacy)</li>
+<li>reset: --soft vs --mixed vs --hard, moving branch pointers</li>
+<li>revert (safe undo on shared history) vs reset (rewrite)</li>
+<li>reflog as the safety net, recovering lost commits, ORIG_HEAD</li>
+<li>clean (untracked files), stash pop conflicts</li>
+</ul>
+<h3>6. Stash, Tags &amp; Hooks</h3>
+<ul>
+<li>stash push/pop/apply/list, stash -u, stash branch</li>
+<li>Lightweight vs annotated tags, pushing tags, releases</li>
+<li>Client-side hooks: pre-commit, commit-msg, pre-push; server-side hooks</li>
+<li>Hook managers: Husky, lint-staged, pre-commit framework</li>
+</ul>
+<h3>7. Advanced Tools</h3>
+<ul>
+<li>bisect (binary search for regressions, bisect run)</li>
+<li>worktree (multiple checkouts), submodules vs subtree</li>
+<li>filter-repo / BFG (purging secrets, rewriting history)</li>
+<li>Git LFS (large files), commit signing (GPG/SSH, verified commits)</li>
+<li>range-diff, notes, describe, rev-parse, plumbing vs porcelain commands</li>
+<li>Conventional Commits, changelog generation, git config levels &amp; aliases</li>
+</ul>
+<h3>8. Team Workflows</h3>
+<ul>
+<li>GitFlow (develop/release/hotfix branches) and its decline</li>
+<li>GitHub Flow (branch → PR → merge → deploy)</li>
+<li>Trunk-based development, feature flags, short-lived branches</li>
+<li>Release branching, hotfix flow, tags for releases</li>
+<li>Monorepo practices: sparse-checkout, CODEOWNERS, merge queues</li>
+</ul>
+<h3>9. Senior / Interview Hot Topics</h3>
+<ul>
+<li>merge vs rebase — when each is right, and why you never rebase shared branches</li>
+<li>reset vs revert vs restore distinctions</li>
+<li>fetch vs pull, force-with-lease over force</li>
+<li>How branches are "just pointers" and why Git rarely loses data (reflog)</li>
+<li>Resolving a bad merge / recovering a deleted branch</li>
+<li>Removing a committed secret from history (and rotating it anyway)</li>
+<li>Why commit hashes change after rebase/amend</li>
+<li>Choosing a branching strategy for team size &amp; release cadence</li>
+</ul>
+<div class="key-point">Interviewers nearly always ask merge vs rebase and reset vs revert. Anchor every answer in the object model — "a branch is a pointer, commits are immutable" — and the rest follows logically.</div>`,
+      },
       // ──── 1. HOW GIT WORKS UNDER THE HOOD ────
       {
         q: 'How does Git store data? Explain commits, trees, blobs and refs.',

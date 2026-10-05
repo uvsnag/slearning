@@ -8,6 +8,193 @@ export const topics: PvTopic[] = [
     name: 'JavaScript',
     icon: '🟨',
     questions: [
+      // ──── 0. JAVASCRIPT SUMMARY — knowledge map ────
+      {
+        q: 'JavaScript Summary — Version-by-Version Knowledge Map',
+        difficulty: 'easy',
+        a: `<div class="interview-answer"><p>A complete revision checklist for JavaScript — everything worth knowing, from language fundamentals through ES2015+ features per edition, runtime internals, and senior-level topics. Concept names only; use it to spot gaps, not as a tutorial.</p></div>
+<h3>1. Fundamentals</h3>
+<ul>
+<li><strong>Language &amp; runtime model</strong>
+  <ul>
+  <li>Interpreted / JIT-compiled, dynamically &amp; weakly typed</li>
+  <li>ECMAScript spec vs host environments (browser, Node.js)</li>
+  <li>Single-threaded execution, call stack, event loop</li>
+  <li>Strict mode ('use strict')</li>
+  </ul>
+</li>
+<li><strong>Types &amp; coercion</strong>
+  <ul>
+  <li>Primitives (string, number, boolean, null, undefined, symbol, bigint) vs objects</li>
+  <li>typeof quirks (typeof null), instanceof</li>
+  <li>Type coercion rules, == vs ===, truthy/falsy</li>
+  <li>NaN, Number precision (IEEE 754, 0.1 + 0.2)</li>
+  <li>Boxing/unboxing of primitives</li>
+  </ul>
+</li>
+<li><strong>Variables &amp; scope</strong>
+  <ul>
+  <li>var vs let vs const, hoisting, Temporal Dead Zone</li>
+  <li>Function scope vs block scope vs global scope</li>
+  <li>Lexical scoping, scope chain</li>
+  </ul>
+</li>
+<li><strong>Functions</strong>
+  <ul>
+  <li>Declarations vs expressions vs arrow functions</li>
+  <li>Parameters: default, rest, arguments object</li>
+  <li>First-class functions, higher-order functions</li>
+  <li>IIFE</li>
+  </ul>
+</li>
+<li><strong>Objects &amp; arrays basics</strong>
+  <ul>
+  <li>Object literals, property access, computed properties</li>
+  <li>Array methods (map, filter, reduce, find, some, every)</li>
+  <li>Spread/rest, destructuring, shallow vs deep copy</li>
+  </ul>
+</li>
+</ul>
+<h3>2. Core / Cross-Version Knowledge</h3>
+<ul>
+<li><strong>this &amp; execution context</strong>
+  <ul>
+  <li>this binding rules (default, implicit, explicit, new, arrow)</li>
+  <li>call / apply / bind</li>
+  <li>Execution context, lexical environment</li>
+  </ul>
+</li>
+<li><strong>Closures</strong>
+  <ul>
+  <li>Closure definition &amp; use cases (encapsulation, memoization, factories)</li>
+  <li>Loop + closure pitfalls, memory implications</li>
+  </ul>
+</li>
+<li><strong>Prototypes &amp; OOP</strong>
+  <ul>
+  <li>Prototype chain, __proto__ vs prototype</li>
+  <li>Constructor functions, Object.create, new operator mechanics</li>
+  <li>class syntax as prototype sugar, inheritance (extends/super)</li>
+  <li>Private fields (#), static members, getters/setters</li>
+  <li>Composition vs inheritance, mixins</li>
+  </ul>
+</li>
+<li><strong>Asynchronous JavaScript</strong>
+  <ul>
+  <li>Event loop: call stack, macrotasks vs microtasks, task queues</li>
+  <li>Callbacks &amp; callback hell</li>
+  <li>Promises: states, chaining, error handling, Promise.all / allSettled / race / any</li>
+  <li>async/await, top-level await, sequential vs parallel awaiting</li>
+  <li>setTimeout / setInterval / queueMicrotask / requestAnimationFrame</li>
+  <li>AbortController, cancellation patterns</li>
+  </ul>
+</li>
+<li><strong>Collections &amp; iteration</strong>
+  <ul>
+  <li>Map / Set / WeakMap / WeakSet</li>
+  <li>Iterables &amp; iterators protocol, generators (function*, yield)</li>
+  <li>for...of vs for...in, async iterators (for await...of)</li>
+  </ul>
+</li>
+<li><strong>Error handling</strong>
+  <ul>
+  <li>try/catch/finally, Error types, custom errors, error cause</li>
+  <li>Unhandled promise rejections</li>
+  </ul>
+</li>
+<li><strong>Modules</strong>
+  <ul>
+  <li>ES Modules (import/export, named vs default) vs CommonJS (require)</li>
+  <li>Dynamic import(), module resolution, tree shaking, circular dependencies</li>
+  </ul>
+</li>
+<li><strong>Browser APIs</strong>
+  <ul>
+  <li>DOM manipulation, event handling (bubbling, capturing, delegation)</li>
+  <li>fetch, XMLHttpRequest, WebSocket, Server-Sent Events</li>
+  <li>localStorage / sessionStorage / cookies / IndexedDB</li>
+  <li>History API, Intersection/Mutation/Resize Observers, Web Workers</li>
+  </ul>
+</li>
+</ul>
+<h3>3. Version-Specific Knowledge</h3>
+<ul>
+<li><strong>ES5 (2009)</strong> — strict mode, Array extras (forEach, map, filter, reduce), Object.keys, Object.defineProperty, getters/setters, Function.prototype.bind, JSON</li>
+<li><strong>ES6 / ES2015</strong> — let/const, arrow functions, classes, template literals, destructuring, default/rest/spread, Promises, modules (import/export), Map/Set/WeakMap/WeakSet, Symbol, iterators &amp; generators, Proxy &amp; Reflect, tail calls (spec)</li>
+<li><strong>ES2016–2017</strong> — exponentiation (**), Array.includes, async/await, Object.values/entries, string padding, Object.getOwnPropertyDescriptors, shared memory &amp; Atomics</li>
+<li><strong>ES2018–2019</strong> — rest/spread for objects, async iteration, Promise.finally, regex improvements (lookbehind, named groups, /s flag), Array.flat/flatMap, Object.fromEntries, optional catch binding, String.trimStart/trimEnd</li>
+<li><strong>ES2020–2021</strong> — optional chaining (?.), nullish coalescing (??), BigInt, Promise.allSettled, globalThis, dynamic import(), String.matchAll, logical assignment (&amp;&amp;=, ||=, ??=), String.replaceAll, Promise.any, WeakRef &amp; FinalizationRegistry, numeric separators</li>
+<li><strong>ES2022–2023</strong> — class fields (public/private #), static blocks, top-level await, Array.at, Object.hasOwn, error cause, immutable array methods (toSorted, toReversed, toSpliced, with), findLast/findLastIndex, hashbang</li>
+<li><strong>ES2024–2025</strong> — Array/Map groupBy, Promise.withResolvers, regex /v flag, resizable ArrayBuffer, Atomics.waitAsync, Set methods (union, intersection, difference), iterator helpers, import attributes / JSON modules, RegExp.escape, Float16Array</li>
+</ul>
+<h3>4. Advanced Knowledge</h3>
+<ul>
+<li><strong>Engine internals</strong> — V8 pipeline (parser, Ignition interpreter, TurboFan JIT), hidden classes &amp; inline caches, deoptimization, bytecode</li>
+<li><strong>Memory management</strong> — garbage collection (mark-and-sweep, generational GC), memory leaks (detached DOM nodes, closures, timers, global refs), heap snapshots</li>
+<li><strong>Metaprogramming</strong> — Proxy traps, Reflect API, Symbol.iterator / Symbol.asyncIterator / well-known symbols, property descriptors, Object.freeze/seal</li>
+<li><strong>Functional patterns</strong> — pure functions, immutability, currying, partial application, composition, point-free style</li>
+<li><strong>Concurrency</strong> — Web Workers, SharedArrayBuffer &amp; Atomics, structured clone, transferable objects</li>
+<li><strong>Typed arrays &amp; binary data</strong> — ArrayBuffer, DataView, TypedArrays, Blob, streams API</li>
+</ul>
+<h3>5. Real-World Development</h3>
+<ul>
+<li><strong>Tooling</strong> — npm / yarn / pnpm, package.json (dependencies vs devDependencies, scripts, exports), semver, lockfiles</li>
+<li><strong>Build &amp; transpile</strong> — Babel, TypeScript, bundlers (webpack, Vite, Rollup, esbuild), source maps, polyfills vs transpilation, browserslist</li>
+<li><strong>Code quality</strong> — ESLint, Prettier, JSDoc</li>
+<li><strong>Debugging</strong> — DevTools (breakpoints, console API, network, performance, memory profiler), Node debugging</li>
+<li><strong>Node.js basics</strong> — event loop phases, streams, Buffer, fs/path/http modules, process &amp; environment variables</li>
+</ul>
+<h3>6. Ecosystem</h3>
+<ul>
+<li><strong>Frameworks</strong> — React, Vue, Angular, Svelte; meta-frameworks (Next.js, Nuxt)</li>
+<li><strong>Server</strong> — Node.js, Express/Fastify/NestJS, Deno, Bun</li>
+<li><strong>Testing</strong> — Jest, Vitest, Playwright, Cypress, Testing Library</li>
+<li><strong>Utilities</strong> — Lodash, date-fns / Day.js, zod, axios</li>
+</ul>
+<h3>7. Architecture &amp; Design</h3>
+<ul>
+<li>Module patterns, revealing module, observer / pub-sub, event emitters</li>
+<li>MVC/MVVM concepts, component-based architecture</li>
+<li>State management patterns (flux, stores), dependency injection</li>
+<li>Design patterns in JS: singleton, factory, decorator, strategy, facade</li>
+<li>Progressive enhancement, SPA vs MPA vs islands</li>
+</ul>
+<h3>8. Performance</h3>
+<ul>
+<li>Debounce vs throttle, memoization, lazy loading, code splitting</li>
+<li>Reflow/repaint, layout thrashing, requestAnimationFrame batching</li>
+<li>Bundle size optimization, tree shaking, dynamic imports</li>
+<li>Core Web Vitals (LCP, INP, CLS), profiling with DevTools</li>
+<li>Avoiding blocking the main thread, web workers for heavy work</li>
+</ul>
+<h3>9. Security</h3>
+<ul>
+<li>XSS (stored, reflected, DOM-based), output encoding, sanitization</li>
+<li>CSRF, SameSite cookies, CORS mechanics (preflight, credentials)</li>
+<li>Content Security Policy, Trusted Types</li>
+<li>Prototype pollution, eval dangers, supply-chain attacks (npm audit)</li>
+<li>Secure token storage (localStorage vs httpOnly cookies)</li>
+</ul>
+<h3>10. Testing</h3>
+<ul>
+<li>Unit testing (Jest/Vitest: mocks, spies, fake timers, snapshots)</li>
+<li>DOM testing (Testing Library queries, user-event)</li>
+<li>E2E (Playwright, Cypress), async testing patterns</li>
+<li>Coverage, TDD, contract testing for APIs</li>
+</ul>
+<h3>11. Senior / Interview Hot Topics</h3>
+<ul>
+<li>Event loop ordering (microtasks vs macrotasks) walkthroughs</li>
+<li>Closures + setTimeout loop questions, this binding puzzles</li>
+<li>Prototype chain lookups, implementing new / bind / Promise from scratch</li>
+<li>Debounce/throttle implementation, deep clone implementation</li>
+<li>== coercion tables, hoisting &amp; TDZ edge cases</li>
+<li>Memory leak diagnosis, why 0.1 + 0.2 !== 0.3</li>
+<li>ESM vs CJS interop issues, tree-shaking prerequisites</li>
+<li>Immutability trade-offs, structuredClone vs JSON clone</li>
+</ul>
+<div class="key-point">Use this map top-down before an interview: scope/closures/this, the event loop, promises, and prototypes are asked everywhere; ES6 and ES2020 (optional chaining, nullish coalescing) features are the most common "modern JavaScript" questions.</div>`,
+      },
       // ──── 1. LANGUAGE FUNDAMENTALS — SCOPE, TYPES & COERCION ────
       {
         q: 'Explain the difference between var, let, and const.',

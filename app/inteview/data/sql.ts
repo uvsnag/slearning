@@ -8,6 +8,140 @@ export const topics: PvTopic[] = [
     name: 'SQL',
     icon: '🗄️',
     questions: [
+      // ──── 0. SQL SUMMARY — knowledge map ────
+      {
+        q: 'SQL Summary — Knowledge Map',
+        difficulty: 'easy',
+        a: `<div class="interview-answer"><p>A complete revision checklist for SQL — everything worth knowing, organized thematically from query fundamentals to transactions, indexing, and senior-level topics. Concept names only; use it to spot gaps, not as a tutorial.</p></div>
+<h3>1. Fundamentals</h3>
+<ul>
+<li><strong>Relational model</strong>
+  <ul>
+  <li>Tables, rows, columns, schemas</li>
+  <li>Primary keys, foreign keys, candidate/composite keys, surrogate vs natural keys</li>
+  <li>NULL semantics (three-valued logic, IS NULL, COALESCE, NULLIF)</li>
+  <li>Data types (numeric, character, date/time, boolean, JSON, UUID)</li>
+  </ul>
+</li>
+<li><strong>SQL language categories</strong>
+  <ul>
+  <li>DQL (SELECT), DML (INSERT, UPDATE, DELETE, MERGE/UPSERT)</li>
+  <li>DDL (CREATE, ALTER, DROP, TRUNCATE)</li>
+  <li>DCL (GRANT, REVOKE), TCL (COMMIT, ROLLBACK, SAVEPOINT)</li>
+  </ul>
+</li>
+<li><strong>SELECT anatomy</strong>
+  <ul>
+  <li>Logical processing order (FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY → LIMIT)</li>
+  <li>DISTINCT, aliases, expressions, CASE WHEN</li>
+  <li>Filtering: comparison operators, BETWEEN, IN, LIKE, wildcard patterns</li>
+  <li>Sorting, LIMIT/OFFSET, FETCH FIRST</li>
+  </ul>
+</li>
+</ul>
+<h3>2. Joins &amp; Set Operations</h3>
+<ul>
+<li><strong>Join types</strong>
+  <ul>
+  <li>INNER, LEFT/RIGHT/FULL OUTER, CROSS, SELF join</li>
+  <li>Semi-join / anti-join (EXISTS / NOT EXISTS, NOT IN pitfalls with NULL)</li>
+  <li>Natural join, USING vs ON, non-equi joins</li>
+  <li>LATERAL / CROSS APPLY</li>
+  </ul>
+</li>
+<li><strong>Set operations</strong>
+  <ul>
+  <li>UNION vs UNION ALL, INTERSECT, EXCEPT/MINUS</li>
+  </ul>
+</li>
+</ul>
+<h3>3. Aggregation &amp; Grouping</h3>
+<ul>
+<li>Aggregate functions (COUNT, SUM, AVG, MIN, MAX), COUNT(*) vs COUNT(col)</li>
+<li>GROUP BY, HAVING vs WHERE, aggregates with DISTINCT</li>
+<li>GROUPING SETS, ROLLUP, CUBE</li>
+<li>Conditional aggregation (CASE inside aggregates), pivoting rows to columns</li>
+<li>String aggregation (GROUP_CONCAT, STRING_AGG)</li>
+</ul>
+<h3>4. Subqueries &amp; CTEs</h3>
+<ul>
+<li>Scalar, row, and table subqueries; correlated vs non-correlated</li>
+<li>Subqueries in SELECT / FROM (derived tables) / WHERE</li>
+<li>EXISTS vs IN vs JOIN trade-offs</li>
+<li>Common Table Expressions (WITH), multiple CTEs, recursive CTEs (hierarchies, graphs)</li>
+<li>Views vs materialized views, updatable views</li>
+</ul>
+<h3>5. Window Functions</h3>
+<ul>
+<li>OVER clause: PARTITION BY, ORDER BY, frame clauses (ROWS/RANGE BETWEEN)</li>
+<li>Ranking: ROW_NUMBER, RANK, DENSE_RANK, NTILE</li>
+<li>Offset: LAG, LEAD, FIRST_VALUE, LAST_VALUE</li>
+<li>Running totals, moving averages, percent of total</li>
+<li>Top-N per group, deduplication with ROW_NUMBER</li>
+<li>Window functions vs GROUP BY (keeping detail rows)</li>
+</ul>
+<h3>6. Transactions &amp; Concurrency</h3>
+<ul>
+<li>ACID properties</li>
+<li>Isolation levels: READ UNCOMMITTED, READ COMMITTED, REPEATABLE READ, SERIALIZABLE</li>
+<li>Anomalies: dirty read, non-repeatable read, phantom read, lost update, write skew</li>
+<li>MVCC vs lock-based concurrency</li>
+<li>Pessimistic locking (SELECT FOR UPDATE), optimistic locking (version column)</li>
+<li>Deadlocks: detection, prevention, lock ordering</li>
+<li>Autocommit, savepoints, long-running transaction risks</li>
+</ul>
+<h3>7. Indexing</h3>
+<ul>
+<li>B-tree structure, clustered vs non-clustered indexes</li>
+<li>Composite indexes, leftmost-prefix rule, column order</li>
+<li>Covering indexes, index-only scans, INCLUDE columns</li>
+<li>Unique, partial/filtered, functional/expression indexes</li>
+<li>Hash, full-text, GIN/GiST, bitmap indexes</li>
+<li>Index selectivity &amp; cardinality, when indexes are skipped (functions on columns, leading wildcards, implicit casts)</li>
+<li>Index maintenance cost on writes, fragmentation</li>
+</ul>
+<h3>8. Schema Design &amp; Constraints</h3>
+<ul>
+<li>Normalization: 1NF, 2NF, 3NF, BCNF; denormalization trade-offs</li>
+<li>Constraints: PRIMARY KEY, FOREIGN KEY (ON DELETE/UPDATE actions), UNIQUE, NOT NULL, CHECK, DEFAULT</li>
+<li>Identity/auto-increment vs sequences vs UUID keys</li>
+<li>One-to-one, one-to-many, many-to-many (junction tables)</li>
+<li>Soft delete, audit columns, temporal/history tables</li>
+<li>Star schema vs OLTP schema (OLTP vs OLAP)</li>
+</ul>
+<h3>9. Procedural SQL</h3>
+<ul>
+<li>Stored procedures vs functions, parameters, control flow</li>
+<li>Triggers (BEFORE/AFTER, row vs statement), pros and cons</li>
+<li>Cursors and set-based alternatives</li>
+<li>Dynamic SQL and its risks</li>
+</ul>
+<h3>10. Dialect Differences</h3>
+<ul>
+<li>MySQL vs PostgreSQL vs SQL Server vs Oracle (LIMIT/TOP/ROWNUM, UPSERT syntax, string functions)</li>
+<li>Quoting identifiers, case sensitivity, date handling</li>
+<li>JSON support (JSON columns, operators, indexing JSON)</li>
+<li>Storage engines (InnoDB), sequences vs AUTO_INCREMENT</li>
+</ul>
+<h3>11. Security</h3>
+<ul>
+<li>SQL injection &amp; parameterized queries / prepared statements</li>
+<li>Least-privilege grants, roles, row-level security</li>
+<li>Data encryption (at rest, in transit), masking sensitive columns</li>
+</ul>
+<h3>12. Senior / Interview Hot Topics</h3>
+<ul>
+<li>WHERE vs HAVING, UNION vs UNION ALL, DELETE vs TRUNCATE vs DROP</li>
+<li>NOT IN vs NOT EXISTS with NULLs, COUNT semantics</li>
+<li>Nth-highest-salary and duplicate-finding patterns</li>
+<li>Top-N per group, gaps-and-islands problems</li>
+<li>Choosing isolation level for a use case, idempotent writes (UPSERT)</li>
+<li>Pagination strategies (OFFSET vs keyset/seek)</li>
+<li>Designing indexes from query patterns, reading an execution plan</li>
+<li>Scaling reads (replication) vs writes (sharding/partitioning)</li>
+</ul>
+<div class="key-point">Interviews lean hardest on joins, GROUP BY vs window functions, isolation levels, and indexing — be ready to write a top-N-per-group query and explain why an index is or isn't used.</div>`,
+      },
       // ──── 1. QUERY FUNDAMENTALS ────
       {
         q: 'What are the types of SQL JOINs? Explain with examples.',
@@ -1161,6 +1295,111 @@ EXEC sp_executesql @sql, N'@Status NVARCHAR(20), @Cnt INT OUTPUT', @Status=@Stat
     name: 'Optimize SQL',
     icon: '⚡',
     questions: [
+      // ──── 0. SQL OPTIMIZATION SUMMARY — knowledge map ────
+      {
+        q: 'SQL Optimization Summary — Knowledge Map',
+        difficulty: 'easy',
+        a: `<div class="interview-answer"><p>A complete revision checklist for SQL performance tuning — from reading execution plans to index strategy, query rewriting, locking, and production diagnosis. Concept names only; use it to spot gaps, not as a tutorial.</p></div>
+<h3>1. Execution Plans</h3>
+<ul>
+<li><strong>Reading plans</strong>
+  <ul>
+  <li>EXPLAIN vs EXPLAIN ANALYZE (estimates vs actuals), BUFFERS option</li>
+  <li>Plan tree reading order (most-indented first), cost model</li>
+  <li>Estimated vs actual rows mismatch (stale statistics)</li>
+  </ul>
+</li>
+<li><strong>Access methods</strong>
+  <ul>
+  <li>Sequential scan, index scan, index-only scan, bitmap scan</li>
+  <li>Table lookups (heap fetch / key lookup / bookmark lookup)</li>
+  </ul>
+</li>
+<li><strong>Join algorithms</strong>
+  <ul>
+  <li>Nested loop, hash join, merge join — when the planner picks each</li>
+  </ul>
+</li>
+<li><strong>Other operators</strong>
+  <ul>
+  <li>Sort (in-memory vs spill to disk), aggregate, materialize, parallel workers</li>
+  </ul>
+</li>
+</ul>
+<h3>2. Index Strategy</h3>
+<ul>
+<li>Designing indexes from the workload (WHERE, JOIN, ORDER BY, GROUP BY columns)</li>
+<li>Composite index column order, leftmost-prefix rule, selectivity first</li>
+<li>Covering indexes / INCLUDE columns to avoid lookups</li>
+<li>Partial, functional/expression, and unique indexes</li>
+<li>Why an index is ignored: functions on indexed columns, implicit type casts, leading wildcard LIKE, low selectivity, OR conditions, stale statistics</li>
+<li>Over-indexing: write amplification, duplicate/unused index cleanup</li>
+<li>Index fragmentation, REINDEX / OPTIMIZE TABLE, fillfactor</li>
+</ul>
+<h3>3. Query Rewriting</h3>
+<ul>
+<li>SARGable predicates (move functions off the column)</li>
+<li>SELECT only needed columns (avoid SELECT *)</li>
+<li>EXISTS vs IN vs JOIN, replacing correlated subqueries</li>
+<li>Avoiding DISTINCT as a fix for bad joins (fan-out)</li>
+<li>Batching large UPDATE/DELETE, set-based vs row-by-row (cursor) logic</li>
+<li>UNION ALL instead of UNION when duplicates are impossible</li>
+<li>CTE materialization behavior, temp tables vs derived tables</li>
+<li>Pagination: OFFSET cost vs keyset/seek pagination</li>
+<li>N+1 query problem: detection and batching/JOIN fixes</li>
+</ul>
+<h3>4. Statistics &amp; the Optimizer</h3>
+<ul>
+<li>Table/column statistics, histograms, cardinality estimation</li>
+<li>ANALYZE / UPDATE STATISTICS, auto-analyze thresholds</li>
+<li>Parameter sniffing / plan caching, bind-variable peeking</li>
+<li>Optimizer hints — when they help and why to avoid them</li>
+<li>Plan regressions after upgrades or data growth</li>
+</ul>
+<h3>5. Locking &amp; Contention</h3>
+<ul>
+<li>Row vs table locks, lock escalation, gap locks</li>
+<li>Blocking chains, long transactions holding locks</li>
+<li>Deadlock analysis (logs, graphs) and lock-ordering fixes</li>
+<li>SELECT FOR UPDATE (SKIP LOCKED, NOWAIT) for queues</li>
+<li>Hot rows/counters, optimistic vs pessimistic strategies</li>
+<li>MVCC bloat / VACUUM (PostgreSQL), undo/redo pressure</li>
+</ul>
+<h3>6. Schema-Level Optimization</h3>
+<ul>
+<li>Partitioning: range, list, hash; partition pruning; local vs global indexes</li>
+<li>Sharding basics, read replicas &amp; replication lag</li>
+<li>Denormalization, summary/rollup tables, materialized views &amp; refresh strategy</li>
+<li>Appropriate data types (smaller = faster), avoiding nullable keys</li>
+<li>Archiving old data, table bloat control</li>
+</ul>
+<h3>7. Server &amp; Connection Tuning</h3>
+<ul>
+<li>Memory: buffer pool / shared buffers, work_mem / sort buffers</li>
+<li>Connection pooling (pool sizing, pgbouncer/HikariCP)</li>
+<li>Checkpoints, WAL/redo tuning, fsync trade-offs</li>
+<li>Batch inserts, bulk load paths (COPY, LOAD DATA)</li>
+</ul>
+<h3>8. Monitoring &amp; Diagnosis</h3>
+<ul>
+<li>Slow query log, pg_stat_statements / performance_schema</li>
+<li>Wait events, active session monitoring</li>
+<li>Identifying top queries by total time vs mean time</li>
+<li>Index usage statistics, missing-index hints</li>
+<li>Load testing and before/after benchmarking of fixes</li>
+</ul>
+<h3>9. Senior / Interview Hot Topics</h3>
+<ul>
+<li>Walking through an EXPLAIN plan step by step</li>
+<li>"Query is slow in production but fast locally" — statistics, data volume, parameter sniffing, cold cache</li>
+<li>Choosing join algorithm expectations for given table sizes</li>
+<li>Designing the single best index for a given query</li>
+<li>Fixing OFFSET 1,000,000 pagination</li>
+<li>Diagnosing a deadlock from logs</li>
+<li>When to denormalize, partition, or cache instead of tuning further</li>
+</ul>
+<div class="key-point">Optimization order: measure first (plan + statistics), fix the query shape (SARGable, no N+1), then index for the workload, and only then reach for schema or server changes.</div>`,
+      },
       // ──── 1. READING EXECUTION PLANS ────
       {
         q: 'How to read and interpret an EXPLAIN / Execution Plan?',

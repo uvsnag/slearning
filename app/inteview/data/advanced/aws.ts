@@ -7,6 +7,156 @@ export const topics: PvTopic[] = [
     name: 'AWS & Cloud',
     icon: '☁️',
     questions: [
+      // ──── 0. AWS & CLOUD SUMMARY — knowledge map ────
+      {
+        q: 'AWS & Cloud Summary — Knowledge Map',
+        difficulty: 'easy',
+        a: `<div class="interview-answer"><p>A complete revision checklist for AWS and cloud computing — core services, networking, security, and architecture topics a backend engineer is expected to know. Concept names only; use it to spot gaps, not as a tutorial.</p></div>
+<h3>1. Cloud Fundamentals</h3>
+<ul>
+<li>Service models: IaaS vs PaaS vs SaaS vs FaaS</li>
+<li>Shared Responsibility Model (security of vs in the cloud)</li>
+<li>Regions, Availability Zones, edge locations</li>
+<li>High availability vs fault tolerance vs disaster recovery</li>
+<li>Elasticity vs scalability (vertical vs horizontal)</li>
+<li>Pay-as-you-go pricing, CapEx vs OpEx</li>
+<li>Multi-account strategy, AWS Organizations, landing zones</li>
+</ul>
+<h3>2. Compute</h3>
+<ul>
+<li><strong>EC2</strong>
+  <ul>
+  <li>Instance types and families, AMIs, user data</li>
+  <li>Pricing: on-demand, reserved, savings plans, spot</li>
+  <li>Auto Scaling Groups, launch templates, placement groups</li>
+  <li>Instance metadata service (IMDSv2)</li>
+  </ul>
+</li>
+<li><strong>Lambda</strong>
+  <ul>
+  <li>Event-driven model, triggers, handler lifecycle</li>
+  <li>Cold starts, provisioned concurrency, SnapStart</li>
+  <li>Limits: timeout, memory, payload size</li>
+  <li>Layers, versions/aliases, destinations, DLQs</li>
+  </ul>
+</li>
+<li><strong>Containers</strong>
+  <ul>
+  <li>ECS (EC2 vs Fargate launch types), task definitions, services</li>
+  <li>EKS (managed Kubernetes), node groups, Fargate profiles</li>
+  <li>ECR, image scanning</li>
+  </ul>
+</li>
+<li>Elastic Beanstalk, App Runner, Batch (when to use what)</li>
+</ul>
+<h3>3. Storage</h3>
+<ul>
+<li><strong>S3</strong>
+  <ul>
+  <li>Buckets, objects, keys, consistency model</li>
+  <li>Storage classes, lifecycle policies, Intelligent-Tiering</li>
+  <li>Versioning, replication (CRR/SRR), object lock</li>
+  <li>Presigned URLs, multipart upload, event notifications</li>
+  <li>Bucket policies vs ACLs, Block Public Access, encryption (SSE-S3/SSE-KMS)</li>
+  </ul>
+</li>
+<li>EBS: volume types (gp3, io2), snapshots, encryption</li>
+<li>EFS: shared POSIX file system, performance modes</li>
+<li>Instance store (ephemeral), FSx, Storage Gateway, Glacier</li>
+</ul>
+<h3>4. Databases</h3>
+<ul>
+<li><strong>RDS</strong> — engines, Multi-AZ vs read replicas, automated backups, parameter groups, RDS Proxy</li>
+<li><strong>Aurora</strong> — storage architecture, Aurora Serverless, global database, failover</li>
+<li><strong>DynamoDB</strong>
+  <ul>
+  <li>Partition key / sort key, partitions, hot keys</li>
+  <li>GSI vs LSI, capacity modes (on-demand vs provisioned)</li>
+  <li>Streams, TTL, transactions, single-table design</li>
+  <li>DAX caching</li>
+  </ul>
+</li>
+<li><strong>ElastiCache</strong> — Redis vs Memcached, caching strategies (cache-aside, write-through)</li>
+<li>Redshift (warehouse), OpenSearch, DocumentDB, Neptune (fit-for-purpose choice)</li>
+</ul>
+<h3>5. Networking</h3>
+<ul>
+<li><strong>VPC</strong>
+  <ul>
+  <li>CIDR, subnets (public vs private), route tables</li>
+  <li>Internet Gateway, NAT Gateway, egress-only IGW</li>
+  <li>Security groups (stateful) vs NACLs (stateless)</li>
+  <li>VPC peering, Transit Gateway, VPC endpoints (gateway vs interface)</li>
+  <li>VPN, Direct Connect</li>
+  </ul>
+</li>
+<li><strong>Load Balancing</strong> — ALB vs NLB vs Gateway LB, target groups, health checks, sticky sessions</li>
+<li><strong>Route 53</strong> — record types, routing policies (weighted, latency, failover, geolocation), health checks</li>
+<li><strong>CloudFront</strong> — distributions, origins, cache behaviors, OAC, signed URLs, Lambda@Edge</li>
+<li>API Gateway: REST vs HTTP APIs, throttling, authorizers, usage plans</li>
+</ul>
+<h3>6. Messaging &amp; Integration</h3>
+<ul>
+<li><strong>SQS</strong> — standard vs FIFO, visibility timeout, DLQs, long polling, idempotent consumers</li>
+<li><strong>SNS</strong> — topics, fan-out pattern, subscriptions, message filtering</li>
+<li><strong>EventBridge</strong> — event buses, rules, patterns, scheduler, schema registry</li>
+<li><strong>Kinesis</strong> — Data Streams (shards, partition keys), Firehose, SQS vs Kinesis choice</li>
+<li>Step Functions: state machines, standard vs express, saga orchestration</li>
+<li>MSK (managed Kafka), MQ</li>
+</ul>
+<h3>7. Security &amp; Identity</h3>
+<ul>
+<li><strong>IAM</strong>
+  <ul>
+  <li>Users, groups, roles, policies (identity vs resource-based)</li>
+  <li>Policy evaluation logic, least privilege, permission boundaries</li>
+  <li>STS, AssumeRole, instance profiles, IRSA</li>
+  <li>Access keys vs roles (why long-lived keys are dangerous)</li>
+  </ul>
+</li>
+<li>KMS: CMKs, envelope encryption, key policies, rotation</li>
+<li>Secrets Manager vs Parameter Store</li>
+<li>Cognito: user pools vs identity pools</li>
+<li>WAF, Shield, GuardDuty, Security Hub, Inspector, CloudTrail (audit)</li>
+<li>Encryption in transit (ACM/TLS) and at rest</li>
+</ul>
+<h3>8. Observability</h3>
+<ul>
+<li>CloudWatch: metrics, custom metrics, alarms, dashboards</li>
+<li>CloudWatch Logs: log groups, Insights queries, subscription filters</li>
+<li>X-Ray: distributed tracing, service map, segments</li>
+<li>CloudTrail vs CloudWatch vs Config (what each answers)</li>
+<li>EventBridge alarms &rarr; SNS &rarr; incident flow</li>
+</ul>
+<h3>9. Infrastructure as Code &amp; DevOps</h3>
+<ul>
+<li>CloudFormation: templates, stacks, change sets, drift detection</li>
+<li>CDK: constructs, synth, diff</li>
+<li>Terraform: state, plan/apply, modules (vs CloudFormation trade-offs)</li>
+<li>SAM, Serverless Framework</li>
+<li>CodePipeline / CodeBuild / CodeDeploy, deployment strategies (blue-green, canary, rolling)</li>
+</ul>
+<h3>10. Cost Optimization</h3>
+<ul>
+<li>Cost Explorer, budgets, cost allocation tags</li>
+<li>Right-sizing, savings plans vs reserved instances, spot usage</li>
+<li>S3 lifecycle and storage class analysis</li>
+<li>Data transfer costs (cross-AZ, NAT Gateway, egress)</li>
+<li>Serverless vs always-on cost model</li>
+</ul>
+<h3>11. Architecture &amp; Senior Topics</h3>
+<ul>
+<li>Well-Architected Framework pillars (operational excellence, security, reliability, performance, cost, sustainability)</li>
+<li>Multi-AZ vs multi-region design, RTO/RPO, DR strategies (backup-restore &rarr; active-active)</li>
+<li>Stateless services, session externalization (ElastiCache/DynamoDB)</li>
+<li>Event-driven vs request-response architecture on AWS</li>
+<li>Serverless-first trade-offs: vendor lock-in, cold starts, debugging</li>
+<li>Throttling, backoff with jitter, circuit breaking against AWS APIs</li>
+<li>Common breach causes: public S3 buckets, over-permissive IAM, leaked keys, open security groups</li>
+<li>Quotas/limits awareness, well-known service limits in design answers</li>
+</ul>
+<div class="key-point">Interviews rarely test console clicks — they test choices: EC2 vs Lambda vs ECS, SQS vs SNS vs Kinesis, RDS vs DynamoDB, and how IAM/VPC/encryption secure it all. Prepare a one-line "when to use" for each pairing.</div>`,
+      },
       // ──── 1. CLOUD FUNDAMENTALS ────
       {
         q: 'Explain the AWS Shared Responsibility Model. Where do most real breaches happen?',

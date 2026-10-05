@@ -8,6 +8,101 @@ export const topics: PvTopic[] = [
     name: 'CI/CD',
     icon: '🔄',
     questions: [
+      // ──── 0. CI/CD SUMMARY — knowledge map ────
+      {
+        q: 'CI/CD Summary — Knowledge Map',
+        difficulty: 'easy',
+        a: `<div class="interview-answer"><p>A complete revision checklist for CI/CD — pipeline concepts, platforms, deployment strategies, and production practices. Concept names only; use it to spot gaps, not as a tutorial.</p></div>
+<h3>1. Fundamentals</h3>
+<ul>
+<li><strong>Core concepts</strong>
+  <ul>
+  <li>Continuous Integration vs Continuous Delivery vs Continuous Deployment</li>
+  <li>Pipeline anatomy: stages, jobs, steps, runners/agents</li>
+  <li>Triggers: push, pull request, schedule (cron), manual, tag/release</li>
+  <li>Fail-fast principle, pipeline as code</li>
+  <li>Trunk-based development vs feature branches, merge queues</li>
+  </ul>
+</li>
+<li><strong>Build stage</strong>
+  <ul>
+  <li>Build tools (Maven, Gradle, npm/pnpm), reproducible builds</li>
+  <li>Dependency caching, build caching, incremental builds</li>
+  <li>Versioning: semantic versioning, build numbers, commit SHAs</li>
+  <li>Monorepo pipelines: affected-only builds, path filters</li>
+  </ul>
+</li>
+<li><strong>Test stage</strong>
+  <ul>
+  <li>Test pyramid in pipelines: unit → integration → E2E</li>
+  <li>Parallelization, test sharding, flaky test management</li>
+  <li>Code coverage thresholds, test reports</li>
+  <li>Ephemeral test environments, service containers (DB in pipeline)</li>
+  </ul>
+</li>
+</ul>
+<h3>2. Platforms &amp; Tools</h3>
+<ul>
+<li><strong>GitHub Actions</strong> — workflows, jobs, actions marketplace, matrix builds, reusable workflows, self-hosted runners, OIDC to cloud</li>
+<li><strong>Jenkins</strong> — Jenkinsfile (declarative vs scripted), plugins, controllers/agents, shared libraries</li>
+<li><strong>GitLab CI</strong> — .gitlab-ci.yml, stages, runners, environments, Auto DevOps</li>
+<li><strong>Others</strong> — CircleCI, Azure DevOps, TeamCity, Argo Workflows, Tekton</li>
+</ul>
+<h3>3. Artifacts &amp; Registries</h3>
+<ul>
+<li>Artifact repositories: Nexus, Artifactory, GitHub Packages</li>
+<li>Container registries: Docker Hub, ECR, GCR, GHCR</li>
+<li>Immutable artifacts, build once &amp; promote, artifact signing and provenance (SLSA)</li>
+<li>Retention policies, image tagging strategies</li>
+</ul>
+<h3>4. Deployment Strategies</h3>
+<ul>
+<li>Rolling deployment, recreate deployment</li>
+<li>Blue-green deployment, canary releases, A/B testing</li>
+<li>Feature flags / feature toggles, dark launches</li>
+<li>Database migrations in deployment (expand/contract pattern)</li>
+<li>Zero-downtime deployments, backward/forward compatibility</li>
+</ul>
+<h3>5. Environments, Config &amp; Secrets</h3>
+<ul>
+<li>Environment promotion: dev → staging → production</li>
+<li>Environment parity, configuration per environment (12-factor)</li>
+<li>Secrets management: Vault, cloud secret managers, CI secrets, OIDC federation</li>
+<li>Approval gates, protected environments, change management</li>
+</ul>
+<h3>6. Quality Gates &amp; Security (DevSecOps)</h3>
+<ul>
+<li>Static analysis (SonarQube, linters), quality gates</li>
+<li>SAST, DAST, dependency/vulnerability scanning (OWASP, Snyk, Dependabot)</li>
+<li>Container image scanning (Trivy), license compliance</li>
+<li>Branch protection, required reviews, signed commits</li>
+<li>Supply-chain security: SBOM, pinned dependencies, least-privilege tokens</li>
+</ul>
+<h3>7. Infrastructure as Code &amp; GitOps</h3>
+<ul>
+<li>Terraform, CloudFormation, Pulumi, Ansible touchpoints</li>
+<li>GitOps: Argo CD, Flux, declarative desired state, drift detection</li>
+<li>Pipeline-managed infrastructure vs pull-based reconciliation</li>
+</ul>
+<h3>8. Monitoring, Rollback &amp; Operations</h3>
+<ul>
+<li>Deployment verification: smoke tests, health checks, synthetic checks</li>
+<li>Rollback strategies: redeploy previous artifact, feature-flag kill switch</li>
+<li>DORA metrics: deployment frequency, lead time, MTTR, change failure rate</li>
+<li>Pipeline observability: build times, failure trends, notifications</li>
+</ul>
+<h3>9. Senior / Interview Hot Topics</h3>
+<ul>
+<li>Continuous Delivery vs Deployment trade-offs, when manual gates make sense</li>
+<li>Blue-green vs canary trade-offs (cost, speed of feedback, session handling)</li>
+<li>Build once promote everywhere vs rebuild per environment</li>
+<li>Handling database schema changes with zero downtime</li>
+<li>Speeding up slow pipelines (caching, parallelism, test selection)</li>
+<li>Secrets exposure risks in CI, fork PR security, self-hosted runner hardening</li>
+<li>Monorepo vs polyrepo CI design, flaky test strategy</li>
+</ul>
+<div class="key-point">Most interviews probe three things: the CI vs Delivery vs Deployment distinction, one deployment strategy in depth (blue-green or canary with its trade-offs), and how you handle rollback and database migrations safely.</div>`,
+      },
       // ──── 1. CI/CD FUNDAMENTALS & PIPELINE DESIGN ────
       {
         q: 'What is CI/CD? Explain the difference between Continuous Integration, Delivery, and Deployment.',
@@ -519,6 +614,113 @@ cosign verify registry/myapi:1.5.0 \\
     name: 'Docker',
     icon: '🐳',
     questions: [
+      // ──── 0. DOCKER SUMMARY — knowledge map ────
+      {
+        q: 'Docker Summary — Knowledge Map',
+        difficulty: 'easy',
+        a: `<div class="interview-answer"><p>A complete revision checklist for Docker — from images and Dockerfiles to networking, security, and running containers in production. Concept names only; use it to spot gaps, not as a tutorial.</p></div>
+<h3>1. Fundamentals</h3>
+<ul>
+<li><strong>Containers vs VMs</strong>
+  <ul>
+  <li>Shared kernel vs hardware virtualization</li>
+  <li>Linux namespaces (pid, net, mnt, uts, ipc, user)</li>
+  <li>cgroups (CPU, memory limits), union filesystems (overlay2)</li>
+  </ul>
+</li>
+<li><strong>Architecture</strong>
+  <ul>
+  <li>Docker CLI → daemon (dockerd) → containerd → runc</li>
+  <li>OCI specifications (image spec, runtime spec)</li>
+  <li>Docker Desktop (Linux VM on Windows/Mac), WSL2 backend</li>
+  <li>Alternatives: Podman (daemonless, rootless), Buildah</li>
+  </ul>
+</li>
+</ul>
+<h3>2. Images &amp; Layers</h3>
+<ul>
+<li>Image layers, copy-on-write, layer caching &amp; cache invalidation</li>
+<li>Image vs container (template vs running instance)</li>
+<li>Tags vs digests, image manifest, multi-arch images (buildx)</li>
+<li>Base image choices: distroless, alpine (musl caveats), slim, scratch</li>
+<li>Image size optimization, .dockerignore</li>
+</ul>
+<h3>3. Dockerfile</h3>
+<ul>
+<li>Instructions: FROM, RUN, COPY vs ADD, WORKDIR, ENV vs ARG, EXPOSE, USER, LABEL</li>
+<li>CMD vs ENTRYPOINT (shell form vs exec form), HEALTHCHECK</li>
+<li>Multi-stage builds (build vs runtime stage)</li>
+<li>Layer ordering for cache efficiency, combining RUN commands</li>
+<li>BuildKit: cache mounts, secret mounts, parallel stages</li>
+</ul>
+<h3>4. Container Lifecycle &amp; Runtime</h3>
+<ul>
+<li>run / start / stop / restart / rm, detached vs interactive (-d, -it)</li>
+<li>exec vs attach, logs, inspect, stats, events</li>
+<li>Restart policies (no, on-failure, unless-stopped, always)</li>
+<li>PID 1 problem, signal handling, graceful shutdown (SIGTERM → SIGKILL), init (tini)</li>
+<li>Container filesystem ephemerality</li>
+</ul>
+<h3>5. Networking</h3>
+<ul>
+<li>Network drivers: bridge (default vs user-defined), host, none, overlay, macvlan</li>
+<li>Port publishing (-p host:container), EXPOSE vs publish</li>
+<li>Container DNS, service discovery by container name</li>
+<li>Inter-container communication, network isolation</li>
+</ul>
+<h3>6. Storage</h3>
+<ul>
+<li>Volumes vs bind mounts vs tmpfs</li>
+<li>Named volumes, volume drivers, volume lifecycle</li>
+<li>Data persistence patterns for databases</li>
+<li>Read-only root filesystem</li>
+</ul>
+<h3>7. Docker Compose</h3>
+<ul>
+<li>compose.yaml: services, networks, volumes, profiles</li>
+<li>depends_on (with healthcheck conditions), environment &amp; env_file</li>
+<li>Override files, variable substitution, scaling services</li>
+<li>Local development stacks, service containers for testing (Testcontainers)</li>
+</ul>
+<h3>8. Registries &amp; Distribution</h3>
+<ul>
+<li>Docker Hub, ECR, GCR, GHCR, private/self-hosted registries</li>
+<li>push/pull, tagging strategies (semver, SHA, latest pitfalls)</li>
+<li>Image signing (Notary, cosign), content trust, provenance/SBOM</li>
+</ul>
+<h3>9. Security</h3>
+<ul>
+<li>Running as non-root (USER), rootless mode, user namespace remapping</li>
+<li>Capabilities dropping, seccomp, AppArmor/SELinux profiles</li>
+<li>Image vulnerability scanning (Trivy, Scout), minimal base images</li>
+<li>Secrets: never in image layers or ENV, BuildKit secret mounts, runtime secrets</li>
+<li>Docker socket exposure risk, privileged containers</li>
+</ul>
+<h3>10. Resource Limits &amp; Runtime Tuning</h3>
+<ul>
+<li>--memory, --cpus, cgroup limits, OOM killer behavior</li>
+<li>JVM in containers: container-aware ergonomics, MaxRAMPercentage</li>
+<li>Node.js in containers: max-old-space-size, signal handling</li>
+<li>Healthchecks vs orchestrator probes</li>
+</ul>
+<h3>11. Orchestration Touchpoints</h3>
+<ul>
+<li>Why orchestration: scheduling, self-healing, scaling, service discovery</li>
+<li>Kubernetes basics: pods, deployments, services (containers in context)</li>
+<li>Docker Swarm (legacy awareness), ECS/Fargate, Cloud Run</li>
+</ul>
+<h3>12. Senior / Interview Hot Topics</h3>
+<ul>
+<li>Container vs VM trade-offs, why alpine can break (musl vs glibc)</li>
+<li>Multi-stage builds for small secure images, cache-friendly Dockerfile ordering</li>
+<li>CMD vs ENTRYPOINT semantics, COPY vs ADD</li>
+<li>Volumes vs bind mounts in production, stateful containers debate</li>
+<li>Zombie processes &amp; PID 1, graceful shutdown in orchestrated environments</li>
+<li>Image layer leakage of secrets, least-privilege container hardening</li>
+<li>Debugging containers: exec, logs, inspect, ephemeral debug containers</li>
+</ul>
+<div class="key-point">The most-asked Docker questions are container vs VM, image vs container, CMD vs ENTRYPOINT, multi-stage builds, and volumes vs bind mounts — know each with its "why", not just the definition.</div>`,
+      },
       // ──── 1. DOCKER FUNDAMENTALS ────
       {
         q: 'What is Docker? How is it different from a Virtual Machine?',

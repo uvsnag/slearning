@@ -10,6 +10,135 @@ export const topics: PvTopic[] = [
     name: 'RESTful API',
     icon: '🔗',
     questions: [
+      // ──── 0. RESTFUL API SUMMARY — knowledge map ────
+      {
+        q: 'RESTful API Summary — Knowledge Map',
+        difficulty: 'easy',
+        a: `<div class="interview-answer"><p>A complete revision checklist for RESTful API design — everything worth knowing, from REST constraints and HTTP semantics to security, operations, and senior-level design debates. Concept names only; use it to spot gaps, not as a tutorial.</p></div>
+<h3>1. Fundamentals &amp; REST Constraints</h3>
+<ul>
+<li>REST as an architectural style (Fielding), REST vs RPC vs SOAP</li>
+<li>Six constraints
+  <ul>
+  <li>Client–server, statelessness, cacheability</li>
+  <li>Uniform interface (resources, representations, self-descriptive messages, HATEOAS)</li>
+  <li>Layered system, code on demand (optional)</li>
+  </ul>
+</li>
+<li>Richardson Maturity Model (levels 0–3)</li>
+<li>Resource vs representation, URI vs URL, media types</li>
+</ul>
+<h3>2. HTTP Semantics</h3>
+<ul>
+<li><strong>Methods</strong>
+  <ul>
+  <li>GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS</li>
+  <li>Safety vs idempotency per method</li>
+  <li>PUT vs PATCH (full vs partial update), JSON Patch / JSON Merge Patch</li>
+  <li>Idempotency keys for POST</li>
+  </ul>
+</li>
+<li><strong>Status codes</strong>
+  <ul>
+  <li>2xx: 200, 201 (+Location), 202, 204</li>
+  <li>3xx: 301/302/303/304/307/308</li>
+  <li>4xx: 400, 401 vs 403, 404 vs 410, 405, 406, 409, 412, 415, 422, 429</li>
+  <li>5xx: 500, 502, 503, 504</li>
+  </ul>
+</li>
+<li><strong>Headers</strong>
+  <ul>
+  <li>Content-Type, Accept, content negotiation</li>
+  <li>Authorization, Cache-Control, ETag / If-Match / If-None-Match</li>
+  <li>Location, Retry-After, Idempotency-Key, correlation/request-id headers</li>
+  </ul>
+</li>
+<li>HTTP/1.1 vs HTTP/2 vs HTTP/3 implications</li>
+</ul>
+<h3>3. Resource &amp; URI Design</h3>
+<ul>
+<li>Nouns not verbs, plural resource names, hierarchy &amp; sub-resources</li>
+<li>Path vs query parameters, matrix of collection vs item endpoints</li>
+<li>Actions that don't fit CRUD (controller resources, state transitions)</li>
+<li>Naming conventions (kebab-case, casing of JSON fields)</li>
+<li>Relationships: embedding vs linking, compound documents</li>
+<li>Bulk operations, batch endpoints</li>
+<li>Long-running operations (202 + status resource, polling, webhooks)</li>
+</ul>
+<h3>4. Collections: Pagination, Filtering, Sorting</h3>
+<ul>
+<li>Offset/limit vs cursor (keyset) pagination — trade-offs</li>
+<li>Page metadata, Link header, total counts cost</li>
+<li>Filtering syntax, sparse fieldsets, sorting parameters</li>
+<li>Search endpoints (GET with query vs POST /search)</li>
+</ul>
+<h3>5. Versioning &amp; Evolution</h3>
+<ul>
+<li>URI versioning vs header vs media-type (content negotiation) versioning</li>
+<li>Backward compatibility rules (additive changes, tolerant reader)</li>
+<li>Deprecation policy (Sunset header), breaking vs non-breaking changes</li>
+<li>API lifecycle &amp; consumer migration strategies</li>
+</ul>
+<h3>6. Error Handling</h3>
+<ul>
+<li>Consistent error envelope, RFC 7807 / RFC 9457 Problem Details</li>
+<li>Error codes vs messages, field-level validation errors</li>
+<li>Not leaking internals (stack traces), correlation IDs for support</li>
+</ul>
+<h3>7. Security</h3>
+<ul>
+<li><strong>Authentication</strong> — API keys, Basic, Bearer JWT, OAuth2 flows (client credentials, authorization code + PKCE), OIDC, mTLS</li>
+<li><strong>Authorization</strong> — RBAC vs ABAC, scopes, object-level checks (BOLA/IDOR)</li>
+<li>HTTPS/TLS everywhere, CORS, CSRF (when cookies are used)</li>
+<li>Input validation, injection, mass assignment, SSRF</li>
+<li>Rate limiting &amp; throttling (429, token bucket), quotas</li>
+<li>OWASP API Security Top 10</li>
+<li>Secrets management, key rotation</li>
+</ul>
+<h3>8. Performance &amp; Caching</h3>
+<ul>
+<li>HTTP caching: Cache-Control, ETag, conditional requests, validation vs expiration</li>
+<li>CDN &amp; reverse proxy caching, cache invalidation</li>
+<li>Compression (gzip/brotli), payload design (overfetching/underfetching)</li>
+<li>Connection reuse, keep-alive, timeouts, retries with backoff + jitter</li>
+<li>Optimistic concurrency (ETag + If-Match) vs pessimistic locking</li>
+<li>Async processing, webhooks vs polling, server-sent events</li>
+</ul>
+<h3>9. Hypermedia &amp; Contracts</h3>
+<ul>
+<li>HATEOAS, link relations, HAL / JSON:API formats</li>
+<li>OpenAPI / Swagger: spec-first vs code-first, codegen</li>
+<li>Contract testing (Pact, Spring Cloud Contract), mock servers</li>
+<li>API documentation, developer portal, SDK generation</li>
+</ul>
+<h3>10. Operations &amp; Governance</h3>
+<ul>
+<li>API gateway responsibilities (auth, rate limit, routing, transformation)</li>
+<li>Monitoring: latency percentiles, error rates, SLOs</li>
+<li>Logging &amp; distributed tracing of requests</li>
+<li>Zero-downtime deployment, canary releases of APIs</li>
+<li>API design review, style guides, governance</li>
+</ul>
+<h3>11. Alternatives &amp; When REST Isn't the Answer</h3>
+<ul>
+<li>GraphQL (schema, resolvers, N+1, overfetch fix) — trade-offs vs REST</li>
+<li>gRPC (protobuf, streaming, HTTP/2) — internal service-to-service</li>
+<li>WebSockets / SSE for real-time, AsyncAPI for events</li>
+<li>Choosing: public API vs internal, browser vs server consumers</li>
+</ul>
+<h3>12. Senior / Interview Hot Topics</h3>
+<ul>
+<li>Idempotency design for payments/retries</li>
+<li>401 vs 403, PUT vs PATCH, 404 vs 204 debates</li>
+<li>Pagination consistency under concurrent writes</li>
+<li>Versioning strategy defense, breaking-change management</li>
+<li>Designing for partial failure: timeouts, retries, circuit breakers</li>
+<li>Optimistic locking with ETags end-to-end</li>
+<li>Statelessness vs sticky sessions, scaling horizontally</li>
+<li>REST vs GraphQL vs gRPC selection rationale</li>
+</ul>
+<div class="key-point">Interviewers probe three things hardest: correct HTTP semantics (idempotency, status codes, PUT vs PATCH), how you evolve an API without breaking clients (versioning + tolerant reader), and security basics (401 vs 403, OAuth2 flows, rate limiting). Prepare concrete examples for each.</div>`,
+      },
       // ──── 1. FUNDAMENTALS & CONSTRAINTS ────
       {
         q: 'What actually makes an API RESTful? Which of Fielding\'s constraints do teams really break?',

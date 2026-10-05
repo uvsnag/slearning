@@ -7,6 +7,138 @@ export const topics: PvTopic[] = [
     name: 'System Design',
     icon: '🏗️',
     questions: [
+      // ──── 0. SYSTEM DESIGN SUMMARY — knowledge map ────
+      {
+        q: 'System Design Summary — Knowledge Map',
+        difficulty: 'easy',
+        a: `<div class="interview-answer"><p>A complete revision checklist for system design — every building block and trade-off worth knowing, from the interview framework through scalability, data, and consistency to classic end-to-end designs. Concept names only; use it to spot gaps, not as a tutorial.</p></div>
+<h3>1. Interview Framework</h3>
+<ul>
+<li>Requirements clarification (functional vs non-functional)</li>
+<li>Back-of-the-envelope estimation (QPS, storage, bandwidth, read/write ratio)</li>
+<li>API design, data model sketch</li>
+<li>High-level design → deep dive → bottlenecks &amp; scaling</li>
+<li>Trade-off articulation, avoiding premature complexity</li>
+</ul>
+<h3>2. Scalability Fundamentals</h3>
+<ul>
+<li>Vertical vs horizontal scaling</li>
+<li>Stateless vs stateful services, session management (sticky sessions vs external store)</li>
+<li><strong>Load balancing</strong>
+  <ul>
+  <li>L4 vs L7, algorithms (round robin, least connections, consistent hashing)</li>
+  <li>Health checks, failover, DNS load balancing, anycast</li>
+  </ul>
+</li>
+<li>Microservices vs monolith, service discovery, API gateway</li>
+<li>Latency vs throughput, tail latency (p95/p99)</li>
+<li>Latency numbers every engineer should know</li>
+</ul>
+<h3>3. Caching</h3>
+<ul>
+<li>Cache layers: browser, CDN, reverse proxy, application, database</li>
+<li>Strategies: cache-aside, read-through, write-through, write-back, write-around</li>
+<li>Eviction policies (LRU, LFU, TTL)</li>
+<li>Invalidation, cache stampede / thundering herd, hot keys</li>
+<li>Redis vs Memcached, distributed caching, consistent hashing for cache nodes</li>
+</ul>
+<h3>4. Databases &amp; Storage</h3>
+<ul>
+<li><strong>SQL vs NoSQL</strong>
+  <ul>
+  <li>Relational, key-value, document, wide-column, graph, time-series</li>
+  <li>When to choose each, polyglot persistence</li>
+  </ul>
+</li>
+<li><strong>Replication</strong>
+  <ul>
+  <li>Leader-follower, multi-leader, leaderless (quorum R+W&gt;N)</li>
+  <li>Sync vs async replication, replication lag, failover</li>
+  </ul>
+</li>
+<li><strong>Partitioning / Sharding</strong>
+  <ul>
+  <li>Range vs hash vs directory-based sharding</li>
+  <li>Consistent hashing, virtual nodes</li>
+  <li>Hot spots, resharding, cross-shard queries &amp; joins</li>
+  </ul>
+</li>
+<li>Indexing (B-tree vs LSM-tree, inverted index), denormalization</li>
+<li>Object storage (S3), block vs file storage, data lakes</li>
+<li>CDN (push vs pull), edge caching</li>
+</ul>
+<h3>5. Consistency &amp; Distributed Systems Theory</h3>
+<ul>
+<li>CAP theorem, PACELC</li>
+<li>Consistency models: strong, eventual, causal, read-your-writes, monotonic reads</li>
+<li>ACID vs BASE, isolation levels</li>
+<li>Distributed transactions: 2PC, saga</li>
+<li>Consensus: Paxos, Raft, leader election</li>
+<li>Quorums, vector clocks, conflict resolution (last-write-wins, CRDTs)</li>
+<li>Idempotency, exactly-once vs at-least-once semantics</li>
+<li>Clock skew, logical clocks, fencing tokens</li>
+<li>Split brain, failure detection, heartbeats, gossip protocols</li>
+</ul>
+<h3>6. Messaging &amp; Stream Processing</h3>
+<ul>
+<li>Message queues vs pub/sub vs event streams (RabbitMQ, SQS, Kafka)</li>
+<li>Ordering, partitions, consumer groups, offsets</li>
+<li>Dead-letter queues, retries, backpressure</li>
+<li>Batch vs stream processing, lambda/kappa architecture</li>
+<li>Event-driven architecture, event sourcing, CQRS</li>
+</ul>
+<h3>7. Common Components</h3>
+<ul>
+<li><strong>Rate limiting</strong>
+  <ul>
+  <li>Token bucket, leaky bucket, fixed/sliding window</li>
+  <li>Distributed rate limiting</li>
+  </ul>
+</li>
+<li>Unique ID generation (UUID, Snowflake, ticket server)</li>
+<li>Search (inverted index, Elasticsearch)</li>
+<li>Bloom filters, HyperLogLog, count-min sketch</li>
+<li>WebSockets vs long polling vs SSE, push notifications</li>
+<li>Geospatial indexing (geohash, quadtree)</li>
+<li>Distributed locks, leases</li>
+<li>Scheduler / delayed job queues</li>
+</ul>
+<h3>8. Reliability &amp; Operations</h3>
+<ul>
+<li>Availability math (SLA nines), redundancy, failover (active-active vs active-passive)</li>
+<li>Disaster recovery (RTO/RPO), multi-region, data center failover</li>
+<li>Circuit breakers, timeouts, retries with backoff, graceful degradation</li>
+<li>Monitoring, alerting, distributed tracing, SLI/SLO</li>
+<li>Capacity planning, autoscaling</li>
+<li>Security basics: authN/authZ, TLS, DDoS protection, WAF</li>
+</ul>
+<h3>9. Classic Design Questions</h3>
+<ul>
+<li>URL shortener, pastebin</li>
+<li>Rate limiter, distributed cache, distributed queue</li>
+<li>Chat / messaging system (WhatsApp), presence</li>
+<li>News feed / social timeline (fan-out on write vs read)</li>
+<li>Notification system</li>
+<li>Video streaming (YouTube/Netflix), file storage (Dropbox/Google Drive)</li>
+<li>Ride sharing (Uber), proximity service (Yelp)</li>
+<li>Search autocomplete / typeahead</li>
+<li>Web crawler, ad click aggregation, metrics/logging system</li>
+<li>Payment system, flash sale / ticket booking (inventory + contention)</li>
+</ul>
+<h3>10. Senior / Interview Hot Topics</h3>
+<ul>
+<li>Choosing consistency vs availability per feature</li>
+<li>Read-heavy vs write-heavy architectures</li>
+<li>Fan-out strategies &amp; celebrity problem</li>
+<li>Hot partition mitigation</li>
+<li>Caching pitfalls (stampede, stale data, invalidation)</li>
+<li>Idempotent API design for retries/payments</li>
+<li>Migration &amp; zero-downtime schema changes</li>
+<li>Cost vs performance trade-offs</li>
+<li>Over-engineering as the most common failure mode</li>
+</ul>
+<div class="key-point">Every design is "requirements → estimation → API → data model → high-level diagram → deep dive → scale the bottleneck". Numbers drive choices: read/write ratio decides caching and replication; data size decides sharding; consistency needs decide SQL vs NoSQL and sync vs async.</div>`,
+      },
       // ──── 1. FUNDAMENTALS & THE INTERVIEW METHOD ────
       {
         q: 'What is System Design and why does it matter in interviews?',

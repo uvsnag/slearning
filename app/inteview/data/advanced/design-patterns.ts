@@ -7,6 +7,142 @@ export const topics: PvTopic[] = [
     name: 'Design Patterns',
     icon: '🧩',
     questions: [
+      // ──── 0. DESIGN PATTERNS SUMMARY — knowledge map ────
+      {
+        q: 'Design Patterns Summary — Knowledge Map',
+        difficulty: 'easy',
+        a: `<div class="interview-answer"><p>A complete revision checklist for design principles and patterns — SOLID, the GoF catalog, where patterns live in the JDK and Spring, enterprise and concurrency patterns, and senior-level topics. Concept names only; use it to spot gaps, not as a tutorial.</p></div>
+<h3>1. Design Principles</h3>
+<ul>
+<li><strong>SOLID</strong>
+  <ul>
+  <li>Single Responsibility Principle</li>
+  <li>Open/Closed Principle</li>
+  <li>Liskov Substitution Principle</li>
+  <li>Interface Segregation Principle</li>
+  <li>Dependency Inversion Principle</li>
+  </ul>
+</li>
+<li>DRY, KISS, YAGNI</li>
+<li>Composition over inheritance</li>
+<li>Program to an interface, not an implementation</li>
+<li>Encapsulate what varies</li>
+<li>Law of Demeter (principle of least knowledge)</li>
+<li>High cohesion, low coupling</li>
+<li>Separation of concerns, GRASP (information expert, controller)</li>
+</ul>
+<h3>2. Creational Patterns</h3>
+<ul>
+<li><strong>Singleton</strong> — eager vs lazy, double-checked locking, enum singleton, testability problems</li>
+<li><strong>Factory Method</strong> — subclass decides the concrete type</li>
+<li><strong>Abstract Factory</strong> — families of related objects</li>
+<li><strong>Builder</strong> — telescoping constructor problem, fluent API, immutable objects, Lombok @Builder</li>
+<li><strong>Prototype</strong> — cloning, shallow vs deep copy</li>
+<li>Static factory methods (valueOf, of, getInstance)</li>
+<li>Object pool (connection pools)</li>
+</ul>
+<h3>3. Structural Patterns</h3>
+<ul>
+<li><strong>Adapter</strong> — incompatible interfaces, wrappers</li>
+<li><strong>Decorator</strong> — adding behavior without subclassing, stacking</li>
+<li><strong>Proxy</strong> — virtual, protection, remote; static vs dynamic proxy</li>
+<li><strong>Facade</strong> — simplified entry point over a subsystem</li>
+<li><strong>Composite</strong> — tree structures, uniform leaf/container treatment</li>
+<li><strong>Bridge</strong> — splitting abstraction from implementation</li>
+<li><strong>Flyweight</strong> — sharing immutable state (Integer cache, String pool)</li>
+<li>Decorator vs Proxy vs Adapter distinctions</li>
+</ul>
+<h3>4. Behavioral Patterns</h3>
+<ul>
+<li><strong>Strategy</strong> — interchangeable algorithms, lambdas as strategies</li>
+<li><strong>Observer</strong> — publish/subscribe, listeners, event-driven UIs</li>
+<li><strong>Template Method</strong> — skeleton algorithm with overridable steps</li>
+<li><strong>Command</strong> — actions as objects, undo/redo, queuing</li>
+<li><strong>Chain of Responsibility</strong> — handler pipelines, filters/interceptors</li>
+<li><strong>State</strong> — behavior change by internal state, state machines</li>
+<li><strong>Iterator</strong> — sequential access, Iterable/Iterator</li>
+<li><strong>Mediator</strong> — centralizing component communication</li>
+<li><strong>Memento</strong> — snapshots, undo history</li>
+<li><strong>Visitor</strong> — double dispatch, operations over object structures</li>
+<li>Interpreter (concept level), Null Object</li>
+<li>Strategy vs State, Template Method vs Strategy distinctions</li>
+</ul>
+<h3>5. Patterns in the JDK</h3>
+<ul>
+<li>Iterator — Collection.iterator(), for-each</li>
+<li>Decorator — java.io streams (BufferedInputStream wrapping FileInputStream)</li>
+<li>Observer — PropertyChangeListener, Flow API</li>
+<li>Strategy — Comparator</li>
+<li>Factory — Calendar.getInstance(), List.of(), Executors</li>
+<li>Builder — StringBuilder, Stream.Builder, HttpRequest.newBuilder()</li>
+<li>Flyweight — Integer.valueOf cache, String intern</li>
+<li>Proxy — java.lang.reflect.Proxy</li>
+<li>Template Method — AbstractList, InputStream.read()</li>
+<li>Adapter — Arrays.asList(), InputStreamReader</li>
+<li>Singleton — Runtime.getRuntime()</li>
+<li>Chain of Responsibility — servlet filters, ClassLoader delegation</li>
+</ul>
+<h3>6. Patterns in Spring</h3>
+<ul>
+<li>Dependency Injection / Inversion of Control (the container itself)</li>
+<li>Singleton — default bean scope (vs GoF singleton)</li>
+<li>Proxy — AOP, @Transactional, @Cacheable (JDK dynamic proxy vs CGLIB)</li>
+<li>Template Method — JdbcTemplate, RestTemplate, TransactionTemplate</li>
+<li>Factory — BeanFactory, FactoryBean</li>
+<li>Observer — ApplicationEvent, @EventListener</li>
+<li>Strategy — PlatformTransactionManager, HandlerMapping</li>
+<li>Adapter — HandlerAdapter, MessageConverter</li>
+<li>Front Controller — DispatcherServlet</li>
+<li>Decorator — BeanPostProcessor wrapping</li>
+</ul>
+<h3>7. Enterprise &amp; Architecture Patterns</h3>
+<ul>
+<li>MVC, MVP, MVVM</li>
+<li>Repository, DAO (and the difference)</li>
+<li>DTO, Value Object, Entity</li>
+<li>Service Layer, Unit of Work</li>
+<li>Specification pattern</li>
+<li>Dependency Injection patterns: constructor vs setter vs field</li>
+<li>Event Sourcing, CQRS (concept level)</li>
+<li>Saga, Outbox, Circuit Breaker, Retry (microservice-level patterns)</li>
+<li>Gateway, Anti-Corruption Layer</li>
+</ul>
+<h3>8. Concurrency Patterns</h3>
+<ul>
+<li>Producer-Consumer (BlockingQueue)</li>
+<li>Thread Pool (ExecutorService)</li>
+<li>Future / Promise (CompletableFuture)</li>
+<li>Read-Write Lock</li>
+<li>Immutable Object, Thread-Local Storage</li>
+<li>Double-Checked Locking (and its volatile requirement)</li>
+<li>Guarded Suspension, Balking (concept level)</li>
+</ul>
+<h3>9. Anti-Patterns</h3>
+<ul>
+<li>God Object / God Class</li>
+<li>Spaghetti code, Big Ball of Mud</li>
+<li>Golden Hammer (pattern overuse)</li>
+<li>Singleton abuse (global mutable state, hidden dependencies)</li>
+<li>Anemic Domain Model (and the debate around it)</li>
+<li>Premature optimization, premature abstraction</li>
+<li>Copy-paste programming, magic numbers/strings</li>
+<li>Circular dependencies, leaky abstractions</li>
+</ul>
+<h3>10. Senior / Interview Hot Topics</h3>
+<ul>
+<li>When NOT to use a pattern — indirection cost vs flexibility gained</li>
+<li>Singleton vs Spring singleton scope, singleton testability and DI as the fix</li>
+<li>Decorator vs inheritance for extension</li>
+<li>Strategy with lambdas — how Java 8 shrank boilerplate patterns</li>
+<li>Proxy mechanics behind @Transactional (self-invocation pitfall)</li>
+<li>Immutability as a design strategy (records, defensive copies)</li>
+<li>Refactoring toward patterns (patterns emerge, not imposed)</li>
+<li>Pattern vocabulary as team communication</li>
+<li>Choosing between composition, inheritance, and delegation</li>
+<li>Recognizing patterns in frameworks during code reading</li>
+</ul>
+<div class="key-point">Interviewers rarely ask for UML — they ask "which pattern would you use here and why," "where does the JDK/Spring use it," and "when is it a bad idea." For every pattern, prepare one real usage you have seen and one trade-off.</div>`,
+      },
       // ──── 1. FOUNDATIONS & DESIGN PRINCIPLES ────
       {
         q: 'What is a design pattern and why does it matter?',
