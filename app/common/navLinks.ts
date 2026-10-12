@@ -10,6 +10,7 @@ export interface NavSection {
 
 const DASHBOARD_LINKS: NavLink[] = [
   { href: '/dash-board2', label: 'AI Only' },
+  { href: '/dash-board3', label: 'AI Plain' },
   { href: '/youtube-sub', label: 'YT' },
 ];
 
