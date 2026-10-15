@@ -1,930 +1,613 @@
-// Interview data: CV-based questions (Nguyen Van Sang — Senior Fullstack Developer)
+// Interview data: Non-technical questions commonly asked in senior developer / leader interviews
 import type { PvTopic } from '../types';
 
 export const topics: PvTopic[] = [
   {
     id: 'cv-questions',
-    name: 'CV-Based Questions',
-    icon: '📋',
+    name: 'Non-Technical Questions',
+    icon: '💬',
     questions: [
-      // ──── 0. CV QUESTIONS SUMMARY — knowledge map ────
+      // ──── 0. NON-TECHNICAL QUESTIONS SUMMARY — knowledge map ────
       {
-        q: 'CV Questions Summary — Knowledge Map',
+        q: 'Non-Technical Questions Summary — Knowledge Map',
         difficulty: 'easy',
-        a: `<div class="interview-answer"><p>A preparation map for CV- and experience-based interviews — every theme an interviewer can pull from your CV, organized so you can rehearse each area before the real conversation.</p></div>
-<h3>1. How Interviewers Read a CV</h3>
+        a: `<div class="interview-answer"><p>A preparation map for the non-technical side of senior developer and leader interviews — behavioral, leadership, communication, and career questions, organized so you can prepare stories for each theme before the real conversation.</p></div>
+<h3>1. Self-Introduction &amp; Motivation</h3>
 <ul>
-<li>Every listed skill is an invitation for a deep-dive question</li>
-<li>Claims vs evidence (what you did vs what the team did)</li>
-<li>Years of experience vs depth of experience</li>
-<li>Red flags they probe: short stints, gaps, buzzword stacking, vague titles</li>
-<li>Seniority signals: ownership, impact, mentoring, decisions made</li>
+<li>"Tell me about yourself" — 2-minute pitch (present → past → future)</li>
+<li>Why are you leaving / why this company / why this role</li>
+<li>Strengths and weaknesses — honest, with evidence and improvement plan</li>
+<li>5-year vision aligned with the role</li>
 </ul>
-<h3>2. Opening — Background &amp; Motivation</h3>
+<h3>2. Leadership &amp; People</h3>
 <ul>
-<li>"Tell me about yourself" structure
-  <ul>
-  <li>Present → past → future, ~2 minutes</li>
-  <li>Role, years, main stack, next goal</li>
-  </ul>
-</li>
-<li>Growth trajectory story (junior → senior → lead responsibilities)</li>
-<li>Reason for leaving (positive framing, pull not push)</li>
-<li>Why this company / why this role</li>
+<li>Leadership style (servant leadership, situational leadership)</li>
+<li>Mentoring and growing juniors</li>
+<li>Delegation: what to delegate, what to keep</li>
+<li>Handling an underperforming team member</li>
+<li>Resolving conflict between teammates</li>
 </ul>
-<h3>3. Technical Depth — Defend Every CV Claim</h3>
+<h3>3. Behavioral Stories (STAR)</h3>
 <ul>
-<li><strong>Architecture</strong>
-  <ul>
-  <li>Architectures you name (e.g., hexagonal, modular monolith) — benefits, trade-offs, where you applied them</li>
-  <li>API standardization: conventions, error format, versioning, pagination</li>
-  </ul>
-</li>
-<li><strong>Data &amp; backend</strong>
-  <ul>
-  <li>ORM choices (e.g., MyBatis vs JPA) — when and why</li>
-  <li>SQL optimization approach: measure → explain plan → index → rewrite</li>
-  <li>Databases you list (e.g., PostgreSQL vs SQL Server) — real differences you hit</li>
-  <li>High-volume / batch processing: chunking, transactions, restartability</li>
-  </ul>
-</li>
-<li><strong>Per-skill rule</strong>
-  <ul>
-  <li>For each technology on the CV: one real problem solved, one limitation, one alternative</li>
-  </ul>
-</li>
+<li>STAR structure: Situation → Task → Action → Result</li>
+<li>Disagreement with a decision (manager, PO, teammate)</li>
+<li>A failure or mistake and what you learned</li>
+<li>Influencing without authority</li>
+<li>Biggest achievement with measurable impact</li>
 </ul>
-<h3>4. Projects, Delivery &amp; Tooling</h3>
+<h3>4. Working Under Constraints</h3>
 <ul>
-<li>Project walkthrough structure
-  <ul>
-  <li>Context → your role → stack → challenges → decisions → results</li>
-  <li>STAR (Situation, Task, Action, Result) for each story</li>
-  </ul>
-</li>
-<li>Prepared stories
-  <ul>
-  <li>Most challenging project</li>
-  <li>Legacy migration / upgrade project</li>
-  <li>Personal / side project and what it taught you</li>
-  </ul>
-</li>
-<li>Delivery workflow: Docker, CI/CD pipeline, environments, release process</li>
-<li>Niche tools on your CV (be ready to explain what and why)</li>
-<li>AI-assisted development: how you use it, how you verify its output</li>
+<li>Prioritizing when everything is urgent (urgent/important matrix)</li>
+<li>Tight deadlines and pressure — scope, communication, trade-offs</li>
+<li>Decisions with incomplete information (reversible vs irreversible)</li>
+<li>Pushing back on unrealistic requirements — saying no with options</li>
 </ul>
-<h3>5. Leadership, Process &amp; Collaboration</h3>
+<h3>5. Communication</h3>
 <ul>
-<li>Code review approach: what you look for, how you give feedback</li>
-<li>Mentoring juniors: delegation, pairing, growth plans</li>
-<li>Conflict story: disagreeing with a technical decision (STAR)</li>
-<li>Agile/Scrum: ceremonies, estimation, working with PO/QA</li>
-<li>Prioritization under multiple urgent requests (urgent/important framing)</li>
-<li>Working in English / with international teams</li>
+<li>Explaining technical topics to non-technical stakeholders</li>
+<li>Giving and receiving feedback (SBI model)</li>
+<li>Status reporting: no surprises, raise risks early</li>
+<li>Working across time zones / with international teams</li>
 </ul>
-<h3>6. Metrics &amp; Impact Framing</h3>
+<h3>6. Closing Topics</h3>
 <ul>
-<li>Quantify results: latency, throughput, cost, defect rate, delivery time</li>
-<li>Before/after numbers for optimization stories</li>
-<li>Scope markers: users, data volume, team size, duration</li>
-<li>"I" vs "we" — own your contribution precisely</li>
+<li>Salary expectations: research a range, let them anchor if possible</li>
+<li>Questions to ask the interviewer (team, process, success criteria)</li>
 </ul>
-<h3>7. Common Traps</h3>
-<ul>
-<li>Buzzwords you cannot defend two questions deep</li>
-<li>Blaming previous employers or teammates</li>
-<li>Unexplained gaps or frequent job changes without a narrative</li>
-<li>Claiming sole credit for team outcomes</li>
-<li>Rehearsed answers that ignore the actual question</li>
-</ul>
-<h3>8. Closing — Expectations &amp; Your Questions</h3>
-<ul>
-<li>3–5 year vision aligned with the role</li>
-<li>Salary expectations: range, research, timing</li>
-<li>Questions to ask the interviewer
-  <ul>
-  <li>Team structure, tech stack decisions, code review culture</li>
-  <li>Success criteria for the role, growth path, current challenges</li>
-  </ul>
-</li>
-</ul>
-<div class="key-point">Rule of thumb: for every line on your CV, prepare one concrete story with numbers. Interviewers trust specifics ("cut report query from 40s to 2s by adding a covering index") far more than adjectives ("strong SQL optimization skills").</div>`,
+<div class="key-point">Rule of thumb: prepare 6–8 real stories from your career and map each one to multiple questions. Interviewers remember concrete stories with outcomes ("we shipped two weeks early after I cut scope X") far more than abstract principles.</div>`,
       },
-      // ──── 1. OPENING — BACKGROUND & MOTIVATION ────
+
+      // ──── 1. SELF-INTRODUCTION & MOTIVATION ────
       {
-        q: 'Tell me about yourself and your experience.',
+        q: 'Tell me about yourself.',
         difficulty: 'easy',
-        a: `<div class="interview-answer"><p>This is usually the first question in an interview. A good answer is a short self-introduction of about two minutes that follows a simple order: present role, past roles, then future goal. It should cover years of experience, the current job and main technologies, and the kind of role wanted next. The goal is to tell a clear story, not to read the whole CV.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Đây thường là câu hỏi đầu tiên trong một buổi phỏng vấn. Một câu trả lời tốt là phần tự giới thiệu ngắn gọn khoảng hai phút, đi theo một trình tự đơn giản: vai trò hiện tại, các vai trò trong quá khứ, rồi đến mục tiêu trong tương lai. Nó nên đề cập đến số năm kinh nghiệm, công việc hiện tại cùng các công nghệ chính, và loại vị trí mà bạn muốn hướng tới tiếp theo. Mục tiêu là kể một câu chuyện rõ ràng, chứ không phải đọc lại toàn bộ CV.</p></details>
-<p>This is usually the <strong>first question</strong>. Prepare a 2-minute elevator pitch following this structure:</p>
-<pre>Formula: Present → Past → Future
+        a: `<div class="interview-answer"><p>This is almost always the first question and it sets the tone of the interview. A good answer is a two-minute pitch structured as present, past, then future: current role and main responsibilities, the most relevant past experience, and what you are looking for next. For a senior or lead role, emphasize ownership, decisions, and people impact — not a list of technologies. The goal is a clear story, not a spoken CV.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Đây hầu như luôn là câu hỏi đầu tiên và nó định hình không khí của buổi phỏng vấn. Một câu trả lời tốt là phần giới thiệu khoảng hai phút theo cấu trúc hiện tại, quá khứ, rồi tương lai: vai trò hiện tại và các trách nhiệm chính, kinh nghiệm quá khứ liên quan nhất, và điều bạn đang tìm kiếm tiếp theo. Với vị trí senior hay lead, hãy nhấn mạnh sự làm chủ công việc, các quyết định và tác động đến con người — chứ không phải liệt kê công nghệ. Mục tiêu là kể một câu chuyện rõ ràng, không phải đọc lại CV bằng lời.</p></details>
+<pre>Formula: Present → Past → Future (~2 minutes)
 
-"I'm a Senior Fullstack Developer with ~7 years of experience 
-in Java Spring Boot and React/Next.js. Currently at CyberLogitec, 
-I work on a large-scale logistics platform handling freight forwarding 
-operations — booking, warehouse, accounting, and billing.
+Present: role, scope, what you own
+  "I'm a senior fullstack developer, currently acting as deputy
+   team lead. I own architecture decisions and code quality for
+   a logistics platform used by hundreds of operators."
 
-Previously, I led teams at WOWCNS (e-commerce) and developed 
-TV service management systems at ALLEXCEED.
+Past: 1–2 highlights that match THIS role
+  "Before that I led a small team through a legacy migration
+   with zero downtime, and mentored several juniors to mid level."
 
-I specialize in system architecture, SQL optimization, and 
-building high-performance enterprise applications. I'm also 
-passionate about leveraging AI tools to improve developer productivity.
-
-I'm looking for a senior role where I can contribute to 
-architectural decisions and continue growing as a technical leader."</pre>
-<div class="key-point">Keep it to 2 minutes. Focus on: years of experience, current role, key technologies, what you're looking for. Don't read your CV — tell a story.</div>`,
+Future: why you're here
+  "I'm looking for a role with more ownership of technical
+   direction, which is why this position caught my attention."</pre>
+<div class="key-point">Tailor the pitch to the role: for a lead role, lead with team and decision-making impact; for a senior IC role, lead with technical ownership. Keep it under 2 minutes and stop — let them pull the threads they care about.</div>`,
       },
       {
-        q: 'You mention ~7 years of experience. What has your growth trajectory been?',
+        q: 'Why are you leaving your current company? Why do you want to join us?',
         difficulty: 'medium',
-        a: `<div class="interview-answer"><p>This answer shows a clear career progression with growing responsibility over about seven years. It started with building features as a full-stack developer at ALLEXCEED, then leading a small team at WOWCNS, and now making architecture decisions and tuning SQL at CyberLogitec. The main idea is that responsibility grew from writing code, to leading people, to setting the technical direction.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Câu trả lời này cho thấy một lộ trình nghề nghiệp rõ ràng với trách nhiệm ngày càng tăng qua khoảng bảy năm. Bắt đầu bằng việc xây dựng tính năng với vai trò full-stack developer tại ALLEXCEED, sau đó dẫn dắt một nhóm nhỏ tại WOWCNS, và hiện tại là đưa ra các quyết định về kiến trúc cùng tối ưu SQL tại CyberLogitec. Ý chính là trách nhiệm đã lớn dần từ việc viết code, đến việc dẫn dắt con người, rồi đến việc định hướng kỹ thuật.</p></details>
-<p>Show progression from junior developer to senior/lead with increasing responsibilities.</p>
-<pre>Timeline:
-2019-2021 (ALLEXCEED): 
-  → Full-stack developer, team of 15
-  → Built features with React Hooks + Spring Boot
-  → Focus: learning, building, improving UI/UX
+        a: `<div class="interview-answer"><p>Answer honestly but frame it as a "pull", not a "push": talk about what you want next (more ownership, bigger scope, a product with wider impact) rather than what you are escaping. Never criticize your current employer, manager, or teammates — interviewers assume you would talk about them the same way later. For "why us", show you did research: name something specific about their product, engineering culture, or challenges, and connect it to your experience.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Hãy trả lời trung thực nhưng đóng khung theo hướng "lực kéo" chứ không phải "lực đẩy": nói về điều bạn muốn có tiếp theo (nhiều quyền làm chủ hơn, phạm vi lớn hơn, một sản phẩm có tầm ảnh hưởng rộng hơn) thay vì điều bạn đang muốn trốn tránh. Đừng bao giờ chỉ trích công ty, sếp hay đồng nghiệp hiện tại — người phỏng vấn sẽ ngầm hiểu rằng sau này bạn cũng sẽ nói về họ theo cách đó. Với câu "tại sao chọn chúng tôi", hãy cho thấy bạn đã tìm hiểu: nêu một điều cụ thể về sản phẩm, văn hóa kỹ thuật hay thách thức của họ, và kết nối nó với kinh nghiệm của bạn.</p></details>
+<pre>Good framing:
+  "I've grown a lot in my current role — from senior developer
+   to deputy lead. What I can't get there is ownership of
+   product-level architecture, and that's exactly what this
+   role offers."
 
-2021-2022 (WOWCNS):
-  → Team Lead, managed 4 developers
-  → Led full-stack development, mentoring
-  → Focus: leadership, team productivity
+Why us (show research):
+  "I saw your team is scaling the platform from X to Y users.
+   I've been through a similar scaling phase and I'd love to
+   contribute to that kind of challenge."
 
-2022-Present (CyberLogitec):
-  → Senior Full-Stack Developer → Deputy Team Lead
-  → Architecture decisions, code reviews, SQL optimization
-  → Led migration to modern stack (Next.js, Java 21, Spring Modulith)
-  → Introduced AI-assisted development practices
-  → Focus: architecture, performance, tech strategy</pre>
-<div class="key-point">Highlight how your responsibilities grew: from writing features → leading teams → making architecture decisions → mentoring → setting tech direction.</div>`,
+Avoid:
+  ✗ "My manager doesn't listen to me."
+  ✗ "The salary is too low." (even if true — reframe)
+  ✗ "I'm bored."</pre>
+<div class="key-point">Even if the real reason is salary or a bad manager, frame it positively: "I'm looking for a role that better matches my experience and the level of responsibility I can take on." Pull, not push.</div>`,
       },
       {
-        q: 'Why are you leaving your current company?',
+        q: 'What are your greatest strengths and weaknesses?',
         difficulty: 'medium',
-        a: `<div class="interview-answer"><p>This question should be answered in an honest but positive way. The focus should be on what the person wants next, such as more ownership of architecture, new technical challenges, or working on a product with wider impact. Good answers describe growth goals, while bad answers complain about managers, salary, or boredom. It is important to never speak badly about the current employer.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Câu hỏi này nên được trả lời một cách trung thực nhưng tích cực. Trọng tâm nên đặt vào điều bạn mong muốn tiếp theo, chẳng hạn như được làm chủ nhiều hơn về kiến trúc hệ thống, những thử thách kỹ thuật mới, hoặc được làm việc trên một sản phẩm có tầm ảnh hưởng rộng hơn. Câu trả lời tốt mô tả các mục tiêu phát triển, còn câu trả lời dở thì than phiền về sếp, lương thưởng hay sự nhàm chán. Điều quan trọng là đừng bao giờ nói xấu về công ty hiện tại.</p></details>
-<p>Be honest but positive. Focus on what you want, not what you're running from.</p>
-<ul>
-<li><strong>Good answers</strong>: seeking growth, want to work with a specific tech stack, looking for more architectural challenges, want to contribute to a product company.</li>
-<li><strong>Bad answers</strong>: bad manager, low salary, bored (too negative).</li>
-</ul>
-<pre>Example: "I've had a great ~4 years at CyberLogitec working on 
-enterprise logistics systems. I've grown from a senior developer 
-to a deputy team lead. Now I'm looking for a role where I can 
-take on more ownership of system architecture decisions and work 
-on products with a broader impact."</pre>
-<div class="key-point">Never badmouth your current employer. Even if the reason is salary, frame it positively: "I'm looking for a role that better reflects my experience and contributions."</div>`,
+        a: `<div class="interview-answer"><p>For strengths, pick one or two that match the role and back each with a short piece of evidence — a result, not an adjective. For weaknesses, name a real one (not a disguised strength like "I work too hard"), show self-awareness about its cost, and describe the concrete thing you are doing about it. Interviewers are testing honesty and self-awareness, not looking for a perfect person.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Với điểm mạnh, hãy chọn một hoặc hai điểm phù hợp với vị trí và chứng minh mỗi điểm bằng một bằng chứng ngắn gọn — một kết quả cụ thể, không phải một tính từ. Với điểm yếu, hãy nêu một điểm yếu thật (không phải điểm mạnh được ngụy trang kiểu "tôi làm việc chăm quá"), thể hiện sự tự nhận thức về cái giá của nó, và mô tả hành động cụ thể bạn đang làm để cải thiện. Người phỏng vấn đang kiểm tra sự trung thực và khả năng tự nhận thức, chứ không tìm kiếm một con người hoàn hảo.</p></details>
+<pre>Strength (claim + evidence):
+  "I'm good at simplifying systems. On my last project I
+   replaced three overlapping services with one module and
+   cut our incident rate noticeably."
+
+Weakness (real + cost + fix):
+  "I tend to hold on to technical work instead of delegating.
+   It became a bottleneck when I became a lead — reviews piled
+   up on me. I now deliberately assign ownership of whole
+   features to teammates and limit myself to reviewing the
+   architecture, not every line."
+
+Avoid:
+  ✗ "I'm a perfectionist." (cliché, sounds evasive)
+  ✗ A weakness that disqualifies you for the role
+    (e.g., "I hate meetings" when applying as a lead)</pre>
+<div class="key-point">The formula for weaknesses: real weakness → what it cost you → what you changed → evidence it's improving. That sequence demonstrates exactly the self-awareness and growth mindset senior roles require.</div>`,
+      },
+      {
+        q: 'Where do you see yourself in 5 years?',
+        difficulty: 'easy',
+        a: `<div class="interview-answer"><p>Interviewers ask this to check whether your ambitions fit the role and whether you are likely to stay and grow. A good answer shows direction without rigid titles: for example, growing from senior engineer toward technical leadership or architecture, with more influence over product and people. Connect the vision to the company — show that this role is a logical step on that path, not a random stop.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Người phỏng vấn hỏi câu này để kiểm tra xem tham vọng của bạn có phù hợp với vị trí không và liệu bạn có khả năng gắn bó, phát triển lâu dài hay không. Một câu trả lời tốt thể hiện định hướng mà không bám cứng vào chức danh: ví dụ, phát triển từ senior engineer lên vai trò lãnh đạo kỹ thuật hoặc kiến trúc sư, với ảnh hưởng lớn hơn đến sản phẩm và con người. Hãy kết nối tầm nhìn đó với công ty — cho thấy vị trí này là một bước đi hợp lý trên con đường đó, chứ không phải một điểm dừng ngẫu nhiên.</p></details>
+<pre>Example:
+  "In five years I want to be the person a company trusts with
+   its hardest technical decisions — whether that title is
+   principal engineer or engineering manager depends on where
+   I can contribute most. Short term, that means deepening my
+   architecture skills and growing the people around me. This
+   role is attractive precisely because it offers both."
+
+Avoid:
+  ✗ "I want your job." (as a joke — risky)
+  ✗ "I plan to start my own company." (signals you'll leave)
+  ✗ "I haven't thought about it." (no direction)</pre>
+<div class="key-point">Show ambition with flexibility: a clear direction (more technical ownership, more people impact) without demanding a specific title on a specific date. Then tie it to the role: "this position is the next step on that path."</div>`,
       },
 
-      // ──── 2. TECHNICAL DEPTH — ARCHITECTURE, DATA & BACKEND ────
+      // ──── 2. LEADERSHIP & PEOPLE ────
       {
-        q: 'You mention Hexagonal Architecture and Spring Modulith. Explain the benefits.',
+        q: 'Describe your leadership style.',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>A strong answer avoids naming one fixed style and instead describes adapting to the person and the situation — close guidance for juniors, goals and autonomy for seniors, and direct decisions during incidents. Mention concrete habits: setting clear expectations, removing blockers, giving credit publicly and feedback privately, and making decisions when the team is stuck. End with evidence, such as people you grew or a team outcome.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Một câu trả lời mạnh sẽ tránh gán mình vào một phong cách cố định, mà thay vào đó mô tả việc thích ứng theo từng người và từng tình huống — hướng dẫn sát sao với junior, đặt mục tiêu và trao quyền tự chủ cho senior, và quyết đoán trực tiếp khi có sự cố. Hãy nêu những thói quen cụ thể: đặt kỳ vọng rõ ràng, gỡ bỏ vướng mắc, khen công khai và góp ý riêng tư, và ra quyết định khi cả nhóm bế tắc. Kết thúc bằng bằng chứng, chẳng hạn những người bạn đã giúp trưởng thành hoặc một kết quả của nhóm.</p></details>
+<pre>Situational leadership in practice:
+
+  Junior, new task     → Direct: pair, small tasks, close review
+  Mid, growing         → Coach: guide with questions, review design
+  Senior, experienced  → Delegate: agree on outcome, stay out of HOW
+  Incident / deadline  → Decisive: make the call, explain later
+
+My habits as a lead:
+  → Clear expectations: definition of done, owner per task
+  → Remove blockers before they ask (access, decisions, dependencies)
+  → Praise in public, correct in private
+  → Decide when the team is split — and own the outcome</pre>
+<div class="key-point">The strongest close is evidence: "Two developers I mentored were promoted to mid-level within a year" says more about your leadership than any label like "servant leader".</div>`,
+      },
+      {
+        q: 'How do you mentor and grow junior developers?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>The goal of mentoring is independence, not dependence. Start new developers with pair programming and small, well-defined tasks, then increase scope as confidence grows. Use code reviews as teaching moments by explaining the "why" behind every suggestion. Hold regular one-on-ones to unblock them and set growth goals. When a junior is stuck, ask guiding questions instead of giving the answer — they remember what they discovered far better than what they were told.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Mục tiêu của mentoring là sự độc lập, không phải sự phụ thuộc. Hãy để developer mới bắt đầu với pair programming và những task nhỏ, được định nghĩa rõ ràng, rồi tăng dần phạm vi khi họ tự tin hơn. Dùng code review như những buổi dạy học bằng cách giải thích "tại sao" đằng sau mỗi góp ý. Tổ chức one-on-one định kỳ để gỡ vướng mắc và đặt mục tiêu phát triển. Khi một bạn junior bị bí, hãy đặt câu hỏi gợi mở thay vì đưa ra đáp án — họ nhớ điều tự mình khám phá tốt hơn nhiều so với điều được chỉ sẵn.</p></details>
+<pre>Mentoring playbook:
+
+1. ONBOARD
+   → Pair for the first week; assign a "first win" task
+     achievable in 2–3 days
+
+2. GROW SCOPE GRADUALLY
+   → Task → feature → feature + design → feature + design
+     + owning the release
+
+3. TEACH THROUGH REVIEWS
+   → Explain WHY, link to docs/patterns, show the reusable
+     principle, not just the fix
+
+4. GUIDE, DON'T SOLVE
+   → "What have you tried? What does the log say? What would
+     you check next?" — answer with questions first
+
+5. TRACK GROWTH
+   → Regular 1:1s, concrete goals ("lead the next small
+     feature end-to-end"), celebrate visible progress</pre>
+<div class="key-point">Measure mentoring by outcomes: how quickly juniors become independent and what they can own alone. "A junior I mentored went from assigned bugfixes to owning a full module in eight months" is the answer interviewers want to hear.</div>`,
+      },
+      {
+        q: 'How do you decide what to delegate and what to keep yourself?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>Delegate based on two axes: how critical the task is and how much it would grow the person doing it. Keep irreversible, high-risk decisions (architecture direction, production incident calls) and delegate everything that is a growth opportunity for someone else, even if you could do it faster yourself. Delegate the outcome, not the steps: agree on the goal, constraints, and check-in points, then let the person own the "how". The common senior-to-lead mistake is hoarding interesting work and becoming the bottleneck.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Hãy giao việc dựa trên hai trục: mức độ quan trọng của task và mức độ nó giúp người nhận phát triển. Giữ lại những quyết định không thể đảo ngược, rủi ro cao (định hướng kiến trúc, quyết định khi có sự cố production) và giao tất cả những gì là cơ hội phát triển cho người khác, kể cả khi tự bạn làm sẽ nhanh hơn. Hãy giao kết quả, không giao từng bước: thống nhất mục tiêu, ràng buộc và các điểm kiểm tra, rồi để người đó tự làm chủ cách thực hiện. Sai lầm phổ biến khi chuyển từ senior lên lead là ôm hết việc hay ho và tự biến mình thành nút thắt cổ chai.</p></details>
+<pre>Delegation matrix:
+
+                    Low risk          High risk
+  Grows them    →  DELEGATE fully    DELEGATE with check-ins
+  Routine       →  DELEGATE + docs   KEEP or pair on it
+
+Delegate the OUTCOME, not the steps:
+  ✓ "Own the export feature: done means X, constraint is Y,
+     check in with me after the design and before release."
+  ✗ "First create this class, then add this method..."
+
+Signs you delegate too little:
+  → You're the review bottleneck
+  → The team waits on your decisions daily
+  → Nothing ships when you're on leave</pre>
+<div class="key-point">"If I'm the only one who can do it, that's a problem I created." Leads are measured by what the team ships, not what they personally code. Delegating something you'd do faster yourself is an investment, not a loss.</div>`,
+      },
+      {
+        q: 'How do you handle an underperforming team member?',
         difficulty: 'hard',
-        a: `<div class="interview-answer"><p>Hexagonal architecture, also called ports and adapters, keeps business logic separate from frameworks, which makes it easy to test and easy to swap parts like the database or messaging. <strong>Spring Modulith</strong> enforces module boundaries inside one deployable application, checks for architecture violations during tests, and lets modules talk through events. Together they give strong module isolation like microservices while keeping the simple operation of a single application. Services can still be split out later when it is really needed.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Hexagonal architecture, còn gọi là ports and adapters, tách biệt business logic khỏi các framework, nhờ đó dễ kiểm thử và dễ thay thế những phần như cơ sở dữ liệu hay messaging. <strong>Spring Modulith</strong> áp đặt ranh giới giữa các module bên trong một ứng dụng có thể triển khai duy nhất, kiểm tra các vi phạm kiến trúc trong lúc test, và cho phép các module giao tiếp với nhau qua sự kiện. Kết hợp lại, chúng mang lại sự cô lập module mạnh mẽ như microservices trong khi vẫn giữ được sự đơn giản khi vận hành một ứng dụng duy nhất. Sau này vẫn có thể tách các service ra khi thực sự cần thiết.</p></details>
-<p>Based on your CARIS UPGRADE project using <strong>Spring Modulith</strong> with <strong>Hexagonal Architecture</strong>.</p>
-<pre>Hexagonal Architecture (Ports & Adapters):
-  ┌─────────────────────────────────────┐
-  │          Application Core           │
-  │   ┌─────────────────────────┐       │
-  │   │    Domain / Business    │       │
-  │   │       Logic             │       │
-  │   └────────┬────────────────┘       │
-  │            │                        │
-  │   ┌────────┴────────────────┐       │
-  │   │    Ports (Interfaces)   │       │
-  │   └────────┬────────────────┘       │
-  └────────────┼────────────────────────┘
-       ┌───────┼───────┐
-  [REST API] [DB]  [Messaging]   ← Adapters (interchangeable)</pre>
-<p><strong>Benefits:</strong></p>
-<ul>
-<li><strong>Testability</strong>: Business logic has no framework dependencies — easy to unit test.</li>
-<li><strong>Flexibility</strong>: Swap database (PostgreSQL → MongoDB) without changing business logic.</li>
-<li><strong>Maintainability</strong>: Clear boundaries prevent spaghetti code.</li>
-</ul>
-<p><strong>Spring Modulith</strong>:</p>
-<ul>
-<li>Enforces module boundaries within a monolith (package-level isolation).</li>
-<li>Detects architecture violations at test time.</li>
-<li>Provides event-based inter-module communication.</li>
-<li>Documents module dependencies automatically.</li>
-</ul>
-<pre>// Spring Modulith module structure
-com.example.logistics
-  ├── booking/         // module
-  │   ├── BookingService.java
-  │   ├── internal/    // package-private (hidden from other modules)
-  │   └── BookingApi.java  // exposed API
-  ├── warehouse/       // another module
-  └── accounting/      // another module</pre>
-<div class="key-point">Spring Modulith gives you the module isolation benefits of microservices while keeping the simplicity of a monolith. It's a great middle ground — you can extract to microservices later when needed.</div>`,
+        a: `<div class="interview-answer"><p>Start with diagnosis, not judgment: underperformance usually has a cause — unclear expectations, a skill gap, personal issues, or low motivation — and each needs a different response. Talk privately, describe the gap with specific observable facts, and listen first. Then agree on a concrete improvement plan with clear expectations, support (mentoring, pairing, training), and a timeline. Document progress and follow up regularly. Escalate to the manager or HR only if there is no improvement after genuine support — and never embarrass the person in front of the team.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Hãy bắt đầu bằng việc chẩn đoán, không phải phán xét: hiệu suất kém thường có nguyên nhân — kỳ vọng không rõ ràng, thiếu kỹ năng, vấn đề cá nhân, hoặc mất động lực — và mỗi nguyên nhân cần một cách xử lý khác nhau. Hãy trao đổi riêng, mô tả khoảng cách bằng những sự kiện cụ thể quan sát được, và lắng nghe trước. Sau đó thống nhất một kế hoạch cải thiện cụ thể với kỳ vọng rõ ràng, sự hỗ trợ (mentoring, pairing, đào tạo) và mốc thời gian. Ghi lại tiến triển và theo dõi định kỳ. Chỉ chuyển lên quản lý hoặc HR khi không có cải thiện dù đã hỗ trợ thật lòng — và tuyệt đối không làm người đó mất mặt trước cả nhóm.</p></details>
+<pre>Step by step:
+
+1. OBSERVE & GATHER FACTS
+   → Specific examples, not impressions: missed deadlines,
+     repeated review issues, dropped tasks
+
+2. PRIVATE CONVERSATION — LISTEN FIRST
+   → "I've noticed X and Y. How do you see it? Is anything
+     getting in your way?"
+   → Often reveals: unclear requirements, burnout, personal
+     situation, wrong task fit
+
+3. AGREE ON A PLAN
+   → Clear expectations + support + timeline
+   → "For the next month: smaller tasks with explicit
+     acceptance criteria, pairing twice a week, check-in
+     every Friday."
+
+4. FOLLOW UP & DOCUMENT
+   → Recognize improvement quickly; adjust the plan if needed
+
+5. ESCALATE ONLY AFTER REAL SUPPORT
+   → If no change: involve the manager with the documented
+     history — fairness protects both sides</pre>
+<div class="key-point">The order matters: facts → private conversation → support → timeline → escalation as last resort. Jumping straight to criticism or to HR signals poor leadership. Most "underperformance" turns out to be a fixable mismatch.</div>`,
       },
       {
-        q: 'Explain how you standardized API patterns. What does API standardization include?',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p>Standardized API patterns mean every endpoint behaves in the same, predictable way. This includes one response format and one error format, a clear set of HTTP status codes, consistent naming and pagination, and a single global exception handler using <code>@RestControllerAdvice</code>. Authentication and the request lifecycle work the same everywhere, and OpenAPI or Swagger provides automatic documentation. The main benefit is fewer defects, because a developer who understands one endpoint already understands the others.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Chuẩn hóa các API pattern nghĩa là mọi endpoint đều hoạt động theo cùng một cách nhất quán và dễ đoán. Điều này bao gồm một định dạng response chung và một định dạng lỗi chung, một bộ HTTP status code rõ ràng, cách đặt tên và phân trang nhất quán, cùng một global exception handler duy nhất dùng <code>@RestControllerAdvice</code>. Việc xác thực và vòng đời của request hoạt động giống nhau ở mọi nơi, còn OpenAPI hay Swagger thì tự động tạo tài liệu. Lợi ích chính là giảm lỗi, bởi vì một developer đã hiểu một endpoint thì cũng hiểu luôn các endpoint còn lại.</p></details>
-<p>From your CARIS UPGRADE project: "Standardized API patterns (error handling, authentication, request lifecycle)."</p>
-<pre>// 1. Consistent response format
-{
-  "status": "success",           // or "error"
-  "data": { ... },               // response payload
-  "message": "User created",     // human-readable
-  "timestamp": "2025-01-01T12:00:00Z",
-  "path": "/api/users"
-}
-
-// 2. Error response format
-{
-  "status": "error",
-  "error": {
-    "code": "VALIDATION_ERROR",
-    "message": "Validation failed",
-    "details": [
-      { "field": "email", "message": "Invalid email format" }
-    ]
-  },
-  "timestamp": "2025-01-01T12:00:00Z"
-}
-
-// 3. HTTP status codes convention
-200 OK            → successful GET/PUT
-201 Created       → successful POST (resource created)
-204 No Content    → successful DELETE
-400 Bad Request   → validation error
-401 Unauthorized  → not authenticated
-403 Forbidden     → authenticated but no permission
-404 Not Found     → resource doesn't exist
-409 Conflict      → duplicate/conflict
-500 Internal      → server error (log, don't expose details)</pre>
-<p><strong>Standardization includes:</strong></p>
-<ul>
-<li><strong>Request lifecycle</strong>: Authentication → Authorization → Validation → Business Logic → Response</li>
-<li><strong>Naming conventions</strong>: <code>GET /api/v1/users</code>, <code>POST /api/v1/users</code>, <code>PUT /api/v1/users/{id}</code></li>
-<li><strong>Pagination</strong>: <code>?page=0&size=20&sort=name,asc</code></li>
-<li><strong>OpenAPI/Swagger</strong>: auto-generated API documentation</li>
-<li><strong>Global exception handler</strong>: <code>@RestControllerAdvice</code></li>
-</ul>
-<div class="key-point">API standardization reduces defects because every developer follows the same patterns. Use OpenAPI/Swagger to generate docs and validate contracts.</div>`,
-      },
-      {
-        q: 'Explain your experience with MyBatis vs JPA. When would you choose each?',
+        q: 'Two of your team members strongly disagree with each other. How do you resolve it?',
         difficulty: 'medium',
-        a: `<div class="interview-answer"><p>The choice between MyBatis and JPA depends on where the complexity is. MyBatis fits complex queries with many joins, fixed or legacy schemas, and cases that need full control over the SQL, which is why it was used on the FWD and CARIS logistics projects. JPA with Spring Data fits CRUD-heavy applications on a schema you own, where fast development matters more, as at WOWCNS. On CARIS, Spring Boot still handled dependency injection, security, and the API layer while MyBatis handled the heavy queries.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Việc lựa chọn giữa MyBatis và JPA tùy thuộc vào nơi độ phức tạp nằm ở đâu. MyBatis phù hợp với các query phức tạp có nhiều join, các schema cố định hoặc legacy, và những trường hợp cần toàn quyền kiểm soát SQL, đó là lý do nó được dùng trong các dự án logistics FWD và CARIS. JPA kết hợp với Spring Data phù hợp với các ứng dụng thiên về CRUD trên một schema do bạn tự sở hữu, nơi tốc độ phát triển quan trọng hơn, như tại WOWCNS. Trong CARIS, Spring Boot vẫn đảm nhận dependency injection, bảo mật và tầng API trong khi MyBatis lo các query nặng.</p></details>
-<p>From your CV: You used MyBatis in CyberLogitec projects and JPA in WOWCNS.</p>
-<pre>My experience:
+        a: `<div class="interview-answer"><p>First separate the disagreement from the people: a technical dispute is healthy as long as it stays about the problem. Get both sides to state the other's position until each feels understood, then move the discussion to shared criteria — performance, maintainability, deadline, cost — and evaluate both options against them. If data can settle it, run a quick spike or prototype. If it is still a tie, the lead makes the call, explains why, and the team commits ("disagree and commit"). Act early: unresolved conflict spreads to the whole team.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Trước tiên hãy tách sự bất đồng ra khỏi con người: tranh luận kỹ thuật là lành mạnh miễn là nó xoay quanh vấn đề. Yêu cầu hai bên trình bày lại quan điểm của đối phương cho đến khi cả hai cảm thấy được hiểu, rồi đưa cuộc thảo luận về các tiêu chí chung — hiệu năng, khả năng bảo trì, deadline, chi phí — và đánh giá cả hai phương án dựa trên đó. Nếu dữ liệu có thể phân định, hãy làm nhanh một bản spike hoặc prototype. Nếu vẫn bất phân thắng bại, lead sẽ ra quyết định, giải thích lý do, và cả nhóm cam kết thực hiện ("disagree and commit"). Hãy hành động sớm: mâu thuẫn không được giải quyết sẽ lan ra cả nhóm.</p></details>
+<pre>Resolution sequence:
 
-MyBatis (CyberLogitec — FWD, CARIS):
-  → Complex logistics queries with 5+ JOINs
-  → Legacy database schemas (can't change table structure)
-  → DBA team writes and optimizes SQL
-  → Full control over every query
-  → Dynamic SQL with &lt;if&gt;, &lt;foreach&gt;, &lt;where&gt;
+1. DEPERSONALIZE
+   → "We're comparing two designs, not two people."
 
-JPA/Hibernate (WOWCNS — WowNet, MyOffice):
-  → CRUD-heavy e-commerce features
-  → Rapid development with Spring Data JPA
-  → Domain-driven design with entity relationships
-  → Method name queries (findByEmailAndStatus)
+2. STEELMAN EACH SIDE
+   → Each person restates the OTHER's argument until the
+     other agrees it's fair
 
-Decision Guide:
-┌─────────────────────────────────────────────┐
-│ Choose MyBatis when:                        │
-│  → Complex reporting queries                │
-│  → Legacy DB schema you can't modify        │
-│  → DBA team manages SQL                     │
-│  → Need fine-grained SQL control            │
-│  → High-performance batch operations        │
-├─────────────────────────────────────────────┤
-│ Choose JPA when:                            │
-│  → CRUD-dominant application                │
-│  → Greenfield project (design your schema)  │
-│  → Domain-driven design                     │
-│  → Rapid prototyping                        │
-│  → Team familiar with ORM concepts          │
-└─────────────────────────────────────────────┘</pre>
-<div class="key-point">In the CARIS project, we used MyBatis for complex logistics queries that would be hard to express with JPQL, while keeping Spring Boot for DI, security, and API layer.</div>`,
+3. AGREE ON CRITERIA FIRST
+   → Performance? Time to ship? Maintainability? Risk?
+   → Score both options against the SAME criteria
+
+4. LET DATA DECIDE IF POSSIBLE
+   → Timebox a spike: "Both approaches, 1 day each,
+     benchmark on real data."
+
+5. TIE-BREAK AND COMMIT
+   → Lead decides, explains the reasoning, documents it
+     (mini ADR), and everyone commits — no relitigating</pre>
+<div class="key-point">Never decide by "who argues loudest" or let it fester hoping it resolves itself. Criteria first, data where possible, then a clear decision with reasons. A documented decision prevents the same fight from repeating in three months.</div>`,
       },
+
+      // ──── 3. BEHAVIORAL STORIES (STAR) ────
       {
-        q: 'You mention SQL optimization as a key skill. Walk me through your approach.',
+        q: 'Tell me about a time you disagreed with a decision made by your manager or team.',
         difficulty: 'hard',
-        a: `<div class="interview-answer"><p>The approach to SQL optimization follows four steps and avoids guessing: identify, analyze, optimize, and validate. Slow queries are first found with tools like <code>pg_stat_statements</code>, then studied with <code>EXPLAIN ANALYZE</code> to spot problems such as full table scans or bad row estimates. Fixes include adding the right indexes, often a composite covering index, and rewriting queries, for example replacing subqueries with joins or using keyset pagination. In one real case a query dropped from eight seconds to fifty milliseconds, and the result is always checked by comparing plans and timing.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Cách tiếp cận để tối ưu SQL đi theo bốn bước và tránh việc phỏng đoán: identify, analyze, optimize và validate. Trước tiên, các query chậm được tìm ra bằng những công cụ như <code>pg_stat_statements</code>, sau đó được phân tích bằng <code>EXPLAIN ANALYZE</code> để phát hiện các vấn đề như full table scan hay ước lượng số dòng sai lệch. Các cách khắc phục bao gồm thêm index phù hợp, thường là một composite covering index, và viết lại query, ví dụ thay subquery bằng join hoặc dùng keyset pagination. Trong một tình huống thực tế, một query đã giảm từ tám giây xuống còn năm mươi mili giây, và kết quả luôn được kiểm chứng bằng cách so sánh execution plan và thời gian chạy.</p></details>
-<p>From your CV: "Optimized SQL queries and tuned database performance through indexing and query restructuring."</p>
-<pre>Step-by-step approach:
+        a: `<div class="interview-answer"><p>Use the STAR structure and pick a real technical disagreement. The pattern that interviewers want to see: you voiced the concern early, privately, and with evidence rather than emotion; you proposed an alternative with its trade-offs; and regardless of the outcome, once the decision was made you committed to it fully. Both endings are fine — being proven right (handled gracefully) or being proven wrong (and learning from it). What fails the question is either silent compliance or undermining the decision after it was made.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Hãy dùng cấu trúc STAR và chọn một bất đồng kỹ thuật có thật. Khuôn mẫu mà người phỏng vấn muốn thấy: bạn nêu lo ngại sớm, một cách riêng tư và bằng bằng chứng thay vì cảm xúc; bạn đề xuất một phương án thay thế kèm các đánh đổi của nó; và dù kết quả thế nào, một khi quyết định đã được đưa ra thì bạn cam kết thực hiện trọn vẹn. Cả hai kết cục đều ổn — bạn đúng (và xử lý khéo léo) hoặc bạn sai (và rút ra bài học). Điều khiến câu trả lời thất bại là hoặc im lặng phục tùng, hoặc ngấm ngầm phá quyết định sau khi nó đã được chốt.</p></details>
+<pre>STAR skeleton for this story:
 
-1. IDENTIFY slow queries
-   → Use slow query logs (pg_stat_statements in PostgreSQL)
-   → Monitor with APM tools
-   → Check batch/reporting job durations
+Situation: "The team decided to ship feature X without
+  integration tests to hit a deadline."
 
-2. ANALYZE with EXPLAIN ANALYZE
-   → Look for: Seq Scan on large tables, nested loops, 
-     high actual rows vs estimated rows
-
-3. OPTIMIZE
-   a) Add missing indexes
-      → WHERE, JOIN, ORDER BY columns
-      → Composite indexes (equality first, range last)
-      → Covering indexes for frequently-read queries
-
-   b) Rewrite query
-      → Replace correlated subqueries with JOINs
-      → Use CTEs for readability
-      → Avoid SELECT * — specify columns
-      → Replace OFFSET pagination with keyset pagination
-
-   c) Database-level tuning
-      → Update statistics (ANALYZE)
-      → Configure connection pooling (HikariCP)
-      → Partition large tables by date
-
-4. VALIDATE
-   → Compare execution plans before/after
-   → Measure query time improvement
-   → Test under load</pre>
-<p><strong>Real example from FWD project:</strong></p>
-<pre>-- Before: 8 seconds (full table scan, no index)
-SELECT o.*, c.name FROM orders o
-JOIN customers c ON o.customer_id = c.id
-WHERE o.status = 'pending' AND o.created_at > '2024-01-01'
-ORDER BY o.created_at DESC;
-
--- After: 50ms (composite index + covering)
-CREATE INDEX idx_orders_status_date 
-ON orders(status, created_at DESC) INCLUDE (customer_id);
-
--- Also restructured batch reports to use:
--- Partitioned tables by month
--- Materialized views for aggregations</pre>
-<div class="key-point">SQL optimization is iterative: identify → analyze → optimize → validate. Always use EXPLAIN ANALYZE to verify improvements. The biggest gains usually come from adding the right indexes and rewriting bad queries.</div>`,
-      },
-      {
-        q: 'You work with both PostgreSQL and SQL Server. What are the key differences?',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p>PostgreSQL and SQL Server are similar in some ways but differ in practical points. Both default to Read Committed isolation and use MVCC, but PostgreSQL keeps old row versions append-only while SQL Server uses tempdb. The syntax and features differ too: UPSERT is <code>ON CONFLICT</code> in PostgreSQL and <code>MERGE</code> in SQL Server, and pagination and JSON support are handled differently. A common rule is to choose PostgreSQL for new projects because it is free and extensible, and SQL Server when the team already uses the Microsoft ecosystem.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>PostgreSQL và SQL Server có nhiều điểm giống nhau nhưng khác biệt ở những khía cạnh thực tế. Cả hai đều mặc định mức cô lập Read Committed và dùng MVCC, nhưng PostgreSQL lưu các phiên bản dòng cũ theo kiểu append-only còn SQL Server thì dùng tempdb. Cú pháp và tính năng cũng khác nhau: UPSERT là <code>ON CONFLICT</code> trong PostgreSQL và <code>MERGE</code> trong SQL Server, còn phân trang cùng khả năng hỗ trợ JSON cũng được xử lý theo cách khác nhau. Một nguyên tắc phổ biến là chọn PostgreSQL cho các dự án mới vì nó miễn phí và dễ mở rộng, còn chọn SQL Server khi cả nhóm đã quen với hệ sinh thái Microsoft.</p></details>
-<table><tr><th>Feature</th><th>PostgreSQL</th><th>SQL Server</th></tr>
-<tr><td>License</td><td>Open source (free)</td><td>Commercial (Microsoft)</td></tr>
-<tr><td>Default isolation</td><td>Read Committed</td><td>Read Committed</td></tr>
-<tr><td>MVCC</td><td>Yes (append-only)</td><td>Yes (tempdb-based)</td></tr>
-<tr><td>JSON support</td><td>Excellent (JSONB)</td><td>Good (JSON functions)</td></tr>
-<tr><td>Full-text search</td><td>Built-in (tsvector)</td><td>Built-in (FTS)</td></tr>
-<tr><td>Partitioning</td><td>Declarative (10+)</td><td>Declarative (2016+)</td></tr>
-<tr><td>Replication</td><td>Streaming, logical</td><td>Always On, log shipping</td></tr>
-<tr><td>Procedural lang</td><td>PL/pgSQL, multiple</td><td>T-SQL only</td></tr>
-<tr><td>UPSERT syntax</td><td>ON CONFLICT</td><td>MERGE</td></tr>
-<tr><td>LIMIT</td><td>LIMIT N OFFSET M</td><td>OFFSET M ROWS FETCH NEXT N</td></tr>
-</table>
-<pre>-- PostgreSQL: UPSERT
-INSERT INTO users (email, name) VALUES ('john@mail.com', 'John')
-ON CONFLICT (email) DO UPDATE SET name = EXCLUDED.name;
-
--- SQL Server: MERGE
-MERGE INTO users AS target
-USING (VALUES ('john@mail.com', 'John')) AS source (email, name)
-ON target.email = source.email
-WHEN MATCHED THEN UPDATE SET name = source.name
-WHEN NOT MATCHED THEN INSERT (email, name) VALUES (source.email, source.name);</pre>
-<div class="key-point">PostgreSQL is preferred for new projects (free, extensible, JSONB, community). SQL Server is common in enterprise environments with Microsoft ecosystems.</div>`,
-      },
-      {
-        q: 'How do you handle high-volume data processing and batch operations?',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p>For high-volume data, the best approach uses database-native paths instead of fighting the ORM. The PostgreSQL <code>COPY</code> protocol streams large batches of rows and avoids per-row insert overhead, while MyBatis batch inserts are flushed every few hundred records to stay under SQL limits. Data is processed in chunks with progress tracking and the ability to resume after a failure, shown through a real-time monitoring screen. Database tuning such as staging tables and partitioning helps, and data integrity is always validated before and after.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Với dữ liệu khối lượng lớn, cách tiếp cận tốt nhất là dùng các đường đi native của cơ sở dữ liệu thay vì chống lại ORM. Giao thức <code>COPY</code> của PostgreSQL truyền theo dạng stream từng lô dòng lớn và tránh được chi phí insert theo từng dòng, trong khi các batch insert của MyBatis được flush sau mỗi vài trăm bản ghi để không vượt giới hạn của SQL. Dữ liệu được xử lý theo từng chunk, có theo dõi tiến độ và khả năng chạy tiếp sau khi gặp lỗi, tất cả được hiển thị qua một màn hình giám sát theo thời gian thực. Việc tinh chỉnh cơ sở dữ liệu như dùng staging table và partition cũng giúp ích, và tính toàn vẹn dữ liệu luôn được xác thực trước và sau khi xử lý.</p></details>
-<p>From your CV: "High-volume data processing (batch, streaming)" and "up to 100K rows/batch."</p>
-<pre>Strategies I've used:
-
-1. STREAMING WITH PostgreSQL COPY PROTOCOL
-   → Bypasses row-by-row INSERT overhead
-   → Direct binary stream into tables
-   → Used in FWD Migration Toolkit (100K rows/batch)
-
-2. BATCH INSERT WITH MyBatis
-   &lt;insert id="batchInsert"&gt;
-     INSERT INTO records (col1, col2) VALUES
-     &lt;foreach collection="list" item="item" separator=","&gt;
-       (#{item.col1}, #{item.col2})
-     &lt;/foreach&gt;
-   &lt;/insert&gt;
-   → Flush every 500-1000 records to avoid SQL length limits
-
-3. CHUNKED PROCESSING
-   → Process large datasets in chunks (1000 rows at a time)
-   → Track progress, support resume on failure
-   → Real-time monitoring UI with Socket.IO
-
-4. DATABASE OPTIMIZATION FOR BATCH
-   → Disable indexes before bulk insert, rebuild after
-   → Use UNLOGGED tables for staging data
-   → Increase work_mem for sorting operations
-   → Partition tables by date for faster operations
-
-5. MONITORING & SAFETY
-   → Progress tracking with percentage, ETA
-   → Fail-safe: pause/resume/rollback controls
-   → Data validation before and after migration
-   → Data masking for PII compliance</pre>
-<div class="key-point">For high-volume operations: use database-native protocols (COPY, bulk insert), process in chunks, monitor progress, and always validate data integrity after processing.</div>`,
-      },
-
-      // ──── 3. PROJECTS, DELIVERY & TOOLING ────
-      {
-        q: 'Describe a challenging project you worked on and how you solved it.',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p>This answer uses the <strong>STAR</strong> method: Situation, Task, Action, Result. The example is a database migration toolkit built at CyberLogitec to move data across many PostgreSQL environments with more than 100 tables. The solution used a streaming pipeline on the PostgreSQL <code>COPY</code> protocol, multi-phase validation, data masking for private data, and a real-time monitoring screen. The result was much less manual work and zero production incidents, and the tool is now used across the company. Results should always be measured with numbers.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Câu trả lời này sử dụng phương pháp <strong>STAR</strong>: Situation, Task, Action, Result. Ví dụ ở đây là một bộ công cụ migration cơ sở dữ liệu được xây dựng tại CyberLogitec để di chuyển dữ liệu qua nhiều môi trường PostgreSQL với hơn 100 bảng. Giải pháp sử dụng một pipeline dạng streaming dựa trên giao thức <code>COPY</code> của PostgreSQL, xác thực dữ liệu qua nhiều giai đoạn, che dấu dữ liệu cá nhân, và một màn hình giám sát theo thời gian thực. Kết quả là giảm đáng kể công việc thủ công và không có sự cố nào trên production, và công cụ này hiện đã được dùng trên toàn công ty. Kết quả luôn nên được đo lường bằng những con số cụ thể.</p></details>
-<p>Use the <strong>STAR method</strong>: Situation → Task → Action → Result.</p>
-<pre>Example (FWD Database Migration Toolkit):
-
-Situation: "At CyberLogitec, we needed to migrate data across 
-multiple PostgreSQL environments covering 10+ modules (~100+ tables). 
-Manual scripting took hours and was error-prone."
-
-Task: "As the sole developer, I was responsible for building an 
-automated migration toolkit from scratch."
-
-Action: 
-- "I designed a streaming-based pipeline using PostgreSQL COPY 
-  protocol for high-throughput data transfer (up to 100K rows/batch)."
-- "Built multi-phase validation: schema comparison, row-level 
-  validation, and record reconciliation."
-- "Implemented data masking for PII compliance."
-- "Created a real-time monitoring UI with Socket.IO for 
-  progress tracking and fail-safe controls."
-
-Result: "Reduced migration effort from hours to a single automated 
-workflow. Achieved zero production incidents thanks to robust 
-validation. The tool is now used across the organization."</pre>
-<div class="key-point">Always quantify results: time saved, incidents prevented, performance improved. The interviewer wants to know your <strong>impact</strong>, not just what you did.</div>`,
-      },
-      {
-        q: 'Tell me about the legacy system migration (CARIS UPGRADE). What challenges did you face?',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p>The CARIS project moved a live legacy logistics system to Next.js, <code>Java 21</code>, and Spring Modulith with no downtime and no data loss. Because the system runs in production, the Strangler Fig pattern was used to migrate one module at a time. Data across more than 100 tables was moved with an automated toolkit that included strong validation, and the inconsistent legacy APIs were redesigned around a new standard. The team was new to the stack, so coding standards, reusable patterns, and pair programming were important. The main lessons are to migrate step by step, keep backward compatibility, validate carefully, and support the team.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Dự án CARIS đã chuyển một hệ thống logistics legacy đang chạy thật sang Next.js, <code>Java 21</code> và Spring Modulith mà không có downtime và không mất dữ liệu. Vì hệ thống chạy trên production, mẫu Strangler Fig được dùng để migrate từng module một. Dữ liệu trải trên hơn 100 bảng được di chuyển bằng một bộ công cụ tự động có kèm cơ chế xác thực chặt chẽ, và các API legacy vốn thiếu nhất quán đã được thiết kế lại theo một chuẩn mới. Cả nhóm còn mới với stack này, nên coding standard, các pattern tái sử dụng và pair programming đều rất quan trọng. Bài học chính là hãy migrate theo từng bước, giữ tính tương thích ngược, xác thực cẩn thận, và hỗ trợ cả nhóm.</p></details>
-<p>From your CV: "Led the migration of a legacy logistics system to a modern stack (Next.js, Java 21, Spring Modulith), ensuring business continuity and zero data loss."</p>
-<pre>CARIS UPGRADE Migration Overview:
-
-FROM: Legacy logistics system
-TO: Next.js + React + TypeScript + Zustand + TanStack Query (Frontend)
-    Java 21 + Spring Boot + Spring Modulith + MyBatis (Backend)
-    SQL Server (Database)
-
-Challenges & Solutions:
-
-1. BUSINESS CONTINUITY
-   Challenge: System is in production, can't stop operations
-   Solution: Strangler Fig pattern — migrate module by module
-   → Sales module first, then freight, then warehouse
-
-2. DATA MIGRATION
-   Challenge: ~100+ tables across 10+ modules
-   Solution: Built automated migration toolkit with validation
-   → Schema comparison + row-level validation + reconciliation
-
-3. TEAM ADOPTION
-   Challenge: Team unfamiliar with new stack (Next.js, TypeScript, Zustand)
-   Solution: Created coding standards, reusable patterns, pair programming
-   → Gradual adoption, learning sprints
-
-4. API REDESIGN
-   Challenge: Legacy APIs inconsistent, poorly documented
-   Solution: Standardized API patterns with OpenAPI/Swagger
-   → Consistent error handling, auth, request lifecycle
-
-5. PERFORMANCE
-   Challenge: Complex data grids with large datasets
-   Solution: Server-side pagination, optimistic updates, 
-   TanStack Query for caching</pre>
-<div class="key-point">Key to successful migrations: do it incrementally (Strangler Fig), maintain backward compatibility, have robust validation, and bring the team along through mentoring and documentation.</div>`,
-      },
-      {
-        q: 'Tell me about your personal project (SLearning Studio). What did you learn?',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p>SLearning Studio is a personal AI-assisted English-learning and developer-utility platform built end to end. It uses a client-first design with a static export to GitHub Pages and Google Sheets as a content source, so it runs at almost no server cost. The interesting part is multi-provider AI orchestration across Gemini, OpenRouter, and GitHub Models with fallback and bounded conversation memory to control cost. The project also involved the Web Speech API and a full migration from older JavaScript to TypeScript and Next.js, and it taught how to build multi-provider AI systems and own a product fully.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>SLearning Studio là một nền tảng cá nhân hỗ trợ học tiếng Anh bằng AI kèm các tiện ích cho developer, được xây dựng hoàn chỉnh từ đầu đến cuối. Nó theo thiết kế client-first với static export lên GitHub Pages và dùng Google Sheets làm nguồn nội dung, nhờ vậy gần như không tốn chi phí server. Phần thú vị là việc điều phối AI đa nhà cung cấp qua Gemini, OpenRouter và GitHub Models, có cơ chế fallback và giới hạn bộ nhớ hội thoại để kiểm soát chi phí. Dự án cũng dùng đến Web Speech API và trải qua một đợt migration toàn diện từ JavaScript cũ sang TypeScript và Next.js, và nó dạy cho tôi cách xây dựng các hệ thống AI đa nhà cung cấp cũng như tự làm chủ trọn vẹn một sản phẩm.</p></details>
-<p>From your CV: SLearning Studio — AI-assisted English learning and developer utility platform.</p>
-<pre>Key technical highlights:
-
-1. ARCHITECTURE
-   → Client-first, configurable system
-   → React Context + Reducer for shared state
-   → Static export to GitHub Pages (no server costs)
-   → Google Sheets as dynamic content source
-
-2. AI INTEGRATION
-   → Multi-provider orchestration (Gemini, OpenRouter, GitHub Models)
-   → Flexible model routing with configurable fallback
-   → Bounded conversation memory (15 turns / 30 messages)
-     → Optimizes cost and performance
-
-3. WEB APIs
-   → Web Speech API (speech recognition & synthesis)
-   → Mobile/iOS-specific handling for speech
-   → YouTube IFrame API for subtitle-based learning
-
-4. FULL MIGRATION
-   → Originally JavaScript (2022) → TypeScript + Next.js (2025)
-   → App Router with static export
-   → Improved scalability and maintainability
-
-What I learned:
-   → How to build multi-provider AI systems
-   → Mobile browser quirks with Web Speech API
-   → Static site generation with dynamic content
-   → End-to-end product ownership</pre>
-<div class="key-point">Personal projects demonstrate initiative, curiosity, and end-to-end capability. This project shows: AI integration, modern React/Next.js, API orchestration, and product thinking.</div>`,
-      },
-      {
-        q: 'What is your experience with Docker and CI/CD? Describe your workflow.',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p>Docker is used across the full development lifecycle. Locally, Docker Compose starts services such as PostgreSQL, Redis, and the app so everyone shares the same environment. For production, multi-stage Dockerfiles build in a full image and run on a slim base as a non-root user to reduce size and security risk. CI/CD pipelines with GitHub Actions or GitLab CI run build, test, docker-build, and deploy stages, and SLearning Studio uses a pipeline that builds, exports the static site, and deploys it to GitHub Pages.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Docker được sử dụng xuyên suốt toàn bộ vòng đời phát triển. Ở môi trường local, Docker Compose khởi động các service như PostgreSQL, Redis và ứng dụng để mọi người cùng dùng chung một môi trường. Với production, các Dockerfile multi-stage build trong một image đầy đủ rồi chạy trên một base gọn nhẹ với người dùng non-root nhằm giảm kích thước và rủi ro bảo mật. Các pipeline CI/CD với GitHub Actions hoặc GitLab CI chạy các giai đoạn build, test, docker-build và deploy, còn SLearning Studio thì dùng một pipeline để build, xuất static site và triển khai nó lên GitHub Pages.</p></details>
-<p>From your CV: "Docker" and "basic CI/CD pipelines" in your tech stack.</p>
-<pre>My Docker experience:
-
-1. LOCAL DEVELOPMENT
-   → Docker Compose for local dev environment
-   → PostgreSQL, Redis, app containers
-   → Consistent "works on my machine" solution
-
-2. DEPLOYMENT
-   → Multi-stage Dockerfile for production images
-   → Minimize image size with Alpine base
-   → Non-root user for security
-
-3. CI/CD PIPELINE
-   → GitHub Actions / GitLab CI
-   → Stages: Build → Test → Docker Build → Deploy
-   → Environment-specific configs via pipeline variables
-
-Example Dockerfile (Spring Boot):
-FROM eclipse-temurin:21-jdk AS builder
-WORKDIR /app
-COPY . .
-RUN ./mvnw package -DskipTests
-
-FROM eclipse-temurin:21-jre-alpine
-WORKDIR /app
-COPY --from=builder /app/target/*.jar app.jar
-USER 1001
-EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
-
-For SLearning Studio:
-→ GitHub Actions: build → export → deploy to GitHub Pages
-→ Static export with Next.js</pre>
-<div class="key-point">Even with "basic" CI/CD experience, show that you understand the full pipeline: build, test, containerize, deploy. Mention any automation you've created.</div>`,
-      },
-      {
-        q: 'You list Webix and IBSheet as skills. Explain what they are and when to use them.',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p>Webix and IBSheet are enterprise UI libraries built for data-heavy back-office applications, which suits logistics work. IBSheet is a spreadsheet-style grid with Excel-like editing, virtual scrolling over very large row counts, and copy-paste from Excel, useful for data entry and reporting. Webix is a wider widget library with rich grids, charts, forms, and server-side data handling. Both were used on the FWD project for booking and invoicing forms and large operations grids, and a modern alternative like AG Grid offers better React integration.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Webix và IBSheet là các thư viện UI dành cho doanh nghiệp, được xây dựng cho những ứng dụng back-office nhiều dữ liệu, rất phù hợp với công việc logistics. IBSheet là một grid kiểu bảng tính với khả năng chỉnh sửa giống Excel, virtual scrolling trên số lượng dòng cực lớn, và copy-paste từ Excel, hữu ích cho việc nhập liệu và làm báo cáo. Webix là một thư viện widget rộng hơn với grid, biểu đồ, form phong phú cùng khả năng xử lý dữ liệu ở phía server. Cả hai đều được dùng trong dự án FWD cho các form đặt chỗ và lập hóa đơn cũng như các grid vận hành lớn, và một lựa chọn hiện đại như AG Grid thì tích hợp với React tốt hơn.</p></details>
-<p>Both are enterprise UI component libraries focused on <strong>data-intensive applications</strong> (grids, charts, forms).</p>
-<pre>IBSheet:
-→ Korean enterprise spreadsheet-like grid component
-→ Excel-like editing in the browser
-→ Handles 100K+ rows with virtual scrolling
-→ Used in logistics systems for data entry and reporting
-→ Supports copy-paste from Excel, cell formatting, formulas
-
-Webix:
-→ Full UI library with 100+ widgets
-→ Rich data grid, charts, forms, scheduling
-→ Built for enterprise back-office applications
-→ Server-side data processing for large datasets
-
-Both used in CyberLogitec FWD project:
-→ Complex data entry forms for booking, invoicing
-→ Large data grids displaying freight operations
-→ Excel-like editing experience for logistics operators
-
-vs Modern alternatives (AG Grid, MUI DataGrid):
-→ IBSheet/Webix have been proven in enterprise logistics
-→ AG Grid is the modern equivalent with better React integration
-→ Choice depends on existing codebase and team familiarity</pre>
-<div class="key-point">These are specialized enterprise tools. When asked, explain that enterprise logistics requires spreadsheet-like UIs with massive data handling — different from typical web apps.</div>`,
-      },
-      {
-        q: 'You mention AI-assisted development. How do you use AI tools in your workflow?',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p>AI tools are used across the daily workflow to speed up development. They help create boilerplate such as CRUD endpoints, test scaffolding, and migration scripts, and to modernize old code, for example converting JavaScript to TypeScript. A shared library of reusable, standardized prompts gives the whole team consistent results. Every AI output is treated as a first draft that must be reviewed and tested, so the biggest value is removing repetitive work and freeing engineers for harder problems.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Các công cụ AI được sử dụng xuyên suốt quy trình làm việc hàng ngày để tăng tốc phát triển. Chúng giúp tạo ra các đoạn boilerplate như CRUD endpoint, khung test và script migration, cũng như hiện đại hóa code cũ, ví dụ chuyển JavaScript sang TypeScript. Một thư viện prompt dùng chung, đã được chuẩn hóa và tái sử dụng, giúp cả nhóm có kết quả nhất quán. Mọi kết quả do AI tạo ra đều được xem như một bản nháp đầu tiên và phải được review cùng kiểm thử, nên giá trị lớn nhất là loại bỏ những công việc lặp đi lặp lại và giải phóng kỹ sư để họ tập trung vào các bài toán khó hơn.</p></details>
-<p>From your CV: "Introduced AI-assisted development practices by researching and creating reusable prompts, accelerating development and refactoring."</p>
-<pre>How I use AI tools:
-
-1. CODE GENERATION
-   → Generate boilerplate code (CRUD endpoints, entity classes)
-   → Create unit test scaffolding
-   → Generate SQL migration scripts
-   → Convert legacy code patterns to modern equivalents
-
-2. CODE REVIEW ASSISTANCE
-   → Ask AI to review code for potential issues
-   → Identify security vulnerabilities
-   → Suggest performance improvements
-
-3. REFACTORING
-   → Convert JavaScript to TypeScript
-   → Modernize class components to hooks
-   → Restructure code to follow design patterns
-
-4. DOCUMENTATION
-   → Generate API documentation
-   → Create code comments for complex logic
-   → Write README sections
-
-5. REUSABLE PROMPTS
-   → Created a library of prompts for common tasks
-   → Standardized AI usage across the team
-   → "Convert this Spring Controller to follow our API standard"
-
-Tools: GitHub Copilot, Gemini, OpenRouter (multiple providers)
-SLearning Studio: Built multi-provider AI orchestration system</pre>
-<div class="key-point">AI tools amplify productivity but require good prompts and human verification. I treat AI output as a first draft — always review and test. The biggest value is in eliminating repetitive boilerplate work.</div>`,
-      },
-
-      // ──── 4. LEADERSHIP, PROCESS & COLLABORATION ────
-      {
-        q: 'You were a Deputy Team Lead. How do you handle code reviews?',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p>Code review here is treated as a way to improve quality and teach, not to block people. The focus is on correctness, edge cases, security, and performance problems like N+1 queries, while tools like ESLint and Prettier handle formatting. The tone is polite: asking questions instead of giving orders, praising good code, and marking comments as optional or required. Reviews are returned within a day and kept small, and repeated issues are turned into team guidelines or lint rules.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Ở đây, code review được xem như một cách để nâng cao chất lượng và để dạy lẫn nhau, chứ không phải để cản trở người khác. Trọng tâm là tính đúng đắn, các trường hợp biên, bảo mật, và những vấn đề về hiệu năng như N+1 query, trong khi các công cụ như ESLint và Prettier lo phần định dạng. Giọng điệu thì lịch sự: đặt câu hỏi thay vì ra lệnh, khen ngợi những đoạn code tốt, và đánh dấu các nhận xét là tùy chọn hay bắt buộc. Review được phản hồi trong vòng một ngày và giữ ở quy mô nhỏ, còn những lỗi lặp đi lặp lại thì được chuyển thành quy tắc chung của nhóm hoặc lint rule.</p></details>
-<p>From your CV: "Conducted code reviews and enforced coding standards across the team."</p>
-<pre>My code review approach:
-
-1. REVIEW CHECKLIST
-   □ Does it solve the requirement correctly?
-   □ Are edge cases handled?
-   □ Is the code readable and maintainable?
-   □ Are there performance concerns (N+1 queries, missing indexes)?
-   □ Security: SQL injection, XSS, exposed secrets?
-   □ Tests: unit tests for new logic?
-   □ Naming: clear variable/function names?
-
-2. TONE
-   → Ask questions instead of commands
-   → "What do you think about using a Map here?" vs "Use a Map."
-   → Praise good code: "Nice use of Optional here 👍"
-   → Explain the WHY behind suggestions
-
-3. SCOPE
-   → Focus on logic and design, not formatting (let ESLint/Prettier handle that)
-   → Don't block PRs for style preferences
-   → Mark comments as "nit" (nice to have) vs "required" (must fix)
-
-4. TURNAROUND
-   → Review within 24 hours (don't block teammates)
-   → Keep review batches small (&lt;400 lines)
-   → Pair-review for complex changes</pre>
-<div class="key-point">Good code reviews improve code quality AND team capability. Focus on teaching, not gatekeeping. If you find the same issue repeatedly, create a team guideline or ESLint rule.</div>`,
-      },
-      {
-        q: 'How do you mentor junior developers?',
-        difficulty: 'medium',
-        a: `<div class="interview-answer"><p>The goal of mentoring is to build developers who can work on their own. New developers start with pair programming and small, clearly defined tasks, and the difficulty grows as they gain confidence. Code reviews are used to teach by explaining the reason for each change, and weekly one-on-one meetings help remove blockers and set goals. When a junior is stuck, guiding questions are better than giving the answer directly, and this approach led to faster onboarding at WOWCNS.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Mục tiêu của việc mentoring là tạo ra những developer có thể tự làm việc độc lập. Các developer mới bắt đầu với pair programming và những task nhỏ, được định nghĩa rõ ràng, rồi độ khó tăng dần khi họ tự tin hơn. Code review được dùng để dạy bằng cách giải thích lý do đằng sau mỗi thay đổi, còn các buổi one-on-one hàng tuần giúp gỡ vướng mắc và đặt mục tiêu. Khi một bạn junior bị bí, việc đặt câu hỏi gợi mở sẽ tốt hơn là đưa ra đáp án ngay, và cách làm này đã giúp quá trình onboarding tại WOWCNS nhanh hơn.</p></details>
-<p>From your CV: "Mentored junior developers and resolved complex technical issues."</p>
-<pre>Mentoring strategies I use:
-
-1. STRUCTURED ONBOARDING
-   → Pair programming for the first week
-   → Assign small, well-defined tasks with clear acceptance criteria
-   → Gradually increase complexity
-
-2. CODE REVIEWS AS TEACHING
-   → Explain WHY, not just WHAT to change
-   → Share relevant documentation/articles
-   → Show patterns they'll reuse
-
-3. TECHNICAL GROWTH
-   → Weekly 1:1 to discuss blockers and goals
-   → Assign stretch tasks just beyond their comfort zone
-   → Let them present solutions in team meetings
-
-4. PROBLEM-SOLVING SKILLS
-   → Don't give answers immediately — guide them through debugging
-   → "What does the error message say?"
-   → "Where would you look to find the root cause?"
-   → "What have you tried so far?"
-
-5. EXAMPLE
-   At WOWCNS, I led 4 junior developers:
-   → Established coding standards and review process
-   → Created reusable templates for common patterns
-   → Result: team productivity increased, faster onboarding</pre>
-<div class="key-point">The best mentoring creates independent developers. Teach them HOW to solve problems, not just the solutions. If they always need you, you haven't mentored — you've created dependency.</div>`,
-      },
-      {
-        q: 'Describe a time you disagreed with a technical decision. How did you handle it?',
-        difficulty: 'hard',
-        a: `<div class="interview-answer"><p>This answer uses the <strong>STAR</strong> method to show calm conflict resolution. On the CARIS project there was a debate about using Redux or Zustand for state management, and most of the team knew Redux. Instead of arguing, a small proof-of-concept was built in both and compared on bundle size, boilerplate, learning curve, and performance. Concrete numbers showed Zustand reduced state code by about forty percent, and the Redux DevTools concern was solved with middleware. The team chose Zustand, and the key was letting the proof-of-concept make the case rather than personal opinion.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Câu trả lời này sử dụng phương pháp <strong>STAR</strong> để thể hiện việc giải quyết mâu thuẫn một cách bình tĩnh. Trong dự án CARIS đã có một cuộc tranh luận về việc dùng Redux hay Zustand để quản lý state, và phần lớn cả nhóm đều đã quen với Redux. Thay vì tranh cãi, một proof-of-concept nhỏ được xây dựng bằng cả hai và đem so sánh về kích thước bundle, lượng boilerplate, độ khó khi học và hiệu năng. Những con số cụ thể cho thấy Zustand giảm khoảng bốn mươi phần trăm lượng code quản lý state, còn mối lo về Redux DevTools thì được giải quyết bằng middleware. Cả nhóm đã chọn Zustand, và điều mấu chốt là để proof-of-concept tự chứng minh thay vì dựa vào ý kiến cá nhân.</p></details>
-<p>Use the <strong>STAR method</strong> and show professional conflict resolution.</p>
-<pre>Example structure:
-
-Situation: "During the CARIS migration, there was a debate about 
-whether to use Redux or Zustand for state management."
-
-Task: "I needed to present a case for the better option 
-while respecting the team's familiarity with Redux."
+Task: "I believed this risked a production incident in our
+  billing flow, and as senior dev I had to raise it."
 
 Action:
-- "I created a small proof-of-concept with both libraries"
-- "Compared: bundle size, boilerplate, learning curve, performance"
-- "Presented findings to the team with concrete code examples"
-- "Highlighted that Zustand would reduce our code by ~40%"
-- "Listened to concerns about Redux DevTools (solved with middleware)"
+  → Raised it privately with the lead first, with data:
+    "the last two incidents came from exactly this path"
+  → Proposed a middle ground: cover only the 3 critical
+    paths — one extra day instead of five
+  → Accepted the final call and helped execute it
 
-Result: "The team agreed on Zustand. Onboarding was faster than 
-expected, and we reduced state management code significantly. 
-The key was letting the POC speak for itself rather than arguing."</pre>
-<div class="key-point">Show: data-driven decision making, willingness to listen, focusing on team success over personal preferences. Never say "I was right and they were wrong."</div>`,
+Result: "We shipped one day later with the critical tests.
+  A bug those tests caught would have hit every invoice."
+  (Or: "They decided to ship without tests; I committed to
+  the decision and we added tests right after — and I learned
+  the deadline mattered more than I'd estimated.")</pre>
+<div class="key-point">The skill being tested is not "being right" — it's disagreeing professionally: early, private, evidence-based, with an alternative, followed by full commitment to the final decision. "Disagree and commit" is the phrase to embody.</div>`,
       },
       {
-        q: 'How do you handle working in an Agile/Scrum team?',
-        difficulty: 'easy',
-        a: `<div class="interview-answer"><p>This answer shows comfort with the full Scrum cycle, treated as a tool for adaptability rather than ceremony. Standups stay short, and sprint planning includes breaking stories into tasks, estimating with story points, and flagging technical risk early. As a deputy team lead, the work also includes facilitating ceremonies, protecting the team from interruptions, tracking velocity, and handling cross-team dependencies. Reviews and retrospectives add the most value by gathering feedback and turning it into action items for continuous improvement.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Câu trả lời này cho thấy sự thoải mái với toàn bộ chu trình Scrum, xem nó như một công cụ để thích ứng chứ không phải chỉ là các nghi thức hình thức. Standup được giữ ngắn gọn, còn sprint planning thì bao gồm việc chia nhỏ story thành task, ước lượng bằng story point, và nhận diện sớm các rủi ro kỹ thuật. Với vai trò deputy team lead, công việc còn bao gồm điều phối các buổi họp, bảo vệ nhóm khỏi bị gián đoạn, theo dõi velocity, và xử lý các phụ thuộc giữa các nhóm. Sprint review và retrospective mang lại giá trị nhiều nhất nhờ việc thu thập phản hồi và biến chúng thành các action item để cải tiến liên tục.</p></details>
-<p>From your CV: "Experienced in Agile environments" and "Supported sprint planning, task coordination."</p>
-<pre>My Agile experience:
+        q: 'Tell me about a time you failed or made a serious mistake. What did you learn?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>Pick a real failure with real stakes — not a disguised success. Own it in the first sentence without blaming others, then spend most of the answer on the response: how you detected it, contained the damage, communicated honestly, and fixed the root cause. End with the systemic change that prevents repeats — a process, a check, a habit — and if possible, evidence it worked. Interviewers ask this to check honesty, accountability, and whether failures make you better.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Hãy chọn một thất bại có thật với hậu quả thật — không phải một thành công được ngụy trang. Nhận trách nhiệm ngay trong câu đầu tiên mà không đổ lỗi cho người khác, rồi dành phần lớn câu trả lời cho cách xử lý: bạn phát hiện ra sao, khoanh vùng thiệt hại thế nào, giao tiếp trung thực ra sao, và sửa nguyên nhân gốc như thế nào. Kết thúc bằng thay đổi mang tính hệ thống giúp ngăn lặp lại — một quy trình, một bước kiểm tra, một thói quen — và nếu được, kèm bằng chứng nó hiệu quả. Người phỏng vấn hỏi câu này để kiểm tra sự trung thực, tinh thần trách nhiệm, và liệu thất bại có giúp bạn giỏi lên không.</p></details>
+<pre>Structure: Own it → Impact → Response → Systemic fix
 
-DAILY STANDUPS
-→ What I did yesterday, what I'll do today, blockers
-→ Keep it under 2 minutes per person
+Example:
+  "I once ran a data update script against production
+   thinking it was staging. It corrupted part of a table."     (own it)
 
-SPRINT PLANNING
-→ Help break user stories into tasks
-→ Estimate using story points (Fibonacci)
-→ Identify technical risks early
+  "About 2,000 records were affected before I noticed."        (impact)
 
-SPRINT REVIEW / DEMO
-→ Demo completed features to stakeholders
-→ Gather feedback for next sprint
+  "I immediately told my lead — before trying to quietly fix
+   it — we restored from backup within the hour, and I
+   personally verified every affected record."                 (response)
 
-RETROSPECTIVE
-→ What went well, what to improve
-→ Action items for next sprint
+  "Then I changed the system, not just my behavior: separate
+   credentials per environment, destructive scripts require
+   a --env flag and a dry-run first. The team adopted it and
+   that class of mistake hasn't happened since."               (fix)
 
-As Deputy Team Lead:
-→ Facilitate ceremonies when needed
-→ Shield team from external interruptions during sprint
-→ Track velocity and identify capacity issues
-→ Coordinate with other teams for cross-team dependencies</pre>
-<div class="key-point">Show that you understand Agile is about adaptability and continuous improvement, not just ceremonies. Mention concrete examples of how Agile helped your team deliver better.</div>`,
+Red flags to avoid:
+  ✗ "My biggest failure is trusting people too much."
+  ✗ A story where it was really someone else's fault
+  ✗ No systemic change — only "I'm more careful now"</pre>
+<div class="key-point">Report first, fix second, systematize third. "I told my lead immediately" is a stronger senior signal than a story with no mistake at all — hiding problems is the one thing that is unforgivable in senior roles.</div>`,
       },
       {
-        q: 'How do you prioritize tasks when you have multiple urgent requests?',
+        q: 'Tell me about a time you influenced a decision without having authority.',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>This question targets a core senior skill: changing outcomes through credibility, evidence, and relationships instead of position. A strong story shows you understood the decision-maker's priorities, translated your proposal into their language (risk, cost, time — not elegance), built a small proof instead of a long argument, and recruited allies before the meeting rather than fighting in it. The result should be a changed decision and, ideally, a lasting improvement.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Câu hỏi này nhắm vào một kỹ năng cốt lõi của senior: thay đổi kết quả bằng uy tín, bằng chứng và các mối quan hệ thay vì chức vụ. Một câu chuyện mạnh sẽ cho thấy bạn hiểu các ưu tiên của người ra quyết định, diễn đạt đề xuất của mình bằng ngôn ngữ của họ (rủi ro, chi phí, thời gian — chứ không phải sự thanh thoát của code), xây một bản chứng minh nhỏ thay vì tranh luận dài dòng, và tìm đồng minh trước cuộc họp thay vì đấu tay đôi trong đó. Kết quả nên là một quyết định được thay đổi, và lý tưởng hơn, một cải thiện lâu dài.</p></details>
+<pre>Influence toolkit (what the story should show):
+
+1. SPEAK THEIR LANGUAGE
+   → To a PM: ship risk, delay cost. To a manager: team
+     velocity, incident count. Not "cleaner code".
+
+2. PROOF OVER ARGUMENT
+   → A 1-day prototype or a benchmark beats a 1-hour debate
+   → "I built a small demo showing the approach cut load
+      time from 4s to 400ms — the demo made the decision."
+
+3. ALLIES BEFORE THE MEETING
+   → Walk key people through it 1:1 first; enter the meeting
+     with support, not an ambush
+
+4. MAKE IT CHEAP TO SAY YES
+   → Propose a pilot, a timebox, a reversible first step
+   → "Let's try it on one module for one sprint."</pre>
+<div class="key-point">Influence without authority = credibility × evidence × empathy for the decision-maker's constraints. The worst version of this story is "I was right and kept repeating it louder." The best version is "I made it easy and safe for them to choose the better option."</div>`,
+      },
+      {
+        q: 'What is your biggest professional achievement?',
         difficulty: 'medium',
-        a: `<div class="interview-answer"><p>Tasks are prioritized using an urgency-versus-importance matrix. Work that is both urgent and important, such as a production bug, is done first; important but not urgent work is scheduled; and small requests are delegated or dropped. Clear communication is just as important, telling stakeholders what is being done and what is deferred, and negotiating deadlines when needed. Large tasks are split so they can deliver value in steps, and a real example shows a bug, a deadline, and a review request handled in a sensible order.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Các task được ưu tiên bằng ma trận mức độ khẩn cấp và mức độ quan trọng. Việc vừa khẩn cấp vừa quan trọng, chẳng hạn một bug trên production, sẽ được làm trước; việc quan trọng nhưng chưa khẩn cấp thì được lên lịch; còn những yêu cầu nhỏ thì được giao lại cho người khác hoặc bỏ qua. Giao tiếp rõ ràng cũng quan trọng không kém, tức là cho các bên liên quan biết bạn đang làm gì và việc gì đang được hoãn lại, đồng thời thương lượng lại deadline khi cần. Những task lớn được chia nhỏ để có thể tạo ra giá trị theo từng bước, và một ví dụ thực tế cho thấy một bug, một deadline và một yêu cầu review được xử lý theo một thứ tự hợp lý.</p></details>
-<pre>My prioritization framework:
+        a: `<div class="interview-answer"><p>Choose an achievement that matches the role you are applying for, tell it as a short STAR story, and quantify the result. For a senior/lead role, the strongest achievements show ownership end-to-end plus impact beyond yourself: a system you led to production, a migration with zero downtime, a team or person you grew, a process that outlived you. Be precise about your personal contribution versus the team's — inflating "we" into "I" is a common red flag interviewers probe.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Hãy chọn một thành tựu phù hợp với vị trí bạn đang ứng tuyển, kể nó như một câu chuyện STAR ngắn gọn, và định lượng kết quả. Với vị trí senior/lead, những thành tựu mạnh nhất thể hiện sự làm chủ từ đầu đến cuối cùng tác động vượt ra ngoài bản thân: một hệ thống bạn dẫn dắt đến production, một cuộc migration không downtime, một người hay một nhóm bạn giúp trưởng thành, một quy trình còn tồn tại sau khi bạn rời đi. Hãy chính xác về đóng góp cá nhân so với của cả nhóm — thổi phồng "chúng tôi" thành "tôi" là một dấu hiệu đỏ phổ biến mà người phỏng vấn sẽ đào sâu.</p></details>
+<pre>Picking the right story:
 
-1. URGENCY vs IMPORTANCE MATRIX (Eisenhower)
-   ┌─────────────────┬─────────────────┐
-   │  URGENT +       │  NOT URGENT +   │
-   │  IMPORTANT      │  IMPORTANT      │
-   │  → Do now       │  → Schedule     │
-   │  (production    │  (architecture  │
-   │   bugs)         │   improvements) │
-   ├─────────────────┼─────────────────┤
-   │  URGENT +       │  NOT URGENT +   │
-   │  NOT IMPORTANT  │  NOT IMPORTANT  │
-   │  → Delegate     │  → Eliminate    │
-   │  (minor UI fix) │  (nice-to-have) │
-   └─────────────────┴─────────────────┘
+  Applying for lead role   → achievement about people/process
+  Applying for senior IC   → achievement about system/impact
 
-2. COMMUNICATE
-   → Tell stakeholders what you're working on and what's deferred
-   → "I can do A today and B tomorrow. Is that acceptable?"
+Quantify everything you can:
+  → scale:   users, requests/day, tables, team size
+  → impact:  time saved, incidents prevented, % faster
+  → scope:   "sole developer", "led 4 people", "6 months"
 
-3. BREAK IT DOWN
-   → If a task is too big, split it
-   → Deliver incremental value
+Example shape:
+  "The achievement I'm proudest of is leading a legacy system
+   migration while it stayed in production — zero downtime,
+   zero data loss, module by module over 8 months. My specific
+   role was the architecture and the migration tooling; the
+   team of 5 executed the modules. It's now the template other
+   teams in the company follow."</pre>
+<div class="key-point">Formula: context + your specific role + measurable result + lasting effect. "It became the template others follow" or "the process survived after I left" elevates a good story into a leadership story.</div>`,
+      },
 
-Real example: During a sprint, production bug + feature deadline + 
-code review request all came at once.
-→ Fixed production bug first (urgent + important)
-→ Reviewed PR during waiting time (quick, unblocks teammate)
-→ Negotiated feature deadline extension with PM</pre>
-<div class="key-point">Show that you communicate proactively, negotiate deadlines when needed, and make transparent decisions about priorities.</div>`,
+      // ──── 4. WORKING UNDER CONSTRAINTS ────
+      {
+        q: 'How do you prioritize when everything is urgent?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>When everything is labeled urgent, the first job is to make the real priorities visible. Triage by impact and deadline: production incidents affecting users come first, then revenue- or deadline-critical work, then everything else by value versus effort. Crucially, do not prioritize silently — go back to stakeholders with the full list and say "I can do A today or B today, not both; which one hurts more to delay?" Making the trade-off explicit and letting the owner choose turns conflict into a shared decision.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Khi mọi thứ đều bị gắn nhãn khẩn cấp, việc đầu tiên là làm cho các ưu tiên thật sự trở nên rõ ràng. Hãy phân loại theo tác động và deadline: sự cố production ảnh hưởng người dùng đứng đầu, rồi đến công việc gắn với doanh thu hoặc deadline quan trọng, sau đó là phần còn lại theo tỷ lệ giá trị trên công sức. Quan trọng nhất, đừng tự ưu tiên trong im lặng — hãy quay lại với các bên liên quan cùng danh sách đầy đủ và nói "tôi có thể làm A hôm nay hoặc B hôm nay, không thể cả hai; trì hoãn cái nào thì đau hơn?" Việc nêu rõ sự đánh đổi và để người chịu trách nhiệm lựa chọn sẽ biến xung đột thành một quyết định chung.</p></details>
+<pre>Triage order:
+
+  1. Production down / users blocked      → now
+  2. Hard external deadline (legal,
+     customer commitment, release)        → today
+  3. Unblocks other people                → before solo work
+  4. High value / low effort              → next
+  5. Everything else                      → scheduled, not lost
+
+The key move — make trade-offs explicit:
+  ✗ Silently work overtime on everything
+  ✗ Silently drop something and hope nobody notices
+  ✓ "Here's the list. I can deliver A by Friday OR B by
+     Friday. A affects 10 users, B blocks the release.
+     I suggest B — do you agree?"</pre>
+<div class="key-point">Seniority here means refusing to pretend everything fits. The answer interviewers want: triage by impact, communicate the conflict early, propose a trade-off, and let the stakeholder own the choice — never silent heroics or silent drops.</div>`,
       },
       {
-        q: 'How comfortable are you working in English with international teams?',
-        difficulty: 'easy',
-        a: `<div class="interview-answer"><p>This answer shows a professional working level of English used every day with international teams. Examples include running standups, writing documentation and code review comments, and doing Slack and email in English, plus reading English technical documents. Technical discussion is natural, and for very detailed business topics a moment is taken to stay precise. Asking for clarification when something is unclear is presented as good communication, not a weakness.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Câu trả lời này cho thấy trình độ tiếng Anh ở mức làm việc chuyên nghiệp, được dùng hàng ngày với các nhóm quốc tế. Các ví dụ bao gồm điều hành standup, viết tài liệu và nhận xét code review, trao đổi qua Slack và email bằng tiếng Anh, cùng với việc đọc tài liệu kỹ thuật tiếng Anh. Việc thảo luận kỹ thuật diễn ra tự nhiên, còn với những chủ đề nghiệp vụ rất chi tiết thì bạn dành một chút thời gian để diễn đạt cho chính xác. Việc hỏi lại cho rõ khi có điều gì chưa hiểu được xem là giao tiếp tốt, chứ không phải là điểm yếu.</p></details>
-<p>From your CV: "Professional Working Proficiency (Intermediate–Upper Intermediate). Comfortable working and communicating in English with international teams."</p>
-<pre>Demonstrate during the interview:
-→ The fact that you're interviewing in English IS the proof
-→ Mention specific examples:
-  - Daily standups in English
-  - Written documentation and code reviews in English
-  - Email/Slack communication with international colleagues
-  - Reading English technical documentation
-  - This interview itself!
+        q: 'How do you handle tight deadlines and pressure?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>Pressure is managed with scope and communication, not heroics. When a deadline looks unrealistic, say so early with evidence, then negotiate the variables: cut scope to a smaller version that still delivers the core value, add help where it genuinely helps, or move the date. Protect quality on the critical path — skipping tests on the billing flow to save two days is a trade that fails later. Keep stakeholders updated so there are no surprises, and after the crunch, hold a retro so the same crisis does not repeat.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Áp lực được quản lý bằng phạm vi công việc và giao tiếp, chứ không phải sự gồng mình anh hùng. Khi một deadline có vẻ bất khả thi, hãy nói ra sớm kèm bằng chứng, rồi đàm phán các biến số: cắt phạm vi xuống một phiên bản nhỏ hơn nhưng vẫn mang lại giá trị cốt lõi, thêm người ở chỗ thật sự hữu ích, hoặc dời ngày. Hãy bảo vệ chất lượng trên đường găng — bỏ test ở luồng thanh toán để tiết kiệm hai ngày là một đánh đổi sẽ thất bại về sau. Cập nhật thường xuyên cho các bên liên quan để không có bất ngờ, và sau đợt cao điểm, hãy tổ chức retro để cùng một khủng hoảng không lặp lại.</p></details>
+<pre>Deadline negotiation — the variables:
 
-If asked about challenges:
-→ Be honest: "Technical discussions in English are natural for me. 
-   I sometimes need a moment for very nuanced business discussions, 
-   but I always ensure clear communication."</pre>
-<div class="key-point">Don't just say "my English is good." Show it through the quality of your responses during the interview. If you don't understand a question, ask for clarification — that's professional communication.</div>`,
+  Scope    → "The full feature needs 3 weeks. A version with
+              the 2 core flows ships in 1 week. Start there?"
+  People   → add help only where parallelizable
+  Time     → move the date, with the cost stated
+  Quality  → the variable you DON'T cut on critical paths
+
+Under pressure, in order:
+  1. Re-confirm what "must have" really means
+  2. Raise the risk early — bad news doesn't improve with age
+  3. Cut scope transparently, never quality silently
+  4. Shield the team: one prioritized list, no panic swirl
+  5. Afterwards: retro — why were we surprised?</pre>
+<div class="key-point">The phrase that shows seniority: "I give bad news early, when there are still options — not at the deadline, when there are none." Silent overtime that barely saves a date teaches the organization to repeat the mistake.</div>`,
       },
-
-      // ──── 5. CLOSING — EXPECTATIONS & YOUR QUESTIONS ────
       {
-        q: 'Where do you see yourself in 3-5 years?',
-        difficulty: 'easy',
-        a: `<div class="interview-answer"><p>This answer shows ambition on two tracks over three to five years. On the technical side, the goal is deeper system architecture and cloud-native patterns such as Kubernetes and service mesh, while staying hands-on with code. On the leadership side, the goal is to grow from team lead toward a technical lead or architect role, setting technical strategy and building strong teams. The message is a wish for bigger technical and team impact, aligned with the company's own growth.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Câu trả lời này thể hiện tham vọng theo hai hướng trong vòng ba đến năm năm. Về mặt kỹ thuật, mục tiêu là đi sâu hơn vào kiến trúc hệ thống và các mẫu cloud-native như Kubernetes và service mesh, trong khi vẫn trực tiếp làm việc với code. Về mặt lãnh đạo, mục tiêu là phát triển từ team lead lên vai trò technical lead hoặc architect, định hình chiến lược kỹ thuật và xây dựng những đội ngũ mạnh. Thông điệp ở đây là mong muốn tạo ra tầm ảnh hưởng lớn hơn về kỹ thuật lẫn con người, gắn liền với chính sự phát triển của công ty.</p></details>
-<pre>Good structure:
+        q: 'How do you make decisions when you don’t have enough information?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>First classify the decision: if it is reversible, decide fast with the information you have, because the cost of delay exceeds the cost of a wrong-but-correctable choice. If it is hard to reverse — a database choice, a public API contract — invest in cheap information first: a timeboxed spike, a prototype, advice from someone who has done it. When you must choose under uncertainty, prefer the option that keeps the most doors open, state your assumptions explicitly, and define in advance what signal would make you revisit the decision.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Trước hết hãy phân loại quyết định: nếu nó có thể đảo ngược, hãy quyết nhanh với thông tin đang có, vì cái giá của sự chậm trễ lớn hơn cái giá của một lựa chọn sai nhưng sửa được. Nếu nó khó đảo ngược — chọn cơ sở dữ liệu, một hợp đồng API công khai — hãy đầu tư trước vào thông tin giá rẻ: một bản spike có giới hạn thời gian, một prototype, lời khuyên từ người đã từng làm. Khi buộc phải chọn trong sự không chắc chắn, hãy ưu tiên phương án giữ lại nhiều cánh cửa nhất, nêu rõ các giả định của bạn, và định nghĩa trước tín hiệu nào sẽ khiến bạn xem xét lại quyết định.</p></details>
+<pre>Decision framework:
 
-"In the next 3-5 years, I want to grow in two directions:
+1. CLASSIFY: one-way or two-way door?
+   → Two-way (reversible): decide today, adjust later
+   → One-way (DB choice, public API, data model):
+     slow down, buy information
 
-TECHNICAL:
-→ Deepen my expertise in system architecture and design
-→ Learn more about cloud-native patterns (Kubernetes, service mesh)
-→ Contribute to architectural decisions at a higher level
-→ Stay hands-on with coding while mentoring teams
+2. BUY CHEAP INFORMATION
+   → Timebox a spike: "2 days to prototype both options"
+   → Ask someone who has operated this in production
 
-LEADERSHIP:
-→ Grow from team lead to technical lead / architect role
-→ Define tech strategy and best practices for engineering teams
-→ Build and mentor high-performing teams
+3. DECIDE WITH GUARDRAILS
+   → Prefer the option that's easiest to change later
+   → Write down assumptions: "This holds if traffic stays
+     under 10x current"
+   → Set a revisit trigger: "If p99 latency exceeds 500ms,
+     we re-evaluate"
 
-I see this role as a great next step because [specific reason 
-related to the company/role]."</pre>
-<div class="key-point">Show ambition aligned with the company's growth. Don't say "I want your manager's job" — say "I want to grow into a role where I can have a bigger technical and team impact."</div>`,
+4. COMMUNICATE THE UNCERTAINTY
+   → "We're choosing X based on A and B; the risk is C;
+      here's how we'll detect if we were wrong."</pre>
+<div class="key-point">The senior failure mode is treating every decision the same: agonizing over reversible ones (analysis paralysis) or rushing irreversible ones. Name the type first — "this is a two-way door, let's just try it" is a sentence that marks experience.</div>`,
       },
+      {
+        q: 'A stakeholder demands a feature by a deadline you know is unrealistic. How do you say no?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>Never a flat "no" and never a silent "yes" that fails later — both destroy trust. Acknowledge the goal behind the request, show your estimate with enough detail to be credible, and then offer real options: a reduced scope that fits the date, the full scope with a realistic date, or what else in the current plan would have to drop. Let the stakeholder choose among honest trade-offs. If they insist on the impossible, escalate transparently with the risks in writing rather than quietly accepting failure.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Đừng bao giờ nói "không" thẳng thừng và cũng đừng im lặng nhận "có" để rồi thất bại sau đó — cả hai đều phá hủy lòng tin. Hãy ghi nhận mục tiêu đằng sau yêu cầu, trình bày ước lượng của bạn đủ chi tiết để đáng tin, rồi đưa ra các lựa chọn thực tế: một phạm vi rút gọn vừa với ngày hẹn, phạm vi đầy đủ với một ngày thực tế, hoặc việc gì trong kế hoạch hiện tại sẽ phải bỏ ra. Hãy để stakeholder lựa chọn giữa những đánh đổi trung thực. Nếu họ vẫn khăng khăng đòi điều bất khả thi, hãy báo cáo lên cấp trên một cách minh bạch kèm các rủi ro bằng văn bản, thay vì âm thầm chấp nhận thất bại.</p></details>
+<pre>The "no with options" script:
+
+1. ACKNOWLEDGE THE GOAL
+   "I understand this demo matters for the client renewal."
+
+2. SHOW THE MATH (credibility)
+   "The full feature is ~15 days: 6 backend, 5 frontend,
+    4 testing — here's the breakdown."
+
+3. OFFER REAL OPTIONS
+   a) "Core flow only, by your date — the rest ships 2
+       weeks later"
+   b) "Everything, 2 weeks after your date"
+   c) "Your date and full scope — if we pause project X;
+       that's your call, not mine"
+
+4. IF THEY INSIST ON THE IMPOSSIBLE
+   → Put the risk in writing, escalate openly:
+     "I'll do my best, and I need you to know the risks
+      I've listed — this isn't a surprise later."</pre>
+<div class="key-point">You're not saying no to the person — you're showing them the real trade-offs and letting them own the choice. The unforgivable version is agreeing while knowing it will fail: that converts their problem into your broken promise.</div>`,
+      },
+
+      // ──── 5. COMMUNICATION ────
+      {
+        q: 'How do you explain complex technical topics to non-technical stakeholders?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>Start from what they care about — money, time, risk, users — and work backward to the technology, never the other way around. Lead with the conclusion ("we need two weeks to fix this or we risk losing orders"), then give detail only as requested. Use analogies anchored in their world, show rather than tell when possible, and drop all jargon: "technical debt" becomes "shortcuts we took that now slow every new feature". Check understanding by inviting questions, and close with the decision you need from them.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Hãy bắt đầu từ điều họ quan tâm — tiền bạc, thời gian, rủi ro, người dùng — rồi đi ngược về phía công nghệ, đừng bao giờ làm theo chiều ngược lại. Mở đầu bằng kết luận ("chúng ta cần hai tuần để sửa việc này, nếu không có nguy cơ mất đơn hàng"), rồi mới đưa chi tiết khi được hỏi. Dùng phép so sánh gắn với thế giới của họ, trình diễn thay vì diễn giải khi có thể, và loại bỏ mọi thuật ngữ: "nợ kỹ thuật" trở thành "những lối tắt chúng ta đã đi mà giờ đang làm chậm mọi tính năng mới". Kiểm tra mức độ hiểu bằng cách mời họ đặt câu hỏi, và kết thúc bằng quyết định bạn cần từ họ.</p></details>
+<pre>Translation table:
+
+  Tech-speak                 → Stakeholder-speak
+  ─────────────────────────────────────────────────────
+  "Refactor the module"      → "Rebuild the slow part so
+                                new features ship faster"
+  "Technical debt"           → "Shortcuts that now cost us
+                                2 extra days per feature"
+  "Scalability issue"        → "At 2x users, the system
+                                becomes too slow to use"
+  "p99 latency regression"   → "1 in 100 customers waits
+                                over 5 seconds"
+
+Structure for any stakeholder update:
+  1. Conclusion first ("bottom line up front")
+  2. What it means for THEM (cost / time / risk)
+  3. Options with trade-offs
+  4. The decision you need, by when</pre>
+<div class="key-point">The test of a senior communicator: the stakeholder can correctly repeat your point to their own boss. If they can't, you explained technology instead of impact. Conclusion first, their language, decision needed — every time.</div>`,
+      },
+      {
+        q: 'How do you give and receive feedback?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>Give feedback that is specific, timely, and about behavior rather than personality — the SBI model (Situation, Behavior, Impact) keeps it factual: "in yesterday's review (S), the comment 'this is wrong' without explanation (B) left the junior not knowing what to fix (I)". Praise publicly and promptly; correct privately and soon. When receiving feedback, listen without defending, ask clarifying questions, thank the person, and then visibly act on it — people only keep giving feedback to those who do something with it.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Hãy đưa phản hồi cụ thể, kịp thời, và nhắm vào hành vi thay vì tính cách — mô hình SBI (Situation, Behavior, Impact) giữ cho nó dựa trên sự kiện: "trong buổi review hôm qua (S), lời nhận xét 'sai rồi' mà không giải thích (B) khiến bạn junior không biết phải sửa gì (I)". Khen công khai và kịp thời; góp ý riêng tư và sớm. Khi nhận phản hồi, hãy lắng nghe mà không phòng thủ, đặt câu hỏi làm rõ, cảm ơn người góp ý, rồi hành động một cách rõ ràng — người ta chỉ tiếp tục góp ý cho những ai thật sự làm gì đó với phản hồi nhận được.</p></details>
+<pre>Giving — the SBI model:
+  Situation: "In Monday's planning meeting..."
+  Behavior:  "...you interrupted the QA twice mid-sentence..."
+  Impact:    "...and she stopped raising concerns. We may
+              have missed test risks because of it."
+  (Then ask: "How did you see it?")
+
+  ✓ Specific, recent, behavioral, private
+  ✗ "You're always dismissive" (vague, personal, 'always')
+
+Receiving:
+  1. Listen fully — don't build your defense while they talk
+  2. Ask for specifics: "Can you give me an example?"
+  3. Thank them — even when it stings
+  4. Act visibly, and follow up: "I changed X — is it better?"</pre>
+<div class="key-point">The senior signal on receiving: "I actively ask for feedback, and I make it safe to give — if someone tells me something uncomfortable and I react badly, that's the last honest feedback I'll ever get from them."</div>`,
+      },
+      {
+        q: 'How do you keep your manager and stakeholders informed? (status, risks, bad news)',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>The principle is "no surprises": a manager should never first learn about a problem when it is already a crisis. Report status in terms of outcomes and risks, not activity — "on track for Friday, one risk: the vendor API is unstable, mitigation in progress" beats a list of tasks done. Deliver bad news early, with your plan attached: what happened, impact, what you are doing, what you need. Adapt the channel to the audience: short async updates for routine, a direct conversation for anything painful.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Nguyên tắc là "không có bất ngờ": người quản lý không bao giờ nên biết về một vấn đề lần đầu tiên khi nó đã thành khủng hoảng. Hãy báo cáo tình trạng theo kết quả và rủi ro, chứ không phải theo hoạt động — "đúng tiến độ cho thứ Sáu, một rủi ro: API của vendor không ổn định, đang xử lý giảm thiểu" tốt hơn một danh sách các task đã làm. Hãy đưa tin xấu sớm, kèm theo kế hoạch của bạn: chuyện gì đã xảy ra, tác động, bạn đang làm gì, bạn cần gì. Điều chỉnh kênh liên lạc theo đối tượng: cập nhật ngắn gọn bất đồng bộ cho việc thường ngày, trao đổi trực tiếp cho bất cứ điều gì khó nói.</p></details>
+<pre>Status update template (30 seconds to read):
+
+  ✅ On track / ⚠ At risk / 🔴 Blocked
+  → Done since last update: (outcomes, not tasks)
+  → Next: (what ships next)
+  → Risks: (what could go wrong + mitigation)
+  → Need from you: (decision / access / nothing)
+
+Bad news protocol:
+  1. Early — as soon as the risk is real, not at the deadline
+  2. Direct channel — a call or face-to-face, not buried
+     in a ticket
+  3. With a plan — "here's the impact, here's what I'm
+     doing, here's what I need"
+  4. Follow up in writing so there's a record</pre>
+<div class="key-point">"Bad news early is a gift; bad news late is a betrayal." Managers can help with a risk; they can only do damage control with a surprise. Being trusted with bad news is what gets you trusted with bigger scope.</div>`,
+      },
+
+      // ──── 6. CLOSING TOPICS ────
       {
         q: 'What are your salary expectations?',
         difficulty: 'tricky',
-        a: `<div class="interview-answer"><p>Salary is treated as a negotiation that needs preparation and flexibility. The market range for a senior fullstack role in the local area should be researched in advance. If the question comes too early, it is better to ask about the budget for the role first, and when pressed, to give a researched range based on experience and skills. The total package, including growth, learning, and benefits, matters, and the strongest negotiating position comes after the company has decided it wants the candidate.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Lương được xem như một cuộc thương lượng cần sự chuẩn bị và linh hoạt. Nên tìm hiểu trước khoảng lương thị trường cho một vị trí senior fullstack tại khu vực của bạn. Nếu câu hỏi đến quá sớm, tốt hơn là nên hỏi về ngân sách cho vị trí đó trước, và khi bị hỏi dồn thì đưa ra một khoảng lương đã tìm hiểu dựa trên kinh nghiệm và kỹ năng. Tổng thể gói đãi ngộ, bao gồm cơ hội phát triển, học hỏi và các phúc lợi, đều quan trọng, và vị thế thương lượng mạnh nhất là sau khi công ty đã quyết định họ muốn tuyển bạn.</p></details>
-<p>This is a negotiation question. Be prepared but flexible.</p>
-<pre>Strategies:
+        a: `<div class="interview-answer"><p>Come prepared with market research for your role, level, and location, and answer with a range whose bottom you would genuinely accept. If possible, let them state their budget first ("could you share the range for this role?"), since anchoring against their number is stronger. Frame the figure around value, not need, and mention that the total package matters — bonus, remote policy, growth, learning budget. Never lie about your current salary, and never accept pressure to decide on the spot.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Hãy chuẩn bị trước bằng việc khảo sát thị trường cho vai trò, cấp bậc và khu vực của bạn, và trả lời bằng một khoảng lương mà mức thấp nhất bạn thật sự chấp nhận được. Nếu có thể, hãy để họ nói ngân sách trước ("anh/chị có thể chia sẻ khoảng lương cho vị trí này không?"), vì việc đàm phán dựa trên con số của họ sẽ có lợi hơn. Hãy đóng khung con số quanh giá trị bạn mang lại, không phải nhu cầu của bạn, và đề cập rằng tổng đãi ngộ cũng quan trọng — thưởng, chính sách remote, cơ hội phát triển, ngân sách học tập. Đừng bao giờ nói dối về mức lương hiện tại, và đừng chấp nhận áp lực phải quyết định ngay tại chỗ.</p></details>
+<pre>Playbook:
 
 1. RESEARCH FIRST
-   → Know the market range for your role/location
-   → Senior Fullstack Developer in HCMC: research current ranges
-   → Websites: Glassdoor, TopCV, LinkedIn salary insights
+   → Market range for this role + level + city
+     (salary reports, peers, recruiters)
 
-2. DEFLECT EARLY (if asked too soon)
-   → "I'd like to understand the full role and responsibilities first.
-      What's the budget range for this position?"
+2. TRY TO LET THEM ANCHOR
+   → "I'm flexible for the right role — could you share
+      the budgeted range?"
 
-3. GIVE A RANGE (when pressed)
-   → "Based on my 7 years of experience, leadership skills, and
-      expertise in both Java and React/Next.js, I'm looking for
-      [range]. But I'm flexible depending on the total package
-      — benefits, learning opportunities, and career growth
-      are also important to me."
+3. IF YOU MUST GO FIRST — GIVE A RANGE
+   → "Based on my research and experience, I'm looking at
+      X–Y. The full package matters too: growth path,
+      remote policy, bonus."
+   → Your bottom number = one you'd actually sign
 
-4. TOTAL COMPENSATION
-   → Don't just look at base salary
-   → Consider: bonus, equity, insurance, remote policy,
-      learning budget, vacation days, hardware</pre>
-<div class="key-point">Never give the first number if you can avoid it. Let the company share their range. Your leverage increases after they decide they want you — negotiate after receiving an offer, not during the interview.</div>`,
+4. FRAME AS VALUE
+   → "Given that I can own architecture and mentor the
+      team from day one, I believe X–Y is fair."
+
+Don't:
+  ✗ Apologize for your number
+  ✗ Lie about current salary
+  ✗ Accept on the spot — "I'd like a day to review the
+    full offer" is always acceptable</pre>
+<div class="key-point">The range trick: interviewers hear your bottom number as your expectation, so set the bottom of your range at a number you would genuinely be happy with — never a number you'd resent.</div>`,
       },
       {
         q: 'Do you have any questions for us?',
         difficulty: 'easy',
-        a: `<div class="interview-answer"><p>Asking questions at the end shows real interest and helps evaluate the company. Good questions cover the role, such as what success looks like in the first ninety days and the biggest technical challenges, and the team, such as how engineering is structured and how code review and deployment work. Growth questions ask about career development for senior engineers and whether there is a mentoring culture. Questions that are easy to answer from the website, or about salary in a first interview, should be avoided.</p></div>
-<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Việc đặt câu hỏi ở cuối buổi phỏng vấn thể hiện sự quan tâm thật sự và giúp bạn đánh giá công ty. Những câu hỏi tốt xoay quanh vị trí công việc, chẳng hạn thành công trong chín mươi ngày đầu tiên trông như thế nào và những thử thách kỹ thuật lớn nhất là gì, và xoay quanh đội ngũ, chẳng hạn bộ phận kỹ thuật được tổ chức ra sao cũng như quy trình code review và triển khai diễn ra thế nào. Các câu hỏi về phát triển thì hỏi về lộ trình thăng tiến cho kỹ sư senior và liệu công ty có văn hóa mentoring hay không. Nên tránh những câu hỏi dễ dàng tìm thấy câu trả lời trên website, hoặc hỏi về lương trong buổi phỏng vấn đầu tiên.</p></details>
-<p>ALWAYS ask questions. It shows interest and helps you evaluate the company.</p>
-<pre>Good questions to ask:
+        a: `<div class="interview-answer"><p>Always have questions — "no, everything is clear" signals low interest. Good questions do double duty: they give you real information for your decision and show what you care about. For a senior or lead role, ask about success criteria, how technical decisions are made, team health, and the biggest current challenge. Asking "what would make the person in this role successful in the first six months?" also lets you hear the real job behind the job description.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Hãy luôn có câu hỏi — trả lời "không, mọi thứ đều rõ rồi" là dấu hiệu của sự thiếu quan tâm. Những câu hỏi tốt mang lại lợi ích kép: chúng cho bạn thông tin thật để ra quyết định và đồng thời thể hiện điều bạn quan tâm. Với vị trí senior hay lead, hãy hỏi về tiêu chí thành công, cách các quyết định kỹ thuật được đưa ra, sức khỏe của nhóm, và thách thức lớn nhất hiện tại. Câu hỏi "điều gì sẽ khiến người đảm nhận vị trí này thành công trong sáu tháng đầu?" cũng giúp bạn nghe được công việc thật đằng sau bản mô tả công việc.</p></details>
+<pre>Strong questions for a senior/lead interview:
 
-ABOUT THE ROLE:
-→ "What does a typical day look like for this position?"
-→ "What are the biggest technical challenges the team faces?"
-→ "What would success look like in the first 90 days?"
+About the role:
+  → "What would success look like in the first 6 months?"
+  → "Why is this position open — growth or replacement?"
 
-ABOUT THE TEAM:
-→ "How is the engineering team structured?"
-→ "What's the code review and deployment process?"
-→ "What tech stack are you using and are there plans to evolve it?"
+About engineering culture:
+  → "How are technical decisions made — who has the final
+     say on architecture?"
+  → "What does your code review and release process look
+     like?"
+  → "How do you balance feature work vs. tech debt?"
 
-ABOUT GROWTH:
-→ "What learning and development opportunities do you offer?"
-→ "How do you support career growth for senior developers?"
-→ "Is there a mentoring culture in the team?"
+About the team:
+  → "What's the team's biggest challenge right now?"
+  → "How has the team changed in the last year?"
 
-ABOUT THE PRODUCT:
-→ "What's the product roadmap for the next year?"
-→ "Who are your main users and what problems do you solve?"
-
-AVOID:
-→ Don't ask about salary/benefits in the first interview
-→ Don't ask things easily found on the company website
-→ Don't ask "Do I have the job?"</pre>
-<div class="key-point">Prepare 3-5 questions before the interview. The quality of your questions tells the interviewer a lot about your seniority and genuine interest.</div>`,
+Save for the offer stage:
+  → salary details, leave policy, perks</pre>
+<div class="key-point">Ask about the thing you'd actually regret not knowing: how decisions are made and what the biggest problem is. The interviewer's comfort (or discomfort) answering "what's the biggest challenge right now?" tells you more than the answer itself.</div>`,
       },
     ],
   },
