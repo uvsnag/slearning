@@ -1,0 +1,872 @@
+// Interview data: MICROSERVICES
+import type { PvTopic } from '../../types';
+
+export const topics: PvTopic[] = [
+  {
+    id: 'microservices',
+    name: 'Microservices',
+    icon: '🧩',
+    questions: [
+      // ──── 0. MICROSERVICES SUMMARY — knowledge map ────
+      {
+        q: 'Microservices Summary — Knowledge Map',
+        difficulty: 'easy',
+        a: `<div class="interview-answer"><p>A complete revision checklist for microservices — every concept worth knowing, organized thematically from fundamentals to distributed-data patterns, resilience, operations, and senior-level trade-offs. Concept names only; use it to spot gaps, not as a tutorial.</p></div>
+<h3>1. Fundamentals</h3>
+<ul>
+<li><strong>Architecture styles</strong>
+  <ul>
+  <li>Monolith vs modular monolith vs microservices</li>
+  <li>Distributed monolith (anti-pattern)</li>
+  <li>SOA vs microservices</li>
+  <li>Self-contained systems, serverless/FaaS comparison</li>
+  </ul>
+</li>
+<li><strong>Core characteristics</strong>
+  <ul>
+  <li>Single business capability per service</li>
+  <li>Independent deployability, decentralized governance</li>
+  <li>Smart endpoints, dumb pipes</li>
+  <li>Polyglot persistence &amp; technology</li>
+  <li>Conway's Law, team topologies, two-pizza teams</li>
+  </ul>
+</li>
+<li><strong>Adoption drivers &amp; costs</strong>
+  <ul>
+  <li>Organizational scaling, independent release cadence</li>
+  <li>Operational overhead, network latency, eventual consistency</li>
+  <li>Monolith-first strategy, strangler fig migration</li>
+  </ul>
+</li>
+</ul>
+<h3>2. Service Decomposition</h3>
+<ul>
+<li><strong>Domain-Driven Design</strong>
+  <ul>
+  <li>Bounded contexts, ubiquitous language</li>
+  <li>Aggregates, entities, value objects</li>
+  <li>Context mapping (shared kernel, anti-corruption layer, conformist)</li>
+  <li>Event storming</li>
+  </ul>
+</li>
+<li><strong>Decomposition strategies</strong>
+  <ul>
+  <li>By business capability vs by subdomain</li>
+  <li>Service granularity, nanoservices (anti-pattern)</li>
+  <li>Shared libraries vs duplication</li>
+  <li>Database decomposition, breaking foreign keys</li>
+  </ul>
+</li>
+</ul>
+<h3>3. Communication</h3>
+<ul>
+<li><strong>Synchronous</strong>
+  <ul>
+  <li>REST, gRPC, GraphQL federation</li>
+  <li>API versioning &amp; backward compatibility</li>
+  <li>Client-side vs server-side load balancing</li>
+  </ul>
+</li>
+<li><strong>Asynchronous</strong>
+  <ul>
+  <li>Message brokers (Kafka, RabbitMQ, SQS)</li>
+  <li>Queues vs topics (point-to-point vs pub/sub)</li>
+  <li>Event notification vs event-carried state transfer</li>
+  <li>Delivery guarantees (at-most-once, at-least-once, exactly-once)</li>
+  <li>Idempotent consumers, message ordering, dead-letter queues</li>
+  <li>Choreography vs orchestration</li>
+  </ul>
+</li>
+<li><strong>Contracts</strong>
+  <ul>
+  <li>Schema registry, Avro/Protobuf</li>
+  <li>Consumer-driven contract testing (Pact)</li>
+  </ul>
+</li>
+</ul>
+<h3>4. API Gateway &amp; Service Discovery</h3>
+<ul>
+<li>API gateway responsibilities (routing, auth, rate limiting, aggregation)</li>
+<li>Backend-for-Frontend (BFF) pattern</li>
+<li>Spring Cloud Gateway: routes, predicates, filters, reactive (WebFlux/Netty) runtime</li>
+<li>JWT validation at the gateway vs in each service, token relay, zero trust</li>
+<li>Gateway rate limiting (RequestRateLimiter + Redis), circuit breaker &amp; retry filters</li>
+<li>Service registry (Eureka, Consul), client-side vs server-side discovery</li>
+<li>DNS-based discovery, Kubernetes Services</li>
+<li>Edge security, TLS termination</li>
+</ul>
+<h3>5. Data Management</h3>
+<ul>
+<li><strong>Data ownership</strong>
+  <ul>
+  <li>Database-per-service, no shared database</li>
+  <li>Reporting &amp; cross-service queries (API composition, data warehouse, CDC)</li>
+  </ul>
+</li>
+<li><strong>Distributed transactions</strong>
+  <ul>
+  <li>Why 2PC/XA fails at scale</li>
+  <li>Saga pattern (choreography &amp; orchestration), compensating transactions</li>
+  <li>Transactional outbox, inbox pattern, change data capture (Debezium)</li>
+  </ul>
+</li>
+<li><strong>CQRS &amp; Event Sourcing</strong>
+  <ul>
+  <li>Command/query separation, read models/projections</li>
+  <li>Event store, snapshots, replay</li>
+  <li>Eventual consistency, read-your-own-writes</li>
+  </ul>
+</li>
+</ul>
+<h3>6. Resilience</h3>
+<ul>
+<li>Timeouts, retries with exponential backoff &amp; jitter</li>
+<li>Circuit breaker (closed/open/half-open), fallbacks</li>
+<li>Bulkhead isolation, rate limiting, load shedding, backpressure</li>
+<li>Idempotency keys, retry storms, cascading failures</li>
+<li>Health checks (liveness/readiness), graceful degradation</li>
+<li>Chaos engineering</li>
+<li>Libraries: Resilience4j, Hystrix (legacy), Envoy-level resilience</li>
+</ul>
+<h3>7. Observability</h3>
+<ul>
+<li>Three pillars: logs, metrics, traces</li>
+<li>Centralized logging (ELK/EFK), correlation IDs</li>
+<li>Distributed tracing (OpenTelemetry, Jaeger, Zipkin), trace context propagation</li>
+<li>Metrics &amp; alerting (Prometheus, Grafana), RED/USE methods</li>
+<li>SLI / SLO / SLA, error budgets</li>
+</ul>
+<h3>8. Deployment &amp; Infrastructure</h3>
+<ul>
+<li>Containers &amp; orchestration (Docker, Kubernetes)</li>
+<li>CI/CD per service, independent pipelines</li>
+<li>Deployment strategies: blue-green, canary, rolling</li>
+<li>Feature flags, config management, secrets management</li>
+<li>Service mesh (Istio, Linkerd): sidecar proxy, mTLS, traffic shifting</li>
+<li>Autoscaling (horizontal, vertical), multi-region considerations</li>
+</ul>
+<h3>9. Security</h3>
+<ul>
+<li>Edge authentication vs service-to-service auth</li>
+<li>OAuth2 / OIDC, JWT propagation, token exchange</li>
+<li>mTLS, zero-trust networking</li>
+<li>API keys, rate limiting, secrets rotation</li>
+</ul>
+<h3>10. Testing</h3>
+<ul>
+<li>Test pyramid for microservices</li>
+<li>Unit, component, integration tests</li>
+<li>Consumer-driven contract tests</li>
+<li>End-to-end tests (scope &amp; cost), testing in production</li>
+<li>Testcontainers, service virtualization/mocking</li>
+</ul>
+<h3>11. Senior / Interview Hot Topics</h3>
+<ul>
+<li>When NOT to use microservices; monolith-first argument</li>
+<li>Strangler fig migration of a legacy monolith</li>
+<li>Saga vs 2PC; outbox pattern rationale</li>
+<li>Choreography vs orchestration trade-offs</li>
+<li>Exactly-once delivery myth &amp; idempotency design</li>
+<li>Distributed monolith symptoms, shared-database pitfalls</li>
+<li>Versioning &amp; backward-compatible API evolution</li>
+<li>Data duplication vs joins across services</li>
+<li>Service granularity debates, merging services back</li>
+<li>Cost of observability &amp; operational maturity prerequisites</li>
+</ul>
+<div class="key-point">Interviews focus on trade-offs: expect "monolith vs microservices", "how do you keep data consistent across services" (saga + outbox), and "what happens when a downstream service is slow" (timeout + retry + circuit breaker + bulkhead). Know the failure story, not just the happy path.</div>`,
+      },
+      // ──── 1. FUNDAMENTALS & SERVICE DECOMPOSITION ────
+      {
+        q: 'What is microservice architecture and when should you choose it?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>Microservices split a system into independently deployable services, each owning one business capability, and the main reason to use them is organizational, letting many teams ship without blocking each other. They fit when there is real team-scaling pressure or genuinely different scaling and technology needs, not because they are popular. The costs are high: network latency, distributed data, eventual consistency, and heavy operational work in observability, CI/CD, and on-call. A good default is to start with a modular monolith and extract services along proven boundaries, while avoiding a distributed monolith where services must still deploy together.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Microservices chia hệ thống thành nhiều service deploy độc lập, mỗi service phụ trách một mảng nghiệp vụ. Lý do chính để dùng chúng thực ra nằm ở khía cạnh tổ chức: nhiều team có thể cùng làm và cùng release mà không chặn lẫn nhau. Chỉ nên chọn microservices khi thật sự có áp lực về số lượng team, hoặc khi các phần của hệ thống thật sự cần scale và dùng công nghệ khác nhau — chứ không phải vì nó đang là xu hướng. Cái giá phải trả khá đắt: độ trễ mạng, dữ liệu bị phân mảnh, eventual consistency, cùng khối lượng vận hành lớn cho observability, CI/CD và trực on-call. Hướng đi mặc định hợp lý là bắt đầu bằng một modular monolith, rồi tách dần thành service tại những ranh giới đã được thực tế kiểm chứng; đồng thời tránh rơi vào distributed monolith — tức là các service tách rời nhưng vẫn buộc phải deploy cùng lúc với nhau.</p></details>
+<p><strong>Microservice architecture</strong> breaks a system into small services, each owning one business capability and deployed independently.</p>
+<pre>Monolith:
+  [One Big App: Users + Orders + Payments + Notifications]
+
+Microservices:
+  [User Service] ←REST/gRPC→ [Order Service] ←events→ [Payment Service]
+       ↓                           ↓                        ↓
+  [User DB]                   [Order DB]               [Payment DB]</pre>
+<p><strong>When to choose microservices:</strong></p>
+<ul>
+<li>Large system with multiple autonomous teams</li>
+<li>Different parts need different scaling (e.g., search vs checkout)</li>
+<li>Independent release cycles are critical</li>
+<li>Different tech stacks needed per service</li>
+</ul>
+<p><strong>When NOT to choose:</strong></p>
+<ul>
+<li>Small team (&lt;10 developers)</li>
+<li>Early-stage product where requirements change fast</li>
+<li>Simple CRUD applications</li>
+</ul>
+<div class="key-point">Start with a well-structured monolith. Extract microservices only when the organizational or scaling pressure is real. Premature microservices is a common and expensive mistake.</div>`,
+      },
+      {
+        q: 'How do you decide service boundaries when splitting a monolith?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>There is no formula for service boundaries, so heuristics are used. Draw boundaries around business capabilities and bounded contexts, not technical layers, and let each service own a cohesive part of the domain and its data. Things that change together and are read together belong together, and a good boundary avoids chatty cross-service calls and shared data. Signs of a wrong boundary are frequent distributed transactions, cross-service joins, and changes that ripple across services, so when unsure prefer coarser services because merging is easier than splitting.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Không có công thức nào cho việc vạch ranh giới service, chỉ có kinh nghiệm. Hãy chia theo <strong>năng lực nghiệp vụ</strong> và bounded context, đừng chia theo tầng kỹ thuật, và để mỗi service sở hữu trọn một mảng domain cùng toàn bộ dữ liệu của mảng đó. Nguyên tắc dễ nhớ: cái gì thay đổi cùng nhau và được đọc cùng nhau thì nên nằm cùng một chỗ; ranh giới tốt là ranh giới khiến các service ít phải gọi qua lại và không phải dùng chung dữ liệu. Ngược lại, khi thấy mình liên tục cần distributed transaction, phải join dữ liệu giữa các service, hay mỗi thay đổi nhỏ lại kéo theo sửa ba bốn service, thì đó là dấu hiệu ranh giới đã vẽ sai. Vì vậy khi còn chưa chắc, hãy để service to hơn mức cần thiết — về sau tách một service lớn ra thì dễ, chứ gộp ngược mấy service đã lỡ chia thì rất khổ.</p></details>
+<p>The hardest microservices question because there's no formula — interviewers want your <em>heuristics</em>.</p>
+<p><strong>Primary tool: DDD bounded contexts.</strong> Split along business capabilities, where the <em>language changes meaning</em>:</p>
+<pre>"Product" means different things per context:
+  Catalog   : name, images, description, SEO
+  Inventory : SKU, stock count, warehouse location
+  Pricing   : price, discounts, tax category
+→ three contexts, three services, three models —
+  NOT one giant shared Product entity</pre>
+<p><strong>Heuristics for a good boundary:</strong></p>
+<ul>
+<li><strong>Changes together → stays together</strong>: if every feature touches services A and B, the boundary is wrong (check your git history — files that co-change belong together).</li>
+<li><strong>Data ownership is decidable</strong>: exactly one service writes each piece of data.</li>
+<li><strong>Coarse interface</strong>: one business operation ≈ one call, not a chatty conversation.</li>
+<li><strong>Team-sized</strong>: one team owns it end to end (Conway's law is a tool — align service and team boundaries).</li>
+<li><strong>Different scaling/availability needs</strong>: image processing vs checkout.</li>
+</ul>
+<p><strong>Anti-patterns:</strong> entity services (UserService, OrderService, ProductService that are just tables with HTTP on top — every operation spans all of them), layer services (UI-service / logic-service / data-service), nano-services (operational cost &gt; value).</p>
+<p><strong>Process: Strangler Fig</strong> — extract the highest-value, least-coupled capability first, route traffic to it, repeat. Start with a modular monolith if boundaries are still unclear; module lines are cheap to move, network lines are not.</p>
+<div class="key-point">Best one-liner: "Services should be loosely coupled and highly cohesive — if you must open three services to ship one feature, you drew the lines wrong." Wrong boundaries cost more than no boundaries.</div>`,
+      },
+      {
+        q: 'What is the Strangler Fig pattern in microservice migration?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>The <strong>Strangler Fig</strong> pattern rewrites a monolith step by step instead of all at once. A proxy sits in front of the old system, and one feature at a time is moved to a new service while the rest still runs on the monolith. This is safe because each small slice can be rolled back on its own. The main risks are running two systems at the same time and finishing the work instead of stopping halfway.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Pattern <strong>Strangler Fig</strong> là cách viết lại một monolith theo từng phần nhỏ thay vì đập đi làm lại một lần. Bạn đặt một proxy đứng trước hệ thống cũ, rồi mỗi đợt chỉ chuyển một tính năng sang service mới và định tuyến traffic của đúng tính năng đó qua service mới, phần còn lại vẫn chạy trên monolith như cũ. Cách này an toàn vì mỗi bước nhỏ đều rollback được độc lập, và hệ thống không bao giờ phải "tắt để chuyển đổi". Cái giá phải trả là trong suốt quá trình bạn phải vận hành song song hai hệ thống, và phải đi tới cùng — rất nhiều dự án dừng lại ở giữa chừng rồi mắc kẹt vĩnh viễn với cả hai.</p></details>
+<p>The <strong>Strangler Fig</strong> pattern replaces parts of a monolith gradually by routing traffic to new services one feature at a time.</p>
+<pre>Phase 1: All traffic goes to monolith
+  [Users] → [Monolith: Auth + Orders + Reports + Users]
+
+Phase 2: Extract Reports service
+  [Users] → [Router/Proxy]
+              ├── /reports → [New Reports Service] ✅
+              └── /* → [Monolith: Auth + Orders + Users]
+
+Phase 3: Extract Orders service  
+  [Users] → [Router/Proxy]
+              ├── /reports → [Reports Service] ✅
+              ├── /orders → [New Orders Service] ✅
+              └── /* → [Monolith: Auth + Users]
+
+Phase N: Monolith is empty → decommission it</pre>
+<p><strong>Key steps:</strong></p>
+<ol>
+<li>Put a proxy/API gateway in front of the monolith</li>
+<li>Build new features as separate services</li>
+<li>Gradually route traffic from monolith to new services</li>
+<li>Keep both running in parallel for rollback safety</li>
+</ol>
+<div class="key-point">Named after the strangler fig tree that grows around a host tree, eventually replacing it. This is far safer than a "big bang" rewrite — you can stop at any point and still have a working system.</div>`,
+      },
+      {
+        q: 'What is a distributed monolith? What are the warning signs?',
+        difficulty: 'tricky',
+        a: `<div class="interview-answer"><p>A distributed monolith has the costs of microservices, like network hops and partial failure, but keeps the tight coupling of a monolith, so services must still deploy together. Warning signs include lockstep releases, a shared database, deep synchronous call chains, shared libraries updated together, and no independent deployment. The usual cause is splitting by technical layer or splitting too early before the domain is clear. The fix is to redraw boundaries around business capabilities and decouple with async events and stable contracts.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Distributed monolith là trường hợp tệ nhất của cả hai thế giới: bạn phải trả đủ cái giá của microservices — độ trễ mạng, lỗi cục bộ, vận hành phức tạp — nhưng vẫn giữ nguyên sự ràng buộc chặt chẽ của monolith, nên rốt cuộc các service vẫn phải deploy cùng nhau. Những dấu hiệu nhận biết rất rõ: mọi service phải release đồng loạt, dùng chung một database, các chuỗi gọi đồng bộ đâm sâu qua nhiều tầng, thư viện dùng chung phải nâng version cùng lúc ở khắp nơi, và không service nào tự deploy riêng được. Nguyên nhân thường là chia service theo tầng kỹ thuật, hoặc chia quá sớm khi domain còn chưa rõ hình hài. Cách chữa là vẽ lại ranh giới theo năng lực nghiệp vụ, rồi tách rời các service bằng event bất đồng bộ và những contract ổn định.</p></details>
+<p>A <strong>distributed monolith</strong> has microservice <em>costs</em> (network, ops, partial failure) with monolith <em>coupling</em> — the worst of both worlds. It's what most failed microservice migrations produce.</p>
+<p><strong>Warning signs checklist:</strong></p>
+<ul>
+<li><strong>Lockstep deploys</strong>: releasing service A requires releasing B and C at the same time (shared release train).</li>
+<li><strong>Synchronous call chains</strong>: A → B → C → D to serve one request; availability = product of all (99.9%⁴ ≈ 99.6%), latency = sum.</li>
+<li><strong>Shared database</strong>: two services read/write the same tables — schema changes need cross-team coordination; it's one data model wearing two costumes.</li>
+<li><strong>Chatty interfaces</strong>: one business operation = dozens of fine-grained calls between two services (the boundary is in the wrong place).</li>
+<li><strong>Shared domain libraries</strong>: bumping <code>common-domain-model.jar</code> forces redeploying every service.</li>
+<li><strong>Distributed transactions</strong> needed for routine operations.</li>
+</ul>
+<pre>The test: "Can you deploy this service alone, on a Tuesday,
+without asking any other team?"  No → distributed monolith.</pre>
+<p><strong>How to fix / avoid:</strong> split by business capability (not by layer or entity), give each service its own data, prefer async events over sync chains, enforce backward-compatible APIs so deploys decouple.</p>
+<div class="key-point">Senior take: a well-modularized monolith beats a distributed monolith every time — you pay network and consistency costs only when you get independent deployability and scaling in return. "We split the code but not the data or the deploys" is the standard failure story.</div>`,
+      },
+      {
+        q: 'Why is database-per-service important in microservices?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>Giving each service its own database is what makes microservices truly independent, because a shared database couples services at the schema level and prevents separate deployment or scaling, creating a distributed monolith. Owning its data also lets each service choose the right store and enforces clean API boundaries, since the only way in is through the service. The cost is that cross-service joins and transactions are gone, so API composition, CQRS read models, and sagas are used instead. The hardest parts in practice are splitting a shared database during migration and resisting the urge to query another service's tables directly.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Việc mỗi service có database riêng chính là thứ làm cho microservices thực sự độc lập. Một database dùng chung sẽ trói các service lại với nhau ở mức schema, khiến không thể deploy hay scale riêng từng service, và kết quả là một distributed monolith. Khi tự sở hữu dữ liệu, mỗi service còn được chọn loại kho lưu trữ phù hợp nhất với mình, đồng thời buộc phải có ranh giới API rõ ràng vì cách duy nhất để lấy dữ liệu là đi qua chính service đó. Cái giá phải trả là mất khả năng join và transaction xuyên service; thay vào đó phải dùng API composition, read model theo CQRS và saga. Phần khó nhất trên thực tế là tách một database dùng chung trong lúc migration, và giữ mình không sa vào cám dỗ query thẳng vào bảng của service khác.</p></details>
+<p>Each service should own its own database so schema changes and deployments stay independent.</p>
+<pre>❌ Shared database (distributed monolith):
+  Order Service ──→ [Shared DB] ←── Payment Service
+  (Schema change in orders table can break payment service!)
+
+✅ Database per service:
+  Order Service → [Order DB]
+  Payment Service → [Payment DB]
+  (Each team controls their own schema)</pre>
+<ul>
+<li><strong>Benefits</strong>: Independent deployments, technology freedom (SQL for orders, NoSQL for catalog), clear ownership.</li>
+<li><strong>Challenges</strong>: Cross-service queries become harder (no JOINs), data consistency requires patterns (Saga, Event Sourcing).</li>
+</ul>
+<p><strong>How to query across services:</strong></p>
+<ul>
+<li>API composition: aggregate data from multiple service APIs</li>
+<li>CQRS: maintain read-optimized views materialized from events</li>
+<li>Data replication: each service caches what it needs from others</li>
+</ul>
+<div class="key-point">If multiple services directly write the same tables, you usually have a distributed monolith — all the complexity of microservices with none of the benefits.</div>`,
+      },
+
+      // ──── 2. COMMUNICATION & API DESIGN ────
+      {
+        q: 'What is the difference between synchronous and asynchronous communication between services?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>Synchronous communication, such as REST or gRPC, is a request the caller waits on, while asynchronous communication through a broker like Kafka or SQS sends a message and gets the result later or as an event. Synchronous is simpler and gives an immediate answer, but it couples services in time, so a slow or down callee slows the caller, and long call chains add up latency and failure risk. Asynchronous decouples services and smooths load, at the cost of eventual consistency and harder debugging. A good rule is synchronous for queries that need an immediate answer and asynchronous for commands and background work, while avoiding deep synchronous call chains.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Giao tiếp đồng bộ như REST hay gRPC là kiểu gọi mà bên gọi phải đứng chờ kết quả; còn giao tiếp bất đồng bộ qua broker như Kafka hay SQS thì chỉ gửi message đi rồi nhận kết quả sau, hoặc nhận dưới dạng event. Đồng bộ đơn giản hơn và cho câu trả lời ngay, nhưng nó buộc các service phải cùng sống tại một thời điểm: bên được gọi chậm hoặc chết thì bên gọi cũng chậm theo, và chuỗi gọi càng dài thì độ trễ lẫn xác suất lỗi càng cộng dồn. Bất đồng bộ giúp các service tách rời nhau và san đều tải, đổi lại phải chấp nhận eventual consistency và việc debug khó hơn. Quy tắc thực dụng là: dùng đồng bộ cho những truy vấn cần trả lời ngay, dùng bất đồng bộ cho command và các tác vụ chạy nền, đồng thời tránh những chuỗi gọi đồng bộ quá sâu.</p></details>
+<ul>
+<li><strong>Synchronous</strong>: Caller sends request and <strong>waits</strong> for response. REST, gRPC.</li>
+<li><strong>Asynchronous</strong>: Caller sends message and <strong>continues</strong> without waiting. Kafka, RabbitMQ, SQS.</li>
+</ul>
+<pre>// Synchronous: Order → waits → Payment response
+POST /api/payments  → { status: "charged" }  // blocks until response
+
+// Asynchronous: Order → publishes event → continues
+publish("order.created", { orderId: 123 })
+// Payment service consumes event independently
+// Order service gets result later via another event</pre>
+<table><tr><th>Aspect</th><th>Synchronous</th><th>Asynchronous</th></tr>
+<tr><td>Latency</td><td>Caller blocked</td><td>Caller free</td></tr>
+<tr><td>Coupling</td><td>Tight (both must be up)</td><td>Loose (queue buffers)</td></tr>
+<tr><td>Debugging</td><td>Easier (request-response)</td><td>Harder (event chains)</td></tr>
+<tr><td>Use case</td><td>Need immediate answer</td><td>Background processing</td></tr></table>
+<div class="key-point">Use synchronous for user-facing operations that need immediate results. Use asynchronous for background workflows, notifications, and inter-service decoupling.</div>`,
+      },
+      {
+        q: 'What is service discovery in microservices?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>In a dynamic environment instances start and stop constantly, so hard-coded IP addresses do not work, and <strong>service discovery</strong> lets a caller find a healthy instance at runtime. There are two models: client-side, where the client queries a registry such as Consul or Eureka and balances load itself, and server-side, where it uses a stable endpoint like a load balancer or DNS that does the routing. In Kubernetes this is mostly built in, since a Service gives a stable DNS name and virtual IP in front of healthy pods. Health checking is essential so unhealthy instances are removed quickly, and the risks are stale entries and a registration surge on mass restart.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Trong môi trường động, các instance liên tục được tạo mới rồi bị huỷ nên không thể hard-code địa chỉ IP; <strong>service discovery</strong> chính là cơ chế giúp bên gọi tìm ra một instance còn khoẻ ngay tại runtime. Có hai mô hình. Với client-side discovery, client tự truy vấn một registry như Consul hay Eureka rồi tự cân bằng tải. Với server-side discovery, client chỉ gọi tới một điểm cố định như load balancer hoặc DNS và để nơi đó lo việc định tuyến. Trong Kubernetes thì phần này gần như có sẵn: mỗi Service cung cấp một tên DNS ổn định cùng một virtual IP đứng trước các pod đang khoẻ. Health check là thành phần bắt buộc để loại nhanh những instance đã hỏng; hai rủi ro hay gặp là registry còn sót lại entry cũ, và tình trạng hàng loạt instance cùng đăng ký lại một lúc khi restart đồng loạt.</p></details>
+<p><strong>Service discovery</strong> lets services find healthy instances of each other dynamically instead of hard-coding IP addresses.</p>
+<pre>Without service discovery:
+  Order Service → http://10.0.1.5:8080/payments  (hardcoded, breaks on scale)
+
+With service discovery:
+  Order Service → "payment-service" → Registry resolves → http://10.0.1.5:8080
+                                                         or http://10.0.1.6:8080</pre>
+<p><strong>Two patterns:</strong></p>
+<ul>
+<li><strong>Client-side discovery</strong>: Client queries a registry (Eureka, Consul) and picks an instance itself. More control, more complex client.</li>
+<li><strong>Server-side discovery</strong>: Client talks to a load balancer/DNS that resolves the target. Simpler client.</li>
+</ul>
+<pre>// Spring Cloud example (client-side with Eureka):
+@FeignClient(name = "payment-service")
+public interface PaymentClient {
+    @PostMapping("/charge")
+    PaymentResult charge(@RequestBody PaymentRequest req);
+}
+// Eureka resolves "payment-service" to an available instance</pre>
+<div class="key-point">In Kubernetes, service discovery is built-in via DNS. <code>payment-service.default.svc.cluster.local</code> resolves automatically. No need for a separate registry.</div>`,
+      },
+      {
+        q: 'What is the BFF pattern in microservices?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>A <strong>BFF</strong> is a separate API layer for each client type, such as web, mobile, or TV, that aggregates and reshapes downstream services for that client's exact needs. It exists because a single shared API forces mobile clients to over-fetch and make many round-trips, and because client-specific logic clutters a shared gateway. Each frontend team owns its BFF, keeping client concerns out of the core services. The trade-offs are some duplicated aggregation across BFFs and the risk of a BFF growing into a mini-monolith with logic that belongs downstream; GraphQL is one common way to do the aggregation.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><strong>BFF</strong> là một lớp API riêng cho từng loại client — web, mobile hay TV — có nhiệm vụ tổng hợp và định dạng lại dữ liệu từ các service bên dưới cho vừa đúng nhu cầu của client đó. Nó ra đời vì một API dùng chung cho tất cả sẽ buộc client mobile phải tải về thừa dữ liệu và gọi đi gọi lại nhiều lượt, trong khi nhét logic riêng của từng client vào một gateway chung sẽ khiến gateway đó rối tung lên. Mỗi team frontend tự quản BFF của mình, nhờ vậy những thứ chỉ liên quan tới client không lọt vào các service lõi. Đánh đổi là phần logic tổng hợp bị lặp lại đôi chút giữa các BFF, kèm rủi ro một BFF phình to thành mini-monolith chứa cả logic lẽ ra phải nằm ở tầng dưới; GraphQL là một lựa chọn phổ biến cho phần tổng hợp này.</p></details>
+<p><strong>Backend for Frontend (BFF)</strong> creates a dedicated backend API layer per client type (web, mobile, IoT).</p>
+<pre>Without BFF:
+  Mobile App ──→ [Generic API] ←── Web App
+  (Mobile gets too much data, web gets too little)
+
+With BFF:
+  Mobile App → [Mobile BFF] → services (optimized payloads, fewer calls)
+  Web App → [Web BFF] → services (richer data, parallel fetching)
+  Admin → [Admin BFF] → services (bulk operations, different auth)</pre>
+<p><strong>Benefits:</strong></p>
+<ul>
+<li>Each client gets exactly the data shape it needs</li>
+<li>Reduces over-fetching and under-fetching</li>
+<li>Client-specific logic stays out of core services</li>
+<li>Each frontend team owns their BFF</li>
+</ul>
+<pre>// Mobile BFF: lightweight response
+GET /mobile/product/123
+→ { name, price, thumbnailUrl }
+
+// Web BFF: rich response
+GET /web/product/123
+→ { name, price, images[], reviews[], relatedProducts[], specs }</pre>
+<div class="key-point">BFF is especially useful when web and mobile need very different payload shapes. Consider GraphQL as an alternative that can serve multiple clients from one endpoint.</div>`,
+      },
+      {
+        q: 'How do you evolve an API without breaking consumers? (contracts and versioning)',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>The rule for evolving an API is backward compatibility, so consumers do not have to upgrade at the same time. This means additive changes only, such as adding optional fields, and never renaming, removing, or changing the meaning of existing ones, while consumers ignore unknown fields. When a breaking change is unavoidable, version the API, run old and new side by side, and deprecate the old one on a clear timeline. Consumer-driven contract tests like Pact catch breaks in CI, and the same rules apply to event payloads because events are also APIs.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Nguyên tắc số một khi cho một API tiến hóa là <strong>giữ tương thích ngược</strong>, để các bên đang dùng không bị buộc phải nâng cấp cùng lúc với bạn. Cụ thể, chỉ được phép thêm — ví dụ thêm field không bắt buộc — và tuyệt đối không đổi tên, không xóa, cũng không âm thầm đổi ý nghĩa của field đang có; ở chiều ngược lại, bên tiêu thụ phải bỏ qua những field lạ mà nó chưa biết. Khi buộc phải phá vỡ tương thích, hãy đánh version cho API, chạy song song bản cũ và bản mới một thời gian, rồi thông báo lộ trình khai tử bản cũ thật rõ ràng. Consumer-driven contract test như Pact sẽ bắt được những thay đổi phá vỡ ngay từ CI, trước khi chúng kịp lên production. Và đừng quên: payload của event cũng là một API, nên mọi quy tắc trên áp dụng y hệt cho event.</p></details>
+<p>Independent deployability — the whole point of microservices — dies the moment an API change forces consumers to upgrade simultaneously. Compatibility discipline is what keeps it alive.</p>
+<pre>SAFE (backward-compatible):          BREAKING:
+  + add optional field to response     - remove/rename a field
+  + add optional request param         - change a field's type/format
+  + add new endpoint                   - make optional field required
+  + add enum value (careful!)          - change error codes/semantics
+                                       - tighten validation rules</pre>
+<p><strong>1. Tolerant reader (Postel's law)</strong>: consumers ignore unknown fields and don't fail on additions — e.g. don't configure Jackson to <code>FAIL_ON_UNKNOWN_PROPERTIES</code>.</p>
+<p><strong>2. Expand–contract (parallel change)</strong> for unavoidable breaking changes:</p>
+<pre>Goal: rename "name" → "fullName"
+  EXPAND  : write BOTH fields; readers still use "name"
+  MIGRATE : consumers switch to "fullName" at their own pace
+  CONTRACT: telemetry shows zero readers of "name" → remove it
+No simultaneous deploy ever required.</pre>
+<p><strong>3. Consumer-driven contract testing (Pact)</strong> — catches breakage in CI, before deploy:</p>
+<pre>Consumer declares what it uses:  "GET /users/42 → { id, name }"
+  → contract published to a broker
+Provider's CI replays every consumer contract against the real service
+  → provider removes "name" → PROVIDER's build fails, listing who breaks
+"can-i-deploy" gate: verified against all consumer versions in prod</pre>
+<p><strong>4. Explicit versioning as last resort</strong> (URL <code>/v2/</code>, header, or media type): you now run and patch two APIs — an operational cost, not a strategy. Prefer additive evolution so v2 is rare.</p>
+<div class="key-point">Ranked senior answer: "Additive changes + tolerant readers by default, expand–contract for breaking changes, contract tests to enforce it in CI, explicit versions only when a redesign is unavoidable." Bonus nuance: internal service-to-service APIs can evolve via expand–contract almost indefinitely; long-lived public APIs are where versioning earns its cost.</div>`,
+      },
+      {
+        q: 'How does Spring Cloud Gateway work? Explain routes, predicates and filters, and how it differs from Nginx or Kong.',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>Spring Cloud Gateway is an API gateway built as a Spring Boot application. Its configuration is a list of <strong>routes</strong>: each route has an ID, a destination URI, <strong>predicates</strong> that decide whether a request matches it — path, host, method, header, query parameter — and <strong>filters</strong> that change the request on the way in or the response on the way out, such as stripping a path prefix, adding headers, rate limiting, retrying or applying a circuit breaker. Global filters run for every route, which is where cross-cutting concerns like authentication and correlation IDs go. The most important detail is that it runs on Spring WebFlux and Netty, so it is non-blocking: a few event-loop threads serve all connections, and any blocking call inside a filter — a JDBC query, a blocking HTTP client — can stall the whole gateway. Compared with Nginx or Kong, it is less raw-performant and has no admin UI or plugin marketplace, but it is plain Java and Spring, so a Java team can write custom filters, reuse Spring Security, and test it like any other service. I'd choose it in a Spring-based microservice system; Nginx or Kong when the edge is shared across many stacks or owned by a platform team.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Spring Cloud Gateway thực chất là một ứng dụng Spring Boot đóng vai trò API gateway. Cấu hình xoay quanh các <strong>route</strong>. Mỗi route có ID, URI đích, vài <strong>predicate</strong> để xét request có khớp không (theo path, host, method, header, query param), và các <strong>filter</strong> để sửa request đi vào hoặc response đi ra: bỏ prefix của path, thêm header, rate limit, retry, circuit breaker... Còn global filter thì chạy cho mọi route, nên đây là chỗ hợp lý để đặt mấy thứ dùng chung như xác thực hay correlation ID. Điểm cần nhớ nhất: gateway chạy trên WebFlux và Netty, tức là non-blocking. Chỉ vài thread event loop gánh toàn bộ kết nối, nên chỉ cần một lời gọi blocking trong filter, kiểu query JDBC hay HTTP client blocking, là cả gateway có thể đứng hình. So với Nginx hay Kong thì nó thua về hiệu năng thuần, cũng không có admin UI hay kho plugin. Bù lại nó là Java/Spring thuần: team Java tự viết filter được, dùng lại Spring Security, và test nó như mọi service khác. Hệ microservice viết bằng Spring thì tôi chọn nó. Còn nếu lớp edge dùng chung cho nhiều stack, hoặc do một team platform riêng quản lý, thì Nginx hay Kong hợp hơn.</p></details>
+<pre># application.yml
+spring:
+  cloud:
+    gateway:
+      default-filters:
+        - AddResponseHeader=X-Gateway, shopflow
+      routes:
+        - id: order-service
+          uri: lb://order-service          # lb:// = resolve via discovery, load-balance
+          predicates:
+            - Path=/api/orders/**
+            - Method=GET,POST
+          filters:
+            - StripPrefix=1                # /api/orders/1 → /orders/1
+            - name: Retry
+              args: { retries: 2, methods: GET, statuses: BAD_GATEWAY }
+
+// Custom global filter — must stay non-blocking
+@Component
+class CorrelationIdFilter implements GlobalFilter, Ordered {
+  public Mono&lt;Void&gt; filter(ServerWebExchange ex, GatewayFilterChain chain) {
+    String id = Optional.ofNullable(ex.getRequest().getHeaders().getFirst("X-Correlation-Id"))
+                        .orElse(UUID.randomUUID().toString());
+    var req = ex.getRequest().mutate().header("X-Correlation-Id", id).build();
+    return chain.filter(ex.mutate().request(req).build());
+  }
+  public int getOrder() { return -1; }
+}</pre>
+<table><tr><th></th><th>Spring Cloud Gateway</th><th>Nginx</th><th>Kong</th></tr>
+<tr><td>Runtime</td><td>JVM, WebFlux/Netty</td><td>C, event-driven</td><td>Nginx/OpenResty + Lua</td></tr>
+<tr><td>Extending</td><td>Java filters, Spring Security</td><td>Config, Lua/njs</td><td>Plugins (Lua, Go, JS)</td></tr>
+<tr><td>Config</td><td>YAML / Java DSL, Spring profiles</td><td>nginx.conf</td><td>Admin API, declarative decK</td></tr>
+<tr><td>Fits</td><td>Spring microservices owned by the same team</td><td>Static, TLS, simple proxying</td><td>Shared, multi-stack API platform</td></tr>
+</table>
+<p><strong>Note:</strong> Spring Cloud Gateway also has a servlet-based "Gateway Server MVC" variant (2023+) for teams that want blocking code and virtual threads instead of reactive.</p>
+<div class="key-point">Route = predicates (match) + filters (transform) + URI (destination). It's reactive, so never block in a filter — use WebClient and reactive Redis, not RestTemplate or JDBC.</div>`,
+      },
+      {
+        q: 'Should JWT be validated at the API gateway or in every service? How do you pass user identity downstream?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>The practical answer is both, with different jobs. The gateway validates the token's signature, expiry, issuer and audience, rejects bad requests early so junk never reaches the services, and applies coarse rules like "this path needs a logged-in user". But each service should still validate the token itself and make its own fine-grained authorization decisions, because the gateway is not the only way into the network: another service, a misconfigured route, a job or an attacker who gets inside can call a service directly. That is the zero-trust idea — don't trust a request because of where it came from. Forwarding the original JWT downstream (token relay) is the cleanest approach, because the signature proves the claims are real; validating it with the cached public keys from the JWKS endpoint costs microseconds. Passing identity in plain headers like <code>X-User-Id</code> is only safe if the gateway strips any such header coming from outside and services are unreachable except through the gateway — otherwise anyone can forge it.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Thực tế thì nên kiểm tra ở cả hai nơi, nhưng mỗi nơi lo một việc. Gateway kiểm tra chữ ký, hạn dùng, issuer và audience của token để chặn request xấu ngay từ cửa, rác không lọt được vào service. Nó cũng áp các luật thô, kiểu "path này phải đăng nhập mới vào được". Nhưng từng service vẫn phải tự kiểm tra token và tự quyết phần phân quyền chi tiết của mình. Lý do là gateway không phải đường duy nhất để vào: một service khác, một route cấu hình sai, một background job, hay kẻ tấn công đã lọt vào mạng nội bộ đều có thể gọi thẳng tới service. Đó chính là tinh thần zero trust: không tin request chỉ vì nó đến từ "bên trong". Cách gọn nhất để truyền danh tính xuống là relay nguyên JWT gốc, vì chữ ký đã chứng minh các claim là thật. Verify bằng public key cache từ JWKS cũng chỉ tốn vài micro giây. Còn nếu truyền qua header thường như <code>X-User-Id</code> thì chỉ an toàn khi gateway xóa sạch các header đó từ request bên ngoài, và service không thể bị gọi tới nếu không đi qua gateway. Thiếu một trong hai điều này thì ai cũng giả mạo được.</p></details>
+<pre>Client ──JWT──▶ Gateway ──same JWT──▶ order-service ──same JWT──▶ payment-service
+                 │ validate sig/exp/aud    │ validate again       │ validate again
+                 │ coarse rules            │ "owns this order?"   │ "can refund?"
+                 │ strip X-User-* headers
+
+// Gateway (reactive resource server)
+@Bean
+SecurityWebFilterChain gateway(ServerHttpSecurity http) {
+  return http
+    .authorizeExchange(ex -&gt; ex
+        .pathMatchers("/api/auth/**", "/actuator/health").permitAll()
+        .anyExchange().authenticated())
+    .oauth2ResourceServer(o -&gt; o.jwt(Customizer.withDefaults()))
+    .csrf(ServerHttpSecurity.CsrfSpec::disable)
+    .build();
+}
+
+# Each service: same resource-server config, keys cached from JWKS
+spring.security.oauth2.resourceserver.jwt.issuer-uri: https://auth.shopflow.local</pre>
+<ul>
+<li><strong>Token relay</strong> (<code>TokenRelay</code> filter) is for when the gateway itself does the OAuth2 login and must forward the user's access token.</li>
+<li><strong>Service-to-service calls</strong> without a user (jobs, consumers) use their own client-credentials token, not a forged user identity.</li>
+<li><strong>Revocation</strong> stays a short-TTL problem: keep access tokens to minutes; a gateway-level denylist check is possible but adds a Redis hop.</li>
+<li>For stronger internal trust, add mTLS between services (service mesh) on top of token checks.</li>
+</ul>
+<div class="key-point">Gateway = first line (reject early, coarse rules). Services = final authority (validate again, decide ownership and roles). Forward the signed JWT, never trust unsigned identity headers that a client could set.</div>`,
+      },
+      {
+        q: 'How do you add rate limiting, circuit breakers and retries in Spring Cloud Gateway?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>All three are route filters. The <strong>RequestRateLimiter</strong> filter uses Redis and a token-bucket algorithm implemented in a Lua script, so the limit is shared across every gateway instance. You configure the refill rate per second, the burst capacity, and a <strong>KeyResolver</strong> bean that decides who is being limited — user ID from the JWT, API key, or client IP for anonymous traffic. When the bucket is empty the gateway returns 429 with headers showing the remaining allowance. The <strong>CircuitBreaker</strong> filter is backed by Resilience4j: if a downstream service fails or times out too often, the breaker opens and the gateway answers immediately from a fallback route instead of piling more requests onto a struggling service. The <strong>Retry</strong> filter retries only safe cases — idempotent methods like GET and specific statuses like 502 or 503 — with backoff, and should sit inside a timeout so retries cannot multiply latency. The thing to get right is the key: limit by user when possible, because limiting by IP behind a corporate NAT or a load balancer can block an entire office or everyone at once.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Cả ba thứ này đều là filter gắn vào route. <strong>RequestRateLimiter</strong> dùng Redis với thuật toán token bucket viết bằng Lua script, nhờ vậy mọi instance gateway dùng chung một hạn mức. Bạn cấu hình tốc độ nạp token mỗi giây, mức burst tối đa, và một bean <strong>KeyResolver</strong> để quyết định giới hạn theo ai: user ID lấy từ JWT, API key, hoặc IP nếu là khách chưa đăng nhập. Hết token thì gateway trả 429 kèm header báo hạn mức còn lại. Filter <strong>CircuitBreaker</strong> chạy bằng Resilience4j. Khi service phía sau lỗi hoặc timeout quá nhiều, breaker mở ra và gateway trả lời ngay bằng route fallback, thay vì tiếp tục dồn request vào một service đang hấp hối. Filter <strong>Retry</strong> thì chỉ nên retry khi an toàn: method idempotent như GET, status cụ thể như 502 hay 503, có backoff, và nằm trong một timeout tổng, để retry không nhân độ trễ lên mấy lần. Chỗ dễ sai nhất là chọn key để giới hạn. Nên giới hạn theo user khi có thể. Nếu giới hạn theo IP mà phía trước là NAT của công ty hay load balancer, bạn có thể chặn nhầm cả một văn phòng, thậm chí chặn tất cả mọi người cùng lúc.</p></details>
+<pre>spring:
+  cloud:
+    gateway:
+      routes:
+        - id: payment-service
+          uri: lb://payment-service
+          predicates: [ Path=/api/payments/** ]
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10     # tokens/second
+                redis-rate-limiter.burstCapacity: 20     # bucket size
+                redis-rate-limiter.requestedTokens: 1
+                key-resolver: "#{@userKeyResolver}"
+            - name: CircuitBreaker
+              args:
+                name: paymentCB
+                fallbackUri: forward:/fallback/payments
+            - name: Retry
+              args:
+                retries: 2
+                methods: GET
+                statuses: BAD_GATEWAY, SERVICE_UNAVAILABLE
+                backoff: { firstBackoff: 100ms, maxBackoff: 1s, factor: 2 }
+
+resilience4j:
+  circuitbreaker.instances.paymentCB:
+    slidingWindowSize: 20
+    failureRateThreshold: 50
+    waitDurationInOpenState: 10s
+  timelimiter.instances.paymentCB.timeoutDuration: 3s
+
+@Bean
+KeyResolver userKeyResolver() {
+  return ex -&gt; ex.getPrincipal()
+      .map(Principal::getName)                                   // logged-in user
+      .switchIfEmpty(Mono.justOrEmpty(ex.getRequest().getRemoteAddress())
+          .map(a -&gt; "ip:" + a.getAddress().getHostAddress()));    // anonymous fallback
+}</pre>
+<ul>
+<li>Behind a load balancer, resolve the client IP from <code>X-Forwarded-For</code> via <code>XForwardedRemoteAddressResolver</code> with a trusted-hop count — never trust the raw header.</li>
+<li>If Redis is down, the limiter fails open by default (requests allowed) — decide consciously whether that's acceptable.</li>
+<li>Don't retry POST payments at the gateway; rely on idempotency keys in the service instead.</li>
+</ul>
+<div class="key-point">RequestRateLimiter = Redis token bucket keyed by a KeyResolver (prefer user ID over IP). CircuitBreaker = Resilience4j with a fallback. Retry = idempotent methods only, with backoff, inside a timeout.</div>`,
+      },
+      {
+        q: 'What is a service mesh and when would you use one?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>A <strong>service mesh</strong> moves networking concerns like <code>mTLS</code>, retries, timeouts, circuit breaking, and telemetry out of application code and into sidecar proxies next to each service. The benefit is one consistent set of security and resilience rules across services in any language. The cost is extra operational complexity and some added latency from the extra network hop. It fits large systems with many services in many languages, but it is overkill for only a few services.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p><strong>Service mesh</strong> bóc toàn bộ phần xử lý liên quan tới mạng — <code>mTLS</code>, retry, timeout, circuit breaker, telemetry — ra khỏi code ứng dụng và đẩy xuống các sidecar proxy chạy kèm mỗi service. Cái được là một bộ quy tắc bảo mật và chống lỗi thống nhất cho mọi service, bất kể chúng viết bằng ngôn ngữ gì và đội nào làm — không cần mỗi team tự cài lại một thư viện resilience riêng. Cái mất là hệ thống có thêm một tầng phải vận hành và gỡ lỗi, cộng thêm một chút độ trễ do request phải đi qua proxy. Vì vậy nó chỉ đáng dùng với hệ thống lớn, nhiều service và đa ngôn ngữ; còn nếu bạn chỉ có dăm ba service thì đây là dao mổ trâu.</p></details>
+<p>A <strong>service mesh</strong> is an infrastructure layer that handles service-to-service communication, moving networking concerns out of application code into sidecar proxies.</p>
+<pre>Without service mesh:
+  Each service handles: retries, circuit breakers, mTLS, tracing, load balancing
+  → Duplicated logic in every service, every language
+
+With service mesh (e.g., Istio/Linkerd):
+  [Service A] ↔ [Sidecar Proxy] ←mesh→ [Sidecar Proxy] ↔ [Service B]
+                      ↑                       ↑
+                  Handles: mTLS, retries, circuit breaking,
+                  traffic splitting, observability</pre>
+<p><strong>Features:</strong></p>
+<ul>
+<li><strong>mTLS</strong>: automatic encryption between services</li>
+<li><strong>Traffic management</strong>: canary releases, A/B testing, fault injection</li>
+<li><strong>Observability</strong>: distributed tracing, metrics without code changes</li>
+<li><strong>Resilience</strong>: retries, timeouts, circuit breakers configured declaratively</li>
+</ul>
+<p><strong>When to use:</strong></p>
+<ul>
+<li>20+ microservices where consistent networking policies matter</li>
+<li>Strict security requirements (zero-trust, mTLS everywhere)</li>
+<li>Polyglot environment (services in different languages)</li>
+</ul>
+<div class="key-point">Service meshes add operational complexity and latency (extra proxy hop). Don't adopt one until you have enough services that manual networking configuration becomes painful. Istio and Linkerd are the most popular options.</div>`,
+      },
+
+      // ──── 3. DATA CONSISTENCY ACROSS SERVICES ────
+      {
+        q: 'What is the dual-write problem?',
+        difficulty: 'tricky',
+        a: `<div class="interview-answer"><p>The dual-write problem is that a service must update its database and publish an event, but these are two systems with no shared transaction. If one succeeds and the other fails, or the process crashes in between, the data and the events become inconsistent. Reordering the calls or using try/catch does not fix this because there is always a crash window. The correct fix is a single write, such as the transactional outbox or change data capture from the database log.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Vấn đề dual-write xảy ra khi một service vừa phải cập nhật database vừa phải publish một event, mà hai thứ đó lại là hai hệ thống riêng biệt, không nằm chung một transaction nào cả. Chỉ cần một bên thành công còn bên kia thất bại — hoặc tiến trình chết đúng vào khoảng giữa hai lệnh — là dữ liệu và event lệch nhau ngay. Điều nhiều người tưởng lầm là chỉ cần đổi thứ tự hai lời gọi hoặc bọc try/catch là xong; thực ra không, vì dù sắp xếp kiểu gì thì vẫn luôn tồn tại một khe thời gian mà tiến trình có thể chết. Cách chữa đúng là <strong>chỉ ghi vào một chỗ duy nhất</strong>: dùng transactional outbox, hoặc dùng change data capture đọc thẳng từ log của database.</p></details>
+<p>The trap behind most broken event-driven systems: a service must update its database <strong>and</strong> publish an event — and those are two systems that cannot share a transaction.</p>
+<pre>// ❌ The broken code that looks fine in review:
+@Transactional
+public void createOrder(Order order) {
+  orderRepository.save(order);          // DB write (transactional)
+  kafkaTemplate.send("orders", event);  // Kafka publish (NOT in the transaction!)
+}
+
+Failure modes:
+  1. DB commits, Kafka send fails/crashes  → order exists, downstream never told
+  2. Publish first, then DB fails          → downstream reacts to an order
+                                             that doesn't exist
+  3. Kafka send inside @Transactional but before commit
+     → consumer reads the event, queries your API, gets 404 (not committed yet)</pre>
+<p><strong>Correct solutions — make one system the source of truth:</strong></p>
+<ul>
+<li><strong>Transactional Outbox</strong>: write the event into an <code>outbox</code> table in the SAME DB transaction as the business data; a relay (poller or Debezium CDC) publishes it to Kafka afterwards. At-least-once → consumers must dedupe.</li>
+<li><strong>Change Data Capture</strong>: Debezium tails the DB write-ahead log and turns committed rows into events — the DB commit IS the publish decision.</li>
+<li><strong>Event sourcing</strong>: the event log is the primary store; DB state is derived — no second write to reconcile.</li>
+</ul>
+<div class="key-point">The general law: you can never atomically write to two independent systems without 2PC. Any design with "save to DB and also push to queue/cache/search-index" has this bug until proven otherwise — interviewers use it to test if you've operated real event-driven systems.</div>`,
+      },
+      {
+        q: 'What is the Transactional Outbox pattern?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>The <strong>Transactional Outbox</strong> pattern solves the dual-write problem, where a service cannot save to a database and publish an event as one atomic step. The fix is to write the event into an outbox table inside the same database transaction, so both succeed or both fail. A separate worker or a change data capture tool like Debezium then reads the outbox and sends the events to the broker. This gives at-least-once delivery, so consumers must be idempotent.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Pattern <strong>Transactional Outbox</strong> chính là lời giải cho bài toán dual-write, tức chuyện một service không thể vừa lưu database vừa publish event trong cùng một bước nguyên tử. Ý tưởng rất đơn giản: thay vì gọi thẳng ra broker, service ghi event vào một bảng <em>outbox</em> nằm ngay trong cùng transaction với dữ liệu nghiệp vụ — nhờ vậy hai việc này hoặc cùng thành công, hoặc cùng bị rollback, không bao giờ lệch nhau. Sau đó một worker riêng, hoặc một công cụ change data capture như Debezium, sẽ đọc bảng outbox và đẩy event ra broker. Đổi lại, cơ chế này chỉ bảo đảm giao ít nhất một lần (at-least-once), nên phía consumer bắt buộc phải xử lý idempotent.</p></details>
+<p><strong>Transactional Outbox</strong> ensures database writes and event publishing happen atomically — solving the dual-write problem.</p>
+<pre>// The problem: dual-write inconsistency
+1. Save order to DB ✅
+2. Publish "OrderCreated" to Kafka ❌ (network error!)
+→ Order exists but no event → downstream services never know!
+
+// Solution: Transactional Outbox
+1. In ONE database transaction:
+   - Save order to orders table
+   - Save event to outbox table
+2. A separate worker polls outbox and publishes to Kafka
+3. After successful publish, mark outbox row as sent
+
+Table: outbox
+| id | event_type    | payload              | published | created_at  |
+| 1  | OrderCreated  | {"orderId": 123, ...}| false     | 2024-01-01  |</pre>
+<pre>// Using Change Data Capture (CDC) — even better:
+// Debezium reads DB transaction log → publishes to Kafka
+// No polling needed, near real-time</pre>
+<div class="key-point">The outbox pattern guarantees at-least-once delivery. Consumers must be idempotent. CDC with Debezium is the modern approach — no polling overhead.</div>`,
+      },
+      {
+        q: 'What is the Saga pattern?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>The <strong>Saga</strong> pattern runs a business transaction across several services without one shared distributed transaction. It splits the work into local steps, and each step has a compensating action that undoes it if a later step fails. There are two styles: choreography, where services react to each other's events, and orchestration, where one coordinator drives the steps. Instead of a rollback you get compensation, and each compensation must be idempotent and reliable.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Pattern <strong>Saga</strong> cho phép chạy một giao dịch nghiệp vụ trải dài qua nhiều service mà không cần đến distributed transaction. Thay vì một transaction lớn ôm tất cả, saga chia công việc thành chuỗi các transaction cục bộ trong từng service, và mỗi bước đều có sẵn một <em>hành động bù trừ</em> để hoàn tác nếu một bước phía sau thất bại — ví dụ đã trừ kho rồi mà thanh toán hỏng thì hoàn kho lại. Có hai kiểu điều phối: <strong>choreography</strong>, các service tự phản ứng với event của nhau, gọn cho luồng ngắn nhưng khó nhìn ra bức tranh tổng thể; và <strong>orchestration</strong>, một coordinator đứng ra điều khiển từng bước, dễ theo dõi và dễ xử lý lỗi hơn khi luồng phức tạp. Điều cần nhớ là ở đây không có rollback, chỉ có bù trừ — nên mỗi hành động bù trừ phải idempotent và phải chạy cho bằng được.</p></details>
+<p><strong>Saga</strong> manages distributed business workflows using a sequence of local transactions plus compensating actions for rollback.</p>
+<pre>Order Saga: Create Order → Charge Payment → Reserve Inventory → Confirm
+
+If Inventory fails:
+  Compensate: Refund Payment → Cancel Order</pre>
+<p><strong>Two types:</strong></p>
+<pre>// 1. Choreography (event-driven, decentralized)
+Order Service → publishes "OrderCreated"
+  → Payment Service listens → charges → publishes "PaymentCharged"
+    → Inventory Service listens → reserves → publishes "InventoryReserved"
+      → Order Service listens → confirms order
+
+If failure: each service publishes compensation events
+
+// 2. Orchestration (central coordinator)
+[Saga Orchestrator]
+  → Step 1: Call Order Service → "create order"
+  → Step 2: Call Payment Service → "charge payment"
+  → Step 3: Call Inventory Service → "reserve stock" (FAILS!)
+  → Compensate Step 2: "refund payment"
+  → Compensate Step 1: "cancel order"</pre>
+<table><tr><th>Aspect</th><th>Choreography</th><th>Orchestration</th></tr>
+<tr><td>Coupling</td><td>Loose (events)</td><td>Tighter (orchestrator knows flow)</td></tr>
+<tr><td>Complexity</td><td>Hard to follow for many steps</td><td>Clear flow in one place</td></tr>
+<tr><td>Best for</td><td>Simple sagas (2-3 steps)</td><td>Complex sagas (5+ steps)</td></tr></table>
+<div class="key-point">Every saga step MUST have a compensating action defined. Without compensation, partial failures leave the system in an inconsistent state.</div>`,
+      },
+      {
+        q: 'What is idempotency and why is it important in distributed systems?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>Idempotency means that doing an operation many times has the same effect as doing it once, and it is required because networks force retries and every retry risks a duplicate. In HTTP, GET, PUT, and DELETE are naturally idempotent while POST is not, which is why create endpoints take an idempotency key that the client makes once and reuses on retries, and the server deduplicates on it. The key and its result must be stored together with the side effect in one transaction, so a crash cannot cause a double charge. It is the foundation for safe retries, at-least-once messaging, and exactly-once processing.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Idempotency nghĩa là thực hiện một thao tác nhiều lần cũng cho ra kết quả y như làm đúng một lần. Trong hệ phân tán đây là yêu cầu bắt buộc, vì mạng lỗi thì phải retry, mà mỗi lần retry lại có nguy cơ thao tác bị thực hiện hai lần. Trong HTTP thì GET, PUT và DELETE vốn đã idempotent, còn POST thì không. Đó là lý do các endpoint tạo mới thường nhận thêm một <strong>idempotency key</strong>: client sinh ra một lần và giữ nguyên qua mọi lần retry, server dựa vào đó để nhận ra request lặp và trả lại kết quả cũ thay vì xử lý lại. Key này cùng kết quả của nó phải được ghi trong cùng một transaction với chính side effect, để một cú crash giữa chừng không thể khiến khách hàng bị trừ tiền hai lần. Idempotency chính là nền tảng cho retry an toàn, cho messaging kiểu at-least-once và cho xử lý exactly-once.</p></details>
+<p>An operation is <strong>idempotent</strong> if performing it multiple times has the same effect as performing it once.</p>
+<pre>// Idempotent: safe to retry
+PUT /users/123 { name: "John" }  → Always sets name to "John"
+DELETE /orders/456               → First call deletes, retries return 404
+
+// NOT idempotent: dangerous to retry
+POST /payments { amount: 100 }   → Each call creates a NEW payment!
+POST /orders                     → Each call creates a NEW order!</pre>
+<p><strong>How to make non-idempotent operations safe:</strong></p>
+<pre>// Idempotency key pattern:
+POST /payments
+Headers: Idempotency-Key: "abc-123-unique"
+Body: { amount: 100 }
+
+// Server: check if "abc-123-unique" was already processed
+if (exists(idempotencyKey)) {
+    return cachedResponse;  // same result, no duplicate charge
+}
+// First time: process payment, store key + response</pre>
+<p><strong>Why it matters:</strong></p>
+<ul>
+<li>Networks fail: timeouts, retries happen automatically</li>
+<li>Message queues may deliver the same message twice</li>
+<li>Load balancers may send duplicate requests</li>
+</ul>
+<div class="key-point">Retries are normal in distributed systems. Idempotency is what keeps retries safe. Stripe, PayPal, and all payment APIs require idempotency keys.</div>`,
+      },
+      {
+        q: 'How do you guarantee event ordering in event-driven microservices?',
+        difficulty: 'tricky',
+        a: `<div class="interview-answer"><p>There is no global ordering in a distributed system, so the real question is what scope of ordering is needed, and it is usually per entity. The common technique is to partition by the entity key, for example a Kafka partition by account ID, so all events for one entity stay in order while different entities run in parallel. When strict order cannot be guaranteed, make consumers tolerant by adding a version or sequence number and dropping stale events. Global total ordering forces everything through one partition and hurts throughput, so it should be avoided.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Trong hệ phân tán không có chuyện xếp thứ tự toàn cục, nên câu hỏi đúng phải là: bạn cần đúng thứ tự trong <em>phạm vi</em> nào? Hầu như lúc nào câu trả lời cũng là "theo từng entity". Cách làm phổ biến là partition theo khóa của entity — chẳng hạn Kafka partition theo account ID — nhờ đó mọi event của cùng một tài khoản luôn giữ đúng trình tự, trong khi các tài khoản khác nhau vẫn được xử lý song song thoải mái. Với những chỗ không thể bảo đảm thứ tự tuyệt đối, hãy làm cho consumer "dễ tính" hơn: gắn thêm số version hoặc sequence vào event rồi bỏ qua những event đến muộn nhưng đã cũ. Còn thứ tự tuyệt đối trên toàn hệ thống thì nên tránh, vì nó ép mọi message chui qua một partition duy nhất và bóp nghẹt throughput.</p></details>
+<p>Trick premise alert: there is <strong>no global ordering</strong> in a distributed system — the real question is <em>what scope of ordering do you actually need?</em> Usually: per entity.</p>
+<pre>Kafka's model:
+  - Ordering is guaranteed ONLY within a partition
+  - Same key → same partition → in order
+
+  producer.send("orders", key = orderId, event);
+  // OrderCreated(42), OrderPaid(42), OrderShipped(42)
+  // → all on one partition → consumed in order ✅
+  // Events for DIFFERENT orders may interleave — and that's fine.</pre>
+<p><strong>Where ordering silently breaks (the senior checklist):</strong></p>
+<ul>
+<li><strong>Producer retries</strong>: send 1 fails, send 2 succeeds, retry of 1 lands after 2 → set <code>enable.idempotence=true</code> (dedupes and preserves order per partition).</li>
+<li><strong>Consumer-side parallelism</strong>: consuming a partition then spraying events into a thread pool destroys the ordering Kafka gave you. Parallelize <em>by key</em>, not round-robin.</li>
+<li><strong>Repartitioning</strong>: changing partition count remaps keys → old and new events for one entity split across partitions during transition.</li>
+<li><strong>Multiple producers</strong> for one entity (or dual-write paths) → no defined order at all.</li>
+</ul>
+<p><strong>Designing to need less ordering:</strong></p>
+<pre>- Version/sequence number in the event: consumer rejects stale
+    if (event.version &lt;= current.version) skip;
+- Full-state ("fat") events instead of deltas → last-write-wins is safe
+- Idempotent handlers → duplicates and some reorderings become harmless</pre>
+<div class="key-point">Interview-ready summary: "Partition by aggregate ID for per-entity ordering, idempotent producer against retry reordering, keep per-key ordering through the consumer, and version events so out-of-order delivery is detectable. Global ordering doesn't exist and designs that require it don't scale."</div>`,
+      },
+      {
+        q: 'How do you join data across microservices, each with its own database?',
+        difficulty: 'tricky',
+        a: `<div class="interview-answer"><p>Because each service owns its own data, a SQL <code>JOIN</code> across services is not possible, and there are three main options. API composition has the caller query each service and merge the results in memory, which is simple but slow and causes N+1 calls for large sets. CQRS with a materialized read model has services publish events so a query service keeps a denormalized, pre-joined view, at the cost of eventual consistency. Reaching directly into another service's database must be avoided because it recreates the coupling that database-per-service is meant to prevent.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Vì mỗi service giữ dữ liệu của riêng mình nên không còn cách nào viết một câu <code>JOIN</code> SQL vắt qua nhiều service; bạn chỉ có ba lựa chọn. <strong>API composition</strong>: bên gọi lần lượt hỏi từng service rồi tự ghép kết quả trong bộ nhớ — đơn giản, dễ hiểu, nhưng chậm và rất dễ đẻ ra lời gọi N+1 khi dữ liệu nhiều. <strong>CQRS với read model dựng sẵn</strong>: các service phát event, một query service lắng nghe và duy trì sẵn một view đã denormalize, đã join sẵn để đọc cực nhanh — đổi lại bạn phải chấp nhận dữ liệu nhất quán trễ (eventual consistency) và phải nuôi thêm một bản sao dữ liệu. Còn lựa chọn thứ ba — query thẳng vào database của service khác — thì phải tránh bằng mọi giá, vì nó dựng lại đúng cái coupling mà nguyên tắc database-per-service sinh ra để phá bỏ.</p></details>
+<p>The question that exposes whether database-per-service was understood: "Show orders together with customer names" — but orders and customers live in different services. <code>JOIN</code> is gone. Options:</p>
+<p><strong>1. API composition (sync)</strong> — fine for small result sets:</p>
+<pre>GET /orders?userId=42        → Order Service
+GET /customers/42            → Customer Service
+→ merge in the caller (API gateway / BFF)
+
+Problems: N+1 calls for lists, latency = slowest call,
+          no cross-service filtering/sorting/pagination
+          ("orders of customers in Berlin, sorted by name" = fetch everything 😱)</pre>
+<p><strong>2. CQRS materialized view (async)</strong> — the scalable answer:</p>
+<pre>Customer Service ──CustomerUpdated──▶ ┌──────────────────┐
+                                      │  Order-History    │
+Order Service ────OrderCreated──────▶ │  View Service     │
+                                      │  (denormalized DB │
+                                      │   or Elasticsearch)│
+Query: one SELECT on the pre-joined view — fast, filterable, pageable
+Cost : eventual consistency + view rebuild logic</pre>
+<p><strong>3. Replicate a slice of the data</strong> — Order Service keeps a local copy of just <code>(customerId, name)</code>, updated by subscribing to customer events. Duplication is a feature here, not a sin: reads stay local and the service works even when Customer Service is down.</p>
+<p><strong>Anti-patterns:</strong> reaching into another service's database directly (couples you to their schema — the #1 microservice sin), and cross-service distributed queries at request time.</p>
+<div class="key-point">Senior framing: "In microservices you move joins from query time to <em>write time</em> — events keep a denormalized view fresh, and queries become single-service reads. You trade consistency lag for autonomy and read performance." If a query needs fresh, transactional joins across two services, that's evidence they should be one service.</div>`,
+      },
+
+      // ──── 4. RESILIENCE & OPERATIONS ────
+      {
+        q: 'What resilience patterns are commonly used in microservices?',
+        difficulty: 'hard',
+        a: `<div class="interview-answer"><p>The main resilience patterns are timeouts, retries with exponential backoff and jitter, circuit breakers, bulkheads, and fallbacks, and they work together. Timeouts stop a slow dependency from using up all threads, retries handle short failures but need backoff and jitter to avoid a retry storm, and circuit breakers fail fast when a service is down. Bulkheads keep one failing dependency from taking down the whole app, and fallbacks give a degraded response. Only idempotent operations are safe to retry, and every pattern must be tuned carefully.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Có năm pattern chống lỗi chính, và chúng chỉ phát huy khi dùng phối hợp với nhau. <strong>Timeout</strong> là tuyến đầu: nó ngăn một dependency chậm ngốn sạch thread pool của bạn — không có timeout thì mọi cơ chế còn lại đều vô nghĩa. <strong>Retry</strong> xử lý các lỗi thoáng qua, nhưng bắt buộc phải kèm exponential backoff và jitter, nếu không chính nó sẽ tạo ra bão retry. <strong>Circuit breaker</strong> phát hiện service bên kia đã hỏng hẳn và fail ngay lập tức, thay vì để hàng nghìn request cùng nằm chờ timeout. <strong>Bulkhead</strong> khoanh vùng tài nguyên cho từng dependency, để một dependency hỏng không kéo sập cả ứng dụng. <strong>Fallback</strong> trả về một phản hồi tối giản — dữ liệu cache, danh sách rỗng, giá trị mặc định — để người dùng vẫn dùng được ở mức hạn chế thay vì nhìn thấy màn hình lỗi. Hai điều luôn phải nhớ: chỉ retry những thao tác idempotent, và mọi thông số ở trên đều phải được tinh chỉnh theo số liệu thật chứ không thể để mặc định.</p></details>
+<ul>
+<li><strong>Timeout</strong>: Don't wait forever. Set max wait time for external calls.</li>
+<li><strong>Retry</strong>: Try again on transient failures (with exponential backoff + jitter).</li>
+<li><strong>Circuit Breaker</strong>: Stop calling a failing service. Fail fast instead of cascading.</li>
+<li><strong>Bulkhead</strong>: Isolate failures. Separate thread pools per dependency.</li>
+<li><strong>Fallback</strong>: Provide degraded functionality when a dependency is down.</li>
+</ul>
+<pre>// Resilience4j example (Java):
+@CircuitBreaker(name = "paymentService", fallbackMethod = "paymentFallback")
+@Retry(name = "paymentService", maxAttempts = 3)
+@TimeLimiter(name = "paymentService", timeoutDuration = 2s)
+@Bulkhead(name = "paymentService", maxConcurrentCalls = 10)
+public PaymentResult charge(PaymentRequest req) {
+    return paymentClient.charge(req);
+}
+
+public PaymentResult paymentFallback(PaymentRequest req, Exception ex) {
+    return PaymentResult.pending("Payment queued for retry");
+}
+
+// Real scenario:
+// Recommendation service is slow →
+// timeout → open circuit → serve page without recommendations
+// User still sees the page, just without recommendations</pre>
+<div class="key-point">Layer these patterns: Timeout inside Retry inside Circuit Breaker. Never retry without timeouts and limits — retries without backoff can amplify outages (retry storm).</div>`,
+      },
+      {
+        q: 'When do retries make an outage worse? (retry storms, backoff, jitter)',
+        difficulty: 'tricky',
+        a: `<div class="interview-answer"><p>Retries make an outage worse when a dependency slows down and every caller retries, which multiplies the load at the worst possible time and can cause total collapse. The fixes are exponential backoff to spread retries out, jitter so clients do not retry in synchronized waves, and a retry budget or circuit breaker to cap total retries. Only idempotent operations should be retried, and retries should happen at one layer, not every layer, because retrying at many layers multiplies fast. The synchronized retry wave is the trap people miss most, and jitter is the cheap fix.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Retry biến một sự cố nhỏ thành thảm họa theo đúng kịch bản này: một dependency bắt đầu chậm, tất cả caller đồng loạt retry, tải đổ vào nó tăng gấp nhiều lần đúng vào lúc nó yếu nhất, và thế là sập hẳn. Ba thứ cần có để tránh: <strong>exponential backoff</strong> để giãn dần khoảng cách giữa các lần thử, <strong>jitter</strong> để các client không cùng thức dậy retry một lượt, và một <strong>retry budget</strong> hoặc circuit breaker để chặn trần tổng số lần retry. Ngoài ra chỉ retry những thao tác idempotent, và chỉ retry ở <em>một</em> tầng duy nhất — vì nếu client retry 3 lần, gateway retry 3 lần, service retry 3 lần nữa thì một request hỏng đã thành 27 request đổ xuống hệ thống đang ốm. Cái bẫy hay bị bỏ sót nhất chính là chuyện các client cùng retry đồng loạt, mà jitter lại là cách chữa rẻ nhất cho nó.</p></details>
+<p>Retries are a load <em>amplifier</em>. During a partial outage, naive retries multiply traffic exactly when the system can least afford it — often converting a slowdown into a total collapse.</p>
+<pre>The amplification math (3 attempts per layer):
+  Client → Gateway → Service A → Service B (struggling)
+  3 × 3 × 3 = 27× load on B during ITS worst moment
+
+The death spiral:
+  B slows → callers time out → all retry → B's queue grows →
+  B slower → more retries → B dies → traffic shifts → C dies…</pre>
+<p><strong>Doing retries right:</strong></p>
+<pre>// Exponential backoff + FULL JITTER (AWS-recommended):
+delay = random(0, min(cap, base × 2^attempt))
+// jitter is not optional: without it, all clients that failed together
+// retry together — synchronized waves ("retry herd")
+
+Rules:
+  1. Retry only idempotent operations (GET, PUT with key) — or use idempotency keys
+  2. Retry only retryable errors: 503, 429, timeouts.  NEVER 400/401/404
+  3. Cap attempts (2–3), cap total time; honor Retry-After headers
+  4. Retry at ONE layer (usually the edge), not every hop
+  5. Retry BUDGET (e.g. retries ≤ 10% of requests) — beyond that, fail fast
+  6. Combine with circuit breaker: stop hammering a dead dependency
+  7. Deadline propagation: don't retry work whose caller already gave up</pre>
+<div class="key-point">Interview gold: "retries trade increased load for reduced error rate — a good trade only when failures are transient and load isn't the cause." If the dependency is overloaded, retries are gasoline. That's why retry budgets and circuit breakers exist.</div>`,
+      },
+      {
+        q: 'What is health checking and readiness vs liveness probes?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>Liveness and readiness probes answer two different questions. A <strong>liveness</strong> probe asks if the process is stuck and should be restarted, while a <strong>readiness</strong> probe asks if the instance can serve traffic right now and, if it fails, only removes the instance from the load balancer. A common mistake is checking downstream dependencies in the liveness probe, because a short database outage can then restart every pod at once. Startup probes help slow-starting apps, and all probes should be cheap and local.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Hai loại probe này trả lời hai câu hỏi hoàn toàn khác nhau. <strong>Liveness</strong> hỏi: "tiến trình này có bị treo cứng và cần restart không?" — probe hỏng thì pod bị giết và khởi động lại. <strong>Readiness</strong> hỏi: "ngay lúc này instance có sẵn sàng nhận request chưa?" — probe hỏng thì instance chỉ bị gỡ khỏi load balancer, vẫn sống và có cơ hội quay lại. Lỗi kinh điển là đem các dependency bên ngoài vào kiểm tra trong liveness probe: chỉ cần database chớp tắt vài giây là toàn bộ pod bị restart đồng loạt, biến một sự cố nhỏ thành sự cố toàn hệ thống — những thứ đó thuộc về readiness. Với ứng dụng khởi động chậm thì dùng thêm startup probe để liveness không giết pod ngay khi nó còn đang khởi tạo. Nguyên tắc chung: mọi probe phải nhẹ và chỉ kiểm tra trong phạm vi cục bộ.</p></details>
+<p>Health checks tell the infrastructure whether a service instance is working correctly.</p>
+<ul>
+<li><strong>Liveness probe</strong>: "Is the process alive?" If it fails, the container is <strong>restarted</strong>.</li>
+<li><strong>Readiness probe</strong>: "Can it handle traffic?" If it fails, traffic is <strong>removed</strong> from load balancer (but container keeps running).</li>
+<li><strong>Startup probe</strong>: "Has it finished starting?" Prevents liveness checks from killing slow-starting apps.</li>
+</ul>
+<pre># Kubernetes health checks:
+livenessProbe:
+  httpGet:
+    path: /actuator/health/liveness
+    port: 8080
+  initialDelaySeconds: 15
+  periodSeconds: 10
+
+readinessProbe:
+  httpGet:
+    path: /actuator/health/readiness
+    port: 8080
+  periodSeconds: 5
+
+# Spring Boot Actuator:
+# /actuator/health/liveness → checks process is alive
+# /actuator/health/readiness → checks DB connection, disk space, etc.</pre>
+<div class="key-point">A common mistake: putting DB checks in the liveness probe. If the DB is temporarily down, all service instances restart in a loop (crash cascade). Put DB checks in readiness probe instead.</div>`,
+      },
+      {
+        q: 'What is distributed tracing and why do correlation IDs matter?',
+        difficulty: 'medium',
+        a: `<div class="interview-answer"><p>When a request passes through many services, a normal stack trace is not useful, and <strong>distributed tracing</strong> rebuilds the whole journey as a tree of spans that shows where latency and errors happen. It works by generating a trace or correlation ID at the edge and passing it through every call in the headers, with each service adding spans; W3C Trace Context is the standard format. The correlation ID also ties together logs from all services for one request, which makes debugging far easier. A common choice is OpenTelemetry exporting to Jaeger or Tempo, and the main risks are propagation gaps where one service drops the header and the sampling strategy limiting what is visible.</p></div>
+<details class="viet-answer"><summary>🇻🇳 Đáp án (Tiếng Việt)</summary><p>Khi một request đi qua nhiều service thì stack trace thông thường gần như vô dụng; <strong>distributed tracing</strong> dựng lại toàn bộ hành trình đó thành một cây span, cho thấy độ trễ và lỗi phát sinh ở đâu. Cách hoạt động là sinh ra một trace ID (hay correlation ID) ngay ở cửa ngõ hệ thống rồi truyền nó qua mọi lời gọi thông qua header, mỗi service đi qua sẽ thêm span của mình; W3C Trace Context là định dạng chuẩn cho việc này. Correlation ID cũng giúp gom log của tất cả service thuộc cùng một request lại với nhau, khiến việc debug dễ hơn hẳn. Bộ đôi phổ biến hiện nay là OpenTelemetry xuất dữ liệu sang Jaeger hoặc Tempo. Hai rủi ro chính là đứt mạch truyền context khi có service nào đó làm rơi mất header, và việc sampling khiến ta không nhìn thấy được hết mọi request.</p></details>
+<p><strong>Distributed tracing</strong> follows one user request across many services, showing the full journey and timing.</p>
+<pre>User request: GET /checkout
+  ↓
+  [API Gateway] (2ms)
+  ├── [Order Service] (15ms)
+  │   ├── [Inventory Service] (8ms)
+  │   └── [Pricing Service] (5ms)
+  └── [Payment Service] (200ms) ← bottleneck!
+      └── [Fraud Check Service] (180ms) ← root cause!
+
+Trace ID: abc-123 (links ALL spans across services)
+Span 1: API Gateway → Order Service (15ms)
+Span 2: Order Service → Inventory Service (8ms)
+Span 3: Order Service → Pricing Service (5ms)
+Span 4: API Gateway → Payment Service (200ms)</pre>
+<p><strong>Implementation:</strong></p>
+<pre>// Propagate trace ID in headers
+GET /inventory/check
+Headers:
+  X-Trace-Id: abc-123
+  X-Span-Id: span-456
+  X-Parent-Span-Id: span-123
+
+// Log with correlation ID
+logger.info("[trace=abc-123] Checking inventory for item 789")</pre>
+<p><strong>Tools:</strong> Jaeger, Zipkin, AWS X-Ray, Datadog APM, OpenTelemetry (standard)</p>
+<div class="key-point">Without trace/correlation IDs, debugging latency in microservices is like finding a needle in a haystack. OpenTelemetry is the emerging standard — invest in it early.</div>`,
+      },
+    ],
+  },
+];
