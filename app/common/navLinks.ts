@@ -40,6 +40,7 @@ const LEGANCY_LINKS: NavLink[] = [
   { href: '/legancy-tools/json-process', label: 'Json Process' },
   { href: '/legancy-tools/replace-process', label: 'Replace Process' },
   { href: '/inteview', label: 'PV' },
+  { href: '/knowledge-map', label: 'Knowledge Map' },
 ];
 
 export const NAV_SECTIONS: NavSection[] = [

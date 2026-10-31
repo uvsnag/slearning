@@ -1,0 +1,729 @@
+/* Knowledge Map styles — every selector is scoped under .km-root so nothing
+   leaks into the rest of the app. Same flat palette as the interview page. */
+
+/* ===== Design tokens ===== */
+.km-root {
+  --km-bg: #f6f7f9;
+  --km-grid: #e6e8ec;
+  --km-surface: #ffffff;
+  --km-surface-2: #f9fafb;
+  --km-border: #e5e7eb;
+  --km-text: #1f2937;
+  --km-text-muted: #6b7280;
+  --km-accent: #2563eb;
+  --km-accent-soft: #eff6ff;
+  --km-branch-l: 45%;
+  --km-branch-bg-l: 95%;
+  --km-beginner: #16a34a;
+  --km-intermediate: #2563eb;
+  --km-advanced: #d97706;
+  --km-expert: #dc2626;
+}
+.km-root.km-dark {
+  --km-bg: #0f1115;
+  --km-grid: #1b1f27;
+  --km-surface: #171a21;
+  --km-surface-2: #1d212a;
+  --km-border: #2a2f3a;
+  --km-text: #d7dae0;
+  --km-text-muted: #9aa1ac;
+  --km-accent: #60a5fa;
+  --km-accent-soft: #1b2535;
+  --km-branch-l: 65%;
+  --km-branch-bg-l: 16%;
+  --km-beginner: #4ade80;
+  --km-intermediate: #60a5fa;
+  --km-advanced: #fbbf24;
+  --km-expert: #f87171;
+}
+
+/* ===== Base ===== */
+.km-root,
+.km-root *,
+.km-root *::before,
+.km-root *::after {
+  box-sizing: border-box;
+}
+.km-root {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  background: var(--km-bg);
+  color: var(--km-text);
+  overflow: hidden;
+}
+.km-root button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+/* ===== Toolbar ===== */
+.km-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+  padding: 10px 16px;
+  background: var(--km-surface);
+  border-bottom: 1px solid var(--km-border);
+  z-index: 5;
+}
+.km-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1rem;
+}
+.km-brand-icon {
+  font-size: 1.3rem;
+}
+.km-root .km-brand select {
+  font: inherit;
+  font-weight: 600;
+  background: transparent;
+  color: var(--km-text);
+  border: 1px solid var(--km-border);
+  border-radius: 6px;
+  padding: 3px 6px;
+}
+.km-sub {
+  color: var(--km-text-muted);
+  font-size: 0.85rem;
+}
+.km-search {
+  position: relative;
+  flex: 1 1 220px;
+  max-width: 340px;
+}
+.km-search input {
+  width: 100%;
+  padding: 7px 70px 7px 10px;
+  border: 1px solid var(--km-border);
+  border-radius: 8px;
+  background: var(--km-surface-2);
+  color: var(--km-text);
+  font: inherit;
+  font-size: 0.9rem;
+  outline: none;
+}
+.km-search input:focus {
+  border-color: var(--km-accent);
+}
+.km-count {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.78rem;
+  color: var(--km-text-muted);
+}
+.km-levels {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.km-label {
+  font-size: 0.8rem;
+  color: var(--km-text-muted);
+  margin-right: 2px;
+}
+.km-root .km-seg {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  font-size: 0.8rem !important;
+  text-transform: capitalize;
+  border: 1px solid var(--km-border);
+  background: var(--km-surface);
+  border-radius: 999px;
+  opacity: 0.55;
+}
+.km-root .km-seg.on {
+  opacity: 1;
+  background: var(--km-surface-2);
+}
+.km-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+.km-root .km-actions > button,
+.km-root .km-zoom button,
+.km-root .km-panel-foot button {
+  padding: 5px 10px;
+  font-size: 0.85rem;
+  border: 1px solid var(--km-border);
+  background: var(--km-surface);
+  border-radius: 6px;
+}
+.km-root .km-actions > button:hover,
+.km-root .km-zoom button:hover,
+.km-root .km-panel-foot button:hover:not(:disabled) {
+  border-color: var(--km-accent);
+  color: var(--km-accent);
+}
+.km-root .km-icon-btn {
+  border: 1px solid transparent !important;
+  background: none !important;
+}
+.km-progress {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--km-text-muted);
+  margin-right: 4px;
+}
+.km-progress-bar {
+  width: 80px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--km-border);
+  overflow: hidden;
+}
+.km-progress-bar > div {
+  height: 100%;
+  background: var(--km-beginner);
+  transition: width 0.3s;
+}
+
+/* ===== Level dots / badges ===== */
+.km-dot {
+  display: inline-block;
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.km-dot-beginner {
+  background: var(--km-beginner);
+}
+.km-dot-intermediate {
+  background: var(--km-intermediate);
+}
+.km-dot-advanced {
+  background: var(--km-advanced);
+}
+.km-dot-expert {
+  background: var(--km-expert);
+}
+.km-level {
+  flex: none;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+}
+.km-level-beginner {
+  color: var(--km-beginner);
+}
+.km-level-intermediate {
+  color: var(--km-intermediate);
+}
+.km-level-advanced {
+  color: var(--km-advanced);
+}
+.km-level-expert {
+  color: var(--km-expert);
+}
+
+/* ===== Map ===== */
+.km-body {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+.km-viewport {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  touch-action: none;
+  cursor: grab;
+  outline: none;
+  background-color: var(--km-bg);
+  background-image: radial-gradient(var(--km-grid) 1px, transparent 1px);
+  background-size: 22px 22px;
+  user-select: none;
+}
+.km-viewport:active {
+  cursor: grabbing;
+}
+.km-canvas {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+  transition: opacity 0.2s;
+}
+.km-canvas.km-animate {
+  transition:
+    transform 0.35s ease,
+    opacity 0.2s;
+}
+.km-edges {
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+.km-edge {
+  fill: none;
+  stroke: hsl(var(--h) 60% var(--km-branch-l));
+  stroke-width: 1.5;
+  opacity: 0.7;
+  transition: d 0.3s ease;
+}
+.km-edge-main {
+  stroke-width: 2.5;
+}
+
+/* ===== Nodes ===== */
+.km-node {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transition:
+    transform 0.3s ease,
+    opacity 0.2s;
+  animation: km-pop 0.25s ease;
+}
+@keyframes km-pop {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.km-root .km-node-body {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  height: 100%;
+  padding: 0 12px;
+  text-align: left;
+  font-size: 0.82rem;
+  line-height: 1.2;
+  background: var(--km-surface);
+  border: 1px solid var(--km-border);
+  border-left: 4px solid hsl(var(--h) 60% var(--km-branch-l));
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+.km-root .km-node.left .km-node-body {
+  border-left-width: 1px;
+  border-right: 4px solid hsl(var(--h) 60% var(--km-branch-l));
+}
+.km-root .km-node-body:hover {
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.12);
+}
+.km-node-title {
+  flex: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.km-check {
+  color: var(--km-beginner);
+  font-weight: 700;
+}
+.km-root .km-node-branch .km-node-body {
+  font-weight: 600;
+  font-size: 0.88rem;
+  background: hsl(var(--h) 70% var(--km-branch-bg-l));
+  border-color: hsl(var(--h) 60% var(--km-branch-l));
+}
+.km-root .km-node-root .km-node-body {
+  justify-content: center;
+  text-align: center;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--km-accent);
+  border: none;
+  border-radius: 28px;
+}
+.km-node.selected .km-node-body {
+  outline: 3px solid var(--km-accent);
+  outline-offset: 2px;
+}
+.km-node.match .km-node-body {
+  box-shadow: 0 0 0 3px rgb(250 204 21 / 0.7);
+}
+.km-node.dimmed {
+  opacity: 0.3;
+}
+.km-node.learned:not(.km-node-root) .km-node-body {
+  background-image: linear-gradient(90deg, rgb(22 163 74 / 0.08), transparent);
+}
+.km-root .km-toggle {
+  position: absolute;
+  top: 50%;
+  right: -11px;
+  transform: translateY(-50%);
+  min-width: 22px;
+  height: 22px;
+  padding: 0 4px;
+  font-size: 0.7rem !important;
+  font-weight: 700;
+  line-height: 1;
+  border-radius: 11px;
+  border: 1.5px solid hsl(var(--h) 60% var(--km-branch-l));
+  background: var(--km-surface);
+  color: hsl(var(--h) 60% var(--km-branch-l)) !important;
+}
+.km-root .km-node.left .km-toggle {
+  right: auto;
+  left: -11px;
+}
+.km-root .km-toggle.open {
+  background: hsl(var(--h) 60% var(--km-branch-l));
+  color: var(--km-surface) !important;
+}
+
+/* ===== Overlays on the map ===== */
+.km-legend,
+.km-hint,
+.km-zoom {
+  position: absolute;
+  z-index: 2;
+}
+.km-legend {
+  left: 12px;
+  bottom: 12px;
+  display: flex;
+  gap: 10px;
+  padding: 6px 10px;
+  font-size: 0.75rem;
+  text-transform: capitalize;
+  color: var(--km-text-muted);
+  background: var(--km-surface);
+  border: 1px solid var(--km-border);
+  border-radius: 8px;
+}
+.km-legend > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.km-zoom {
+  right: 12px;
+  bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.km-root .km-zoom button {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  font-size: 1.1rem;
+}
+.km-hint {
+  left: 50%;
+  top: 10px;
+  transform: translateX(-50%);
+  font-size: 0.75rem;
+  color: var(--km-text-muted);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* ===== Detail panel ===== */
+.km-panel {
+  position: relative;
+  width: var(--km-panel-w, 420px);
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  background: var(--km-surface);
+  border-left: 1px solid var(--km-border);
+  min-height: 0;
+}
+.km-panel-resize {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -4px;
+  width: 8px;
+  cursor: col-resize;
+  z-index: 5;
+  touch-action: none;
+}
+.km-panel-resize:hover,
+.km-panel-resizing .km-panel-resize {
+  background: var(--km-accent);
+  opacity: 0.35;
+}
+.km-panel-resizing {
+  user-select: none;
+}
+.km-panel-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 14px 0;
+}
+.km-trail {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  font-size: 0.75rem;
+}
+.km-root .km-trail button {
+  border: none;
+  background: none;
+  padding: 2px 4px;
+  color: var(--km-text-muted);
+  border-radius: 4px;
+}
+.km-root .km-trail button:not(:last-child)::after {
+  content: ' ›';
+}
+.km-root .km-trail button:hover {
+  color: var(--km-accent);
+}
+.km-panel-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px 18px 18px;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  animation: km-pop 0.2s ease;
+}
+.km-panel-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-left: 10px;
+  border-left: 4px solid hsl(var(--h) 60% var(--km-branch-l));
+}
+.km-panel-title h2 {
+  flex: 1;
+  margin: 0;
+  font-size: 1.25rem;
+  line-height: 1.3;
+}
+.km-summary {
+  margin: 10px 0 8px;
+  color: var(--km-text-muted);
+}
+.km-learned {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: var(--km-text-muted);
+  cursor: pointer;
+  margin-bottom: 6px;
+}
+.km-box {
+  margin: 12px 0;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--km-border);
+}
+.km-box h4,
+.km-section h4 {
+  margin: 0 0 6px;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--km-text-muted);
+}
+.km-box p {
+  margin: 0;
+}
+.km-box-simple {
+  background: var(--km-accent-soft);
+  border-color: transparent;
+}
+.km-box-tip {
+  border-left: 4px solid var(--km-advanced);
+}
+.km-section {
+  margin: 14px 0;
+}
+.km-section ul {
+  margin: 0;
+  padding-left: 20px;
+}
+.km-section li {
+  margin: 3px 0;
+}
+.km-detail p {
+  margin: 0 0 8px;
+}
+.km-root code {
+  font-family: Consolas, 'Courier New', monospace;
+  font-size: 0.85em;
+}
+.km-detail pre {
+  margin: 8px 0;
+  padding: 10px 12px;
+  overflow-x: auto;
+  border-radius: 8px;
+  background: var(--km-surface-2);
+  border: 1px solid var(--km-border);
+  line-height: 1.45;
+}
+.km-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.km-root .km-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  font-size: 0.8rem !important;
+  background: var(--km-surface-2);
+  border: 1px solid var(--km-border);
+  border-radius: 999px;
+}
+.km-root .km-chip:hover {
+  border-color: hsl(var(--h) 60% var(--km-branch-l));
+}
+.km-root .km-chip.done::after {
+  content: '✓';
+  color: var(--km-beginner);
+  font-weight: 700;
+}
+.km-panel-foot {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  border-top: 1px solid var(--km-border);
+}
+.km-root .km-panel-foot button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.km-pos {
+  font-size: 0.78rem;
+  color: var(--km-text-muted);
+  min-width: 56px;
+  text-align: center;
+}
+.km-root .km-panel-foot .km-primary {
+  margin-left: auto;
+  background: var(--km-accent);
+  border-color: var(--km-accent);
+  color: #fff;
+}
+.km-root .km-panel-foot .km-primary:hover:not(:disabled) {
+  color: #fff;
+  filter: brightness(1.1);
+}
+
+/* ===== Mobile: panel becomes a bottom sheet ===== */
+@media (max-width: 860px) {
+  .km-body {
+    flex-direction: column;
+  }
+  .km-panel {
+    width: 100%;
+    height: 55%;
+    border-left: none;
+    border-top: 1px solid var(--km-border);
+  }
+  .km-panel-resize {
+    display: none;
+  }
+  .km-hide-sm {
+    display: none;
+  }
+  .km-levels .km-label {
+    display: none;
+  }
+  .km-search {
+    max-width: none;
+  }
+  .km-actions {
+    margin-left: 0;
+  }
+  .km-legend {
+    display: none;
+  }
+}
+
+/* ===== Overview image ===== */
+.km-figure {
+  margin: 12px 0;
+}
+.km-root .km-figure button {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 1px solid var(--km-border);
+  border-radius: 8px;
+  background: var(--km-surface-2);
+  overflow: hidden;
+  cursor: zoom-in;
+}
+.km-figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.km-figure figcaption {
+  margin-top: 4px;
+  font-size: 0.75rem;
+  color: var(--km-text-muted);
+}
+.km-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 24px;
+  background: rgb(0 0 0 / 0.82);
+  cursor: zoom-out;
+  outline: none;
+}
+.km-lightbox img {
+  max-width: 100%;
+  max-height: calc(100% - 40px);
+  object-fit: contain;
+  border-radius: 8px;
+  background: #fff;
+}
+.km-lightbox p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #e5e7eb;
+}
+.km-root .km-lightbox-close {
+  position: absolute;
+  top: 14px;
+  right: 18px;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.15);
+  color: #fff;
+  font-size: 1.1rem;
+}
