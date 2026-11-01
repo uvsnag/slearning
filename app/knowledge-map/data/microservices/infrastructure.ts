@@ -113,5 +113,24 @@ public record PaymentProps(@NotBlank String providerUrl, @Positive int timeoutMs
       ],
       tip: 'If a secret ever lands in Git history, treat it as leaked: rotate it, don’t just delete the commit.',
     },
+    {
+      title: 'Scheduled Jobs & Locks',
+      level: 'advanced',
+      summary:
+        'With many copies of a service, a scheduled job runs on every copy unless you coordinate them.',
+      simple:
+        'If five shop assistants all have "lock the door at 9 pm" on their list, the door gets locked five times. Someone must grab the key first.',
+      points: [
+        '<code>@Scheduled</code> runs in every instance: 5 pods = 5 nightly invoice emails.',
+        'Take a lock in a shared store so only one copy runs the job (ShedLock, a DB row, Redis).',
+        'Or move the job out of the service: a Kubernetes CronJob or a workflow engine.',
+        'Locks can expire mid-run, so jobs should still be safe to run twice.',
+      ],
+      detail: `<pre><code>@Scheduled(cron = "0 0 2 * * *")
+@SchedulerLock(name = "nightlyInvoices", lockAtMostFor = "PT30M")
+public void sendInvoices() {
+  invoiceService.sendDue();   // runs on one instance only
+}</code></pre>`,
+    },
   ],
 };

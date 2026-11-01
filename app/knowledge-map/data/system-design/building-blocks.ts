@@ -12,6 +12,18 @@ export const buildingBlocks: KmNode = {
   ],
   children: [
     {
+      title: 'Leaderboards & Counters',
+      level: 'intermediate',
+      summary: 'Fast rankings and counts using in-memory structures instead of heavy SQL queries.',
+      simple:
+        'Keep the scoreboard on a whiteboard everyone can see, instead of recounting every game from the archive.',
+      points: [
+        'Redis sorted sets: add score and get rank in O(log n).',
+        'Hot counters (likes, views): count in memory, flush to the database in batches.',
+        'Shard a very hot counter into several keys and sum them on read.',
+      ],
+    },
+    {
       title: 'Unique ID Generation',
       level: 'advanced',
       summary: 'Creating unique IDs across many machines without a central counter.',
@@ -40,17 +52,6 @@ function nextId(machineId, seq, nowMs, epochMs) {
       ],
     },
     {
-      title: 'Counting at Scale',
-      level: 'expert',
-      summary: 'Approximate structures that count huge streams with little memory.',
-      points: [
-        'HyperLogLog: counts unique items (e.g. unique visitors) in ~12 KB with ~1% error.',
-        'Count-Min Sketch: estimates how often each item appears (top searches, heavy hitters).',
-        'Redis has HyperLogLog built in (<code>PFADD</code>, <code>PFCOUNT</code>).',
-        'Use when exact numbers are not worth the memory or time.',
-      ],
-    },
-    {
       title: 'Geospatial Indexing',
       level: 'advanced',
       summary: 'Indexes that answer "what is near me?" fast: geohash, quadtrees, S2 or H3 cells.',
@@ -62,18 +63,6 @@ function nextId(machineId, seq, nowMs, epochMs) {
       ],
     },
     {
-      title: 'Leaderboards & Counters',
-      level: 'intermediate',
-      summary: 'Fast rankings and counts using in-memory structures instead of heavy SQL queries.',
-      simple:
-        'Keep the scoreboard on a whiteboard everyone can see, instead of recounting every game from the archive.',
-      points: [
-        'Redis sorted sets: add score and get rank in O(log n).',
-        'Hot counters (likes, views): count in memory, flush to the database in batches.',
-        'Shard a very hot counter into several keys and sum them on read.',
-      ],
-    },
-    {
       title: 'Fan-out on Write vs Read',
       level: 'advanced',
       summary: 'Build feeds ahead of time when someone posts, or assemble them when someone reads.',
@@ -82,6 +71,17 @@ function nextId(machineId, seq, nowMs, epochMs) {
         'Fan-out on read (pull): gather posts from everyone you follow at read time; writes are cheap.',
         'Celebrities with millions of followers make push too expensive.',
         'Hybrid: push for normal users, pull for celebrities at read time.',
+      ],
+    },
+    {
+      title: 'Counting at Scale',
+      level: 'expert',
+      summary: 'Approximate structures that count huge streams with little memory.',
+      points: [
+        'HyperLogLog: counts unique items (e.g. unique visitors) in ~12 KB with ~1% error.',
+        'Count-Min Sketch: estimates how often each item appears (top searches, heavy hitters).',
+        'Redis has HyperLogLog built in (<code>PFADD</code>, <code>PFCOUNT</code>).',
+        'Use when exact numbers are not worth the memory or time.',
       ],
     },
   ],

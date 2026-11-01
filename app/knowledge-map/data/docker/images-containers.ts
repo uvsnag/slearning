@@ -53,7 +53,7 @@ export const images: KmNode = {
         'Docker Hub is the default; official images have no namespace (<code>postgres</code>).',
         'Others: GitHub Container Registry, AWS ECR, Google Artifact Registry, Azure ACR, Harbor.',
         '<code>docker login</code>, <code>docker push</code>, <code>docker pull</code>.',
-        'Docker Hub limits anonymous pulls; log in or use a mirror in CI.',
+        'Docker Hub limits pulls (since April 2025 about 10/hour anonymous, 100/hour free account); log in or use a mirror in CI.',
       ],
     },
     {

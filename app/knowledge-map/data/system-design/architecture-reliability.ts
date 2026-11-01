@@ -87,7 +87,7 @@ export const reliability: KmNode = {
     'Remove single points of failure with redundancy.',
     'Degrade gracefully: lose a feature, not the whole product.',
     'Know how much data you can lose and how long you can be down.',
-    'Timeouts, retries and circuit breakers are covered in the Microservices topic.',
+    'Guard every remote call with timeouts, retries and circuit breakers (more in the Microservices topic).',
   ],
   children: [
     {
@@ -112,6 +112,40 @@ export const reliability: KmNode = {
         'Spread copies across availability zones (separate data centers in a region).',
         'Test failover regularly; untested failover usually fails.',
       ],
+    },
+    {
+      title: 'Monitoring & Alerting',
+      level: 'intermediate',
+      summary: 'Knowing the system is unhealthy before your users tell you.',
+      simple: 'Smoke detectors for your system: they shout when something starts burning.',
+      points: [
+        'Watch the "golden signals": latency, traffic, errors, saturation.',
+        'Alert on user-facing symptoms (error rate, slow p99), not every CPU blip.',
+        'Logs, metrics and traces together explain what went wrong.',
+        'Run blameless post-mortems and fix the root cause.',
+      ],
+    },
+    {
+      title: 'Timeouts, Retries & Breakers',
+      level: 'advanced',
+      summary: 'The three basic guards that stop one slow service from dragging the whole system down.',
+      points: [
+        'Timeout every network call; a call with no timeout can hang a thread forever.',
+        'Retry only safe (idempotent) calls, with exponential backoff and random jitter.',
+        'Cap retries; retries at every layer multiply load on a struggling service (retry storm).',
+        'Circuit breaker: after many failures, stop calling for a while and fail fast.',
+        'Bulkheads: separate pools per dependency so one bad one cannot use all threads.',
+      ],
+      detail: `<pre><code>async function withRetry(fn, tries = 3) {
+  for (let i = 0; ; i++) {
+    try { return await fn(); }
+    catch (e) {
+      if (i + 1 &gt;= tries) throw e;
+      const wait = Math.random() * 100 * 2 ** i; // backoff + full jitter
+      await new Promise((r) =&gt; setTimeout(r, wait));
+    }
+  }
+}</code></pre>`,
     },
     {
       title: 'Graceful Degradation',
@@ -146,18 +180,6 @@ export const reliability: KmNode = {
         'Cross-region latency (~100 ms) makes synchronous writes across regions slow.',
         'Data residency laws may require keeping some users’ data in their country.',
         'Very expensive and complex; many systems only need multi-zone.',
-      ],
-    },
-    {
-      title: 'Monitoring & Alerting',
-      level: 'intermediate',
-      summary: 'Knowing the system is unhealthy before your users tell you.',
-      simple: 'Smoke detectors for your system: they shout when something starts burning.',
-      points: [
-        'Watch the "golden signals": latency, traffic, errors, saturation.',
-        'Alert on user-facing symptoms (error rate, slow p99), not every CPU blip.',
-        'Logs, metrics and traces together explain what went wrong.',
-        'Run blameless post-mortems and fix the root cause.',
       ],
     },
   ],

@@ -23,6 +23,20 @@ export const deployment: KmNode = {
       ],
     },
     {
+      title: 'Stateless Services',
+      level: 'beginner',
+      summary: 'Keep no user state inside a service copy, so any copy can handle any request.',
+      simple:
+        'Like a call centre: any free agent can take your call, because your history is in the shared system, not in one agent’s head.',
+      points: [
+        'Don’t keep sessions, uploads or important data in memory or on the local disk.',
+        'Put state in a database, Redis or object storage instead.',
+        'Then you can add, kill or replace copies at any time without losing anything.',
+        'Avoid sticky sessions (one user always sent to one copy). They make scaling and deploys uneven.',
+        'Twelve-Factor App: processes are stateless and disposable.',
+      ],
+    },
+    {
       title: 'Kubernetes Basics',
       level: 'intermediate',
       summary: 'A platform that runs containers, keeps them alive and spreads them over machines.',
@@ -51,6 +65,41 @@ export const deployment: KmNode = {
         'GitOps: the desired state lives in Git and a tool (Argo CD, Flux) syncs the cluster.',
         'Small, frequent releases are safer than big, rare ones.',
       ],
+    },
+    {
+      title: 'Rolling Updates',
+      level: 'intermediate',
+      summary: 'Replace old copies with new ones a few at a time, so the service never goes down.',
+      simple:
+        'Changing the tyres of a bus fleet one bus at a time, so the route keeps running.',
+      points: [
+        'The default strategy of a Kubernetes Deployment.',
+        'maxSurge (extra pods allowed) and maxUnavailable (pods allowed down) set the pace.',
+        'A new pod gets traffic only after its readiness check passes.',
+        'Old and new versions run side by side for a while, so APIs and the DB must work with both.',
+        'Rollback = roll out the previous version again.',
+      ],
+    },
+    {
+      title: 'Graceful Shutdown',
+      level: 'intermediate',
+      summary: 'When told to stop, finish the work in progress and stop taking new requests first.',
+      simple:
+        'A shop closing for the night: lock the door for new customers, but serve the ones already inside before turning off the lights.',
+      points: [
+        'Kubernetes sends SIGTERM, waits terminationGracePeriodSeconds (30 s default), then kills the pod.',
+        'Stop accepting new requests, finish current ones, commit message offsets, close connections.',
+        'Spring Boot: graceful shutdown is on by default since 3.4. Tune <code>spring.lifecycle.timeout-per-shutdown-phase</code>.',
+        'A short preStop delay gives the load balancer time to stop sending traffic first.',
+      ],
+      detail: `<pre><code>process.on('SIGTERM', () =&gt; {
+  server.close(async () =&gt; {   // stop new connections, wait for open ones
+    await consumer.disconnect();
+    await db.end();
+    process.exit(0);
+  });
+});</code></pre>`,
+      tip: 'Without it, every deploy or scale-down cuts off some users mid-request and can repeat half-done messages.',
     },
     {
       title: 'Blue-Green Deployment',

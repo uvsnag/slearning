@@ -40,6 +40,23 @@ export const buildingSentences: KmNode = {
       ],
     },
     {
+      title: 'Linking Words',
+      level: 'intermediate',
+      summary:
+        'Words like however, therefore and for example that connect sentences and guide the reader.',
+      simple:
+        'They are the signposts between sentences: "turn here", "same direction", "opposite way". Without them, a paragraph feels like a list of random log lines.',
+      points: [
+        'Add: <em>also, in addition, moreover</em> (formal). Example: <em>for example, such as</em>.',
+        'Contrast: <em>however, on the other hand, instead</em>. Result: <em>so, therefore, as a result</em>.',
+        'Order: <em>first, then, after that, finally</em> — great for steps and incident timelines.',
+        "<em>however / therefore</em> start a new sentence (or follow a semicolon) and take a comma: <em>It works. However, it's slow.</em>",
+        "❌ <em>It works, however it's slow.</em> (comma splice) ✅ <em>It works, but it's slow.</em>",
+        '<em>such as</em> + nouns, <em>for example</em> + a full sentence or list: <em>tools such as Jest and JUnit</em>.',
+      ],
+      tip: "Don't start every sentence with a linker. One or two per paragraph is plenty.",
+    },
+    {
       title: 'Which vs That',
       level: 'intermediate',
       summary: '"that" picks out which one (no commas); ", which" adds extra info (with commas).',
@@ -57,7 +74,7 @@ export const buildingSentences: KmNode = {
       level: 'intermediate',
       summary: 'If-sentences: real facts, likely futures, imaginary situations and past regrets.',
       simple:
-        'English if-statements come in four flavours, depending on how real the condition is.',
+        'English if-statements come in four flavors, depending on how real the condition is.',
       points: [
         'Zero (always true): <em>If the key is missing, the method returns null.</em>',
         "First (likely): <em>If the tests pass, I'll merge it.</em>",
@@ -112,6 +129,19 @@ export const punctuation: KmNode = {
   ],
   children: [
     {
+      title: 'Apostrophes',
+      level: 'beginner',
+      summary: "Apostrophes show missing letters (don't) or ownership (user's) — never plurals.",
+      simple:
+        "Two jobs only: shortening and owning. If you're just making a plural, put the apostrophe down.",
+      points: [
+        "Short forms: <em>it's = it is, don't = do not, we're = we are</em>.",
+        "Ownership: <em>the server's IP</em>.",
+        "❌ <em>API's</em> for plural ✅ <em>APIs, URLs, PRs, the 1990s</em>.",
+        "Avoid short forms in very formal docs; they're fine in most tech docs and chat.",
+      ],
+    },
+    {
       title: 'Commas',
       level: 'intermediate',
       summary:
@@ -137,16 +167,17 @@ export const punctuation: KmNode = {
       ],
     },
     {
-      title: 'Apostrophes',
-      level: 'beginner',
-      summary: "Apostrophes show missing letters (don't) or ownership (user's) — never plurals.",
+      title: 'Quotes & Code',
+      level: 'intermediate',
+      summary:
+        'Use quotes for words as words and UI text; use code formatting for code, names and commands.',
       simple:
-        "Two jobs only: shortening and owning. If you're just making a plural, put the apostrophe down.",
+        'If someone could type it into a terminal or editor, it belongs in code font, not in quotes.',
       points: [
-        "Short forms: <em>it's = it is, don't = do not, we're = we are</em>.",
-        "Ownership: <em>the server's IP</em>.",
-        "❌ <em>API's</em> for plural ✅ <em>APIs, URLs, PRs, the 1990s</em>.",
-        "Avoid short forms in very formal docs; they're fine in most tech docs and chat.",
+        'Code font: <code>npm install</code>, <code>getUser()</code>, <code>config.yml</code>.',
+        'UI labels: bold or quotes — click <strong>Save</strong>.',
+        'US style puts periods inside quotes, but never change code to fit grammar.',
+        '✅ Set <code>debug</code> to <code>true</code>. (not <em>"true."</em>)',
       ],
     },
     {
@@ -172,20 +203,6 @@ export const punctuation: KmNode = {
         'En dash for ranges: <em>pages 10–20, 9:00–17:00</em>.',
         'Em dash for a strong pause: <em>It failed — again.</em>',
         'Google style: no spaces around em dashes; many others add them. Be consistent.',
-      ],
-    },
-    {
-      title: 'Quotes & Code',
-      level: 'intermediate',
-      summary:
-        'Use quotes for words as words and UI text; use code formatting for code, names and commands.',
-      simple:
-        'If someone could type it into a terminal or editor, it belongs in code font, not in quotes.',
-      points: [
-        'Code font: <code>npm install</code>, <code>getUser()</code>, <code>config.yml</code>.',
-        'UI labels: bold or quotes — click <strong>Save</strong>.',
-        'US style puts periods inside quotes; but never change code to fit grammar.',
-        '✅ Set <code>debug</code> to <code>true</code>. (not <em>"true."</em>)',
       ],
     },
   ],

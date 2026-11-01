@@ -8,19 +8,6 @@ export const web: KmNode = {
     'Your app becomes a shop counter. Requests come in, the right clerk (controller method) handles each one, and a reply goes back.',
   children: [
     {
-      title: 'DispatcherServlet',
-      level: 'intermediate',
-      summary: 'The front controller that receives every request and sends it to the right method.',
-      simple:
-        'The receptionist at the front desk. Every visitor talks to them first, and they send each one to the right office.',
-      points: [
-        'Finds the handler via <code>HandlerMapping</code>, using your <code>@RequestMapping</code> rules.',
-        'Turns JSON into objects and back with <code>HttpMessageConverter</code> (Jackson).',
-        'Errors go to <code>HandlerExceptionResolver</code>, which is where <code>@ControllerAdvice</code> plugs in.',
-        'Servlet filters run before it. Spring Security lives there.',
-      ],
-    },
-    {
       title: '@RestController',
       level: 'beginner',
       summary:
@@ -95,6 +82,19 @@ public ResponseEntity&lt;OrderDto&gt; create(@Valid @RequestBody NewOrder req) {
     @Email String contactEmail) {}</code></pre>`,
     },
     {
+      title: 'DispatcherServlet',
+      level: 'intermediate',
+      summary: 'The front controller that receives every request and sends it to the right method.',
+      simple:
+        'The receptionist at the front desk. Every visitor talks to them first, and they send each one to the right office.',
+      points: [
+        'Finds the handler via <code>HandlerMapping</code>, using your <code>@RequestMapping</code> rules.',
+        'Turns JSON into objects and back with <code>HttpMessageConverter</code> (Jackson).',
+        'Errors go to <code>HandlerExceptionResolver</code>, which is where <code>@ControllerAdvice</code> plugs in.',
+        'Servlet filters run before it. Spring Security lives there.',
+      ],
+    },
+    {
       title: 'Exception handling',
       level: 'intermediate',
       summary: 'Turn exceptions into clean, consistent error responses in one place.',
@@ -117,6 +117,31 @@ public class ApiErrors {
 }</code></pre>`,
     },
     {
+      title: 'Filters & interceptors',
+      level: 'intermediate',
+      summary: 'Run code before and after requests, for logging, auth checks or extra headers.',
+      simple:
+        'A filter is the guard at the building entrance. An interceptor is the assistant at the office door who already knows which office you came to see.',
+      points: [
+        '<b>Filter</b> (Servlet API): wraps every request before Spring MVC. Sees the raw request and response.',
+        '<b>HandlerInterceptor</b> (Spring MVC): runs around a controller method and knows which one was picked.',
+        'A filter bean (e.g. extending <code>OncePerRequestFilter</code>) is registered by Boot on its own.',
+        'Register interceptors in a <code>WebMvcConfigurer</code> with <code>addInterceptors</code>.',
+        'Need method arguments or return values? Use AOP instead.',
+      ],
+      detail: `<pre><code>@Component
+public class RequestTimer extends OncePerRequestFilter {
+  @Override
+  protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res,
+      FilterChain chain) throws ServletException, IOException {
+    long start = System.currentTimeMillis();
+    chain.doFilter(req, res);
+    log.info("{} took {} ms", req.getRequestURI(), System.currentTimeMillis() - start);
+  }
+}</code></pre>`,
+      tip: 'Interview answer: filters are Servlet-level and see every request; interceptors are Spring MVC-level and know the controller.',
+    },
+    {
       title: 'JSON with Jackson',
       level: 'intermediate',
       summary: 'Jackson converts between JSON and Java objects. Boot configures it for you.',
@@ -129,14 +154,28 @@ public class ApiErrors {
       ],
     },
     {
+      title: 'API docs (OpenAPI)',
+      level: 'intermediate',
+      summary: 'Generate live API documentation and a test page straight from your controllers.',
+      simple:
+        'Like a menu that writes itself from the kitchen: every dish (endpoint) is listed with what goes in and what comes out.',
+      points: [
+        'Add the community library <code>springdoc-openapi-starter-webmvc-ui</code> (2.x for Boot 3, 3.x for Boot 4).',
+        'The spec is at <code>/v3/api-docs</code>, the Swagger UI test page at <code>/swagger-ui.html</code>.',
+        'It reads your mappings, DTOs and validation annotations on its own.',
+        'Add descriptions with <code>@Operation</code>, <code>@Schema</code> and <code>@Tag</code>.',
+        'Hide or protect the UI in production.',
+      ],
+    },
+    {
       title: 'HTTP clients',
       level: 'intermediate',
       summary: 'Call other services with RestClient, declarative HTTP interfaces or WebClient.',
       simple: 'Your app is not only a shop. Sometimes it phones other shops to order things.',
       points: [
         '<code>RestClient</code> (Spring 6.1, Boot 3.2): modern, fluent, blocking. The default choice.',
-        '<code>@HttpExchange</code> interfaces: write an interface, Spring implements the calls.',
-        '<code>RestTemplate</code>: older, in maintenance mode.',
+        '<code>@HttpExchange</code> interfaces: write an interface, Spring implements the calls (Boot 4: <code>@ImportHttpServices</code>).',
+        '<code>RestTemplate</code>: older and being phased out (deprecation planned for Framework 7.1).',
         '<code>WebClient</code>: reactive, non-blocking (comes with WebFlux).',
         'Always set connect and read timeouts.',
       ],
@@ -146,6 +185,28 @@ Stock s = client.get()
     .uri("/stock/{sku}", sku)
     .retrieve()
     .body(Stock.class);</code></pre>`,
+    },
+    {
+      title: 'API versioning',
+      level: 'advanced',
+      summary:
+        'Serve v1 and v2 of an endpoint side by side. Built in since Spring Framework 7 / Boot 4.',
+      simple:
+        'A shop keeps the old menu for regulars while new customers get the new one. Each customer says which menu they want.',
+      points: [
+        'Add a version to a mapping: <code>@GetMapping(path = "/orders", version = "2")</code>.',
+        'Pick where the client sends it: a header, a query param, the path or the media type.',
+        'Configure it in a <code>WebMvcConfigurer</code>, or with <code>spring.mvc.apiversion.*</code> properties.',
+        '<code>"1.1+"</code> means "1.1 and every later version", until a newer mapping takes over.',
+        'Before Boot 4 you did it by hand, usually in the path: <code>/api/v1/orders</code>.',
+      ],
+      detail: `<pre><code>@Override
+public void configureApiVersioning(ApiVersionConfigurer config) {
+  config.useRequestHeader("API-Version");
+}
+
+@GetMapping(path = "/orders/{id}", version = "2")
+public OrderV2 getV2(@PathVariable long id) { ... }</code></pre>`,
     },
     {
       title: 'WebFlux (reactive)',

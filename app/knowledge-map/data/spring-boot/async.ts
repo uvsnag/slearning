@@ -105,17 +105,6 @@ public CompletableFuture&lt;Report&gt; build(long id) {
       ],
     },
     {
-      title: '@TransactionalEventListener',
-      level: 'advanced',
-      summary: 'Run a listener only after the publishing transaction commits.',
-      simple: 'Only send the "thank you" email once the payment is really saved, not before.',
-      points: [
-        'Default phase: <code>AFTER_COMMIT</code>. Also AFTER_ROLLBACK, AFTER_COMPLETION, BEFORE_COMMIT.',
-        'If there is no transaction, the event is dropped (unless <code>fallbackExecution = true</code>).',
-        'Not durable: a crash after commit loses the event. Use the outbox pattern for must-deliver events.',
-      ],
-    },
-    {
       title: 'Spring for Kafka',
       level: 'intermediate',
       summary: 'KafkaTemplate to send and @KafkaListener to receive, set up by Boot.',
@@ -135,5 +124,31 @@ void onOrder(OrderEvent event) {
 kafkaTemplate.send("orders", order.id(), event);</code></pre>`,
     },
     caching,
+    {
+      title: '@TransactionalEventListener',
+      level: 'advanced',
+      summary: 'Run a listener only after the publishing transaction commits.',
+      simple: 'Only send the "thank you" email once the payment is really saved, not before.',
+      points: [
+        'Default phase: <code>AFTER_COMMIT</code>. Also AFTER_ROLLBACK, AFTER_COMPLETION, BEFORE_COMMIT.',
+        'If there is no transaction, the event is dropped (unless <code>fallbackExecution = true</code>).',
+        'Not durable: a crash after commit loses the event. Use the outbox pattern for must-deliver events.',
+      ],
+    },
+    {
+      title: 'Retry & resilience',
+      level: 'advanced',
+      summary: 'Retry failed calls and cap how many run at once, built into Spring Framework 7.',
+      simple:
+        'The phone line is busy, so you wait a moment and call again. But after a few tries you give up instead of calling forever.',
+      points: [
+        'Turn on with <code>@EnableResilientMethods</code> (Framework 7 / Boot 4).',
+        '<code>@Retryable(maxRetries = 3, delay = 200)</code> calls the method again when it throws.',
+        '<code>@ConcurrencyLimit(10)</code> lets at most 10 calls run at the same time.',
+        'Only retry work that is safe to repeat (idempotent), like reads. Never blindly retry a payment.',
+        'Before Boot 4: the separate Spring Retry library, or Resilience4j for circuit breakers.',
+      ],
+      tip: 'Proxy-based like @Async: self-calls skip the retry.',
+    },
   ],
 };

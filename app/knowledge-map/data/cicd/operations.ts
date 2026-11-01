@@ -43,6 +43,32 @@ console.log('Smoke test passed');</code></pre>`,
       ],
     },
     {
+      title: 'SLOs & Error Budgets',
+      level: 'advanced',
+      summary:
+        'A reliability target (SLO) and the amount of failure it allows, used to decide how fast to ship.',
+      points: [
+        'SLI: what you measure, e.g. share of requests that succeed in under 300 ms.',
+        'SLO: the target for it, e.g. 99.9% over 30 days.',
+        'Error budget: the 0.1% you may fail, about 43 minutes a month.',
+        'Budget left? Ship faster. Budget burned? Slow down and fix reliability first.',
+      ],
+      tip: 'Alert on how fast the budget burns, not on every error. It cuts noise and catches real trouble.',
+    },
+    {
+      title: 'DORA Metrics',
+      level: 'advanced',
+      summary: 'Research-backed metrics for software delivery: the classic four are two for speed, two for stability.',
+      points: [
+        'Deployment frequency: how often you deploy to production.',
+        'Lead time for changes: from commit to running in production.',
+        'Change failure rate: share of deploys that cause a failure needing a fix.',
+        'Failed deployment recovery time (formerly MTTR): how fast you recover from a bad deploy.',
+        'Since 2024 DORA also tracks rework rate (unplanned deploys to fix user-facing bugs) as a fifth metric.',
+      ],
+      tip: 'Key DORA finding: speed and stability go together. Elite teams deploy more often AND fail less.',
+    },
+    {
       title: 'Automated Rollback',
       level: 'expert',
       summary:
@@ -53,19 +79,6 @@ console.log('Smoke test passed');</code></pre>`,
         'Needs good metrics and sensible thresholds, or it flaps or misses real problems.',
         'Database changes must be backward compatible for this to be safe.',
       ],
-    },
-    {
-      title: 'DORA Metrics',
-      level: 'advanced',
-      summary: 'Research-backed metrics for software delivery: two for speed, two for stability.',
-      points: [
-        'Deployment frequency: how often you deploy to production.',
-        'Lead time for changes: from commit to running in production.',
-        'Change failure rate: share of deploys that cause a failure needing a fix.',
-        'Failed deployment recovery time (formerly MTTR): how fast you recover from a bad deploy.',
-        'Recent DORA reports also track rework rate (unplanned deploys to fix user-facing bugs).',
-      ],
-      tip: 'Key DORA finding: speed and stability go together. Elite teams deploy more often AND fail less.',
     },
     {
       title: 'Using Metrics Well',

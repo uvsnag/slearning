@@ -36,6 +36,19 @@ export const commonMistakes: KmNode = {
       ],
     },
     {
+      title: 'Missing Words',
+      level: 'beginner',
+      summary: 'Dropping articles, subjects or the -s on verbs is the most common learner error.',
+      simple: 'Short notes and chat make this worse. Re-read once before you hit Send.',
+      points: [
+        'Missing article: ❌ <em>I created new branch</em> ✅ <em>I created a new branch</em>.',
+        "Missing subject: ❌ <em>Is ok now</em> ✅ <em>It's OK now</em>.",
+        'Missing -s: ❌ <em>The job run every hour</em> ✅ <em>The job runs every hour</em>.',
+        'Missing <em>be</em>: ❌ <em>The server down</em> ✅ <em>The server is down</em>.',
+      ],
+      tip: 'Paste important messages into a grammar checker (Grammarly, LanguageTool) — then learn from what it flags.',
+    },
+    {
       title: 'Lose, Affect & Friends',
       level: 'intermediate',
       summary: 'Word pairs that look alike but mean different things.',
@@ -101,19 +114,6 @@ export const commonMistakes: KmNode = {
         '<em>lend</em> = give for a while; <em>borrow</em> = take for a while.',
         '<em>raise</em> an issue (with object); <em>rise</em> (no object): <em>Latency rose.</em>',
       ],
-    },
-    {
-      title: 'Missing Words',
-      level: 'beginner',
-      summary: 'Dropping articles, subjects or the -s on verbs is the most common learner error.',
-      simple: 'Short notes and chat make this worse. Re-read once before you hit Send.',
-      points: [
-        'Missing article: ❌ <em>I created new branch</em> ✅ <em>I created a new branch</em>.',
-        "Missing subject: ❌ <em>Is ok now</em> ✅ <em>It's OK now</em>.",
-        'Missing -s: ❌ <em>The job run every hour</em> ✅ <em>The job runs every hour</em>.',
-        'Missing <em>be</em>: ❌ <em>The server down</em> ✅ <em>The server is down</em>.',
-      ],
-      tip: 'Paste important messages into a grammar checker (Grammarly, LanguageTool) — then learn from what it flags.',
     },
   ],
 };

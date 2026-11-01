@@ -21,9 +21,9 @@ export const microservices: KmTopic = {
     'Building systems from small, independent services — from monolith vs microservices to data, resilience and running them at scale.',
   image: {
     src: overview.src,
-    alt: 'Microservices overview (in Vietnamese): a build pipeline deploys services; an API gateway and load balancer route web, mobile and partner traffic to services that use a service registry, a message broker and their own databases',
+    alt: 'Microservices overview (Vietnamese labels): users on web, laptop and mobile call an API gateway / load balancer, which routes to user, product, order and payment services; each service has its own database, uses service discovery, and shares monitoring (Prometheus, Grafana, ELK) and an event bus (Kafka)',
     caption:
-      'Note: a simplified sketch. The message broker and "MS 4: Payments" appear twice, and usually the load balancer sits in front of the API gateway (or the gateway balances itself), not behind it.',
+      'Note: the picture draws service discovery as a layer between services and their databases. In reality each service talks to its own database directly — the registry is just a phone book services ask to find each other.',
   },
   root: {
     title: 'Microservices',

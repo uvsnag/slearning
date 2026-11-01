@@ -164,6 +164,21 @@ CREATE TABLE orders (
 );</code></pre>`,
     },
     {
+      title: 'Dates & Time Zones',
+      level: 'intermediate',
+      summary: 'Store moments in time as UTC-aware values and convert to local time only for display.',
+      simple:
+        '"Meet at 9:00" means nothing unless you say which city. Save the time with its zone, and turn it into local time at the very end.',
+      points: [
+        'PostgreSQL: <code>timestamptz</code> stores UTC and converts using the session time zone. Plain <code>timestamp</code> has no zone.',
+        'SQL Server: <code>datetime2</code> has no zone; use <code>datetimeoffset</code> or store UTC by convention.',
+        'Use <code>date</code> for birthdays and due dates that aren’t moments.',
+        'Java: map to <code>Instant</code> / <code>OffsetDateTime</code>; JS: send ISO strings with <code>Z</code>.',
+        'Filter by day with a half-open range (<code>&gt;= day AND &lt; next day</code>), not BETWEEN.',
+      ],
+      tip: 'Old SQL Server datetime rounds to about 3 ms; prefer datetime2 in new tables.',
+    },
+    {
       title: 'Constraints',
       level: 'beginner',
       summary:
@@ -190,6 +205,21 @@ CREATE TABLE orders (
         'SQL Server rejects designs with multiple cascade paths to one table.',
         'Neither database indexes FK columns for you; add the index or parent deletes get slow.',
       ],
+    },
+    {
+      title: 'Integer vs UUID Keys',
+      level: 'intermediate',
+      summary: 'Pick between auto-increment numbers and UUIDs for primary keys, knowing what each costs.',
+      simple:
+        'Ticket numbers from one machine (1, 2, 3…) are small and tidy. UUIDs are like serial numbers anyone can print without asking, but they are longer.',
+      points: [
+        'BIGINT identity: 8 bytes, ordered, compact indexes. But ids are guessable and need the DB to create them.',
+        'UUID: 16 bytes, made anywhere (app, offline, many services), not guessable.',
+        'Random UUIDv4 inserts land all over the index: page splits and bloat, painful as a clustered key.',
+        'UUIDv7 starts with a timestamp, so inserts stay in order. PostgreSQL 18 has <code>uuidv7()</code>.',
+        'SQL Server: <code>uniqueidentifier</code> with <code>NEWSEQUENTIALID()</code>, or keep an int clustered key.',
+      ],
+      tip: 'Common middle ground: BIGINT key inside the database, a UUID column exposed in public URLs.',
     },
     {
       title: 'Normalization',
@@ -277,6 +307,42 @@ SELECT id FROM events WHERE JSON_VALUE(payload, '$.type') = 'login';</code></pre
         'PostgreSQL materialized views need <code>REFRESH MATERIALIZED VIEW [CONCURRENTLY]</code>.',
         'SQL Server indexed views (<code>WITH SCHEMABINDING</code> + clustered index) update automatically, but slow down writes.',
       ],
+    },
+    {
+      title: 'Functions & Procedures',
+      level: 'intermediate',
+      summary: 'Named blocks of SQL code stored in the database and called by name.',
+      simple:
+        'A saved recipe in the kitchen. Instead of reading out every step, you just say "make recipe 12".',
+      points: [
+        'PostgreSQL: <code>CREATE FUNCTION</code> (returns values, usable in SELECT) and <code>CREATE PROCEDURE</code> (PG 11+, can COMMIT inside).',
+        'SQL Server: stored procedures (<code>EXEC</code>), scalar and table-valued functions.',
+        'Pros: fewer round trips, logic close to the data, permission to run without table access.',
+        'Cons: harder to test, version and debug; business logic gets split between app and DB.',
+        'Call from Java with <code>CallableStatement</code> or Spring’s <code>SimpleJdbcCall</code>.',
+      ],
+      detail: `<pre><code>-- PostgreSQL
+CREATE FUNCTION order_total(p_id BIGINT) RETURNS NUMERIC
+LANGUAGE sql AS $$ SELECT SUM(qty * price) FROM order_items WHERE order_id = p_id $$;
+
+-- SQL Server
+CREATE PROCEDURE dbo.OrderTotal @id BIGINT AS
+SELECT SUM(qty * price) FROM order_items WHERE order_id = @id;</code></pre>`,
+      tip: 'SQL Server scalar functions in big queries used to run row by row and be slow; 2019 added inlining for many of them.',
+    },
+    {
+      title: 'Triggers',
+      level: 'advanced',
+      summary: 'Code the database runs automatically before or after an INSERT, UPDATE or DELETE.',
+      simple:
+        'A motion-sensor light: you don’t press anything, it just turns on whenever someone walks by.',
+      points: [
+        'Typical uses: audit logs, updated_at columns, keeping a denormalized copy in sync.',
+        'PostgreSQL: a trigger calls a function; can fire per row or per statement.',
+        'SQL Server: fires per statement, with <code>inserted</code> / <code>deleted</code> pseudo-tables holding all affected rows.',
+        'Hidden side effects make bugs hard to find and slow down bulk writes.',
+      ],
+      tip: 'Classic SQL Server bug: writing a trigger that assumes only one row changed. Always handle sets.',
     },
     {
       title: 'Schema Migrations',

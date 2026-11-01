@@ -39,6 +39,19 @@ UPDATE accounts SET balance = balance + 100 WHERE id = 2;
 COMMIT;</code></pre>`,
     },
     {
+      title: 'Savepoints',
+      level: 'intermediate',
+      summary: 'Bookmarks inside a transaction you can roll back to without undoing everything.',
+      simple:
+        'Like a save point in a video game: lose a fight and you restart from there, not from the very beginning.',
+      points: [
+        'PostgreSQL: <code>SAVEPOINT s1</code> … <code>ROLLBACK TO SAVEPOINT s1</code>.',
+        'SQL Server: <code>SAVE TRANSACTION s1</code> … <code>ROLLBACK TRANSACTION s1</code>.',
+        'In PostgreSQL this is how you keep a transaction alive after an expected error.',
+        'JDBC: <code>conn.setSavepoint()</code>; Spring uses them for <code>Propagation.NESTED</code>.',
+      ],
+    },
+    {
       title: 'ACID',
       level: 'intermediate',
       summary:
@@ -100,7 +113,22 @@ COMMIT;</code></pre>`,
           points: [
             'Classic: two clicks both read stock = 5 and both write 4.',
             'Fix: <code>SET stock = stock - 1</code> (atomic), a row lock, or optimistic locking.',
+            'PostgreSQL REPEATABLE READ and SQL Server SNAPSHOT detect it and fail the second writer; READ COMMITTED does not.',
           ],
+        },
+        {
+          title: 'Write Skew',
+          level: 'expert',
+          summary:
+            'Two transactions read the same data, each writes a different row, and together they break a rule.',
+          simple:
+            'Two doctors on call each see "the other one is still on call" and both go home. Each choice was fine alone; together, nobody is on call.',
+          points: [
+            'Snapshot-based levels (PG REPEATABLE READ, SQL Server SNAPSHOT) allow it.',
+            'Only SERIALIZABLE prevents it, or locking the rows you read with <code>FOR UPDATE</code> / <code>UPDLOCK</code>.',
+            'Also fixable with a constraint the database can check.',
+          ],
+          tip: 'This is why "snapshot isolation" is not the same as "serializable", a favourite senior interview point.',
         },
       ],
     },
@@ -128,6 +156,22 @@ COMMIT;</code></pre>`,
         'Long-running transactions keep old versions alive: table bloat (PG) or a growing version store (SQL Server).',
       ],
       tip: 'Never turn off autovacuum in PostgreSQL. Tune it instead; bloat and transaction-ID wraparound are real outages.',
+      children: [
+        {
+          title: 'VACUUM & Bloat',
+          level: 'expert',
+          summary:
+            'PostgreSQL’s cleanup job that frees space from dead row versions and protects transaction IDs.',
+          points: [
+            'Every UPDATE writes a new row version; the old one becomes a dead tuple (a leftover row).',
+            'Autovacuum marks that space reusable; plain VACUUM does not shrink the file.',
+            '<code>VACUUM FULL</code> rewrites the table smaller but locks it; tools like pg_repack don’t.',
+            'Also freezes old rows so 32-bit transaction IDs can wrap around safely.',
+            'Watch <code>n_dead_tup</code> in <code>pg_stat_user_tables</code> and long-open transactions.',
+          ],
+          tip: 'SQL Server has no VACUUM; its equivalent chores are index rebuild/reorganize and the version-store cleanup.',
+        },
+      ],
     },
     {
       title: 'Row Locks',

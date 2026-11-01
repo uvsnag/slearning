@@ -94,6 +94,30 @@ void on(OrderPlaced event) {
       ],
     },
     {
+      title: 'Async Request-Reply',
+      level: 'intermediate',
+      summary:
+        'For slow jobs, answer "202 Accepted" right away with a status link, and finish the work in the background.',
+      simple:
+        'Like dropping off dry cleaning: you get a ticket now and come back for your clothes later, instead of waiting at the counter.',
+      points: [
+        'The server replies 202 Accepted plus a status URL in the <code>Location</code> header.',
+        'The work runs in the background, often through a queue.',
+        'The client polls the status URL, or gets a webhook or WebSocket push when it is done.',
+        'Status goes PENDING → DONE (with a link to the result) or FAILED.',
+        'Keeps HTTP requests short, so no timeouts on long jobs like reports or video processing.',
+      ],
+      detail: `<pre><code>app.post('/reports', async (req, res) =&gt; {
+  const job = await jobs.create(req.body);           // status: PENDING
+  await queue.publish('report-requested', { jobId: job.id });
+  res.status(202).location('/reports/' + job.id + '/status').end();
+});
+
+app.get('/reports/:id/status', async (req, res) =&gt; {
+  res.json(await jobs.find(req.params.id));          // { status: 'DONE', resultUrl }
+});</code></pre>`,
+    },
+    {
       title: 'Choosing a Style',
       level: 'intermediate',
       summary: 'Trade-offs between REST, gRPC and messaging for a given interaction.',

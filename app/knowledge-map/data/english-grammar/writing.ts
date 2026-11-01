@@ -3,7 +3,8 @@ import type { KmNode } from '../../types';
 export const techWriting: KmNode = {
   title: 'Technical Writing',
   level: 'intermediate',
-  summary: 'Applying grammar to real work: commit messages, PRs, docs, UI text, emails and chat.',
+  summary:
+    'Applying grammar to real work: commit messages, PRs, docs, UI text, emails, chat and meetings.',
   simple:
     "Grammar is the syntax; technical writing is the clean-code style guide on top. The goal is the same: the reader understands fast and doesn't have to guess.",
   points: [
@@ -69,8 +70,54 @@ const message = [
         'PR: <em>What</em> changed, <em>why</em>, <em>how to test</em>, screenshots if UI.',
         'Bug: <em>Steps to reproduce</em> (numbered, imperative), <em>Expected</em>, <em>Actual</em>, environment.',
         'Past tense for what happened: <em>The page crashed after I clicked Save.</em>',
-        'Present for current behaviour: <em>The API returns 500 for empty names.</em>',
+        'Present for current behavior: <em>The API returns 500 for empty names.</em>',
       ],
+    },
+    {
+      title: 'Emails & Chat',
+      level: 'intermediate',
+      summary: 'Lead with the point, give context, and end with a clear ask.',
+      simple:
+        'Don\'t just say "Hi" and wait. Put the greeting, the question and the context in one message.',
+      points: [
+        '❌ <em>Hi</em> … (5 minutes) … <em>are you there?</em>',
+        '✅ <em>Hi Linh, quick question about the deploy: is it OK to merge PR #42 today? Tests are green.</em>',
+        'Polite asks: <em>Could you…? Would you mind…ing? When you have a moment…</em>',
+        'Close clearly: <em>Thanks! Let me know if anything is unclear.</em>',
+      ],
+    },
+    {
+      title: 'Meetings & Stand-ups',
+      level: 'intermediate',
+      summary:
+        'Ready-made phrases for status updates, asking people to repeat, and agreeing or disagreeing politely.',
+      simple:
+        'Speaking is harder than writing because there is no undo. A few safe phrases are like snippets: ready to use, no thinking needed.',
+      points: [
+        "Stand-up: <em>Yesterday I worked on…, today I'm going to…, I'm blocked by…</em>",
+        "Didn't catch it: <em>Sorry, could you say that again? Could you speak a bit slower?</em>",
+        "Check you understood: <em>Just to confirm, you mean…? So, if I understand correctly…</em>",
+        "Join in: <em>Can I add something? Sorry to interrupt, but…</em>",
+        "Disagree softly: <em>I see your point, but… I'm not sure that will work because…</em>",
+        "Wrap up: <em>So the next steps are… I'll follow up by email.</em>",
+      ],
+      tip: "It's fine to say \"Let me think about it and get back to you.\" A clear answer later beats a confusing one now.",
+    },
+    {
+      title: 'US vs UK English',
+      level: 'intermediate',
+      summary:
+        'The two main spellings and some word and date differences — pick one and stay consistent.',
+      simple:
+        'Like two code styles that both compile. Neither is wrong, but mixing them in one doc looks messy. Tech usually picks US.',
+      points: [
+        '-ize/-ise: <em>organize/organise</em>; -or/-our: <em>color/colour, behavior/behaviour</em>.',
+        '-er/-re: <em>center/centre</em>; -og/-ogue: <em>catalog/catalogue</em>; <em>gray/grey</em>.',
+        '<em>license</em> (US noun and verb) vs <em>licence</em> (UK noun) / <em>license</em> (UK verb).',
+        'Words: <em>vacation/holiday, zip code/postcode, check/cheque</em>.',
+        'Dates: <em>11/01/2026</em> is Nov 1 (US) but 11 Jan (UK). Use <em>2026-11-01</em> or <em>1 Nov 2026</em> to be safe.',
+      ],
+      tip: '"Program" is right in both for software; the UK writes "programme" only for TV shows or plans.',
     },
     {
       title: 'Code Review Comments',
@@ -98,19 +145,6 @@ const message = [
         'Pick a capitalization style: sentence case (<em>Save changes</em>) is the modern default.',
         'Errors: what happened + how to fix: <em>Password must be at least 8 characters.</em>',
         "Be consistent: if it's <em>Sign in</em> on one page, don't write <em>Log in</em> on another.",
-      ],
-    },
-    {
-      title: 'Emails & Chat',
-      level: 'intermediate',
-      summary: 'Lead with the point, give context, and end with a clear ask.',
-      simple:
-        'Don\'t just say "Hi" and wait. Put the greeting, the question and the context in one message.',
-      points: [
-        '❌ <em>Hi</em> … (5 minutes) … <em>are you there?</em>',
-        '✅ <em>Hi Linh, quick question about the deploy: is it OK to merge PR #42 today? Tests are green.</em>',
-        'Polite asks: <em>Could you…? Would you mind…ing? When you have a moment…</em>',
-        'Close clearly: <em>Thanks! Let me know if anything is unclear.</em>',
       ],
     },
   ],

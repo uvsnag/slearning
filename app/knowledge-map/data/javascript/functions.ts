@@ -82,6 +82,26 @@ const add5 = makeAdder(5);
       ],
     },
     {
+      title: 'Recursion',
+      level: 'intermediate',
+      summary: 'A function that calls itself on a smaller piece of the problem until it reaches a stop case.',
+      simple:
+        'Like Russian dolls: you open one doll and find a smaller one inside, again and again, until you reach the tiny doll that does not open.',
+      points: [
+        'Always write the base case (the stop rule) first, or it never ends.',
+        'Great for trees and nested data: folders, menus, comments, JSON.',
+        'Each call adds a frame to the call stack; very deep recursion throws <code>RangeError</code>.',
+        'JS engines (except Safari) do not optimize tail calls, so use a loop for very deep work.',
+      ],
+      detail: `<pre><code>function countFiles(folder) {
+  let total = folder.files.length;              // this level
+  for (const sub of folder.folders) {
+    total += countFiles(sub);                   // smaller problem
+  }
+  return total;                                 // stops when no sub-folders
+}</code></pre>`,
+    },
+    {
       title: 'Closures',
       level: 'intermediate',
       summary:
@@ -130,6 +150,8 @@ function hello() {}</code></pre>`,
       level: 'intermediate',
       summary:
         'A function that runs right away, once used to create private scope before modules existed.',
+      simple:
+        'An IIFE is a disposable room: you build it, do your work inside, and leave. Nothing you put inside leaks into the hallway.',
       points: [
         'IIFE = Immediately Invoked Function Expression: <code>(() =&gt; { ... })()</code>.',
         'Before ES modules, this was the way to avoid polluting the global scope.',
@@ -183,6 +205,8 @@ setTimeout(() =&gt; console.log(bound("Hey")), 0);</code></pre>`,
       level: 'intermediate',
       summary:
         'Arrows are not just shorter: they have no own this, arguments, or prototype, and cannot be used with new.',
+      simple:
+        'A normal function asks "who called me?" to know who "me" is. An arrow never asks; it just uses whatever "me" meant where it was written.',
       points: [
         'Great for callbacks inside methods: they keep the outer this.',
         'Bad as object methods: <code>this</code> will not point to the object.',

@@ -149,6 +149,7 @@ export const consumer: KmNode = {
         'Manual: commitSync (waits and retries) or commitAsync (fast, no retry; do a final commitSync on shutdown).',
         'Commit after processing = at-least-once. Your processing must handle duplicates.',
         'Offsets are stored in the compacted topic __consumer_offsets.',
+        'Saved offsets of an empty group expire after offsets.retention.minutes (7 days by default).',
       ],
     },
     {
@@ -167,6 +168,23 @@ export const consumer: KmNode = {
       tip: 'A new group with "latest" quietly skips everything written before it started. This surprises many people.',
     },
     {
+      title: 'subscribe vs assign',
+      level: 'intermediate',
+      summary: 'Let the group hand out partitions for you, or pick the exact partitions yourself.',
+      simple:
+        'subscribe is joining a team and getting mailboxes from the team leader. assign is walking in alone and saying "I take mailbox 0".',
+      points: [
+        'subscribe(topics or a regex): joins the group, gets partitions automatically, takes part in rebalances.',
+        'assign(partitions): no group membership and no rebalances. You choose and you handle failover.',
+        'With assign you can still commit offsets if you set a group.id.',
+        'Good for tools, one-off replays, or when an outside system decides who reads what.',
+        'You can’t use both on the same consumer.',
+      ],
+      detail: `<pre><code>var p0 = new TopicPartition("orders", 0);
+consumer.assign(List.of(p0));
+consumer.seekToBeginning(List.of(p0));</code></pre>`,
+    },
+    {
       title: 'Rebalancing',
       level: 'advanced',
       summary: 'Handing out partitions again when consumers join, leave or crash.',
@@ -182,6 +200,21 @@ export const consumer: KmNode = {
       ],
     },
     {
+      title: 'Assignment strategies',
+      level: 'advanced',
+      summary: 'The rule that decides which consumer gets which partitions.',
+      simple:
+        'Dealing cards: you can give each player a block of cards in a row, deal one by one around the table, or let players keep the cards they already had.',
+      points: [
+        'Classic protocol: set partition.assignment.strategy on the consumer.',
+        'Range: each consumer gets a block of partitions per topic. Can be uneven across many topics.',
+        'RoundRobin: deals partitions one by one. Sticky: keeps as many partitions in place as it can.',
+        'CooperativeSticky: sticky plus cooperative rebalances. Default list since 3.0 is [Range, CooperativeSticky].',
+        'New protocol (KIP-848): the broker assigns. Pick uniform or range with group.remote.assignor.',
+      ],
+      tip: 'For classic groups, CooperativeStickyAssignor is the safe choice: fewer partitions move and nobody stops completely.',
+    },
+    {
       title: 'Liveness: heartbeat & poll interval',
       level: 'advanced',
       summary: 'Two separate timers decide if a consumer is dead or stuck.',
@@ -190,8 +223,28 @@ export const consumer: KmNode = {
         'heartbeat.interval.ms (3 s): how often the background heartbeat is sent.',
         'max.poll.interval.ms (5 min): no poll() in this time → kicked out (processing is stuck or too slow).',
         'Too slow? Lower max.poll.records, speed up the work, or carefully hand work to a thread pool.',
+        'With the new protocol (group.protocol=consumer), session timeout and heartbeat interval are set on the broker instead.',
       ],
       tip: 'Signs of a too-slow handler: endless rebalances and "CommitFailedException: the group has already rebalanced".',
+    },
+    {
+      title: 'Pause, resume & back-pressure',
+      level: 'advanced',
+      summary: 'Stop fetching from some partitions for a while, without leaving the group.',
+      simple:
+        'If your desk is full, you tell the mail room "hold my letters for now" but you still answer the phone, so nobody thinks you went home.',
+      points: [
+        'pause(partitions): poll() keeps running (you stay in the group) but returns nothing for those partitions.',
+        'resume(partitions) when you have room again.',
+        'Use it when a database is slow or your in-memory work queue is full.',
+        'Don’t just sleep in the poll loop. That can break max.poll.interval.ms and trigger a rebalance.',
+      ],
+      detail: `<pre><code>if (workQueue.remainingCapacity() &lt; 100) {
+  consumer.pause(consumer.assignment());
+} else {
+  consumer.resume(consumer.paused());
+}
+var records = consumer.poll(Duration.ofMillis(200)); // still called</code></pre>`,
     },
     {
       title: 'Consumer lag',
@@ -238,6 +291,33 @@ for (TopicPartition tp : consumer.assignment()) query.put(tp, threeDaysAgo);
 consumer.offsetsForTimes(query).forEach((tp, found) -&gt; {
   if (found != null) consumer.seek(tp, found.offset());
 });</code></pre>`,
+    },
+    {
+      title: 'Share groups (queues)',
+      level: 'advanced',
+      summary:
+        'A new kind of group where consumers take records one by one from shared partitions, like a job queue.',
+      simple:
+        'In a normal group each worker owns whole mailboxes. In a share group everyone grabs letters from the same pile, and signs off each letter when it is done.',
+      points: [
+        'KIP-932. Early access in 4.0, preview in 4.1, production-ready in 4.2.',
+        'Many consumers can read the same partition, so you can have more consumers than partitions.',
+        'Each record is acknowledged on its own: ACCEPT (done), RELEASE (try again) or REJECT (give up).',
+        'A record is locked for a while. Not acknowledged in time → handed to someone else, up to a delivery limit.',
+        'No order guarantee. Use it for jobs, not for streams where order matters.',
+      ],
+      detail: `<pre><code>props.put("group.id", "image-workers");
+props.put("share.acknowledgement.mode", "explicit");
+var consumer = new KafkaShareConsumer&lt;String, String&gt;(props);
+consumer.subscribe(List.of("resize-jobs"));
+while (running) {
+  for (var r : consumer.poll(Duration.ofMillis(500))) {
+    try { resize(r.value()); consumer.acknowledge(r, AcknowledgeType.ACCEPT); }
+    catch (Exception e) { consumer.acknowledge(r, AcknowledgeType.RELEASE); }
+  }
+  consumer.commitSync();
+}</code></pre>`,
+      tip: 'Interview angle: share groups let Kafka replace a classic queue for task-style work, but you lose per-partition ordering.',
     },
   ],
 };

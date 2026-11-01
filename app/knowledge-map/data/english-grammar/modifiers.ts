@@ -23,6 +23,7 @@ export const modifiers: KmNode = {
         'After <em>be, seem, look, feel</em> use an adjective: <em>It looks good. The API is slow.</em>',
         '<em>good</em> is an adjective, <em>well</em> the adverb: <em>It works well.</em>',
         'Some words are both: <em>fast, hard, late</em> — <em>It runs fast.</em>',
+        'Trap: <em>hardly</em> means "almost not": <em>I worked hard</em> (a lot) vs <em>I hardly worked</em> (almost nothing).',
       ],
     },
     {
@@ -33,22 +34,10 @@ export const modifiers: KmNode = {
       points: [
         '<em>fast → faster → the fastest</em>.',
         '<em>reliable → more reliable → the most reliable</em>.',
+        'Two syllables ending in -y: <em>easy → easier, busy → busiest</em>.',
         'Irregular: <em>good → better → best, bad → worse → worst</em>.',
         'Use <em>than</em>: <em>Go is faster than Python here.</em> Never <em>more faster</em>.',
         'Equal: <em>as fast as</em>; not equal: <em>not as fast as</em>.',
-      ],
-    },
-    {
-      title: 'Adjective Order',
-      level: 'advanced',
-      summary:
-        'Several adjectives follow a natural order: opinion, size, age, shape, color, origin, material, purpose.',
-      simple:
-        'Native speakers feel it without thinking. "A nice small old table" sounds right; "an old small nice table" sounds weird.',
-      points: [
-        '<em>a great new open-source library</em> (opinion → age → type).',
-        '<em>a big red button</em>, not <em>a red big button</em>.',
-        'In tech writing, more than two adjectives is usually too many anyway.',
       ],
     },
     {
@@ -101,6 +90,19 @@ export const modifiers: KmNode = {
         '<em>a real-time system, a long-running job, a third-party library, open-source code</em>.',
         'Number + unit: <em>a 5-minute fix</em> (no -s on minute).',
         'No hyphen after -ly adverbs: <em>a highly available cluster</em>.',
+      ],
+    },
+    {
+      title: 'Adjective Order',
+      level: 'advanced',
+      summary:
+        'Several adjectives follow a natural order: opinion, size, age, shape, color, origin, material, purpose.',
+      simple:
+        'Native speakers feel it without thinking. "A nice small old table" sounds right; "an old small nice table" sounds weird.',
+      points: [
+        '<em>a great new open-source library</em> (opinion → age → type).',
+        '<em>a big red button</em>, not <em>a red big button</em>.',
+        'In tech writing, more than two adjectives is usually too many anyway.',
       ],
     },
   ],

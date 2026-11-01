@@ -52,6 +52,26 @@ const unique = [...new Set(["a", "b", "a"])]; // ["a", "b"]</code></pre>`,
 };</code></pre>`,
     },
     {
+      title: 'Dates & Temporal',
+      level: 'intermediate',
+      summary: 'Date is the old, tricky way to handle time; Temporal is the new, clear replacement.',
+      simple:
+        'Date is an old wall clock with confusing buttons: months start at 0 and it changes itself when you touch it. Temporal is a new clock where every button does what its label says.',
+      points: [
+        '<code>Date</code> months start at 0 (January = 0) and its setters change the object in place.',
+        'A Date is really a moment in UTC milliseconds; time zones only matter when you print it.',
+        'Format for users with <code>Intl.DateTimeFormat</code> or <code>toLocaleDateString</code>.',
+        'Temporal gives separate types: <code>PlainDate</code>, <code>ZonedDateTime</code>, <code>Instant</code>, <code>Duration</code>.',
+        'Temporal ships in recent Firefox and Chrome; use a polyfill where it is missing.',
+      ],
+      detail: `<pre><code>new Date(2026, 0, 15);              // 15 January 2026 (0 = Jan)
+Date.now();                         // ms since 1970 UTC
+
+const d = Temporal.PlainDate.from("2026-01-31");
+d.add({ months: 1 }).toString();    // "2026-02-28" (no overflow)</code></pre>`,
+      tip: 'Store and send times as UTC ISO strings; convert to the user’s time zone only when you show them.',
+    },
+    {
       title: 'Functional Patterns',
       level: 'advanced',
       summary:

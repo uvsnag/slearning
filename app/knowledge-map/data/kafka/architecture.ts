@@ -74,7 +74,7 @@ after:  k3=Q  k1=C   (k2 removed by the tombstone)</code></pre>`,
             'The leader is the main copy everyone talks to. Followers quietly copy everything it gets.',
           points: [
             'replication.factor = total number of copies. 3 is normal in production.',
-            'Clients read from the leader by default. With client.rack they can read from the closest follower (KIP-392).',
+            'Clients read from the leader by default. With client.rack (and replica.selector.class set on brokers) they can read from the closest follower (KIP-392).',
             'Leaders are spread across brokers so no single broker does all the work.',
           ],
         },
@@ -156,7 +156,7 @@ after:  k3=Q  k1=C   (k2 removed by the tombstone)</code></pre>`,
       points: [
         'Set broker.rack on each broker. Kafka then spreads copies across racks for you.',
         'You survive losing a whole zone if you have at least as many copies as zones.',
-        'Add client.rack so consumers read from a follower in their own zone and save network cost.',
+        'Add client.rack (plus replica.selector.class=RackAwareReplicaSelector on brokers) so consumers read from a follower in their own zone and save network cost.',
       ],
     },
     {

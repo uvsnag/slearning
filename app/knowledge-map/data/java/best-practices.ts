@@ -106,6 +106,34 @@ String name = findByEmail(email)
       ],
     },
     {
+      title: 'Clean Code & SOLID',
+      level: 'advanced',
+      summary: 'Small classes, clear names and five SOLID ideas that keep code easy to change.',
+      simple:
+        'Code is read far more often than written. Write it for the next person, who is often you in six months.',
+      points: [
+        'S: one class, one reason to change. O: add new behaviour by adding code, not editing old code.',
+        'L: a subclass must work anywhere its parent works. I: small, focused interfaces.',
+        'D: depend on interfaces, inject the real thing (this is what Spring does).',
+        'Clear names beat comments; short methods; no magic numbers.',
+        'Prefer composition over inheritance.',
+      ],
+      tip: 'Do not apply SOLID blindly. An extra interface with one implementation forever is just noise.',
+    },
+    {
+      title: 'Secure Coding Basics',
+      level: 'advanced',
+      summary: 'Simple rules that block the most common attacks on Java apps.',
+      points: [
+        'Validate all input (size, format, range); never trust data from users or other systems.',
+        'PreparedStatement for SQL, encoding for HTML output, no user input in shell commands.',
+        'Keep secrets (passwords, keys) out of code and logs; use env vars or a vault.',
+        'Never deserialize untrusted data with Java serialization; be careful with polymorphic JSON.',
+        'Keep dependencies updated and scan them (OWASP Dependency-Check, Dependabot).',
+        'Hash passwords with bcrypt or Argon2, never plain SHA or MD5.',
+      ],
+    },
+    {
       title: 'Measure First',
       level: 'expert',
       summary:
@@ -140,34 +168,6 @@ for (String w : words) {
     sb.append(w).append(',');
 }
 String csv = sb.toString();</code></pre>`,
-    },
-    {
-      title: 'Clean Code & SOLID',
-      level: 'advanced',
-      summary: 'Small classes, clear names and five SOLID ideas that keep code easy to change.',
-      simple:
-        'Code is read far more often than written. Write it for the next person, who is often you in six months.',
-      points: [
-        'S: one class, one reason to change. O: add new behaviour by adding code, not editing old code.',
-        'L: a subclass must work anywhere its parent works. I: small, focused interfaces.',
-        'D: depend on interfaces, inject the real thing (this is what Spring does).',
-        'Clear names beat comments; short methods; no magic numbers.',
-        'Prefer composition over inheritance.',
-      ],
-      tip: 'Do not apply SOLID blindly. An extra interface with one implementation forever is just noise.',
-    },
-    {
-      title: 'Secure Coding Basics',
-      level: 'advanced',
-      summary: 'Simple rules that block the most common attacks on Java apps.',
-      points: [
-        'Validate all input (size, format, range); never trust data from users or other systems.',
-        'PreparedStatement for SQL, encoding for HTML output, no user input in shell commands.',
-        'Keep secrets (passwords, keys) out of code and logs; use env vars or a vault.',
-        'Never deserialize untrusted data with Java serialization; be careful with polymorphic JSON.',
-        'Keep dependencies updated and scan them (OWASP Dependency-Check, Dependabot).',
-        'Hash passwords with bcrypt or Argon2, never plain SHA or MD5.',
-      ],
     },
     {
       title: 'API Design Tips',

@@ -151,6 +151,28 @@ function toBase62(n) {
       ],
     },
     {
+      title: 'Typeahead Search',
+      level: 'advanced',
+      summary: 'Suggest search terms as the user types, in under about 100 ms.',
+      points: [
+        'Keep the top suggestions per prefix, built from a trie (a tree of letters) or a prefix table.',
+        'Precompute the top 5–10 per prefix offline from search logs; serve from memory or cache.',
+        'Debounce in the browser so you send a request only after a short typing pause.',
+        'Update popularity in batches (e.g. hourly), not on every search.',
+      ],
+    },
+    {
+      title: 'Web Crawler',
+      level: 'advanced',
+      summary: 'Download billions of pages politely, without fetching the same page twice.',
+      points: [
+        'A URL frontier (queue) feeds many fetcher workers.',
+        'Politeness: respect robots.txt and limit requests per site.',
+        'Deduplicate URLs (Bloom filter) and page content (hash of the page).',
+        'Store pages in object storage; parse links and push new URLs back to the frontier.',
+      ],
+    },
+    {
       title: 'Video Streaming',
       level: 'expert',
       summary: 'Upload, process and stream video to millions of viewers.',
@@ -170,6 +192,29 @@ function toBase62(n) {
         'Find nearby drivers with geohash / H3 cells.',
         'Matching must not assign one driver to two rides: use a lock or atomic state change.',
         'Partition by city or region to scale.',
+      ],
+    },
+    {
+      title: 'Ticket Booking',
+      level: 'expert',
+      summary: 'Sell limited seats to a huge rush of buyers without selling a seat twice.',
+      points: [
+        'Hold a seat for a few minutes with a TTL reservation, then confirm on payment.',
+        'Prevent double booking with a unique constraint, conditional update or lock.',
+        'A virtual waiting room (queue) lets users in at a rate the system can handle.',
+        'Payments use idempotency keys so a retry never charges twice.',
+      ],
+    },
+    {
+      title: 'Distributed Key-Value Store',
+      level: 'expert',
+      summary: 'Design something like DynamoDB or Cassandra: a huge, always-on key-value store.',
+      points: [
+        'Consistent hashing with virtual nodes spreads keys across servers.',
+        'Each key is copied to N nodes; tunable quorums (W, R) pick speed vs consistency.',
+        'Gossip finds failed nodes; hinted handoff and Merkle-tree repair fix replicas.',
+        'An LSM-tree storage engine makes writes fast.',
+        'Pulls together most of this map: CAP, replication, sharding, quorums.',
       ],
     },
   ],

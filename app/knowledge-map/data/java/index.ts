@@ -21,7 +21,7 @@ export const java: KmTopic = {
     'The Java language and platform — from your first class to the JVM, concurrency and modern Java.',
   image: {
     src: overview.src,
-    alt: 'Java overview: source code is compiled by javac to bytecode, loaded and run by the JVM on any OS',
+    alt: 'Java overview (Vietnamese labels): .java source is compiled by javac to bytecode (.class), which the JVM (memory, JIT compiler, garbage collector) runs on Windows, macOS and Linux; below are the learning areas — basics, OOP, core libraries, and apps & frameworks like Spring and Hibernate',
   },
   root: {
     title: 'Java',

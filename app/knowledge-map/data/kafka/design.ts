@@ -130,6 +130,19 @@ export const internals: KmNode = {
   simple: 'Opening the engine: how Kafka keeps its promises when machines and networks misbehave.',
   children: [
     {
+      title: 'Request lifecycle & purgatory',
+      level: 'expert',
+      summary: 'How a broker handles a request, and where requests wait until they can finish.',
+      points: [
+        'Network threads (num.network.threads) read requests and put them in one shared request queue.',
+        'I/O threads (num.io.threads) do the real work: append to the log, read data for fetches.',
+        'Requests that must wait (acks=all produce, fetch.min.bytes fetch) park in "purgatory", a waiting room, until done or timed out.',
+        'The response goes back out through a network thread.',
+        'Metrics like RequestQueueTimeMs, LocalTimeMs and RemoteTimeMs show which step is slow.',
+      ],
+      tip: 'High RemoteTimeMs on produce usually means followers are slow to copy, not that the leader is slow.',
+    },
+    {
       title: 'Group coordinator protocol',
       level: 'expert',
       summary:
@@ -195,7 +208,7 @@ export const internals: KmNode = {
       points: [
         'ZooKeeper removed, KRaft only (4.0).',
         'New consumer rebalance protocol KIP-848 is GA (4.0).',
-        'Share groups (KIP-932, "queues for Kafka"): per-message acks, more readers than partitions.',
+        'Share groups (KIP-932, "queues for Kafka"): per-message acks, more readers than partitions. Early access 4.0, production-ready 4.2.',
         'Tiered storage production-ready (3.9). linger.ms default is now 5 ms (4.0).',
         'Brokers need Java 17 (clients Java 11), and very old client protocol versions were removed.',
       ],

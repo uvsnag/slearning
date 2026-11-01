@@ -124,6 +124,7 @@ List&lt;Order&gt; findByStatus(Status status);</code></pre>`,
         'Migrations run at startup, before JPA starts.',
         'Turn off Hibernate auto-DDL in prod: <code>spring.jpa.hibernate.ddl-auto=validate</code> or <code>none</code>.',
         'Never edit a migration that already ran. Add a new one.',
+        'Boot 4: add <code>spring-boot-starter-flyway</code>. The auto-config moved into its own module.',
       ],
     },
   ],
@@ -168,6 +169,37 @@ public void transfer(long from, long to, BigDecimal amount) {
       tip: 'Frequent bug: a checked IOException is thrown, and the half-done work is committed.',
     },
     {
+      title: 'Read-only',
+      level: 'intermediate',
+      summary: '@Transactional(readOnly = true) tells Spring and Hibernate you will not write.',
+      simple:
+        'Like telling a librarian "I only want to read, not borrow" so they skip the paperwork.',
+      points: [
+        'Hibernate skips dirty checking and flushing, which saves memory and time.',
+        'Some setups route read-only work to a read replica.',
+        'Common pattern: <code>readOnly = true</code> on the class, plain <code>@Transactional</code> on write methods.',
+      ],
+    },
+    {
+      title: 'TransactionTemplate',
+      level: 'intermediate',
+      summary: 'Start and end a transaction in code, around just part of a method.',
+      simple:
+        'Instead of sealing the whole letter in the envelope, you put only the one important page inside.',
+      points: [
+        'Inject <code>TransactionTemplate</code> (Boot creates one) and pass it a lambda.',
+        'Only the lambda runs in the transaction, so slow HTTP calls can stay outside.',
+        'No proxy involved, so the self-invocation problem does not apply.',
+        'Call <code>status.setRollbackOnly()</code> to roll back without throwing.',
+      ],
+      detail: `<pre><code>Invoice inv = paymentClient.charge(order);   // outside the transaction
+
+tx.executeWithoutResult(status -&gt; {
+  orders.markPaid(order.id());
+  invoices.save(inv);
+});</code></pre>`,
+    },
+    {
       title: 'Propagation',
       level: 'advanced',
       summary: 'What happens when a transactional method calls another transactional method.',
@@ -179,18 +211,6 @@ public void transfer(long from, long to, BigDecimal amount) {
         '<code>NESTED</code>: a savepoint inside the outer one (JDBC only).',
         '<code>SUPPORTS</code>, <code>MANDATORY</code>, <code>NOT_SUPPORTED</code>, <code>NEVER</code> are rarer.',
         'An inner REQUIRED failure marks the whole transaction rollback-only → <code>UnexpectedRollbackException</code>.',
-      ],
-    },
-    {
-      title: 'Read-only',
-      level: 'intermediate',
-      summary: '@Transactional(readOnly = true) tells Spring and Hibernate you will not write.',
-      simple:
-        'Like telling a librarian "I only want to read, not borrow" so they skip the paperwork.',
-      points: [
-        'Hibernate skips dirty checking and flushing, which saves memory and time.',
-        'Some setups route read-only work to a read replica.',
-        'Common pattern: <code>readOnly = true</code> on the class, plain <code>@Transactional</code> on write methods.',
       ],
     },
     {
@@ -216,12 +236,12 @@ public void saveRow(Row r) { ... }</code></pre>`,
     },
     {
       title: 'Isolation & locking',
-      level: 'expert',
+      level: 'advanced',
       summary: 'Control how concurrent transactions see each other’s changes.',
       simple:
         'Two people edit the same spreadsheet. Isolation decides whether you see their unsaved typing, and locking decides who has to wait.',
       points: [
-        '<code>isolation = READ_COMMITTED</code> is the default on most DBs (MySQL InnoDB uses REPEATABLE_READ).',
+        'Spring’s default is <code>Isolation.DEFAULT</code>: the DB’s own level. Usually READ_COMMITTED; MySQL InnoDB uses REPEATABLE_READ.',
         'Optimistic locking: a <code>@Version</code> field. A stale update fails instead of overwriting.',
         'Pessimistic locking: <code>@Lock(PESSIMISTIC_WRITE)</code> → <code>SELECT … FOR UPDATE</code>.',
         'Prefer optimistic locking for web apps with rare conflicts.',

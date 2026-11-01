@@ -20,7 +20,7 @@ export const fundamentals: KmNode = {
       simple:
         'Kafka is like a post office that keeps every letter for a set time, even after it is read. Senders drop letters into named mailboxes, and any number of readers can read the same letters, now or later.',
       points: [
-        'Built at LinkedIn in 2011, now an Apache project. Confluent is the main company behind it.',
+        'Built at LinkedIn, open-sourced in 2011, now an Apache project. Confluent is the main company behind it.',
         'Three jobs: send and receive events, store them safely, and process them as they arrive.',
         'Need more speed? Add more servers and partitions (it scales out).',
         'It can handle millions of messages per second with delays of a few milliseconds.',
@@ -191,6 +191,27 @@ group "analytics": C1 ← p0,p1,p2,p3</code></pre>`,
       tip: 'Your partition count is the max number of consumers that can work in parallel in one group.',
     },
     {
+      title: 'Client libraries',
+      level: 'intermediate',
+      summary: 'The official Java client, plus clients for other languages built on librdkafka.',
+      simple:
+        'Kafka speaks its own language over the network. A client library is the phrase book your app uses, and some phrase books are more up to date than others.',
+      points: [
+        'The Java client is the official one and gets new features first.',
+        'Most other clients (Python, Go, .NET, C/C++) wrap librdkafka, a fast C library.',
+        'JavaScript: KafkaJS is popular but no longer maintained (last release 2023). Confluent’s @confluentinc/kafka-javascript has a KafkaJS-style API.',
+        'Spring for Apache Kafka and Quarkus build on top of the Java client.',
+        'Kafka 4.0 brokers need clients from version 2.1 or newer.',
+      ],
+      detail: `<pre><code>const { Kafka } = require('@confluentinc/kafka-javascript').KafkaJS;
+
+const kafka = new Kafka({ kafkaJS: { brokers: ['localhost:9092'] } });
+const producer = kafka.producer();
+await producer.connect();
+await producer.send({ topic: 'orders', messages: [{ key: 'order-42', value: '{...}' }] });
+await producer.disconnect();</code></pre>`,
+    },
+    {
       title: 'Kafka vs message queues',
       level: 'intermediate',
       summary:
@@ -202,7 +223,7 @@ group "analytics": C1 ← p0,p1,p2,p3</code></pre>`,
         'RabbitMQ: smart routing, per-message acks, priorities, but lower volume.',
         'SQS: fully managed, simple queue, no replay (FIFO queues if you need order).',
         'Pulsar, Kinesis and Redpanda are other log-based options with different trade-offs.',
-        'Kafka 4.x adds share groups (KIP-932, "queues for Kafka") for queue-style, per-message reading.',
+        'Kafka 4.x adds share groups (KIP-932, "queues for Kafka", production-ready in 4.2) for queue-style, per-message reading.',
       ],
       tip: 'Pick a queue to hand out tasks with per-message retries. Pick Kafka for event streams, many readers, replay and high volume.',
     },

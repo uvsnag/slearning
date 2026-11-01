@@ -81,7 +81,7 @@ export const fundamentals: KmNode = {
       points: [
         'Servers usually run Docker Engine directly on Linux.',
         'Desktop on Windows uses WSL 2; on Mac it uses a lightweight VM.',
-        'Desktop is free for personal use and small companies; bigger companies need a paid plan.',
+        'Desktop is free for personal use, education and small companies (under 250 staff and $10M revenue); bigger ones pay.',
         'Alternatives: Podman, Rancher Desktop, Colima, OrbStack.',
       ],
     },
@@ -98,6 +98,20 @@ export const fundamentals: KmNode = {
         '<code>docker stop &lt;id&gt;</code> stops it; <code>docker rm &lt;id&gt;</code> deletes it.',
         '<code>docker init</code> creates a starter Dockerfile and compose file for your project.',
       ],
+    },
+    {
+      title: 'Docker Contexts',
+      level: 'intermediate',
+      summary: 'Switch which Docker daemon your CLI talks to: your laptop, a remote server or a cloud VM.',
+      simple:
+        'One TV remote that can switch between the TV in the living room and the one in the bedroom.',
+      points: [
+        '<code>docker context ls</code> lists targets; <code>docker context use prod</code> switches.',
+        'Create one over SSH: <code>docker context create prod --docker "host=ssh://me@server"</code>.',
+        'Every command (run, ps, compose) then runs against that daemon.',
+        'The <code>DOCKER_HOST</code> env var does the same for one shell.',
+      ],
+      tip: 'Before running docker system prune, check docker context show. Cleaning the wrong server hurts.',
     },
   ],
 };

@@ -67,30 +67,18 @@ SecurityFilterChain api(HttpSecurity http) throws Exception {
       ],
     },
     {
-      title: 'JWT & OAuth2 resource server',
-      level: 'advanced',
-      summary: 'Accept bearer tokens issued by an auth server (Keycloak, Auth0, Entra ID…).',
+      title: 'Sessions vs tokens',
+      level: 'intermediate',
+      summary:
+        'Remember a logged-in user with a server session cookie, or with a token sent on every call.',
       simple:
-        'A concert wristband: the ticket office (auth server) gives it, the guards just check it is real and not expired.',
+        'A session is a coat-check ticket: the club keeps your coat and you show the number. A token is a signed wristband: the guard checks it without looking anything up.',
       points: [
-        'Set <code>spring.security.oauth2.resourceserver.jwt.issuer-uri</code>. Boot fetches the signing keys.',
-        'Spring checks signature, expiry and issuer for every request. No session needed.',
-        'Scopes become authorities like <code>SCOPE_orders.read</code>.',
-        'Map custom claims (roles) with a <code>JwtAuthenticationConverter</code>.',
-        'For logging users in via Google etc., use <code>oauth2Login()</code> (the client side).',
-      ],
-      tip: 'Do not build your own token server. Use a proven identity provider and let Spring validate.',
-    },
-    {
-      title: 'Method security',
-      level: 'advanced',
-      summary: 'Protect service methods with @PreAuthorize rules, not only URLs.',
-      simple: 'Besides the door badge, some drawers inside the room have their own lock.',
-      points: [
-        'Turn on with <code>@EnableMethodSecurity</code>.',
-        '<code>@PreAuthorize("hasRole(\'ADMIN\')")</code> or SpEL like <code>#id == authentication.name</code>.',
-        'Proxy-based, so the self-invocation rule applies here too.',
-        'Good for rules that depend on the data, like "only the owner may edit".',
+        '<b>Session</b>: the server keeps the login and the browser sends a <code>JSESSIONID</code> cookie. Easy logout.',
+        '<b>Token</b> (often a JWT): sent as <code>Authorization: Bearer …</code>. The server stores nothing, so it scales easily.',
+        'A token can’t easily be cancelled before it expires. Keep it short-lived and use refresh tokens.',
+        'Stateless API: <code>sessionManagement(s -&gt; s.sessionCreationPolicy(STATELESS))</code>.',
+        'For browser apps, an HttpOnly session cookie is usually safer than a token in localStorage.',
       ],
     },
     {
@@ -119,6 +107,33 @@ SecurityFilterChain api(HttpSecurity http) throws Exception {
         'Single-page apps with cookies: use <code>CookieCsrfTokenRepository</code>.',
       ],
       tip: 'Do not disable CSRF just because a POST returns 403. First check if you use cookie login.',
+    },
+    {
+      title: 'JWT & OAuth2 resource server',
+      level: 'advanced',
+      summary: 'Accept bearer tokens issued by an auth server (Keycloak, Auth0, Entra ID…).',
+      simple:
+        'A concert wristband: the ticket office (auth server) gives it, the guards just check it is real and not expired.',
+      points: [
+        'Set <code>spring.security.oauth2.resourceserver.jwt.issuer-uri</code>. Boot fetches the signing keys.',
+        'Spring checks signature, expiry and issuer for every request. No session needed.',
+        'Scopes become authorities like <code>SCOPE_orders.read</code>.',
+        'Map custom claims (roles) with a <code>JwtAuthenticationConverter</code>.',
+        'For logging users in via Google etc., use <code>oauth2Login()</code> (the client side).',
+      ],
+      tip: 'Do not build your own token server. Use a proven identity provider and let Spring validate.',
+    },
+    {
+      title: 'Method security',
+      level: 'advanced',
+      summary: 'Protect service methods with @PreAuthorize rules, not only URLs.',
+      simple: 'Besides the door badge, some drawers inside the room have their own lock.',
+      points: [
+        'Turn on with <code>@EnableMethodSecurity</code>.',
+        '<code>@PreAuthorize("hasRole(\'ADMIN\')")</code> or SpEL like <code>#id == authentication.name</code>.',
+        'Proxy-based, so the self-invocation rule applies here too.',
+        'Good for rules that depend on the data, like "only the owner may edit".',
+      ],
     },
   ],
 };

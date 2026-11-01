@@ -43,6 +43,21 @@ export const buildAutomation: KmNode = {
       ],
     },
     {
+      title: 'Semantic Versioning',
+      level: 'beginner',
+      summary:
+        'Version numbers as MAJOR.MINOR.PATCH, where each part signals what kind of change it is.',
+      simple:
+        'Like a promise on the label: a PATCH fixes things, a MINOR adds things, a MAJOR may break things you rely on.',
+      points: [
+        'MAJOR: breaking change (2.0.0).',
+        'MINOR: new feature, still compatible (1.3.0).',
+        'PATCH: bug fix only (1.2.4).',
+        'Pre-releases: <code>2.0.0-rc.1</code>; Maven snapshots: <code>1.3.0-SNAPSHOT</code>.',
+        'Most important for libraries and APIs that others depend on.',
+      ],
+    },
+    {
       title: 'Reproducible Builds',
       level: 'intermediate',
       summary:
@@ -68,21 +83,6 @@ export const buildAutomation: KmNode = {
         'Stored in Nexus, Artifactory, GitHub Packages, or a container registry.',
         'Released artifacts are immutable: never overwrite version 1.2.3.',
         'Keep a link from artifact to commit SHA and build number.',
-      ],
-    },
-    {
-      title: 'Semantic Versioning',
-      level: 'beginner',
-      summary:
-        'Version numbers as MAJOR.MINOR.PATCH, where each part signals what kind of change it is.',
-      simple:
-        'Like a promise on the label: a PATCH fixes things, a MINOR adds things, a MAJOR may break things you rely on.',
-      points: [
-        'MAJOR: breaking change (2.0.0).',
-        'MINOR: new feature, still compatible (1.3.0).',
-        'PATCH: bug fix only (1.2.4).',
-        'Pre-releases: <code>2.0.0-rc.1</code>; Maven snapshots: <code>1.3.0-SNAPSHOT</code>.',
-        'Most important for libraries and APIs that others depend on.',
       ],
     },
     {

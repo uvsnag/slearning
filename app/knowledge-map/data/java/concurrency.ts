@@ -71,6 +71,57 @@ void increment() {
 }</code></pre>`,
     },
     {
+      title: 'Executors & Thread Pools',
+      level: 'intermediate',
+      summary: 'An ExecutorService runs your tasks on a reusable pool of threads.',
+      simple:
+        'Instead of hiring a new worker for every small job, you keep a fixed team and hand them jobs from a queue.',
+      points: [
+        '<code>submit()</code> returns a <code>Future</code>; <code>get()</code> waits for the result.',
+        'Sizing: CPU-heavy work ≈ number of cores; I/O-heavy work can use more threads.',
+        'Always shut down: <code>shutdown()</code> + <code>awaitTermination()</code>, or try-with-resources (Java 19+).',
+        'Avoid unbounded queues in production; they hide overload until memory runs out.',
+        'Name your threads (a ThreadFactory) so thread dumps make sense.',
+      ],
+      detail: `<pre><code>try (ExecutorService pool = Executors.newFixedThreadPool(4)) {
+    Future&lt;Integer&gt; f = pool.submit(() -&gt; compute());
+    System.out.println(f.get());
+} // close() waits for tasks, then shuts down</code></pre>`,
+    },
+    {
+      title: 'Concurrent Collections',
+      level: 'intermediate',
+      summary:
+        'Thread-safe collections built for many threads, faster than wrapping everything in synchronized.',
+      simple:
+        'A normal HashMap is a notebook only one person should write in. ConcurrentHashMap is a notebook built so many people can write at once.',
+      points: [
+        '<code>ConcurrentHashMap</code>: safe and fast. Use <code>merge</code>, <code>computeIfAbsent</code> for atomic updates.',
+        '<code>CopyOnWriteArrayList</code>: copies on every write. Great for many reads, few writes (listeners).',
+        '<code>BlockingQueue</code> (e.g. <code>ArrayBlockingQueue</code>): producer-consumer handoff; <code>put</code>/<code>take</code> wait.',
+        'Check-then-act on any map (<code>if (!containsKey) put</code>) is still a race. Use the atomic methods.',
+      ],
+      detail: `<pre><code>Map&lt;String, Integer&gt; counts = new ConcurrentHashMap&lt;&gt;();
+counts.merge(word, 1, Integer::sum); // atomic</code></pre>`,
+      children: [
+        {
+          title: 'ConcurrentHashMap Internals',
+          level: 'expert',
+          summary:
+            'How it stays thread-safe without one big lock: lock-free reads and tiny per-bucket locks for writes.',
+          points: [
+            'Java 7 used 16 "segments" (sub-maps with their own lock); Java 8+ dropped them for per-bucket locking.',
+            'Reads (<code>get</code>) take no lock; they rely on volatile reads.',
+            'Writing into an empty bucket uses CAS; a busy bucket locks only its first node with <code>synchronized</code>.',
+            'Resizing is shared: threads that touch the map help move buckets. Long chains become trees, like HashMap.',
+            'No <code>null</code> keys or values, so <code>get() == null</code> always means "not there".',
+            '<code>size()</code> is only an estimate while others write.',
+          ],
+          tip: 'Compound actions like "get, then put" are still not atomic. Use compute, merge or putIfAbsent.',
+        },
+      ],
+    },
+    {
       title: 'volatile & Memory Model',
       level: 'advanced',
       summary:
@@ -107,22 +158,51 @@ lock.lock();
 try { balance += amount; } finally { lock.unlock(); }</code></pre>`,
     },
     {
-      title: 'Executors & Thread Pools',
-      level: 'intermediate',
-      summary: 'An ExecutorService runs your tasks on a reusable pool of threads.',
+      title: 'wait / notify',
+      level: 'advanced',
+      summary:
+        'The old, low-level way for a thread to sleep until another thread signals that something changed.',
       simple:
-        'Instead of hiring a new worker for every small job, you keep a fixed team and hand them jobs from a queue.',
+        "Like a doctor's waiting room: you sit and wait until the nurse calls out. You must be inside the room (hold the lock) to wait or to call.",
       points: [
-        '<code>submit()</code> returns a <code>Future</code>; <code>get()</code> waits for the result.',
-        'Sizing: CPU-heavy work ≈ number of cores; I/O-heavy work can use more threads.',
-        'Always shut down: <code>shutdown()</code> + <code>awaitTermination()</code>, or try-with-resources (Java 19+).',
-        'Avoid unbounded queues in production; they hide overload until memory runs out.',
-        'Name your threads (a ThreadFactory) so thread dumps make sense.',
+        "Only allowed while holding that object's lock (inside <code>synchronized</code>), or you get <code>IllegalMonitorStateException</code>.",
+        '<code>wait()</code> releases the lock and sleeps; <code>notifyAll()</code> wakes the waiting threads.',
+        'Always wait inside a <code>while</code> loop: threads can wake up for no reason (a "spurious wakeup").',
+        'Prefer <code>notifyAll</code> over <code>notify</code> unless you are sure only one waiter matters.',
+        'In new code use <code>BlockingQueue</code>, <code>CountDownLatch</code> or a <code>Condition</code> instead.',
       ],
-      detail: `<pre><code>try (ExecutorService pool = Executors.newFixedThreadPool(4)) {
-    Future&lt;Integer&gt; f = pool.submit(() -&gt; compute());
-    System.out.println(f.get());
-} // close() waits for tasks, then shuts down</code></pre>`,
+      detail: `<pre><code>synchronized (queue) {
+    while (queue.isEmpty()) {
+        queue.wait();       // releases the lock while waiting
+    }
+    process(queue.poll());
+}
+
+synchronized (queue) { queue.add(job); queue.notifyAll(); }</code></pre>`,
+      tip: 'Interview: Thread.sleep() keeps any lock it holds; wait() gives the lock up while waiting.',
+    },
+    {
+      title: 'Synchronizers',
+      level: 'advanced',
+      summary:
+        'Ready-made helpers to coordinate threads: wait for others, limit how many enter, or meet at a checkpoint.',
+      simple:
+        'A latch is a start gate that opens once everyone is ready. A semaphore is a parking lot with 10 spots: car 11 waits for someone to leave.',
+      points: [
+        '<code>CountDownLatch</code>: wait until N things are done. One-time use.',
+        '<code>Semaphore</code>: at most N threads at once, e.g. 10 calls to a slow service.',
+        '<code>CyclicBarrier</code> / <code>Phaser</code>: threads wait for each other at a checkpoint, then all continue.',
+        'Always <code>release()</code> a semaphore in <code>finally</code>.',
+      ],
+      detail: `<pre><code>CountDownLatch ready = new CountDownLatch(3);
+for (int i = 0; i &lt; 3; i++) {
+    pool.submit(() -&gt; { warmUp(); ready.countDown(); });
+}
+ready.await(); // waits until countDown was called 3 times
+
+Semaphore slots = new Semaphore(10);
+slots.acquire();
+try { callService(); } finally { slots.release(); }</code></pre>`,
     },
     {
       title: 'CompletableFuture',
@@ -140,22 +220,6 @@ try { balance += amount; } finally { lock.unlock(); }</code></pre>`,
 user.thenApply(User::email)
     .thenAccept(this::sendWelcome)
     .exceptionally(ex -&gt; { log.error("failed", ex); return null; });</code></pre>`,
-    },
-    {
-      title: 'Concurrent Collections',
-      level: 'intermediate',
-      summary:
-        'Thread-safe collections built for many threads, faster than wrapping everything in synchronized.',
-      simple:
-        'A normal HashMap is a notebook only one person should write in. ConcurrentHashMap is a notebook built so many people can write at once.',
-      points: [
-        '<code>ConcurrentHashMap</code>: safe and fast. Use <code>merge</code>, <code>computeIfAbsent</code> for atomic updates.',
-        '<code>CopyOnWriteArrayList</code>: copies on every write. Great for many reads, few writes (listeners).',
-        '<code>BlockingQueue</code> (e.g. <code>ArrayBlockingQueue</code>): producer-consumer handoff; <code>put</code>/<code>take</code> wait.',
-        'Check-then-act on any map (<code>if (!containsKey) put</code>) is still a race. Use the atomic methods.',
-      ],
-      detail: `<pre><code>Map&lt;String, Integer&gt; counts = new ConcurrentHashMap&lt;&gt;();
-counts.merge(word, 1, Integer::sum); // atomic</code></pre>`,
     },
     {
       title: 'Deadlock & Friends',
@@ -219,7 +283,7 @@ try { handle(request); } finally { USER.remove(); }</code></pre>`,
           points: [
             'Structured concurrency (<code>StructuredTaskScope</code>): subtasks start and end inside one block, like a method call.',
             'If one subtask fails, the others are cancelled; no leaked threads.',
-            'Still a preview API in Java 25 (needs <code>--enable-preview</code>), and its API changed between previews.',
+            'Still a preview API in Java 25 and 26 (needs <code>--enable-preview</code>); Java 25 reworked it around <code>StructuredTaskScope.open()</code>.',
             'Scoped values (<code>ScopedValue</code>): a read-only, bounded replacement for ThreadLocal. Final in Java 25.',
             'A scoped value is visible only inside <code>where(...).run(...)</code> and is cleaned up automatically.',
           ],
@@ -228,6 +292,31 @@ try { handle(request); } finally { USER.remove(); }</code></pre>`,
 ScopedValue.where(USER, "alice").run(() -&gt; handle()); // USER.get() works inside</code></pre>`,
         },
       ],
+    },
+    {
+      title: 'ForkJoinPool',
+      level: 'expert',
+      summary:
+        'A pool for splitting a big task into small ones, where idle threads steal work from busy ones.',
+      points: [
+        'Divide and conquer: a task splits itself (fork), then combines the results (join).',
+        "Work stealing: each thread has its own task deque; an idle thread takes tasks from the other end of a busy thread's deque.",
+        '<code>ForkJoinPool.commonPool()</code> runs parallel streams and <code>CompletableFuture</code> async calls without an executor.',
+        'The common pool has about (CPU cores − 1) threads, so one blocking call there slows everyone down.',
+        'The scheduler behind virtual threads is a ForkJoinPool too.',
+      ],
+      detail: `<pre><code>class Sum extends RecursiveTask&lt;Long&gt; {
+    final int[] a; final int lo, hi;
+    Sum(int[] a, int lo, int hi) { this.a = a; this.lo = lo; this.hi = hi; }
+    protected Long compute() {
+        if (hi - lo &lt;= 10_000) return Arrays.stream(a, lo, hi).asLongStream().sum();
+        int mid = (lo + hi) / 2;
+        Sum left = new Sum(a, lo, mid);
+        left.fork();                                  // run left part in parallel
+        return new Sum(a, mid, hi).compute() + left.join();
+    }
+}
+long total = ForkJoinPool.commonPool().invoke(new Sum(nums, 0, nums.length));</code></pre>`,
     },
   ],
 };

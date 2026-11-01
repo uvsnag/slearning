@@ -125,6 +125,29 @@ WITH d AS (
 DELETE FROM d WHERE rn &gt; 1;</code></pre>`,
     },
     {
+      title: 'Gaps & Islands',
+      level: 'advanced',
+      summary:
+        'Find runs of consecutive values (login streaks, free seats) and the gaps between them.',
+      simple:
+        'Look at a calendar of gym visits and circle each streak of back-to-back days.',
+      points: [
+        'Trick: value minus ROW_NUMBER stays the same inside one run of consecutive values.',
+        'Group by that difference to get each island’s start, end and length.',
+        'Gaps: compare each row with <code>LEAD()</code> and keep where the next value jumps by more than one.',
+        'Works in both databases; only the date math differs.',
+      ],
+      detail: `<pre><code>-- login streaks per user (PostgreSQL; SQL Server: DATEADD(day, -rn, day))
+WITH t AS (
+  SELECT user_id, day,
+         day - (ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY day))::int AS grp
+  FROM (SELECT DISTINCT user_id, day FROM logins) d
+)
+SELECT user_id, MIN(day) AS start_day, MAX(day) AS end_day, COUNT(*) AS days
+FROM t
+GROUP BY user_id, grp;</code></pre>`,
+    },
+    {
       title: 'Classic Questions',
       level: 'advanced',
       summary: 'Short answers to the theory questions that come up in most backend interviews.',

@@ -37,6 +37,8 @@ export const errors: KmNode = {
       title: 'Error Types',
       level: 'intermediate',
       summary: 'Built-in errors tell you what kind of thing went wrong.',
+      simple:
+        'Error types are like warning lights on a car dashboard: each light points you to a different part of the engine.',
       points: [
         '<code>TypeError</code>: wrong type, e.g. calling <code>undefined()</code> or reading a property of null.',
         '<code>ReferenceError</code>: using a variable that does not exist (or is in the TDZ).',
@@ -49,6 +51,8 @@ export const errors: KmNode = {
       title: 'Custom Errors & cause',
       level: 'intermediate',
       summary: 'Extend Error to make your own error types, and wrap low-level errors with cause.',
+      simple:
+        'A custom error is a labeled envelope: "Not found" or "No permission". With cause, you keep the original letter inside, so nobody loses the real story.',
       points: [
         'Custom classes let callers check <code>err instanceof NotFoundError</code>.',
         'Set <code>this.name</code> so logs show the right type.',

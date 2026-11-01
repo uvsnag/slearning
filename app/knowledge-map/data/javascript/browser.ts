@@ -106,9 +106,31 @@ const todo = await res.json();</code></pre>`,
       tip: 'Forgetting to check res.ok is the #1 fetch bug: your code happily parses an error page.',
     },
     {
+      title: 'WebSocket & SSE',
+      level: 'intermediate',
+      summary: 'Keep a connection open so the server can push live updates, instead of asking again and again.',
+      simple:
+        'fetch is sending a letter and waiting for a reply. A WebSocket is a phone call: both sides can talk any time. SSE is a radio: the server talks, you listen.',
+      points: [
+        'WebSocket: two-way, messages both ways; good for chat, games, live editing.',
+        'Server-Sent Events (<code>EventSource</code>): one-way server → browser over plain HTTP; reconnects by itself.',
+        'SSE is great for notifications, live feeds and streaming AI answers.',
+        'Polling (asking every few seconds) is simpler but wastes requests.',
+        'Plan for drops: reconnect with a growing delay and resend missed data.',
+      ],
+      detail: `<pre><code>const ws = new WebSocket("wss://example.com/chat");
+ws.onmessage = (e) =&gt; show(JSON.parse(e.data));
+ws.send(JSON.stringify({ text: "Hi" }));
+
+const events = new EventSource("/api/notifications");
+events.onmessage = (e) =&gt; notify(e.data);</code></pre>`,
+    },
+    {
       title: 'Storage',
       level: 'intermediate',
       summary: 'Keep data in the browser: localStorage, sessionStorage, cookies and IndexedDB.',
+      simple:
+        'The browser gives each site a few lockers: a small notebook (localStorage), a sticky note thrown away when you close the tab (sessionStorage), and a big filing cabinet (IndexedDB).',
       points: [
         '<code>localStorage</code>: strings only, ~5 MB, survives restarts, synchronous (blocks the thread).',
         '<code>sessionStorage</code>: same API, cleared when the tab closes.',
@@ -123,6 +145,8 @@ const theme = JSON.parse(localStorage.getItem("theme") ?? "{}");</code></pre>`,
       title: 'Timers & Animation',
       level: 'intermediate',
       summary: 'setTimeout, setInterval and requestAnimationFrame schedule code for later.',
+      simple:
+        'setTimeout is a kitchen timer, setInterval is an alarm that rings every few minutes, and requestAnimationFrame is "tell me right before you redraw the screen".',
       points: [
         '<code>setTimeout(fn, ms)</code> runs once after at least ms; <code>clearTimeout(id)</code> cancels.',
         '<code>setInterval</code> repeats; always clear it when done, or it leaks.',

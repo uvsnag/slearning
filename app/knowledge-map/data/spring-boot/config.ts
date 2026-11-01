@@ -31,6 +31,20 @@ export const configuration: KmNode = {
       ],
     },
     {
+      title: 'Profiles',
+      level: 'beginner',
+      summary: 'Named sets of settings and beans, like dev, test and prod.',
+      simple:
+        'Like outfits: the same person (your app) wears different clothes for the gym, the office and a wedding.',
+      points: [
+        'Activate with <code>spring.profiles.active=prod</code> or the env var <code>SPRING_PROFILES_ACTIVE</code>.',
+        '<code>application-prod.properties</code> is loaded on top of <code>application.properties</code>.',
+        '<code>@Profile("dev")</code> on a bean creates it only in that profile.',
+        'Profile groups bundle several profiles under one name.',
+      ],
+      tip: 'Keep profiles few. The same artifact should run everywhere, with only config changing.',
+    },
+    {
       title: '@ConfigurationProperties',
       level: 'intermediate',
       summary: 'Bind a whole group of settings to a typed Java object.',
@@ -50,20 +64,6 @@ public record MailProperties(
     int port,
     Duration timeout) {}</code></pre>`,
       tip: 'Prefer this over many @Value fields. It is type-safe, testable and shows up in IDE autocompletion.',
-    },
-    {
-      title: 'Profiles',
-      level: 'beginner',
-      summary: 'Named sets of settings and beans, like dev, test and prod.',
-      simple:
-        'Like outfits: the same person (your app) wears different clothes for the gym, the office and a wedding.',
-      points: [
-        'Activate with <code>spring.profiles.active=prod</code> or the env var <code>SPRING_PROFILES_ACTIVE</code>.',
-        '<code>application-prod.properties</code> is loaded on top of <code>application.properties</code>.',
-        '<code>@Profile("dev")</code> on a bean creates it only in that profile.',
-        'Profile groups bundle several profiles under one name.',
-      ],
-      tip: 'Keep profiles few. The same artifact should run everywhere, with only config changing.',
     },
     {
       title: 'Externalized config order',

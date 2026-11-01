@@ -41,6 +41,22 @@ export const data: KmNode = {
       ],
     },
     {
+      title: 'CAP Theorem',
+      level: 'intermediate',
+      summary:
+        'When the network splits, a distributed system must choose: stay consistent, or keep answering.',
+      simple:
+        'Two branches of a shop lose their phone line. Either they stop selling the last item until the line is back (consistent), or both keep selling and maybe sell it twice (available).',
+      points: [
+        'C = everyone sees the same latest data. A = every request gets an answer. P = it survives network splits.',
+        'Network splits will happen, so the real choice is C or A while a split lasts.',
+        'CP: refuse some requests rather than risk conflicts (e.g. etcd). AP: keep answering, fix conflicts later (e.g. Cassandra).',
+        'PACELC adds: even with no split, you trade latency against consistency.',
+        'Between microservices you usually pick availability and live with eventual consistency.',
+      ],
+      tip: 'Don’t say "pick any 2 of 3". Say "during a network partition you choose consistency or availability".',
+    },
+    {
       title: 'Why not 2PC?',
       level: 'intermediate',
       summary:
@@ -67,6 +83,28 @@ export const data: KmNode = {
         'Replicated read model: keep a local copy of other services’ data, updated by their events.',
         'For heavy search or reporting, feed events into a search index or data warehouse.',
       ],
+    },
+    {
+      title: 'Caching',
+      level: 'intermediate',
+      summary: 'Keep copies of often-read data close by, to cut latency and load on other services.',
+      simple:
+        'A snack drawer at your desk: you don’t walk to the kitchen every time, but you must throw out old snacks now and then.',
+      points: [
+        'Cache-aside: check the cache; on a miss, load from the source and store it with a TTL (expiry time).',
+        'Local in-memory cache (e.g. Caffeine) is fastest; a shared cache (Redis) is the same for all copies.',
+        'Keep it fresh with short TTLs, or evict when the owning service publishes a change event.',
+        'Stampede: many copies reload the same expired key at once. Add jitter to TTLs or let one caller reload.',
+        'Be careful caching data that must never be stale, like balances or stock.',
+      ],
+      detail: `<pre><code>@Cacheable(cacheNames = "products", key = "#id")
+public ProductDto product(String id) {
+  return catalogClient.get(id);          // only called on a cache miss
+}
+
+@KafkaListener(topics = "catalog.product-changed")
+@CacheEvict(cacheNames = "products", key = "#event.productId()")
+public void onChange(ProductChanged event) {}</code></pre>`,
     },
     {
       title: 'Saga',
@@ -133,6 +171,25 @@ public void placeOrder(Order order) {
 }
 // a separate poller or CDC tool publishes outbox rows to Kafka</code></pre>`,
       tip: 'Never call kafka.send() inside a DB transaction and hope both succeed. That’s exactly the bug the outbox fixes.',
+    },
+    {
+      title: 'Inbox Pattern',
+      level: 'advanced',
+      summary:
+        'Record each incoming message ID in the same transaction as its effect, so duplicates are skipped.',
+      simple:
+        'A receptionist writes down every parcel’s tracking number. If the same parcel shows up again, she sees it in the book and doesn’t sign for it twice.',
+      points: [
+        'Inbox table with the message ID as a unique key, written in the same DB transaction as the business change.',
+        'Duplicate arrives → the insert fails or the lookup finds it → skip.',
+        'The outbox makes sending reliable; the inbox makes receiving safe. Together: "effectively once".',
+        'Delete old inbox rows after a while, longer than any possible redelivery.',
+      ],
+      detail: `<pre><code>@Transactional
+public void on(OrderPlaced e) {
+  if (!inbox.tryInsert(e.eventId())) return;   // seen it already
+  shipping.prepare(e.orderId());
+}</code></pre>`,
     },
     {
       title: 'Change Data Capture',

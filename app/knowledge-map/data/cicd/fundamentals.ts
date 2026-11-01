@@ -82,5 +82,19 @@ export const fundamentals: KmNode = {
         'Verify: smoke tests and monitoring confirm it works.',
       ],
     },
+    {
+      title: 'CI/CD and DevOps',
+      level: 'beginner',
+      summary:
+        'DevOps is the culture of devs and ops sharing responsibility; CI/CD is its main automation tool.',
+      simple:
+        'DevOps is the team agreeing to cook and serve together. CI/CD is the conveyor belt that makes that teamwork smooth.',
+      points: [
+        'DevOps: "you build it, you run it", shared goals, fast feedback from production.',
+        'CI/CD is the practice and tooling that makes frequent, safe releases possible.',
+        'Buying a CI tool doesn’t make a team DevOps; habits and ownership do.',
+        'Related ideas: DevSecOps (security built in), platform engineering (self-service tools).',
+      ],
+    },
   ],
 };

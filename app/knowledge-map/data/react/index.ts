@@ -21,9 +21,9 @@ export const react: KmTopic = {
     'Building UIs with React — from your first component to hooks, rendering internals, React 19 and Server Components.',
   image: {
     src: overview.src,
-    alt: 'React overview: JSX source is built and bundled, React reconciles a virtual DOM tree with props and state, a scheduler prioritizes updates, and the app runs as SPA, CSR, SSR or SSG',
+    alt: 'React overview (Vietnamese labels): JSX compiles to React.createElement, components get props and keep state, a change creates a new virtual DOM that is diffed with the old one before updating the real DOM; around it: tooling, state management (hooks, Context, Redux), React Router and data fetching',
     caption:
-      'Note: a rough sketch with some garbled labels. Today: new apps start with Vite or a framework (not Webpack/Create React App), function components with hooks replace class "lifecycle" methods, and Server Components are missing from the picture.',
+      'Note: today new apps usually start with Vite or a framework like Next.js rather than a hand-made Webpack/Babel setup, and Server Components (React 19) are not shown.',
   },
   root: {
     title: 'React',

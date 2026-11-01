@@ -28,6 +28,21 @@ export const fundamentals: KmNode = {
       ],
     },
     {
+      title: 'Life of a Request',
+      level: 'beginner',
+      summary: 'What happens between typing a URL and seeing the page: DNS, connection, server, database, response.',
+      simple:
+        'Like sending a letter: look up the address (DNS), drive there (TCP/TLS), the clerk handles it (server), checks the files (database), and posts a reply back.',
+      points: [
+        'DNS turns <code>shop.com</code> into an IP address (often cached).',
+        'The browser opens a TCP + TLS connection; HTTP/2 and HTTP/3 reuse it for many requests.',
+        'A CDN or load balancer receives it and forwards it to an app server.',
+        'The app reads caches and databases, builds a response, and sends it back.',
+        'Every hop adds latency, so each box you add to a design has a cost.',
+      ],
+      tip: '"What happens when you type a URL?" is a classic warm-up question. Walk through it hop by hop.',
+    },
+    {
       title: 'Functional vs Non-functional',
       level: 'beginner',
       summary: 'Functional = what the system does; non-functional = how well it does it.',
@@ -82,7 +97,7 @@ export const fundamentals: KmNode = {
         'Read/write ratio decides whether to optimize reads (caches, replicas) or writes.',
         'Round numbers freely; the order of magnitude is what matters.',
       ],
-      detail: `<pre><code>// 10M daily users, 5 posts read each, 1 in 10 posts once a day
+      detail: `<pre><code>// 10M daily users, each reads 5 posts; 1 in 10 users posts once a day
 const readsPerSec = (10e6 * 5) / 86_400;   // ≈ 580 RPS (peak ~3k)
 const writesPerDay = 10e6 / 10;            // 1M posts/day
 const storagePerYear = writesPerDay * 1_000 * 365; // 1 KB each ≈ 365 GB</code></pre>`,

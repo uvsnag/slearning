@@ -133,6 +133,28 @@ abstract class Base implements Shape {
       tip: 'Too many static methods and mutable static fields make code hard to test. Keep static for pure helpers and constants.',
     },
     {
+      title: 'Initialization Order',
+      level: 'intermediate',
+      summary:
+        'The fixed order in which Java runs static blocks, field setup and constructors when you create objects.',
+      simple:
+        'Like building houses on a street: the shared road is built once (static parts). Then for each house, the ground floor (parent) goes up before your floor (child).',
+      points: [
+        'Static fields and <code>static {}</code> blocks run once, when the class is first used. Parent class first.',
+        'For each <code>new</code>: parent constructor → your field initializers and <code>{}</code> blocks → your constructor body.',
+        'Initializers at the same level run top to bottom, in source order.',
+        'Calling an overridable method from a constructor is risky: the subclass fields are not set yet.',
+      ],
+      detail: `<pre><code>class A { static { print("A static"); }  A() { print("A ctor"); } }
+class B extends A {
+  static { print("B static"); }
+  { print("B init"); }
+  B() { print("B ctor"); }
+}
+new B(); // A static, B static, A ctor, B init, B ctor</code></pre>`,
+      tip: 'A favorite interview puzzle. Remember: statics once (parent first), then parent constructor, then child fields, then child constructor body.',
+    },
+    {
       title: 'Object Methods',
       level: 'intermediate',
       summary:
@@ -266,6 +288,29 @@ double area(Shape s) {
         'D - Dependency inversion: depend on interfaces, not concrete classes.',
       ],
       tip: 'In interviews, give one real example per letter. Rules are guides, not laws; do not over-engineer small code.',
+    },
+    {
+      title: 'Design Patterns',
+      level: 'advanced',
+      summary:
+        'Proven, named solutions to design problems that keep coming up in object-oriented code.',
+      points: [
+        'Creational: Singleton (only one instance), Factory (hide which class is created), Builder (step-by-step setup).',
+        'Structural: Adapter (make one interface fit another), Decorator (wrap to add behavior), Proxy (a stand-in that adds checks).',
+        'Behavioral: Strategy (swap an algorithm), Observer (notify listeners), Template Method (fixed steps, custom parts).',
+        'In modern Java many are tiny: a Strategy is often just a lambda.',
+        'Spring uses them everywhere: proxies for <code>@Transactional</code>, factories for beans, <code>JdbcTemplate</code>.',
+      ],
+      detail: `<pre><code>// Simplest safe Singleton: an enum (thread-safe, serialization-safe)
+enum AppConfig {
+  INSTANCE;
+  String get(String key) { return System.getenv(key); }
+}
+
+// Strategy as a lambda
+interface Discount { BigDecimal apply(BigDecimal price); }
+Discount blackFriday = p -&gt; p.multiply(new BigDecimal("0.7"));</code></pre>`,
+      tip: 'Interview: name the pattern, the problem it solves, and one real use (e.g. BufferedReader decorates a Reader). Do not force patterns where a plain method works.',
     },
   ],
 };

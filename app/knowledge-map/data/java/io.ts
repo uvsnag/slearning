@@ -70,21 +70,6 @@ try (Stream&lt;String&gt; lines = Files.lines(Path.of("big.log"))) {
 }</code></pre>`,
     },
     {
-      title: 'Serialization',
-      level: 'advanced',
-      summary: "Java's built-in way to turn objects into bytes. Avoid it for new code.",
-      simple:
-        'It is like freeze-drying an object to ship it. The problem: when you thaw a package from a stranger, it can run code you never wanted.',
-      points: [
-        'Classes opt in with <code>implements Serializable</code>; <code>ObjectOutputStream</code> writes them.',
-        'Deserializing untrusted bytes can run attacker code ("gadget chains"). A long list of real exploits.',
-        'Also fragile: changing a class can break old data (<code>serialVersionUID</code>).',
-        'Prefer JSON, Protobuf or Avro for data you store or send.',
-        'If you must use it, add an <code>ObjectInputFilter</code> (Java 9+) to allow only known classes.',
-      ],
-      tip: 'Even its designers call Java serialization a mistake. Say that in an interview and explain the security risk.',
-    },
-    {
       title: 'JSON with Jackson',
       level: 'intermediate',
       summary: 'Jackson is the most used library for turning Java objects into JSON and back.',
@@ -94,7 +79,7 @@ try (Stream&lt;String&gt; lines = Files.lines(Path.of("big.log"))) {
         '<code>ObjectMapper</code> does the work; create it once and reuse it (it is thread-safe).',
         'Works with getters/setters, fields and records.',
         'Annotations: <code>@JsonProperty</code>, <code>@JsonIgnore</code>, <code>@JsonFormat</code>.',
-        'Register <code>JavaTimeModule</code> for <code>LocalDate</code> and friends (Spring Boot does this for you).',
+        'Jackson 2 needs <code>JavaTimeModule</code> for <code>LocalDate</code>; Jackson 3 (2025, package <code>tools.jackson</code>, used by Spring Boot 4) has it built in.',
       ],
       detail: `<pre><code>record User(String name, int age) {}
 
@@ -109,7 +94,7 @@ User back = mapper.readValue(json, User.class);</code></pre>`,
       simple:
         'It is a small browser inside your program: build a request, send it, read the response.',
       points: [
-        'Supports HTTP/1.1 and HTTP/2, sync (<code>send</code>) and async (<code>sendAsync</code>).',
+        'Supports HTTP/1.1 and HTTP/2 (HTTP/3 opt-in since Java 26), sync (<code>send</code>) and async (<code>sendAsync</code>).',
         'Create one client and reuse it; it keeps connections open.',
         'Always set timeouts, or a stuck server can block you forever.',
         'Check the status code yourself; 404 or 500 does not throw.',
@@ -145,6 +130,21 @@ try (Connection c = dataSource.getConnection();
 }</code></pre>`,
     },
     {
+      title: 'Serialization',
+      level: 'advanced',
+      summary: "Java's built-in way to turn objects into bytes. Avoid it for new code.",
+      simple:
+        'It is like freeze-drying an object to ship it. The problem: when you thaw a package from a stranger, it can run code you never wanted.',
+      points: [
+        'Classes opt in with <code>implements Serializable</code>; <code>ObjectOutputStream</code> writes them.',
+        'Deserializing untrusted bytes can run attacker code ("gadget chains"). A long list of real exploits.',
+        'Also fragile: changing a class can break old data (<code>serialVersionUID</code>).',
+        'Prefer JSON, Protobuf or Avro for data you store or send.',
+        'If you must use it, add an <code>ObjectInputFilter</code> (Java 9+) to allow only known classes.',
+      ],
+      tip: 'Even its designers call Java serialization a mistake. Say that in an interview and explain the security risk.',
+    },
+    {
       title: 'Connection Pools & Transactions',
       level: 'advanced',
       summary:
@@ -166,6 +166,28 @@ try {
 } catch (SQLException e) {
     c.rollback();
     throw e;
+}</code></pre>`,
+    },
+    {
+      title: 'NIO Channels & Selectors',
+      level: 'expert',
+      summary:
+        'Low-level, non-blocking I/O where one thread can watch thousands of network connections at once.',
+      points: [
+        '<code>ByteBuffer</code>: a fixed block of memory you fill, <code>flip()</code>, then read.',
+        '<code>Channel</code>: a connection to a file or socket that reads into and writes from buffers.',
+        '<code>Selector</code>: one thread asks "which of my sockets are ready?" and handles only those.',
+        'This is the engine under Netty, Tomcat and reactive frameworks.',
+        'Direct buffers live outside the heap: faster for I/O, but they count toward container memory.',
+        'With virtual threads, plain blocking code is often good enough again.',
+      ],
+      detail: `<pre><code>try (FileChannel ch = FileChannel.open(Path.of("data.bin"))) {
+    ByteBuffer buf = ByteBuffer.allocate(4096);
+    while (ch.read(buf) != -1) {
+        buf.flip();   // switch from filling to reading
+        process(buf);
+        buf.clear();  // ready to fill again
+    }
 }</code></pre>`,
     },
   ],

@@ -13,18 +13,6 @@ export const modernReact: KmNode = {
   ],
   children: [
     {
-      title: 'Concurrent Rendering',
-      level: 'advanced',
-      summary:
-        'React can prepare several versions of the UI and interrupt a slow render for an urgent one.',
-      points: [
-        'Turned on when you use <code>createRoot</code> plus a concurrent feature (transition, Suspense, deferred value).',
-        'Rendering is interruptible; the commit to the DOM is still all-at-once.',
-        'Lets typing stay responsive while a big list re-renders in the background.',
-        'Requires pure components: a render may run and then be thrown away.',
-      ],
-    },
-    {
       title: 'Automatic Batching',
       level: 'intermediate',
       summary:
@@ -35,6 +23,18 @@ export const modernReact: KmNode = {
         'React 17 only batched inside React event handlers.',
         'React 18+ batches everywhere: <code>setTimeout</code>, promises, native events.',
         '<code>flushSync</code> forces an immediate update when you really need it (rare).',
+      ],
+    },
+    {
+      title: 'Concurrent Rendering',
+      level: 'advanced',
+      summary:
+        'React can prepare several versions of the UI and interrupt a slow render for an urgent one.',
+      points: [
+        'Turned on when you use <code>createRoot</code> plus a concurrent feature (transition, Suspense, deferred value).',
+        'Rendering is interruptible; the commit to the DOM is still all-at-once.',
+        'Lets typing stay responsive while a big list re-renders in the background.',
+        'Requires pure components: a render may run and then be thrown away.',
       ],
     },
     {
@@ -157,6 +157,7 @@ function selectTab(next) {
         '<code>&lt;Activity mode="hidden"&gt;</code> (19.2) hides UI but keeps its state.',
         'Removed: <code>ReactDOM.render</code>, string refs, <code>propTypes</code> and <code>defaultProps</code> on function components.',
         'Hydration errors now show a single clear diff of the mismatch.',
+        'New <code>preload()</code>/<code>preinit()</code> APIs and stylesheet <code>precedence</code> help load resources early.',
         'Upgrade from 18.3 first: it warns about everything 19 removes.',
       ],
     },

@@ -8,6 +8,7 @@ import { classes } from './classes';
 import { errors } from './errors';
 import { functions } from './functions';
 import { modern } from './modern';
+import { nodejs } from './node';
 import { objectsArrays } from './objects';
 import { memoryPerformance, security } from './performance';
 import { modulesTooling } from './tooling';
@@ -17,12 +18,12 @@ export const javascript: KmTopic = {
   name: 'JavaScript',
   icon: '🟨',
   description:
-    'The language of the web — from your first variable to the event loop, browser APIs, performance and security.',
+    'The language of the web — from your first variable to the event loop, browser APIs, Node.js, performance and security.',
   image: {
     src: overview.src,
-    alt: 'JavaScript overview: code runs in an engine with a call stack, heap and event loop, using browser or Node.js runtime APIs',
+    alt: 'JavaScript overview (Vietnamese labels): core language, browser web development, advanced concepts, modern features, frameworks (React, Angular, Svelte, Node.js, Express, NestJS, React Native, Ionic) and tools (npm, yarn, Webpack, Babel, Vite, Jest, Mocha)',
     caption:
-      'Note: this diagram has mistakes — "Topic" and "Partition" are Kafka words, not JavaScript, and the heap holds objects (not "OS"). Also there are two queues: microtasks (promises) always run before the next task (timers, events).',
+      'Note: "Data Types", "Asynchronous JS" and "Hoisting" each appear twice. JavaScript has 7 primitive types (string, number, bigint, boolean, undefined, null, symbol) plus objects — arrays are objects, not a separate type.',
   },
   root: {
     title: 'JavaScript',
@@ -45,6 +46,7 @@ export const javascript: KmTopic = {
       modulesTooling,
       asyncJs,
       browser,
+      nodejs,
       advanced,
       memoryPerformance,
       security,

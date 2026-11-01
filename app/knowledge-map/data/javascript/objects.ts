@@ -76,6 +76,20 @@ const [head, ...tail] = [1, 2, 3]; // head 1, tail [2, 3]</code></pre>`,
 Math.max(...[3, 9, 1]);                         // 9</code></pre>`,
     },
     {
+      title: 'JSON',
+      level: 'beginner',
+      summary: 'A text format for data that looks like JS objects; used by almost every web API.',
+      simple:
+        'JSON is a parcel format: you pack an object into text to send it, and unpack it on arrival.',
+      points: [
+        '<code>JSON.stringify(obj)</code> → text; <code>JSON.parse(text)</code> → object.',
+        'Keys must use double quotes; no comments, functions or undefined.',
+        'Dates become strings and do not come back as Date objects.',
+        '<code>JSON.parse</code> throws on bad input: wrap it in try/catch.',
+        'Pretty print: <code>JSON.stringify(obj, null, 2)</code>.',
+      ],
+    },
+    {
       title: 'map, filter, reduce',
       level: 'intermediate',
       summary:
@@ -100,6 +114,8 @@ Math.max(...[3, 9, 1]);                         // 9</code></pre>`,
       level: 'intermediate',
       summary:
         'sort() changes the array in place and compares as strings unless you pass a function.',
+      simple:
+        'By default, sort lines up numbers like words in a dictionary, so "10" comes before "9". Give it a rule and it sorts the way you expect.',
       points: [
         '<code>[10, 9, 1].sort()</code> gives <code>[1, 10, 9]</code> (string order).',
         'Numbers: <code>arr.sort((a, b) =&gt; a - b)</code>.',
@@ -126,18 +142,20 @@ b.tags.push("y");          // a.tags is now ["x", "y"] too!
 const c = structuredClone(a); // fully separate</code></pre>`,
     },
     {
-      title: 'JSON',
-      level: 'beginner',
-      summary: 'A text format for data that looks like JS objects; used by almost every web API.',
-      simple:
-        'JSON is a parcel format: you pack an object into text to send it, and unpack it on arrival.',
+      title: 'Property Descriptors',
+      level: 'advanced',
+      summary: 'Hidden settings on each property that decide if it can be changed, listed or deleted.',
       points: [
-        '<code>JSON.stringify(obj)</code> → text; <code>JSON.parse(text)</code> → object.',
-        'Keys must use double quotes; no comments, functions or undefined.',
-        'Dates become strings and do not come back as Date objects.',
-        '<code>JSON.parse</code> throws on bad input: wrap it in try/catch.',
-        'Pretty print: <code>JSON.stringify(obj, null, 2)</code>.',
+        'Each property has flags: <code>writable</code>, <code>enumerable</code>, <code>configurable</code>.',
+        '<code>Object.defineProperty</code> sets them; normal assignment makes all three <code>true</code>.',
+        'Non-enumerable properties are skipped by <code>for...in</code>, <code>Object.keys</code> and JSON.',
+        '<code>Object.freeze</code> blocks all changes, <code>seal</code> blocks adding/removing, <code>preventExtensions</code> blocks adding.',
+        'All three are shallow: nested objects stay changeable.',
       ],
+      detail: `<pre><code>const cfg = {};
+Object.defineProperty(cfg, "version", { value: 2, writable: false, enumerable: true });
+cfg.version = 3;          // ignored (TypeError in strict mode)
+Object.isFrozen(Object.freeze({ a: 1 })); // true</code></pre>`,
     },
   ],
 };

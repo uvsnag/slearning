@@ -14,6 +14,25 @@ export const asyncJs: KmNode = {
   ],
   children: [
     {
+      title: 'Callbacks',
+      level: 'beginner',
+      summary: 'The original async style: pass a function that is called when the work is done.',
+      simple: 'Leaving your phone number at a shop: "call me when my order arrives".',
+      points: [
+        'Node style: <code>(err, result) =&gt; {}</code> — error comes first.',
+        'Nesting many steps leads to "callback hell" (a pyramid of code).',
+        'Error handling must be repeated at every level.',
+        'Risk: a buggy library might call your callback twice or never.',
+      ],
+      detail: `<pre><code>readFile("a.txt", (err, a) =&gt; {
+  if (err) return done(err);
+  readFile("b.txt", (err, b) =&gt; {
+    if (err) return done(err);
+    done(null, a + b);            // pyramid grows...
+  });
+});</code></pre>`,
+    },
+    {
       title: 'Single Thread & Call Stack',
       level: 'intermediate',
       summary: 'JS runs one thing at a time; the call stack tracks which function is running now.',
@@ -40,25 +59,6 @@ export const asyncJs: KmNode = {
         'Node.js has the same idea, with extra phases (timers, I/O, check) handled by libuv.',
       ],
       tip: 'Interview: draw the call stack, the task queue and the microtask queue, then walk through the code.',
-    },
-    {
-      title: 'Callbacks',
-      level: 'beginner',
-      summary: 'The original async style: pass a function that is called when the work is done.',
-      simple: 'Leaving your phone number at a shop: "call me when my order arrives".',
-      points: [
-        'Node style: <code>(err, result) =&gt; {}</code> — error comes first.',
-        'Nesting many steps leads to "callback hell" (a pyramid of code).',
-        'Error handling must be repeated at every level.',
-        'Risk: a buggy library might call your callback twice or never.',
-      ],
-      detail: `<pre><code>readFile("a.txt", (err, a) =&gt; {
-  if (err) return done(err);
-  readFile("b.txt", (err, b) =&gt; {
-    if (err) return done(err);
-    done(null, a + b);            // pyramid grows...
-  });
-});</code></pre>`,
     },
     {
       title: 'Promises',
@@ -109,6 +109,8 @@ export const asyncJs: KmNode = {
       title: 'Promise Combinators',
       level: 'intermediate',
       summary: 'Run several promises together: all, allSettled, race and any.',
+      simple:
+        'You order from four food stalls at once. all waits for every dish, allSettled tells you which ones failed, race takes whatever comes first, any takes the first one that worked.',
       points: [
         '<code>Promise.all</code>: waits for all; fails fast on the first rejection.',
         '<code>Promise.allSettled</code> (ES2020): waits for all, gives each result or error.',
@@ -163,7 +165,7 @@ console.log("4");
       points: [
         'Pass <code>signal</code> to <code>fetch</code> and many Node APIs; call <code>controller.abort()</code> to stop.',
         '<code>AbortSignal.timeout(ms)</code> gives a signal that aborts by itself.',
-        'Aborted work rejects with an <code>AbortError</code>; handle it separately from real errors.',
+        'Aborted work rejects with an <code>AbortError</code> (a <code>TimeoutError</code> for <code>AbortSignal.timeout</code>); handle it apart from real errors.',
         'Cancel old requests when the user types again (search boxes) to avoid stale results.',
       ],
       detail: `<pre><code>const controller = new AbortController();

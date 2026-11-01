@@ -14,6 +14,17 @@ export const internals: KmNode = {
   ],
   children: [
     {
+      title: 'Docker on Mac & Windows',
+      level: 'advanced',
+      summary: 'Linux containers need a Linux kernel, so Docker Desktop runs a hidden Linux VM.',
+      points: [
+        'Windows uses WSL 2; Mac uses Apple’s Virtualization framework.',
+        'Bind mounts cross the VM boundary, which is why they can be slow.',
+        'Memory and CPU for all containers come from the VM’s settings.',
+        'Native Windows containers exist, but are a separate, much rarer world.',
+      ],
+    },
+    {
       title: 'Namespaces',
       level: 'expert',
       summary:
@@ -35,7 +46,7 @@ export const internals: KmNode = {
         '<code>--memory</code> and <code>--cpus</code> turn into cgroup settings.',
         'Memory over the limit triggers the kernel OOM killer inside that cgroup.',
         'CPU limits are enforced by throttling (CFS quota), which can add latency spikes.',
-        'cgroup v2 is the default on modern distros; old JVMs and tools may not read it correctly.',
+        'cgroup v2 is the default on modern distros; JVMs read it from JDK 15, 11.0.16 and 8u372.',
       ],
     },
     {
@@ -73,17 +84,7 @@ export const internals: KmNode = {
         'The shim keeps the container running even if dockerd restarts (with live-restore).',
         'Kubernetes skips dockerd and talks to containerd through the CRI.',
         'Alternative runtimes: crun, gVisor (sandboxed), Kata Containers (micro-VMs).',
-      ],
-    },
-    {
-      title: 'Docker on Mac & Windows',
-      level: 'advanced',
-      summary: 'Linux containers need a Linux kernel, so Docker Desktop runs a hidden Linux VM.',
-      points: [
-        'Windows uses WSL 2; Mac uses Apple’s Virtualization framework.',
-        'Bind mounts cross the VM boundary, which is why they can be slow.',
-        'Memory and CPU for all containers come from the VM’s settings.',
-        'Native Windows containers exist, but are a separate, much rarer world.',
+        'Image storage moved to containerd too: default for new installs since Desktop 4.34 and Engine 29.',
       ],
     },
   ],

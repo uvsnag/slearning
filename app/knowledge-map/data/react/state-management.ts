@@ -13,6 +13,27 @@ export const stateManagement: KmNode = {
   ],
   children: [
     {
+      title: 'Structuring State',
+      level: 'intermediate',
+      summary:
+        'Keep state small and simple: no duplicates, nothing you can calculate from other state.',
+      simple:
+        'Don’t write your age and your birth year on the same form. One can be worked out from the other, and sooner or later they will disagree.',
+      points: [
+        'Don’t store what you can compute during render (totals, filtered lists, full names).',
+        'Avoid duplicates: store <code>selectedId</code>, not a copy of the selected object.',
+        'Group values that always change together into one object.',
+        'Avoid contradictions: one <code>status</code> beats <code>isSending</code> + <code>isSent</code> flags.',
+        'Flatten deeply nested data; it makes updates much easier.',
+      ],
+      detail: `<pre><code>// Avoid: a copy that can go stale
+const [selectedItem, setSelectedItem] = useState(items[0]);
+
+// Better: store the id, look the item up
+const [selectedId, setSelectedId] = useState(items[0].id);
+const selectedItem = items.find((i) =&gt; i.id === selectedId);</code></pre>`,
+    },
+    {
       title: 'Lifting State Up',
       level: 'intermediate',
       summary: 'Move shared state to the closest common parent and pass it down as props.',
@@ -63,6 +84,18 @@ export const stateManagement: KmNode = {
       ],
     },
     {
+      title: 'URL as State',
+      level: 'intermediate',
+      summary: 'Store filters, tabs, page numbers and search terms in the URL.',
+      simple:
+        'If it’s in the address bar, you can bookmark it, share it and hit Back, just like a page in a book.',
+      points: [
+        'Read and write search params with your router (e.g. <code>useSearchParams</code>).',
+        'Survives refresh and works with the Back button.',
+        'Great for anything a user might want to share as a link.',
+      ],
+    },
+    {
       title: 'Zustand',
       level: 'intermediate',
       summary: 'A tiny global store library: one hook, no providers, minimal boilerplate.',
@@ -82,6 +115,23 @@ const useCart = create((set) =&gt; ({
 }));
 
 const count = useCart((s) =&gt; s.items.length);</code></pre>`,
+    },
+    {
+      title: 'TanStack Query',
+      level: 'intermediate',
+      summary: 'A library for server state: fetching, caching, refetching and syncing API data.',
+      simple:
+        'A smart assistant who fetches data for you, remembers it, shares it with anyone who asks, and quietly refreshes it when it gets old.',
+      points: [
+        '<code>useQuery</code> for reading, <code>useMutation</code> for writing.',
+        'Data is cached by <code>queryKey</code>; same key = shared data, one request.',
+        'Handles loading, errors, retries, dedupe and background refetch for you.',
+        'After a mutation, invalidate related queries so they refetch.',
+      ],
+      detail: `<pre><code>const { data, isPending, error } = useQuery({
+  queryKey: ['todos', userId],
+  queryFn: () =&gt; fetch('/api/todos?user=' + userId).then((r) =&gt; r.json()),
+});</code></pre>`,
     },
     {
       title: 'Redux Toolkit',
@@ -105,35 +155,6 @@ const count = useCart((s) =&gt; s.items.length);</code></pre>`,
 
 export const { increment } = counterSlice.actions;</code></pre>`,
       tip: 'Hand-written Redux (switch statements, action constants) is legacy. If someone says Redux today, they mean Redux Toolkit.',
-    },
-    {
-      title: 'TanStack Query',
-      level: 'intermediate',
-      summary: 'A library for server state: fetching, caching, refetching and syncing API data.',
-      simple:
-        'A smart assistant who fetches data for you, remembers it, shares it with anyone who asks, and quietly refreshes it when it gets old.',
-      points: [
-        '<code>useQuery</code> for reading, <code>useMutation</code> for writing.',
-        'Data is cached by <code>queryKey</code>; same key = shared data, one request.',
-        'Handles loading, errors, retries, dedupe and background refetch for you.',
-        'After a mutation, invalidate related queries so they refetch.',
-      ],
-      detail: `<pre><code>const { data, isPending, error } = useQuery({
-  queryKey: ['todos', userId],
-  queryFn: () =&gt; fetch('/api/todos?user=' + userId).then((r) =&gt; r.json()),
-});</code></pre>`,
-    },
-    {
-      title: 'URL as State',
-      level: 'intermediate',
-      summary: 'Store filters, tabs, page numbers and search terms in the URL.',
-      simple:
-        'If it’s in the address bar, you can bookmark it, share it and hit Back, just like a page in a book.',
-      points: [
-        'Read and write search params with your router (e.g. <code>useSearchParams</code>).',
-        'Survives refresh and works with the Back button.',
-        'Great for anything a user might want to share as a link.',
-      ],
     },
   ],
 };

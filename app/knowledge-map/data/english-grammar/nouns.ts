@@ -69,6 +69,18 @@ export const nounsArticles: KmNode = {
       ],
     },
     {
+      title: "Possessive 's",
+      level: 'beginner',
+      summary: "Add 's to show something belongs to someone; for plurals ending in s, just add '.",
+      simple: 'It\'s the English way of saying "user.name": the user\'s name.',
+      points: [
+        "One owner: <em>the user's email, Java's syntax</em>.",
+        "Plural owner: <em>the users' emails</em> (many users).",
+        "Irregular plural: <em>the children's toys, people's ideas</em>.",
+        'For things, <em>of</em> or a noun-noun combo often sounds better: <em>the name of the table, the table name</em>.',
+      ],
+    },
+    {
       title: 'No Article',
       level: 'intermediate',
       summary: 'Talking in general about plurals or uncountable things? Use no article at all.',
@@ -95,19 +107,24 @@ export const nounsArticles: KmNode = {
         '<em>many</em> + countable (<em>many bugs</em>), <em>much</em> + uncountable (<em>much memory</em>).',
         '<em>a few</em> = some (positive); <em>few</em> = not enough (negative). Same for <em>a little / little</em>.',
         '<em>a lot of</em> works with both and sounds natural in speech.',
+        'Offers and requests use <em>some</em> even in questions: <em>Would you like some help? Can I get some feedback?</em>',
       ],
     },
     {
-      title: "Possessive 's",
-      level: 'beginner',
-      summary: "Add 's to show something belongs to someone; for plurals ending in s, just add '.",
-      simple: 'It\'s the English way of saying "user.name": the user\'s name.',
+      title: 'Compound Nouns',
+      level: 'intermediate',
+      summary:
+        'Two nouns side by side, where the first one describes the second: error message, user ID.',
+      simple:
+        'The first noun works like an adjective, a label on the box. The last noun is the real thing, so only it gets the plural.',
       points: [
-        "One owner: <em>the user's email, Java's syntax</em>.",
-        "Plural owner: <em>the users' emails</em> (many users).",
-        "Irregular plural: <em>the children's toys, people's ideas</em>.",
-        'For things, <em>of</em> or a noun-noun combo often sounds better: <em>the name of the table, the table name</em>.',
+        'The main noun is last: <em>a database connection</em> is a kind of connection.',
+        'The first noun stays singular: ❌ <em>a users list</em> ✅ <em>a user list</em>; <em>two error messages</em>.',
+        'Number + noun works the same: <em>a 3-node cluster, a 10-second timeout</em>.',
+        'Some are one word (<em>codebase, database, password</em>), most are two (<em>test case, user ID</em>).',
+        "Don't stack too many: <em>user account password reset email template</em> is hard to read — use <em>of</em> or <em>for</em>.",
       ],
+      tip: 'A few fixed phrases keep the -s, like "sales team" or "systems engineer". Follow common usage for those.',
     },
   ],
 };
@@ -135,7 +152,8 @@ export const pronouns: KmNode = {
         'Subject: <em>I, you, he, she, it, we, they</em>.',
         'Object: <em>me, you, him, her, it, us, them</em>.',
         '✅ <em>Send it to John and me</em> — remove "John and" to test: "send it to me".',
-        'Use <em>it</em> for things, tools and teams-as-objects: <em>The API is slow; it times out.</em>',
+        'Use <em>it</em> for things and tools: <em>The API is slow; it times out.</em>',
+        '<em>myself</em> only when you are also the subject: <em>I tested it myself.</em> ❌ <em>Contact John or myself</em> ✅ <em>Contact John or me</em>.',
       ],
     },
     {
@@ -148,19 +166,6 @@ export const pronouns: KmNode = {
         'Before a noun: <em>my, your, his, her, its, our, their</em>.',
         'Standing alone: <em>mine, yours, his, hers, ours, theirs</em>.',
         "Possessive pronouns never take an apostrophe: <em>its, yours, theirs</em> — not <em>it's, your's</em>.",
-      ],
-    },
-    {
-      title: 'Singular "they"',
-      level: 'intermediate',
-      summary: "Use they/them for one person whose gender you don't know or who uses they.",
-      simple:
-        'Writing docs about "the user"? Say "they", not "he or she". It is natural, old, and fully accepted.',
-      points: [
-        '<em>When a user logs in, they see the dashboard.</em>',
-        'The verb stays plural in form: <em>they are</em>, even for one person.',
-        'Major style guides (Google, Microsoft, APA) recommend it.',
-        'Or rewrite in second person: <em>When you log in, you see the dashboard.</em>',
       ],
     },
     {
@@ -180,13 +185,26 @@ export const pronouns: KmNode = {
       tip: 'Long subjects hide the real noun. Strip the extra words and read "subject + verb" alone.',
     },
     {
+      title: 'Singular "they"',
+      level: 'intermediate',
+      summary: "Use they/them for one person whose gender you don't know or who uses they.",
+      simple:
+        'Writing docs about "the user"? Say "they", not "he or she". It is natural, old, and fully accepted.',
+      points: [
+        '<em>When a user logs in, they see the dashboard.</em>',
+        'The verb stays plural in form: <em>they are</em>, even for one person.',
+        'Major style guides (Google, Microsoft, APA) recommend it.',
+        'Or rewrite in second person: <em>When you log in, you see the dashboard.</em>',
+      ],
+    },
+    {
       title: 'It vs There',
       level: 'intermediate',
       summary: '"There is/are" says something exists; "it is" describes something already known.',
       simple:
         '"There is a bug" introduces the bug. "It is in the parser" tells you about the bug you just met.',
       points: [
-        '<em>There is an error in line 10.</em> (exists)',
+        '<em>There is an error on line 10.</em> (exists)',
         '<em>There are three failing tests.</em> — match the verb to the noun after it.',
         '<em>It is easy to fix.</em> (describes)',
         '❌ <em>Have a problem with the build.</em> ✅ <em>There is a problem with the build.</em>',

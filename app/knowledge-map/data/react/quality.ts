@@ -14,23 +14,6 @@ export const quality: KmNode = {
   ],
   children: [
     {
-      title: 'Error Boundaries',
-      level: 'advanced',
-      summary: 'Components that catch rendering errors in their children and show a fallback UI.',
-      points: [
-        'Still written as class components (<code>getDerivedStateFromError</code>, <code>componentDidCatch</code>).',
-        'Most people use the <code>react-error-boundary</code> package instead of writing one.',
-        'They do NOT catch errors in event handlers, async code or setTimeout; use try/catch there.',
-        'Place them around independent sections (sidebar, widget, route) not just the root.',
-        'React 19 adds <code>onCaughtError</code>/<code>onUncaughtError</code> root options for logging.',
-      ],
-      detail: `<pre><code>import { ErrorBoundary } from 'react-error-boundary';
-
-&lt;ErrorBoundary fallback={&lt;p&gt;Something went wrong.&lt;/p&gt;}&gt;
-  &lt;Comments /&gt;
-&lt;/ErrorBoundary&gt;</code></pre>`,
-    },
-    {
       title: 'React Testing Library',
       level: 'intermediate',
       summary:
@@ -42,6 +25,7 @@ export const quality: KmNode = {
         'Use <code>@testing-library/user-event</code> for realistic clicks and typing.',
         '<code>findBy…</code> waits for async UI; <code>queryBy…</code> checks something is absent.',
         'Avoid testing internals (state, hook calls); Enzyme-style shallow tests are outdated.',
+        'Test a custom hook on its own with <code>renderHook()</code>.',
       ],
       detail: `<pre><code>test('increments the counter', async () =&gt; {
   render(&lt;Counter /&gt;);
@@ -90,6 +74,60 @@ export const quality: KmNode = {
         'Copying props into state, then wondering why it doesn’t update.',
         'Effects for things that should be computed during render.',
       ],
+    },
+    {
+      title: 'Security & XSS',
+      level: 'intermediate',
+      summary:
+        'React escapes text for you, but a few escape hatches can still let attackers inject code.',
+      simple:
+        'React puts every piece of text in a sealed envelope, so a message like "<script>" is shown, not run. The dangers start when you open the envelope yourself.',
+      points: [
+        'XSS (cross-site scripting) = an attacker gets their script to run on your page.',
+        'Text in <code>{curly braces}</code> is escaped automatically, so it is safe.',
+        '<code>dangerouslySetInnerHTML</code> skips that; clean the HTML first (e.g. with DOMPurify).',
+        'Check user-given URLs: an <code>href</code> starting with <code>javascript:</code> can run code.',
+        'Never put secrets (API keys) in client code; anyone can read the bundle.',
+      ],
+      detail: `<pre><code>import DOMPurify from 'dompurify';
+
+function Comment({ html }) {
+  const clean = DOMPurify.sanitize(html);
+  return &lt;div dangerouslySetInnerHTML={{ __html: clean }} /&gt;;
+}</code></pre>`,
+    },
+    {
+      title: 'React with TypeScript',
+      level: 'intermediate',
+      summary:
+        'Add types to props, state and events so mistakes show up in your editor, not in production.',
+      simple:
+        'Types are labels on your boxes: "this prop is a number". If someone tries to put a string in, the editor shouts before the app ever runs.',
+      points: [
+        'Most React jobs use TypeScript; files end in <code>.tsx</code>.',
+        'Type props with a plain type or interface, e.g. <code>{ name: string; size?: number }</code>.',
+        '<code>useState</code> usually guesses the type; help it for empty starts: <code>useState&lt;User | null&gt;(null)</code>.',
+        'Common helpers: <code>React.ReactNode</code> for children, <code>React.ChangeEvent&lt;HTMLInputElement&gt;</code> for inputs.',
+        'Skip <code>React.FC</code>; just type the props argument.',
+      ],
+      tip: 'See the TypeScript topic for the language itself. In React, typing props well gives you most of the benefit.',
+    },
+    {
+      title: 'Error Boundaries',
+      level: 'advanced',
+      summary: 'Components that catch rendering errors in their children and show a fallback UI.',
+      points: [
+        'Still written as class components (<code>getDerivedStateFromError</code>, <code>componentDidCatch</code>).',
+        'Most people use the <code>react-error-boundary</code> package instead of writing one.',
+        'They do NOT catch errors in event handlers, async code or setTimeout; use try/catch there.',
+        'Place them around independent sections (sidebar, widget, route) not just the root.',
+        'React 19 adds <code>onCaughtError</code>/<code>onUncaughtError</code> root options for logging.',
+      ],
+      detail: `<pre><code>import { ErrorBoundary } from 'react-error-boundary';
+
+&lt;ErrorBoundary fallback={&lt;p&gt;Something went wrong.&lt;/p&gt;}&gt;
+  &lt;Comments /&gt;
+&lt;/ErrorBoundary&gt;</code></pre>`,
     },
     {
       title: 'Interview Topics',

@@ -88,6 +88,17 @@ export const networking: KmNode = {
   ],
   children: [
     {
+      title: 'EXPOSE vs Publish',
+      level: 'beginner',
+      summary: 'EXPOSE only documents a port; -p actually opens it to the host.',
+      simple: 'EXPOSE is the sign on the door, -p is unlocking it.',
+      points: [
+        'Containers on the same network can reach any listening port, exposed or not.',
+        'Only published ports are reachable from outside the host.',
+        'Don’t publish database ports in production unless you must.',
+      ],
+    },
+    {
       title: 'Bridge Network',
       level: 'intermediate',
       summary: 'The default: containers get private IPs on a virtual switch on the host.',
@@ -133,17 +144,6 @@ const pool = new Pool({ host: 'db', port: 5432 });</code></pre>`,
         'Docker Desktop: use <code>host.docker.internal</code>.',
         'Linux: add <code>--add-host=host.docker.internal:host-gateway</code>.',
         'The host service must listen on an interface the container can reach.',
-      ],
-    },
-    {
-      title: 'EXPOSE vs Publish',
-      level: 'beginner',
-      summary: 'EXPOSE only documents a port; -p actually opens it to the host.',
-      simple: 'EXPOSE is the sign on the door, -p is unlocking it.',
-      points: [
-        'Containers on the same network can reach any listening port, exposed or not.',
-        'Only published ports are reachable from outside the host.',
-        'Don’t publish database ports in production unless you must.',
       ],
     },
     {

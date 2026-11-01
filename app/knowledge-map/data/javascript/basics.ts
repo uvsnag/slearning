@@ -183,5 +183,62 @@ const msg = \`Hello \${name},
 you have \${3 + 2} new messages\`;
 "a-b-c".split("-");   // ["a", "b", "c"]</code></pre>`,
     },
+    {
+      title: 'Numbers & Math',
+      level: 'beginner',
+      summary: 'One number type for ints and decimals, plus helpers to parse, round and format numbers.',
+      simple:
+        'JavaScript has one measuring cup for every kind of number. It works for most recipes, but very tiny or very huge amounts get a little blurry.',
+      points: [
+        'Parse text: <code>Number("42")</code> is strict, <code>parseInt("42px", 10)</code> reads until it hits a non-digit.',
+        'Bad math gives <code>NaN</code> (not a number), not an error; check with <code>Number.isNaN</code>.',
+        'Rounding: <code>Math.round</code>, <code>Math.floor</code>, <code>Math.ceil</code>, <code>Math.trunc</code>.',
+        '<code>toFixed(2)</code> returns a string; <code>Intl.NumberFormat</code> formats money and thousands.',
+        'Safe integers end at 2^53 − 1 (<code>Number.MAX_SAFE_INTEGER</code>); use <code>bigint</code> above it.',
+      ],
+      detail: `<pre><code>Number("12.5");            // 12.5
+Number("12px");            // NaN
+parseInt("12px", 10);      // 12
+(9.876).toFixed(2);        // "9.88"
+new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" })
+  .format(1234.5);         // "$1,234.50"</code></pre>`,
+    },
+    {
+      title: 'Regular Expressions',
+      level: 'intermediate',
+      summary: 'Patterns that search, check and replace text, like "find every email in this string".',
+      simple:
+        'A regex is a stencil you slide over text. Wherever the text fits the stencil exactly, you have a match.',
+      points: [
+        'Write them as <code>/pattern/flags</code>; <code>g</code> = all matches, <code>i</code> = ignore case.',
+        '<code>re.test(str)</code> gives true/false; <code>str.match</code> and <code>matchAll</code> return matches.',
+        'Named groups make results readable: <code>(?&lt;year&gt;\\d{4})</code>.',
+        'Escape user text before putting it in a pattern: <code>RegExp.escape</code> (ES2025).',
+        'Keep them short; complex patterns are hard to read and some can be very slow.',
+      ],
+      detail: `<pre><code>const re = /(?&lt;year&gt;\\d{4})-(?&lt;month&gt;\\d{2})/;
+const m = "Due 2026-11".match(re);
+m.groups.year;                        // "2026"
+/^\\S+@\\S+$/.test("an@mail.com");      // true
+"a-b-c".replace(/-/g, "+");           // "a+b+c"</code></pre>`,
+      tip: 'Do not try to validate everything with one giant regex. Simple checks plus clear code beat a clever pattern.',
+    },
+    {
+      title: 'Strict Mode',
+      level: 'intermediate',
+      summary: 'A safer mode of JavaScript that turns silent mistakes into real errors.',
+      simple:
+        'Strict mode is a teacher who stops you on small mistakes right away, instead of letting you keep going and fail later.',
+      points: [
+        'Turn it on with <code>"use strict";</code> at the top of a file or function.',
+        'ES modules and class bodies are always strict; you get it for free there.',
+        'Assigning to an undeclared variable throws instead of creating a global.',
+        'In a plain function call, <code>this</code> is <code>undefined</code>, not the global object.',
+        'Writing to read-only properties throws instead of failing silently.',
+      ],
+      detail: `<pre><code>"use strict";
+total = 10;   // ReferenceError: total is not defined
+// Without strict mode this quietly creates a global variable.</code></pre>`,
+    },
   ],
 };

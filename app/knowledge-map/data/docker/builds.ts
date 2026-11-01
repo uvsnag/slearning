@@ -52,18 +52,7 @@ export const builds: KmNode = {
         'Skips stages the final image doesn’t need and runs independent stages in parallel.',
         'Cache mounts keep package caches between builds: <code>RUN --mount=type=cache,target=/root/.m2 mvn package</code>.',
         'Exports cache to a registry for CI: <code>--cache-to</code> / <code>--cache-from</code>.',
-      ],
-    },
-    {
-      title: 'Multi-platform Images',
-      level: 'advanced',
-      summary:
-        'Build one image tag that works on both amd64 (Intel/AMD) and arm64 (Apple Silicon, Graviton).',
-      points: [
-        '<code>docker buildx build --platform linux/amd64,linux/arm64 --push .</code>',
-        'The registry stores a manifest list; each machine pulls its own variant.',
-        'Emulation (QEMU) works but is slow; cross-compiling or native builders are faster.',
-        'Classic bug: built on an M-series Mac, crashes on an amd64 server with "exec format error".',
+        '<code>docker buildx bake</code> builds many images from one config file.',
       ],
     },
     {
@@ -78,6 +67,37 @@ export const builds: KmNode = {
         'Clean package caches in the same <code>RUN</code> (<code>rm -rf /var/lib/apt/lists/*</code>).',
         'Use <code>.dockerignore</code> so tests, docs and <code>.git</code> stay out.',
         'Check results with <code>docker history</code> or <code>dive</code>.',
+      ],
+    },
+    {
+      title: 'Images Without Dockerfile',
+      level: 'intermediate',
+      summary: 'Tools that build a good image straight from your Java or Node project, no Dockerfile needed.',
+      simple:
+        'Like a meal kit service: you hand over your ingredients and get a well-packed box back, without writing the recipe yourself.',
+      points: [
+        'Jib (Maven/Gradle plugin): builds Java images without Docker installed, in smart layers.',
+        'Cloud Native Buildpacks: detect Java, Node and more, and pick a secure base image.',
+        'Spring Boot: <code>mvn spring-boot:build-image</code> uses buildpacks under the hood.',
+        'Trade-off: less control than a Dockerfile, but sane defaults and easy base-image updates.',
+      ],
+      detail: `<pre><code>// Jib Core: build and push an image from plain Java code
+Jib.from("eclipse-temurin:21-jre")
+   .addLayer(List.of(Paths.get("target/app.jar")), AbsoluteUnixPath.get("/app"))
+   .setEntrypoint("java", "-jar", "/app/app.jar")
+   .containerize(Containerizer.to(
+       RegistryImage.named("ghcr.io/acme/app:1.0")));</code></pre>`,
+    },
+    {
+      title: 'Multi-platform Images',
+      level: 'advanced',
+      summary:
+        'Build one image tag that works on both amd64 (Intel/AMD) and arm64 (Apple Silicon, Graviton).',
+      points: [
+        '<code>docker buildx build --platform linux/amd64,linux/arm64 --push .</code>',
+        'The registry stores a manifest list; each machine pulls its own variant.',
+        'Emulation (QEMU) works but is slow; cross-compiling or native builders are faster.',
+        'Classic bug: built on an M-series Mac, crashes on an amd64 server with "exec format error".',
       ],
     },
     {

@@ -85,18 +85,6 @@ class OrderRepositoryIT {
       ],
     },
     {
-      title: 'Contract Tests',
-      level: 'advanced',
-      summary:
-        'Check that a service and its consumers agree on the API, without running both together.',
-      points: [
-        'The consumer writes down what it expects (the contract); the provider verifies it in its own pipeline.',
-        'Tools: Pact, Spring Cloud Contract.',
-        'Catches breaking API changes before deploy, without a shared E2E environment.',
-        'Very useful in microservices, where full E2E setups get huge.',
-      ],
-    },
-    {
       title: 'Flaky Tests',
       level: 'intermediate',
       summary: 'Tests that sometimes pass and sometimes fail without any code change.',
@@ -128,6 +116,40 @@ await expect(page.getByText('Saved')).toBeVisible();</code></pre>`,
         'Gate on "coverage of new code" rather than a total number.',
         '100% coverage with weak assertions still misses bugs; mutation testing (PIT, Stryker) checks test strength.',
       ],
+    },
+    {
+      title: 'Contract Tests',
+      level: 'advanced',
+      summary:
+        'Check that a service and its consumers agree on the API, without running both together.',
+      points: [
+        'The consumer writes down what it expects (the contract); the provider verifies it in its own pipeline.',
+        'Tools: Pact, Spring Cloud Contract.',
+        'Catches breaking API changes before deploy, without a shared E2E environment.',
+        'Very useful in microservices, where full E2E setups get huge.',
+      ],
+    },
+    {
+      title: 'Performance Tests',
+      level: 'advanced',
+      summary: 'Put load on the app in the pipeline and fail the build if it gets too slow.',
+      points: [
+        'Load test: expected traffic. Stress test: push past it to find the breaking point.',
+        'Tools: k6 (scripts in JavaScript), Gatling (Java), JMeter.',
+        'Set thresholds (e.g. 95% of requests under 300 ms) so the job can pass or fail by itself.',
+        'Run a short smoke-load on every merge, full runs nightly on a production-like environment.',
+      ],
+      detail: `<pre><code>// k6 script: 20 virtual users for 1 minute
+import http from 'k6/http';
+export const options = {
+  vus: 20,
+  duration: '1m',
+  thresholds: { http_req_duration: ['p(95)&lt;300'] },
+};
+export default function () {
+  http.get(__ENV.APP_URL + '/api/products');
+}</code></pre>`,
+      tip: 'Compare against the previous build, not a guess. A 20% slowdown found in CI is cheap; found by users, it’s an incident.',
     },
   ],
 };

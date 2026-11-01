@@ -67,6 +67,26 @@ public void handle(PaymentEvent e) {
 }</code></pre>`,
     },
     {
+      title: 'Offsets in your own DB',
+      level: 'expert',
+      summary:
+        'Save the consumer position in the same database transaction as the results, for exactly-once into that DB.',
+      simple:
+        'You write your bookmark on the same page as your answers. Either both are saved or neither is, so they can never disagree.',
+      points: [
+        'In one DB transaction, write the result AND (topic, partition, next offset).',
+        'Turn off auto-commit. Kafka’s own committed offsets become only a hint for monitoring.',
+        'When partitions are assigned, read the offset from the DB and seek() to it.',
+        'Gives exactly-once results in that one database, without Kafka transactions.',
+      ],
+      detail: `<pre><code>consumer.subscribe(List.of("orders"), new ConsumerRebalanceListener() {
+  public void onPartitionsRevoked(Collection&lt;TopicPartition&gt; parts) {}
+  public void onPartitionsAssigned(Collection&lt;TopicPartition&gt; parts) {
+    parts.forEach(tp -&gt; consumer.seek(tp, offsetRepo.nextOffset(tp)));
+  }
+});</code></pre>`,
+    },
+    {
       title: 'Ordering guarantees',
       level: 'intermediate',
       summary:

@@ -61,6 +61,27 @@ export const dockerfile: KmNode = {
       tip: 'apt-get update and apt-get install must be in the same RUN, or a cached update layer gives you stale package lists.',
     },
     {
+      title: 'EXPOSE',
+      level: 'beginner',
+      summary: 'Documents which port the app listens on. It doesn’t publish anything by itself.',
+      simple: 'A sign on the door saying "we’re on port 3000". You still need -p to open the door.',
+      points: [
+        '<code>EXPOSE 3000</code> is metadata for humans and tools.',
+        '<code>docker run -P</code> publishes all exposed ports to random host ports.',
+      ],
+    },
+    {
+      title: '.dockerignore',
+      level: 'beginner',
+      summary: 'Lists files Docker should not send in the build context.',
+      simple: 'Like .gitignore, but for builds. Keep junk and secrets out of the box.',
+      points: [
+        'Typical entries: <code>node_modules</code>, <code>.git</code>, <code>target</code>, <code>.env</code>, logs.',
+        'Smaller context = faster builds and fewer cache misses.',
+        'Stops local <code>.env</code> files or keys from ending up in an image.',
+      ],
+    },
+    {
       title: 'ENV vs ARG',
       level: 'intermediate',
       summary:
@@ -105,16 +126,6 @@ export const dockerfile: KmNode = {
       ],
     },
     {
-      title: 'EXPOSE',
-      level: 'beginner',
-      summary: 'Documents which port the app listens on. It doesn’t publish anything by itself.',
-      simple: 'A sign on the door saying "we’re on port 3000". You still need -p to open the door.',
-      points: [
-        '<code>EXPOSE 3000</code> is metadata for humans and tools.',
-        '<code>docker run -P</code> publishes all exposed ports to random host ports.',
-      ],
-    },
-    {
       title: 'USER',
       level: 'intermediate',
       summary: 'Sets which user runs the following instructions and the container process.',
@@ -127,15 +138,18 @@ export const dockerfile: KmNode = {
       ],
     },
     {
-      title: '.dockerignore',
-      level: 'beginner',
-      summary: 'Lists files Docker should not send in the build context.',
-      simple: 'Like .gitignore, but for builds. Keep junk and secrets out of the box.',
+      title: 'Other Instructions',
+      level: 'intermediate',
+      summary: 'Smaller instructions you will meet: LABEL, VOLUME, STOPSIGNAL, SHELL and ONBUILD.',
+      simple:
+        'The fine print at the bottom of the recipe. Rarely the main event, but good to recognize.',
       points: [
-        'Typical entries: <code>node_modules</code>, <code>.git</code>, <code>target</code>, <code>.env</code>, logs.',
-        'Smaller context = faster builds and fewer cache misses.',
-        'Stops local <code>.env</code> files or keys from ending up in an image.',
+        '<code>LABEL</code> adds metadata, e.g. <code>org.opencontainers.image.source</code> for the repo URL.',
+        '<code>VOLUME /data</code> marks a folder for data; Docker creates an anonymous volume there.',
+        '<code>STOPSIGNAL</code> changes the stop signal if your app expects something other than SIGTERM.',
+        '<code>SHELL</code> changes the shell for shell-form lines; <code>ONBUILD</code> runs steps in child images.',
       ],
+      tip: 'Avoid VOLUME in base images: later RUN steps can’t change that folder, which surprises people.',
     },
     {
       title: 'Dockerfile Best Practices',
@@ -149,6 +163,18 @@ export const dockerfile: KmNode = {
         'Run as a non-root user; use exec form for CMD/ENTRYPOINT.',
         'Add a <code>HEALTHCHECK</code> and <code>LABEL</code>s (version, source repo).',
         'Lint with <code>hadolint</code> or <code>docker build --check</code>.',
+      ],
+    },
+    {
+      title: 'Syntax Directive & Heredocs',
+      level: 'advanced',
+      summary:
+        'A first-line comment picks the Dockerfile parser version and unlocks newer features like heredocs.',
+      points: [
+        '<code># syntax=docker/dockerfile:1</code> always uses the latest stable 1.x parser (BuildKit only).',
+        'Heredocs (<code>RUN &lt;&lt;EOF</code> … <code>EOF</code>) write multi-line scripts without long <code>&amp;&amp; \\</code> chains.',
+        'Also enables <code>RUN --mount</code> (cache, secret, ssh) and <code>COPY --link</code>.',
+        'Build checks (<code>docker build --check</code>) come from the same frontend, Dockerfile 1.8+.',
       ],
     },
   ],

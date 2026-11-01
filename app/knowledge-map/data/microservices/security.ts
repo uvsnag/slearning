@@ -31,7 +31,7 @@ export const security: KmNode = {
       points: [
         'Authorization Code + PKCE: the standard flow for web and mobile apps.',
         'Client Credentials: for a service calling another service with no user.',
-        'Implicit and Password flows are deprecated (OAuth 2.1 drops them).',
+        'Implicit and Password flows are deprecated (OAuth security best practice, RFC 9700, 2025; the OAuth 2.1 draft drops them).',
         'OIDC adds an ID token and a <code>/userinfo</code> endpoint on top of OAuth2.',
         'Scopes (<code>orders:read</code>) limit what a token is allowed to do.',
       ],

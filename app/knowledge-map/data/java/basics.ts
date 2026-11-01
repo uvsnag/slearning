@@ -25,9 +25,9 @@ export const basics: KmNode = {
         'Statically typed: the compiler checks types before the program runs.',
         'Memory is managed for you by a garbage collector (it frees objects you no longer use).',
         'Used for backends, Android, big data tools (Kafka, Spark) and enterprise apps.',
-        'A new version ships every 6 months; LTS (long-term support) versions are 17, 21 and 25.',
+        'A new version ships every 6 months; recent LTS (long-term support) versions are 17, 21 and 25.',
       ],
-      tip: 'For new projects, pick the latest LTS (Java 21 or 25) unless a library holds you back.',
+      tip: 'For new projects, pick the latest LTS (Java 25, or 21) unless a library holds you back.',
     },
     {
       title: 'JDK vs JRE vs JVM',
@@ -55,7 +55,7 @@ export const basics: KmNode = {
       points: [
         '<code>javac Hello.java</code> creates <code>Hello.class</code> (bytecode).',
         '<code>java Hello</code> starts the JVM and runs that class.',
-        'Since Java 11 you can run a single file directly: <code>java Hello.java</code>.',
+        'Since Java 11 you can run a single file directly: <code>java Hello.java</code> (Java 22+: even several files).',
         'The JVM first interprets bytecode, then the JIT compiler turns hot code into fast machine code.',
         'Real projects use a build tool (Maven or Gradle) instead of calling javac by hand.',
       ],
@@ -104,6 +104,27 @@ b = 10;         // a is still 5
 int[] x = {1, 2};
 int[] y = x;    // y points to the SAME array
 y[0] = 99;      // x[0] is now 99 too</code></pre>`,
+    },
+    {
+      title: 'Type Casting',
+      level: 'beginner',
+      summary:
+        'Turning a value of one type into another, automatically (widening) or by hand (narrowing).',
+      simple:
+        'Pouring a small cup into a big jug is always safe. Pouring a big jug into a small cup needs care, because some can spill.',
+      points: [
+        'Widening (small → big, like <code>int</code> → <code>long</code>) happens automatically.',
+        'Narrowing (big → small) needs a cast: <code>(int) 3.99</code> gives <code>3</code>. It cuts, it does not round.',
+        'Narrowing can overflow silently: <code>(byte) 200</code> is <code>-56</code>.',
+        'Text to number: <code>Integer.parseInt("42")</code>; number to text: <code>String.valueOf(42)</code>.',
+        'Casting objects: <code>(Dog) animal</code> throws <code>ClassCastException</code> if it is not really a Dog.',
+      ],
+      detail: `<pre><code>long big = 42;                  // int → long, automatic
+int cut = (int) 3.99;           // 3
+int r = (int) Math.round(3.99); // 4
+int n = Integer.parseInt("123");
+if (animal instanceof Dog d) d.bark(); // safe object cast</code></pre>`,
+      tip: 'In math, Java promotes to the bigger type: int + double gives double. But int * int overflows before it is stored in a long, so write 1_000_000L * 1_000_000.',
     },
     {
       title: 'Variables & var',
@@ -163,6 +184,21 @@ System.out.println(Arrays.toString(nums)); // [1, 2, 3]
 System.out.println(nums.length);           // 3</code></pre>`,
     },
     {
+      title: 'Packages & Imports',
+      level: 'beginner',
+      summary:
+        'Packages group related classes like folders; imports let you use short class names.',
+      simple:
+        'Packages are folders with an address. Imports are like saving a contact so you can say "Mom" instead of her full number.',
+      points: [
+        'Package name matches the folder path: <code>com.shop.order</code> → <code>com/shop/order/</code>.',
+        'Use reverse domain names to avoid clashes.',
+        '<code>java.lang</code> (String, Math, System) is imported automatically.',
+        'Static import: <code>import static java.lang.Math.max;</code>.',
+        'Java 25 module imports: <code>import module java.base;</code> pulls in a whole module.',
+      ],
+    },
+    {
       title: 'Methods & Pass-by-Value',
       level: 'intermediate',
       summary:
@@ -181,21 +217,6 @@ System.out.println(nums.length);           // 3</code></pre>`,
   u = new User("Eve"); // caller does NOT see this
 }</code></pre>`,
       tip: 'Classic interview question. Answer: "Java is pass-by-value; for objects the reference is copied, not the object."',
-    },
-    {
-      title: 'Packages & Imports',
-      level: 'beginner',
-      summary:
-        'Packages group related classes like folders; imports let you use short class names.',
-      simple:
-        'Packages are folders with an address. Imports are like saving a contact so you can say "Mom" instead of her full number.',
-      points: [
-        'Package name matches the folder path: <code>com.shop.order</code> → <code>com/shop/order/</code>.',
-        'Use reverse domain names to avoid clashes.',
-        '<code>java.lang</code> (String, Math, System) is imported automatically.',
-        'Static import: <code>import static java.lang.Math.max;</code>.',
-        'Java 25 module imports: <code>import module java.base;</code> pulls in a whole module.',
-      ],
     },
   ],
 };

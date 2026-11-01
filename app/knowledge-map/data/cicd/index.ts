@@ -1,4 +1,5 @@
 import type { KmTopic } from '../../types';
+import overview from '../../image/cicd.png';
 import { buildAutomation } from './build';
 import { deployment } from './deployment';
 import { environments } from './environments';
@@ -17,6 +18,12 @@ export const cicd: KmTopic = {
   icon: '🔁',
   description:
     'Continuous integration and delivery — from your first pipeline to safe deployments, supply-chain security and DORA metrics.',
+  image: {
+    src: overview.src,
+    alt: 'CI/CD overview (Vietnamese labels): developer writes and commits code → pushes to Git (GitLab, GitHub) → CI server (Jenkins/GitLab CI) builds, runs unit tests and packages → artifact repository (Docker image, JAR, WAR) → CD deploys to staging, runs automated and acceptance tests → release to production with monitoring',
+    caption:
+      'Note: "Artyfact" should be Artifact and "Productive environment" should be Production environment. A manual acceptance step before production makes this Continuous Delivery — Continuous Deployment releases automatically with no human gate.',
+  },
   root: {
     title: 'CI/CD',
     level: 'beginner',

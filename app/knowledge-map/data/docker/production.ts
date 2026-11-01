@@ -58,32 +58,11 @@ export const production: KmNode = {
         'Cap how much memory and CPU a container may use so one app can’t starve the others.',
       simple: 'Give each roommate their own shelf in the fridge, so one can’t eat everything.',
       points: [
-        '<code>--memory 512m</code>: over the limit, the kernel OOM-kills the process (exit 137).',
+        '<code>--memory 512m</code>: over the limit, the kernel’s OOM (out-of-memory) killer stops it (exit 137).',
         '<code>--cpus 1.5</code>: throttles CPU time, doesn’t kill.',
         '<code>--pids-limit</code> stops fork bombs.',
         'Without limits, a container can use all of the host’s memory.',
       ],
-    },
-    {
-      title: 'Graceful Shutdown',
-      level: 'advanced',
-      summary:
-        'On SIGTERM, stop taking new work, finish in-flight requests, close connections, then exit.',
-      points: [
-        'Docker sends SIGTERM, waits (default 10s, <code>--stop-timeout</code>), then SIGKILL.',
-        'Your app must be PID 1 (exec form) or run under an init like <code>--init</code> (tini).',
-        'PID 1 has no default signal handlers in Linux, so you must handle SIGTERM yourself.',
-        'Spring Boot: <code>server.shutdown=graceful</code>.',
-      ],
-      detail: `<pre><code>// Node.js
-const server = app.listen(3000);
-
-process.on('SIGTERM', () =&gt; {
-  console.log('SIGTERM received, closing');
-  server.close(() =&gt; {
-    db.end().then(() =&gt; process.exit(0));
-  });
-});</code></pre>`,
     },
     {
       title: 'Java in Containers',
@@ -115,6 +94,53 @@ System.out.println("Max heap MB: " + max + ", CPUs: " + cpus);</code></pre>`,
         'Start with <code>CMD ["node", "server.js"]</code>, not <code>npm start</code> (npm may not forward signals).',
         'Run as <code>USER node</code>; add <code>node_modules</code> to <code>.dockerignore</code>.',
       ],
+    },
+    {
+      title: 'Graceful Shutdown',
+      level: 'advanced',
+      summary:
+        'On SIGTERM, stop taking new work, finish in-flight requests, close connections, then exit.',
+      points: [
+        'Docker sends SIGTERM, waits (default 10s, <code>--stop-timeout</code>), then SIGKILL.',
+        'Your app must be PID 1 (exec form) or run under an init like <code>--init</code> (tini).',
+        'PID 1 has no default signal handlers in Linux, so you must handle SIGTERM yourself.',
+        'Spring Boot: <code>server.shutdown=graceful</code> (the default since Boot 3.4).',
+      ],
+      detail: `<pre><code>// Node.js
+const server = app.listen(3000);
+
+process.on('SIGTERM', () =&gt; {
+  console.log('SIGTERM received, closing');
+  server.close(() =&gt; {
+    db.end().then(() =&gt; process.exit(0));
+  });
+});</code></pre>`,
+    },
+    {
+      title: 'PID 1 & Zombies',
+      level: 'advanced',
+      summary:
+        'The first process in a container has special duties: pass on signals and clean up dead child processes.',
+      points: [
+        'A "zombie" is a finished child process nobody collected; too many fill the process table.',
+        'Normally the init process cleans them up. In a container, your app is that init.',
+        'Java and Node rarely spawn children, but shell scripts and headless browsers do.',
+        'Fix: <code>docker run --init</code> or a tiny init like <code>tini</code> / <code>dumb-init</code> as ENTRYPOINT.',
+        'Wrapper shell script? End it with <code>exec java -jar app.jar</code> so Java replaces the shell.',
+      ],
+    },
+    {
+      title: 'Fast JVM Startup',
+      level: 'expert',
+      summary:
+        'Ways to make Java containers start in milliseconds instead of seconds, useful for scaling and serverless.',
+      points: [
+        'CDS (class data sharing) caches loaded classes; Spring Boot 3.3+ can prepare it for you.',
+        'JDK 24+ AOT cache (Project Leyden) also stores linked classes and, from JDK 25, method profiles.',
+        'CRaC snapshots a warmed-up JVM and restores it (needs a CRaC-enabled JDK).',
+        'GraalVM native image compiles to a binary: fastest start, slower builds, some reflection limits.',
+      ],
+      tip: 'Measure first. Often lazy init and fewer auto-configured beans win more than any of these.',
     },
   ],
 };

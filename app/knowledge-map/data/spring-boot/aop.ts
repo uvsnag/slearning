@@ -27,7 +27,7 @@ export const aop: KmNode = {
       summary: 'A @Aspect bean with an @Around advice that times annotated methods.',
       simple: 'You write the turnstile once and tell Spring which doors to put it on.',
       points: [
-        'Add <code>spring-boot-starter-aop</code> (AspectJ annotations, Spring AOP runtime).',
+        'Add <code>spring-boot-starter-aop</code> (renamed <code>spring-boot-starter-aspectj</code> in Boot 4).',
         'Matching your own annotation is clearer than matching method names.',
         '<code>@Around</code> must call <code>proceed()</code>, or the real method never runs.',
       ],

@@ -86,6 +86,42 @@ export const compose: KmNode = {
       ],
     },
     {
+      title: 'Testcontainers',
+      level: 'intermediate',
+      summary: 'A library that starts real databases or brokers in Docker from your test code.',
+      simple:
+        'Instead of a cardboard cutout of a database, each test run borrows a real one and throws it away afterwards.',
+      points: [
+        'Libraries for Java, Node.js and more; needs a Docker daemon on the machine.',
+        'Each test gets a fresh container on a random host port, so tests don’t collide.',
+        'Containers are removed automatically when tests end (by the Ryuk helper).',
+        'Spring Boot 3.1+: <code>@ServiceConnection</code> wires the container URL in for you.',
+      ],
+      detail: `<pre><code>import { GenericContainer } from 'testcontainers';
+
+const redis = await new GenericContainer('redis:7')
+  .withExposedPorts(6379)
+  .start();
+
+const url = 'redis://' + redis.getHost() + ':' + redis.getMappedPort(6379);
+// ... run your tests against url ...
+await redis.stop();</code></pre>`,
+      tip: 'Use Compose for your day-to-day dev stack and Testcontainers for automated tests. They solve different problems.',
+    },
+    {
+      title: 'Dev Containers',
+      level: 'intermediate',
+      summary: 'Your whole development setup (tools, SDKs, extensions) defined as a container.',
+      simple:
+        'A fully packed backpack for coding. Any new teammate grabs it and has the same tools in minutes.',
+      points: [
+        'Defined in <code>.devcontainer/devcontainer.json</code>, often pointing at a Dockerfile or compose file.',
+        'Supported by VS Code, IntelliJ, GitHub Codespaces and the <code>devcontainer</code> CLI.',
+        'Same JDK, Node and CLI versions for everyone; no "install these 12 things" wiki.',
+        'Ready-made "features" add tools like the Java SDK or Docker-in-Docker.',
+      ],
+    },
+    {
       title: 'Compose in Production',
       level: 'advanced',
       summary: 'Fine for one server; for many servers and self-healing, move to an orchestrator.',

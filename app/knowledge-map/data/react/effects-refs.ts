@@ -21,7 +21,7 @@ export const effectsRefs: KmNode = {
         'Rendering draws the picture. An effect is the note "after you’re done drawing, also connect to the chat server".',
       points: [
         'Signature: <code>useEffect(setup, dependencies)</code>.',
-        'Runs after the browser paints, so it doesn’t block the screen.',
+        'Usually runs after the browser paints, so it doesn’t block the screen (effects from a click may run just before paint).',
         'Good for: subscriptions, connecting to a socket, syncing with a non-React widget.',
         'Not for: computing data for render or handling user actions.',
       ],
@@ -103,26 +103,6 @@ const visible = todos.filter((t) =&gt; !t.done);</code></pre>`,
       tip: 'Rule of thumb: if no outside system is involved, you probably don’t need an effect.',
     },
     {
-      title: 'useEffectEvent',
-      level: 'advanced',
-      summary:
-        'Wraps logic that should read the latest props/state without making the effect re-run.',
-      points: [
-        'Stable since React 19.2.',
-        'Use for "non-reactive" logic inside an effect, like logging with the current theme.',
-        'Call it only from inside effects; don’t pass it to other components or add it to deps.',
-      ],
-      detail: `<pre><code>const onConnected = useEffectEvent(() =&gt; {
-  showToast('Connected!', theme); // reads latest theme
-});
-
-useEffect(() =&gt; {
-  const conn = connect(roomId);
-  conn.on('connected', onConnected);
-  return () =&gt; conn.disconnect();
-}, [roomId]); // theme change does NOT reconnect</code></pre>`,
-    },
-    {
       title: 'useRef',
       level: 'intermediate',
       summary: 'Stores a mutable value in .current that survives renders but doesn’t trigger one.',
@@ -176,6 +156,26 @@ useEffect(() =&gt; {
 }
 
 &lt;MyInput ref={inputRef} placeholder="Name" /&gt;</code></pre>`,
+    },
+    {
+      title: 'useEffectEvent',
+      level: 'advanced',
+      summary:
+        'Wraps logic that should read the latest props/state without making the effect re-run.',
+      points: [
+        'Stable since React 19.2.',
+        'Use for "non-reactive" logic inside an effect, like logging with the current theme.',
+        'Call it only from inside effects; don’t pass it to other components or add it to deps.',
+      ],
+      detail: `<pre><code>const onConnected = useEffectEvent(() =&gt; {
+  showToast('Connected!', theme); // reads latest theme
+});
+
+useEffect(() =&gt; {
+  const conn = connect(roomId);
+  conn.on('connected', onConnected);
+  return () =&gt; conn.disconnect();
+}, [roomId]); // theme change does NOT reconnect</code></pre>`,
     },
     {
       title: 'useLayoutEffect',

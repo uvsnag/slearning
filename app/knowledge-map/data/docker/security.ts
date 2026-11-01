@@ -64,6 +64,19 @@ export const security: KmNode = {
       tip: 'Deleting a secret file in a later layer doesn’t help. It is still in the earlier layer for anyone who pulls the image.',
     },
     {
+      title: 'Image Signing & SBOMs',
+      level: 'advanced',
+      summary:
+        'Prove an image really came from your pipeline and list exactly what is inside it.',
+      points: [
+        'Sign images with Sigstore <code>cosign</code> (keyless via CI login) or Notation.',
+        'Old Docker Content Trust (Notary v1) is being retired; don’t start new work on it.',
+        'BuildKit can attach an SBOM (parts list) and provenance (how it was built) to the image.',
+        'Clusters can refuse unsigned images with admission policies (Kyverno, Sigstore policy-controller).',
+      ],
+      tip: 'Sign by digest, not by tag. A tag can be moved to a different image after you signed it.',
+    },
+    {
       title: 'Capabilities & Read-only',
       level: 'advanced',
       summary: 'Remove Linux powers the app doesn’t need and make the filesystem read-only.',

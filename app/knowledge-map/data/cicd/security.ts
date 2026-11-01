@@ -51,18 +51,6 @@ export const qualitySecurity: KmNode = {
       ],
     },
     {
-      title: 'DAST',
-      level: 'advanced',
-      summary:
-        'Dynamic Application Security Testing: attacks a running app from the outside to find holes.',
-      points: [
-        'Runs against a deployed test environment, not source code.',
-        'Tools: OWASP ZAP, Burp Suite.',
-        'Finds missing security headers, injection, auth problems at runtime.',
-        'Slower; often run nightly or before release rather than on every PR.',
-      ],
-    },
-    {
       title: 'Dependency Scanning',
       level: 'intermediate',
       summary:
@@ -103,12 +91,24 @@ export const qualitySecurity: KmNode = {
       ],
     },
     {
+      title: 'DAST',
+      level: 'advanced',
+      summary:
+        'Dynamic Application Security Testing: attacks a running app from the outside to find holes.',
+      points: [
+        'Runs against a deployed test environment, not source code.',
+        'Tools: ZAP (formerly OWASP ZAP), Burp Suite.',
+        'Finds missing security headers, injection, auth problems at runtime.',
+        'Slower; often run nightly or before release rather than on every PR.',
+      ],
+    },
+    {
       title: 'OIDC Instead of Static Keys',
       level: 'advanced',
       summary:
         'The pipeline proves its identity to the cloud and gets short-lived credentials, with no stored keys.',
       points: [
-        'The CI provider issues a signed token saying "this is repo X, branch main, env prod".',
+        'OIDC (OpenID Connect) is a login standard: the CI issues a signed token saying "repo X, branch main, env prod".',
         'The cloud (AWS, Azure, GCP) trusts that issuer and exchanges it for temporary credentials.',
         'No long-lived access keys to leak or rotate.',
         'Restrict trust by repo, branch and environment, not just the organization.',
@@ -123,7 +123,8 @@ export const qualitySecurity: KmNode = {
       points: [
         'Sign images and artifacts, e.g. with Sigstore cosign (keyless, using OIDC identity).',
         'Provenance: a signed record of source commit, builder and build steps.',
-        'SLSA (Supply-chain Levels for Software Artifacts) defines levels of build integrity.',
+        'SLSA (Supply-chain Levels for Software Artifacts) v1.0 Build track: L1 has provenance, L2 signed by a hosted builder, L3 hardened builder.',
+        'GitHub artifact attestations and GitLab can generate signed SLSA provenance for you.',
         'Deploy-time policy (e.g. Kyverno, admission controllers) can reject unsigned images.',
         'Pin third-party CI actions and base images by digest to avoid tampered updates.',
       ],

@@ -36,6 +36,19 @@ export const deployment: KmNode = {
 });</code></pre>`,
     },
     {
+      title: 'Recreate',
+      level: 'beginner',
+      summary: 'Stop the old version, then start the new one. Simple, but users see downtime.',
+      simple:
+        'Closing the shop for an hour to swap the shelves. Easy to do, but customers find the door locked.',
+      points: [
+        'The simplest strategy; old and new versions never run at the same time.',
+        'Fine for internal tools, batch jobs or apps that can’t run two versions at once.',
+        'Kubernetes: <code>strategy: Recreate</code>.',
+        'Rollback means another full stop and start.',
+      ],
+    },
+    {
       title: 'Rolling Deployment',
       level: 'intermediate',
       summary: 'Replace old instances with new ones a few at a time.',
@@ -45,6 +58,7 @@ export const deployment: KmNode = {
         'No extra full environment needed.',
         'For a while, old and new versions run together, so they must be compatible.',
         'Rollback = roll forward to the old version again, which takes time.',
+        'Old instances must finish in-flight requests before stopping (graceful shutdown), or users see errors.',
       ],
     },
     {
@@ -60,19 +74,6 @@ export const deployment: KmNode = {
         'Costs double the capacity during the switch.',
         'Shared database must work with both versions.',
       ],
-    },
-    {
-      title: 'Canary Releases',
-      level: 'advanced',
-      summary:
-        'Send a small share of traffic to the new version, watch metrics, then increase step by step.',
-      points: [
-        'Example: 1% → 10% → 50% → 100%, pausing to check error rate and latency.',
-        'Bad canary? Route traffic back; only a few users were affected.',
-        'Tools: Argo Rollouts, Flagger, service meshes, cloud load balancers.',
-        'Works best with automatic analysis of metrics, not someone staring at graphs.',
-      ],
-      tip: 'Named after canaries in coal mines: a small early warning before everyone is exposed.',
     },
     {
       title: 'Feature Flags',
@@ -93,16 +94,6 @@ export const deployment: KmNode = {
 return renderOldCheckout(cart);</code></pre>`,
     },
     {
-      title: 'Dark Launches',
-      level: 'advanced',
-      summary: 'Run new code in production without users seeing it, to test it with real load.',
-      points: [
-        'Example: call the new search engine in the background, compare results, show the old ones.',
-        'Traffic shadowing (mirroring) sends a copy of real requests to the new version.',
-        'Make sure shadow calls don’t cause side effects like double payments or emails.',
-      ],
-    },
-    {
       title: 'Rollback vs Roll Forward',
       level: 'intermediate',
       summary:
@@ -114,6 +105,30 @@ return renderOldCheckout(cart);</code></pre>`,
         'Roll forward: ship a fix through the normal pipeline. Needs a fast pipeline.',
         'Database changes often make rollback hard; plan migrations for it.',
         'Practice rollbacks before you need one in an emergency.',
+      ],
+    },
+    {
+      title: 'Canary Releases',
+      level: 'advanced',
+      summary:
+        'Send a small share of traffic to the new version, watch metrics, then increase step by step.',
+      points: [
+        'Example: 1% → 10% → 50% → 100%, pausing to check error rate and latency.',
+        'Bad canary? Route traffic back; only a few users were affected.',
+        'Tools: Argo Rollouts, Flagger, service meshes, cloud load balancers.',
+        'Works best with automatic analysis of metrics, not someone staring at graphs.',
+        'Canary is about safety; A/B testing looks similar but measures which version users like more.',
+      ],
+      tip: 'Named after canaries in coal mines: a small early warning before everyone is exposed.',
+    },
+    {
+      title: 'Dark Launches',
+      level: 'advanced',
+      summary: 'Run new code in production without users seeing it, to test it with real load.',
+      points: [
+        'Example: call the new search engine in the background, compare results, show the old ones.',
+        'Traffic shadowing (mirroring) sends a copy of real requests to the new version.',
+        'Make sure shadow calls don’t cause side effects like double payments or emails.',
       ],
     },
   ],

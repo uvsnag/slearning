@@ -9,7 +9,7 @@ export const tooling: KmNode = {
     'Writing Java is half the job. The other half is building it, testing it, seeing what it does in production and shipping it. These tools do that.',
   points: [
     'Build: Maven or Gradle download libraries and build your jar.',
-    'Test: JUnit 5 + Mockito + Testcontainers cover most needs.',
+    'Test: JUnit (5 or 6) + Mockito + Testcontainers cover most needs.',
     'Log with SLF4J; ship as a jar, Docker image or native binary.',
   ],
   children: [
@@ -30,22 +30,22 @@ export const tooling: KmNode = {
       tip: 'Maven is simpler and very common in companies; Gradle wins for big or custom builds. Knowing one well is enough to start.',
     },
     {
-      title: 'Dependency Conflicts',
-      level: 'intermediate',
+      title: 'IDE & Debugging',
+      level: 'beginner',
       summary:
-        'When two libraries need different versions of the same library and only one can win.',
+        'Let your IDE do the heavy lifting: navigation, refactoring and step-by-step debugging.',
       simple:
-        'Two friends both bring a phone charger, but the socket fits only one. The build tool picks one, and sometimes it picks the wrong one.',
+        'A debugger is a pause button for your program. You stop it at any line and look at every variable.',
       points: [
-        'Transitive dependency: a library your library depends on.',
-        'Maven picks the nearest version in the tree; Gradle picks the highest by default.',
-        'Symptoms at runtime: <code>NoSuchMethodError</code>, <code>ClassNotFoundException</code>.',
-        'See the tree: <code>mvn dependency:tree</code> or <code>gradle dependencies</code>.',
-        'Fix with a BOM (bill of materials: a list of versions that work together) or explicit version pins.',
+        'IntelliJ IDEA is the most used; Eclipse and VS Code also work well.',
+        'Breakpoints, step over / into, and watch expressions beat println debugging.',
+        'Conditional breakpoints stop only when, e.g., <code>id == 42</code>.',
+        "Use the IDE's rename and extract-method refactors instead of editing by hand.",
+        'Remote debugging attaches to a running JVM (not in production!).',
       ],
     },
     {
-      title: 'JUnit 5',
+      title: 'JUnit 5 & 6',
       level: 'beginner',
       summary: 'The standard testing framework: write methods marked @Test that check your code.',
       simple:
@@ -56,6 +56,7 @@ export const tooling: KmNode = {
         '<code>@ParameterizedTest</code> runs one test with many inputs.',
         'Pattern: Arrange → Act → Assert. One behaviour per test.',
         'AssertJ (<code>assertThat(x).isEqualTo(y)</code>) gives nicer, readable assertions.',
+        'JUnit 6 (Sep 2025) keeps the same Jupiter API (<code>org.junit.jupiter</code>) and needs Java 17+.',
       ],
       detail: `<pre><code>class PriceTest {
     @Test
@@ -71,6 +72,21 @@ export const tooling: KmNode = {
 }</code></pre>`,
     },
     {
+      title: 'Dependency Conflicts',
+      level: 'intermediate',
+      summary:
+        'When two libraries need different versions of the same library and only one can win.',
+      simple:
+        'Two friends both bring a phone charger, but the socket fits only one. The build tool picks one, and sometimes it picks the wrong one.',
+      points: [
+        'Transitive dependency: a library your library depends on.',
+        'Maven picks the nearest version in the tree; Gradle picks the highest by default.',
+        'Symptoms at runtime: <code>NoSuchMethodError</code>, <code>ClassNotFoundException</code>.',
+        'See the tree: <code>mvn dependency:tree</code> or <code>gradle dependencies</code>.',
+        'Fix with a BOM (bill of materials: a list of versions that work together) or explicit version pins.',
+      ],
+    },
+    {
       title: 'Mockito',
       level: 'intermediate',
       summary: 'A library to create fake objects (mocks) so you can test one class on its own.',
@@ -81,6 +97,7 @@ export const tooling: KmNode = {
         '<code>verify(mock).save(x)</code> checks a call happened.',
         'With JUnit 5: <code>@ExtendWith(MockitoExtension.class)</code>, <code>@Mock</code>, <code>@InjectMocks</code>.',
         'Mock things you own at the edges (repos, clients), not value objects.',
+        'Mockito 5+ can mock final classes by default; on Java 21+ add it as a <code>-javaagent</code> to avoid agent warnings.',
       ],
       detail: `<pre><code>UserRepo repo = mock(UserRepo.class);
 when(repo.find(1L)).thenReturn(Optional.of(new User("Ann")));
@@ -90,20 +107,6 @@ String name = new UserService(repo).nameOf(1L);
 assertEquals("Ann", name);
 verify(repo).find(1L);</code></pre>`,
       tip: 'Too many mocks in one test usually means the class does too much.',
-    },
-    {
-      title: 'Testcontainers',
-      level: 'advanced',
-      summary:
-        'Starts real databases, Kafka and more in Docker for your tests, then throws them away.',
-      simple:
-        'Instead of a fake database, each test run gets a real, fresh one in a box, and the box is thrown away after.',
-      points: [
-        'Needs Docker on the machine or CI runner.',
-        'Tests run against the real thing, e.g. the same PostgreSQL version as production.',
-        'Slower than unit tests; use for integration tests.',
-        'Spring Boot has built-in support (<code>@ServiceConnection</code>).',
-      ],
     },
     {
       title: 'Logging',
@@ -124,18 +127,20 @@ log.info("Order {} paid by {}", orderId, userId);
 log.error("Payment failed for order {}", orderId, ex); // keeps stack trace</code></pre>`,
     },
     {
-      title: 'Packaging & Shipping',
-      level: 'advanced',
-      summary: 'Ways to ship your app: a fat jar, a Docker image or a GraalVM native binary.',
+      title: 'Code Quality Tools',
+      level: 'intermediate',
+      summary:
+        'Tools that read your code and catch bugs, style issues and untested parts before a human review.',
       simple:
-        'A fat jar is a suitcase with everything packed. A Docker image is the suitcase plus the room it lives in. A native image is the app squeezed into one fast-starting program.',
+        'Like a spell checker for code. It will not write the essay for you, but it catches the silly mistakes early.',
       points: [
-        'Fat (uber) jar: your code + all libraries; run with <code>java -jar app.jar</code>.',
-        'Docker: use a slim JRE base image; use layered jars or Jib so small code changes make small image updates.',
-        'GraalVM native image: compiled ahead of time, starts in milliseconds, uses less memory.',
-        'Native image cost: long builds, and reflection needs extra config.',
-        '<code>jlink</code> can build a trimmed Java runtime with only the modules you use.',
+        'Formatting: Spotless or google-java-format, so nobody argues about spaces.',
+        'Bug finders: SpotBugs, Error Prone, PMD; SonarQube tracks a whole project over time.',
+        'Coverage: JaCoCo shows which lines your tests actually ran.',
+        'Null safety: JSpecify annotations (<code>@Nullable</code>, <code>@NullMarked</code>) plus NullAway catch NPEs at compile time.',
+        'Run them in the build and CI, so problems block the merge, not production.',
       ],
+      tip: 'High coverage is not the goal. Tests that fail when the code breaks are.',
     },
     {
       title: 'Spring Boot',
@@ -149,6 +154,7 @@ log.error("Payment failed for order {}", orderId, ex); // keeps stack trace</cod
         'Auto-configuration: add a starter (e.g. web, data-jpa) and it sets up sensible defaults.',
         'Embedded server (Tomcat by default): the app is just a jar you run.',
         'Config in <code>application.yml</code>; health and metrics via Actuator.',
+        'Boot 3+ needs Java 17 and uses <code>jakarta.*</code> packages; Boot 4 (Nov 2025) runs on Spring Framework 7.',
       ],
       detail: `<pre><code>@RestController
 class HelloController {
@@ -159,18 +165,31 @@ class HelloController {
 }</code></pre>`,
     },
     {
-      title: 'IDE & Debugging',
-      level: 'beginner',
+      title: 'Testcontainers',
+      level: 'advanced',
       summary:
-        'Let your IDE do the heavy lifting: navigation, refactoring and step-by-step debugging.',
+        'Starts real databases, Kafka and more in Docker for your tests, then throws them away.',
       simple:
-        'A debugger is a pause button for your program. You stop it at any line and look at every variable.',
+        'Instead of a fake database, each test run gets a real, fresh one in a box, and the box is thrown away after.',
       points: [
-        'IntelliJ IDEA is the most used; Eclipse and VS Code also work well.',
-        'Breakpoints, step over / into, and watch expressions beat println debugging.',
-        'Conditional breakpoints stop only when, e.g., <code>id == 42</code>.',
-        "Use the IDE's rename and extract-method refactors instead of editing by hand.",
-        'Remote debugging attaches to a running JVM (not in production!).',
+        'Needs Docker on the machine or CI runner.',
+        'Tests run against the real thing, e.g. the same PostgreSQL version as production.',
+        'Slower than unit tests; use for integration tests.',
+        'Spring Boot has built-in support (<code>@ServiceConnection</code>).',
+      ],
+    },
+    {
+      title: 'Packaging & Shipping',
+      level: 'advanced',
+      summary: 'Ways to ship your app: a fat jar, a Docker image or a GraalVM native binary.',
+      simple:
+        'A fat jar is a suitcase with everything packed. A Docker image is the suitcase plus the room it lives in. A native image is the app squeezed into one fast-starting program.',
+      points: [
+        'Fat (uber) jar: your code + all libraries; run with <code>java -jar app.jar</code>.',
+        'Docker: use a slim JRE base image; use layered jars or Jib so small code changes make small image updates.',
+        'GraalVM native image: compiled ahead of time, starts in milliseconds, uses less memory.',
+        'Native image cost: long builds, and reflection needs extra config.',
+        '<code>jlink</code> can build a trimmed Java runtime with only the modules you use.',
       ],
     },
   ],

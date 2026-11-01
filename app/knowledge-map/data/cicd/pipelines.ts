@@ -90,7 +90,7 @@ export const pipelines: KmNode = {
         'Ten checkout lanes instead of one. A matrix is the same checklist run at several lanes, each with a different setup.',
       points: [
         'Split a slow test suite into shards that run at the same time.',
-        'Matrix build: e.g. Java 17 and 21, or Node 20, 22 and 24, on Linux and Windows.',
+        'Matrix build: e.g. Java 21 and 25, or Node 22 and 24, on Linux and Windows.',
         'Mostly useful for libraries that support many versions; apps usually test one.',
         'Use <code>needs</code> / dependencies to build a graph instead of a long chain.',
       ],
@@ -104,6 +104,31 @@ export const pipelines: KmNode = {
         'Build once, then pass the built JAR or bundle to test and deploy jobs.',
         'Keep test reports and coverage files as artifacts for debugging.',
         'Pipeline artifacts expire; release artifacts belong in a real repository or registry.',
+      ],
+    },
+    {
+      title: 'Reusable Pipelines',
+      level: 'intermediate',
+      summary: 'Share pipeline pieces across many repos instead of copy-pasting the same YAML.',
+      simple:
+        'A shared recipe card the whole restaurant chain uses. Fix it once and every kitchen gets the fix.',
+      points: [
+        'GitHub Actions: reusable workflows (<code>workflow_call</code>) and composite actions.',
+        'GitLab: <code>include</code> templates and CI/CD components. Jenkins: shared libraries.',
+        'Version shared pieces with tags so a change can’t break every repo at once.',
+        'Great for golden paths: one secure, tested way to build and deploy.',
+      ],
+    },
+    {
+      title: 'Concurrency Control',
+      level: 'advanced',
+      summary:
+        'Stop pipelines from stepping on each other, like two deploys to production at the same time.',
+      points: [
+        'Cancel old runs when a newer commit lands on the same PR to save minutes.',
+        'Never cancel a deploy halfway; queue deploys to one environment one at a time.',
+        'GitHub Actions: <code>concurrency</code> groups; GitLab: <code>resource_group</code>; Jenkins: lockable resources.',
+        'Make sure an older build can’t deploy over a newer one that finished first.',
       ],
     },
   ],
@@ -128,9 +153,10 @@ export const tools: KmNode = {
       simple: 'Lives right next to your code on GitHub, with a big shop of ready-made steps.',
       points: [
         'Workflows: <code>on</code> (triggers) → <code>jobs</code> → <code>steps</code>, with <code>runs-on</code> picking the runner.',
-        'Reusable steps from the Marketplace via <code>uses: actions/checkout@v4</code>.',
+        'Reusable steps from the Marketplace via <code>uses: actions/checkout@v5</code>.',
         'Built-in secrets, environments with approvals, and OIDC to clouds.',
-        'Pin third-party actions to a commit SHA for security.',
+        'Set <code>permissions:</code> so the built-in <code>GITHUB_TOKEN</code> gets only what each job needs.',
+        'Pin third-party actions to a commit SHA; org admins can now enforce this by policy.',
       ],
     },
     {

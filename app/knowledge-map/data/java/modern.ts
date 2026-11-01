@@ -1,7 +1,7 @@
 import type { KmNode } from '../../types';
 
 export const modernJava: KmNode = {
-  title: 'Modern Java (8 → 25)',
+  title: 'Modern Java (8 → 26+)',
   level: 'intermediate',
   summary: 'What changed in Java since version 8, and the features you should use today.',
   simple:
@@ -23,6 +23,7 @@ export const modernJava: KmNode = {
         'LTS versions: 8 (2014), 11 (2018), 17 (2021), 21 (2023), 25 (2025).',
         'Since 17, an LTS comes every two years.',
         'Non-LTS versions get updates only until the next release.',
+        'Next LTS: Java 29, planned for September 2027.',
         'Preview features need <code>--enable-preview</code> and may change before they are final.',
       ],
       tip: 'For production, pick the newest LTS your frameworks support. Many teams move from 17 or 21 to 25.',
@@ -41,23 +42,6 @@ export const modernJava: KmNode = {
         '<code>java.time</code>: <code>LocalDate</code>, <code>Instant</code>, <code>Duration</code>. Replaces <code>Date</code> and <code>Calendar</code>.',
         'Default methods in interfaces; metaspace replaced PermGen.',
       ],
-    },
-    {
-      title: 'Modules (JPMS)',
-      level: 'advanced',
-      summary: "Java 9's module system: a module declares what it needs and what it shares.",
-      simple:
-        'A module is a package of packages with a guest list: who it depends on, and which rooms others may enter.',
-      points: [
-        'Declared in <code>module-info.java</code> with <code>requires</code> and <code>exports</code>.',
-        'Strong encapsulation: non-exported packages are truly hidden, even from reflection.',
-        'The JDK itself is split into modules; <code>jlink</code> builds a small custom runtime.',
-        'Most apps still run on the classpath and never write module-info. That is fine.',
-      ],
-      detail: `<pre><code>module com.shop.orders {
-    requires java.net.http;
-    exports com.shop.orders.api;
-}</code></pre>`,
     },
     {
       title: 'var & Text Blocks',
@@ -131,6 +115,22 @@ record Circle(double r) implements Shape {}
 record Square(double side) implements Shape {}</code></pre>`,
     },
     {
+      title: 'Java 21 Highlights',
+      level: 'intermediate',
+      summary:
+        'The 2023 LTS: virtual threads, pattern matching for switch, record patterns and sequenced collections.',
+      simple: 'Java 21 is the release where many long-awaited features became final at once.',
+      points: [
+        'Virtual threads: cheap threads for blocking I/O (see Concurrency).',
+        'Sequenced collections: <code>getFirst()</code>, <code>getLast()</code>, <code>reversed()</code> on List, Deque, LinkedHashMap…',
+        'Pattern matching for switch and record patterns become final.',
+        'Generational ZGC added as an option.',
+      ],
+      detail: `<pre><code>List&lt;String&gt; names = List.of("a", "b", "c");
+names.getFirst();   // "a"
+names.reversed();   // [c, b, a]</code></pre>`,
+    },
+    {
       title: 'Pattern Matching',
       level: 'advanced',
       summary: "Test a value's shape and pull out its parts in one step, in instanceof and switch.",
@@ -152,20 +152,21 @@ record Square(double side) implements Shape {}</code></pre>`,
 if (obj instanceof String str &amp;&amp; !str.isBlank()) { use(str); }</code></pre>`,
     },
     {
-      title: 'Java 21 Highlights',
-      level: 'intermediate',
-      summary:
-        'The 2023 LTS: virtual threads, pattern matching for switch, record patterns and sequenced collections.',
-      simple: 'Java 21 is the release where many long-awaited features became final at once.',
+      title: 'Modules (JPMS)',
+      level: 'advanced',
+      summary: "Java 9's module system: a module declares what it needs and what it shares.",
+      simple:
+        'A module is a package of packages with a guest list: who it depends on, and which rooms others may enter.',
       points: [
-        'Virtual threads: cheap threads for blocking I/O (see Concurrency).',
-        'Sequenced collections: <code>getFirst()</code>, <code>getLast()</code>, <code>reversed()</code> on List, Deque, LinkedHashMap…',
-        'Pattern matching for switch and record patterns become final.',
-        'Generational ZGC added as an option.',
+        'Declared in <code>module-info.java</code> with <code>requires</code> and <code>exports</code>.',
+        'Strong encapsulation: non-exported packages are truly hidden, even from reflection.',
+        'The JDK itself is split into modules; <code>jlink</code> builds a small custom runtime.',
+        'Most apps still run on the classpath and never write module-info. That is fine.',
       ],
-      detail: `<pre><code>List&lt;String&gt; names = List.of("a", "b", "c");
-names.getFirst();   // "a"
-names.reversed();   // [c, b, a]</code></pre>`,
+      detail: `<pre><code>module com.shop.orders {
+    requires java.net.http;
+    exports com.shop.orders.api;
+}</code></pre>`,
     },
     {
       title: 'Java 22–25 Highlights',
@@ -185,6 +186,20 @@ void main() {
 
 // Java 22: ignore what you do not need
 try { run(); } catch (Exception _) { retry(); }</code></pre>`,
+    },
+    {
+      title: 'After Java 25',
+      level: 'advanced',
+      summary:
+        'Java 26 and 27 are short-term releases; the next LTS is planned as Java 29 in September 2027.',
+      points: [
+        'Java 26 (March 2026): HttpClient can use HTTP/3, and the old Applet API is removed.',
+        'Java 26: warnings when reflection changes <code>final</code> fields, preparing to make final truly final.',
+        'Java 26: the AOT startup cache works with every GC (including ZGC), and G1 got faster.',
+        'Still in preview: structured concurrency, primitive types in patterns, lazy constants. Value classes (Project Valhalla) are on the way.',
+        'Java 27 shipped in September 2026; read its release notes before using anything new from it.',
+      ],
+      tip: 'Most teams stay on an LTS (21 or 25) in production and try short-term releases only to test what is coming.',
     },
   ],
 };

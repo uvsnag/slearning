@@ -8,6 +8,21 @@ export const operations: KmNode = {
     'Running Kafka in production is like running a power plant: plan the capacity, watch the gauges, and know which valves to turn.',
   children: [
     {
+      title: 'Listeners & advertised.listeners',
+      level: 'intermediate',
+      summary:
+        'Which addresses a broker listens on, and which address it tells clients to use.',
+      simple:
+        'The bootstrap server is a reception desk that hands you a list of room numbers. If the list says "room 5, inside only" and you are outside, you can’t get there.',
+      points: [
+        'Clients use bootstrap.servers only for the first contact. Then they connect to each leader’s advertised address.',
+        'listeners: where the broker accepts connections. advertised.listeners: what it tells clients.',
+        'Classic bug: a broker in Docker advertises localhost or a container name, so outside clients fail after bootstrap.',
+        'Use named listeners (INTERNAL, EXTERNAL, CONTROLLER) mapped with listener.security.protocol.map.',
+      ],
+      tip: '"It connects, then times out" almost always means advertised.listeners is wrong for that client’s network.',
+    },
+    {
       title: 'Choosing partition count',
       level: 'advanced',
       summary:

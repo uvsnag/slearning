@@ -71,6 +71,18 @@ for (String name : names) {
 String result = sb.toString();</code></pre>`,
     },
     {
+      title: 'Math & Random',
+      level: 'beginner',
+      summary: 'Ready-made helpers for common math and for random numbers.',
+      simple: 'A pocket calculator and a pair of dice that come with Java.',
+      points: [
+        '<code>Math.max</code>, <code>min</code>, <code>abs</code>, <code>pow</code>, <code>sqrt</code>, <code>round</code>.',
+        '<code>Math.addExact</code> throws on overflow instead of silently wrapping.',
+        'Random numbers: <code>ThreadLocalRandom.current().nextInt(1, 7)</code> (upper bound excluded).',
+        'For passwords or tokens use <code>SecureRandom</code>.',
+      ],
+    },
+    {
       title: 'Wrappers & Autoboxing',
       level: 'intermediate',
       summary:
@@ -154,16 +166,28 @@ String name = findUser("42")
     .orElse("guest");</code></pre>`,
     },
     {
-      title: 'Math & Random',
-      level: 'beginner',
-      summary: 'Ready-made helpers for common math and for random numbers.',
-      simple: 'A pocket calculator and a pair of dice that come with Java.',
+      title: 'Annotations',
+      level: 'intermediate',
+      summary:
+        'Labels starting with @ that add extra info to code, read by the compiler, tools or frameworks.',
+      simple:
+        'Like sticky notes on a document. The note does nothing by itself, but whoever reads it (the compiler, Spring, JUnit) acts on it.',
       points: [
-        '<code>Math.max</code>, <code>min</code>, <code>abs</code>, <code>pow</code>, <code>sqrt</code>, <code>round</code>.',
-        '<code>Math.addExact</code> throws on overflow instead of silently wrapping.',
-        'Random numbers: <code>ThreadLocalRandom.current().nextInt(1, 7)</code> (upper bound excluded).',
-        'For passwords or tokens use <code>SecureRandom</code>.',
+        'Built-in: <code>@Override</code>, <code>@Deprecated</code>, <code>@SuppressWarnings</code>, <code>@FunctionalInterface</code>.',
+        'Frameworks run on them: <code>@Test</code>, <code>@Autowired</code>, <code>@Entity</code>, <code>@GetMapping</code>.',
+        'Retention says how long it lives: SOURCE (compiler only), CLASS, or RUNTIME (readable by reflection).',
+        '<code>@Target</code> says where it may go: class, method, field, parameter…',
+        'Annotation processors (Lombok, MapStruct) read them at compile time and generate code.',
       ],
+      detail: `<pre><code>@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+@interface Audited { String value() default ""; }
+
+class OrderService {
+  @Audited("create-order")
+  void create(Order o) { /* ... */ }
+}</code></pre>`,
+      tip: 'An annotation is only data. If nothing reads it, nothing happens. That is why @Transactional on a private method silently does nothing.',
     },
   ],
 };

@@ -149,6 +149,22 @@ private Price cachedPrice(String sku, Throwable t) {
       tip: 'Save the key and the business change in the same transaction, or two parallel duplicates can both slip through.',
     },
     {
+      title: 'Dead-Letter Queues',
+      level: 'intermediate',
+      summary:
+        'A side queue for messages that keep failing, so they neither block the rest nor get lost.',
+      simple:
+        'The "problem letters" shelf at the post office: letters that can’t be delivered go there for a person to check, and the rest keep moving.',
+      points: [
+        'Poison message: one that fails every time, e.g. bad data or a bug.',
+        'After a few retries with backoff, move it to a DLQ instead of retrying forever.',
+        'Keep the error reason and where the message came from, as headers.',
+        'Alert on DLQ size, and build a way to fix and replay messages.',
+        'RabbitMQ: dead-letter exchange. SQS: redrive policy. Kafka: a dead-letter topic.',
+      ],
+      tip: 'A DLQ nobody watches is just a slower way of losing data. Give it an owner and an alert.',
+    },
+    {
       title: 'Cascading Failures',
       level: 'expert',
       summary: 'How one slow service drags down everything that calls it, and how to stop it.',

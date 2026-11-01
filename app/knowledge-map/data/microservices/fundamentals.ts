@@ -86,6 +86,22 @@ void verifyModules() {
       tip: 'A great default for new products: start as a modular monolith and split only where you feel real pain.',
     },
     {
+      title: 'Microservices vs SOA',
+      level: 'intermediate',
+      summary:
+        'SOA linked big shared services through a central bus; microservices keep the pipes simple and services fully independent.',
+      simple:
+        'SOA was an office where every call went through one switchboard operator who also made decisions. With microservices each team has its own phone and the line just carries the call.',
+      points: [
+        'SOA (service-oriented architecture, 2000s): aimed at reuse across the company, often via a central ESB (enterprise service bus).',
+        'The ESB held routing and business logic, so it became a bottleneck owned by one team.',
+        'Microservices: "smart endpoints, dumb pipes". Logic lives in services; the network only carries messages.',
+        'Microservices own their data; SOA services often shared one big database.',
+        'Microservices aim for independent deploys by small teams, not maximum reuse.',
+      ],
+      tip: 'A good one-liner: "Microservices are a fine-grained style of SOA, without the central bus and with a database per service."',
+    },
+    {
       title: 'When NOT to Use',
       level: 'intermediate',
       summary: 'Small teams, new products and unclear domains are usually better off with one app.',

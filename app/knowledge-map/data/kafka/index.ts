@@ -16,9 +16,9 @@ export const kafka: KmTopic = {
     'Distributed event streaming — from first concepts to running and designing with Kafka at scale.',
   image: {
     src: overview.src,
-    alt: 'Kafka overview: producers write to topic partitions on brokers, consumer groups read them',
+    alt: 'Kafka overview (Vietnamese labels): producers write messages to topic partitions on brokers (with leader and follower replicas), and consumer groups read them',
     caption:
-      'Note: the diagram shows ZooKeeper — Kafka 4.0+ uses KRaft (built-in controllers) instead.',
+      'Note: the diagram shows ZooKeeper — Kafka 4.0+ uses KRaft (built-in controllers) instead. Each topic here has one partition, so in each group only one consumer (e.g. 1A) gets data and the other (1B) sits idle. "Clustedata" is a typo for cluster metadata.',
   },
   root: {
     title: 'Apache Kafka',

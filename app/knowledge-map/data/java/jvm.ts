@@ -30,22 +30,6 @@ export const jvm: KmNode = {
       ],
     },
     {
-      title: 'Class Loading',
-      level: 'advanced',
-      summary:
-        'How the JVM finds a class, checks it and prepares it the first time your code needs it.',
-      simple:
-        'Classes are loaded lazily, like opening a book only when you need it. Before reading, the JVM checks it is a real, safe book.',
-      points: [
-        'Built-in loaders: Bootstrap (core JDK), Platform, and Application (your classpath).',
-        'Parent delegation: a loader first asks its parent, so nobody can replace <code>java.lang.String</code>.',
-        'Steps: loading → linking (verify, prepare, resolve) → initialization.',
-        'Initialization runs static fields and <code>static {}</code> blocks, once, on first real use.',
-        'Same class name in two loaders = two different classes (a classic <code>ClassCastException</code> source).',
-      ],
-      tip: 'If you see "ClassCastException: X cannot be cast to X", two class loaders loaded X. Common in app servers and plugin systems.',
-    },
-    {
       title: 'Memory Areas',
       level: 'intermediate',
       summary:
@@ -63,23 +47,6 @@ export const jvm: KmNode = {
     int qty = 3;                         // stack
     List&lt;String&gt; items = new ArrayList&lt;&gt;(); // reference on stack, list on heap
 }</code></pre>`,
-    },
-    {
-      title: 'JIT Compilation',
-      level: 'advanced',
-      summary:
-        'The JVM starts by interpreting bytecode, then compiles hot code to fast machine code while running.',
-      simple:
-        'At first the JVM reads your code line by line, like reading a recipe aloud. Dishes it cooks often, it learns by heart and then makes much faster.',
-      points: [
-        'Interpreter: starts fast, runs slow.',
-        'C1 compiler: compiles quickly with light optimizations.',
-        'C2 compiler: slower to compile, makes very fast code for really hot methods.',
-        'Tiered compilation (default since Java 8) moves code from interpreter → C1 → C2.',
-        'Warm-up: the first requests are slower until hot code is compiled.',
-        'JIT tricks: inlining, escape analysis, removing unused code; it can undo them if assumptions break.',
-      ],
-      tip: 'Warm-up is why you never benchmark the first few calls. It is also why GraalVM native image and CDS/AOT caches exist: to start fast.',
     },
     {
       title: 'Garbage Collection',
@@ -154,27 +121,12 @@ export const jvm: KmNode = {
           points: [
             'ZGC: pauses usually under 1 ms, even with huge heaps. Production-ready since Java 15.',
             'Generational ZGC came in Java 21, became the default ZGC mode in 23; the old mode was removed in 24.',
-            'Shenandoah (from Red Hat): similar goal, also does compaction while the app runs.',
+            'Shenandoah (from Red Hat): similar goal, also compacts while the app runs; its generational mode is production-ready since Java 25.',
             'Cost: a bit more CPU and memory than G1 for the same work.',
             'Use for latency-sensitive services with big heaps. Enable with <code>-XX:+UseZGC</code>.',
           ],
         },
       ],
-    },
-    {
-      title: 'Memory Leaks',
-      level: 'advanced',
-      summary: 'Objects you no longer need but still reference, so GC can never free them.',
-      simple:
-        'GC only throws away what nobody holds. If you keep a list "just in case" and never empty it, the GC must keep everything in it.',
-      points: [
-        'Classic: a static <code>Map</code> or cache that only grows.',
-        'Listeners or callbacks registered and never removed.',
-        '<code>ThreadLocal</code> values left in pooled threads.',
-        'Unclosed resources (streams, connections) holding buffers.',
-        'Sign: old-gen usage keeps rising after every full GC, then OutOfMemoryError.',
-      ],
-      tip: 'Use a bounded cache (e.g. Caffeine with a max size) instead of a plain static HashMap.',
     },
     {
       title: 'OOM & StackOverflow',
@@ -196,6 +148,77 @@ export const jvm: KmNode = {
       tip: 'Run production with -XX:+HeapDumpOnOutOfMemoryError so you get a heap dump to analyze when it happens.',
     },
     {
+      title: 'Class Loading',
+      level: 'advanced',
+      summary:
+        'How the JVM finds a class, checks it and prepares it the first time your code needs it.',
+      simple:
+        'Classes are loaded lazily, like opening a book only when you need it. Before reading, the JVM checks it is a real, safe book.',
+      points: [
+        'Built-in loaders: Bootstrap (core JDK), Platform, and Application (your classpath).',
+        'Parent delegation: a loader first asks its parent, so nobody can replace <code>java.lang.String</code>.',
+        'Steps: loading → linking (verify, prepare, resolve) → initialization.',
+        'Initialization runs static fields and <code>static {}</code> blocks, once, on first real use.',
+        'Same class name in two loaders = two different classes (a classic <code>ClassCastException</code> source).',
+      ],
+      tip: 'If you see "ClassCastException: X cannot be cast to X", two class loaders loaded X. Common in app servers and plugin systems.',
+    },
+    {
+      title: 'Reflection & Proxies',
+      level: 'advanced',
+      summary:
+        'Looking at classes, methods and fields at runtime, and calling them by name without knowing them at compile time.',
+      simple:
+        'Normally you call a friend whose number you already know. Reflection is opening the phone book while the program runs and calling whoever you find.',
+      points: [
+        'Start from a <code>Class</code> object: <code>obj.getClass()</code> or <code>User.class</code>.',
+        'Find and use members: <code>getDeclaredMethods()</code>, <code>getDeclaredField()</code>, <code>method.invoke(obj)</code>.',
+        'Spring, Hibernate, Jackson and JUnit use it to read annotations and create your objects.',
+        'Dynamic proxies (<code>java.lang.reflect.Proxy</code>) build a fake interface implementation at runtime that wraps every call.',
+        'Costs: slower, no compile-time checks. JDK internals are locked since Java 16/17 (needs <code>--add-opens</code>).',
+        'Java 26 starts warning when reflection changes <code>final</code> fields, on the way to making final truly final.',
+      ],
+      detail: `<pre><code>Method m = User.class.getMethod("name");
+Object value = m.invoke(user); // same as user.name()
+
+Greeter g = (Greeter) Proxy.newProxyInstance(
+    loader, new Class&lt;?&gt;[] { Greeter.class },
+    (proxy, method, args) -&gt; "Hi from " + method.getName());</code></pre>`,
+      tip: 'Proxies are how Spring adds @Transactional: calls go through the proxy. A call from inside the same class skips the proxy, so the annotation does not apply.',
+    },
+    {
+      title: 'JIT Compilation',
+      level: 'advanced',
+      summary:
+        'The JVM starts by interpreting bytecode, then compiles hot code to fast machine code while running.',
+      simple:
+        'At first the JVM reads your code line by line, like reading a recipe aloud. Dishes it cooks often, it learns by heart and then makes much faster.',
+      points: [
+        'Interpreter: starts fast, runs slow.',
+        'C1 compiler: compiles quickly with light optimizations.',
+        'C2 compiler: slower to compile, makes very fast code for really hot methods.',
+        'Tiered compilation (default since Java 8) moves code from interpreter → C1 → C2.',
+        'Warm-up: the first requests are slower until hot code is compiled.',
+        'JIT tricks: inlining, escape analysis, removing unused code; it can undo them if assumptions break.',
+      ],
+      tip: 'Warm-up is why you never benchmark the first few calls. It is also why GraalVM native image and CDS/AOT caches exist: to start fast.',
+    },
+    {
+      title: 'Memory Leaks',
+      level: 'advanced',
+      summary: 'Objects you no longer need but still reference, so GC can never free them.',
+      simple:
+        'GC only throws away what nobody holds. If you keep a list "just in case" and never empty it, the GC must keep everything in it.',
+      points: [
+        'Classic: a static <code>Map</code> or cache that only grows.',
+        'Listeners or callbacks registered and never removed.',
+        '<code>ThreadLocal</code> values left in pooled threads.',
+        'Unclosed resources (streams, connections) holding buffers.',
+        'Sign: old-gen usage keeps rising after every full GC, then OutOfMemoryError.',
+      ],
+      tip: 'Use a bounded cache (e.g. Caffeine with a max size) instead of a plain static HashMap.',
+    },
+    {
       title: 'Key JVM Flags',
       level: 'advanced',
       summary: 'A few flags you actually need: heap size, GC choice, container memory and dumps.',
@@ -207,6 +230,21 @@ export const jvm: KmNode = {
         '<code>-XX:+HeapDumpOnOutOfMemoryError</code> and <code>-Xlog:gc*</code> for debugging.',
       ],
       tip: 'Heap is not the only memory: metaspace, thread stacks and direct buffers also count toward the container limit.',
+    },
+    {
+      title: 'Startup: CDS & AOT Cache',
+      level: 'expert',
+      summary:
+        'Save work from one run (loaded classes, method profiles) into a cache file so later starts are much faster.',
+      points: [
+        'CDS (class data sharing): a ready-made archive of parsed JDK classes, used by default since Java 12.',
+        'AOT cache (Project Leyden, Java 24+): a training run records which classes are loaded and linked; later runs reuse it.',
+        'Java 25 made it one step with <code>-XX:AOTCacheOutput=app.aot</code> and also saves method profiles, so warm-up is shorter.',
+        'Run with <code>-XX:AOTCache=app.aot</code>; use the same JDK and classpath as the training run.',
+        'Java 26 lets the AOT cache work with every GC, including ZGC.',
+        'Versus GraalVM native image: a smaller gain, but full normal Java behavior and no reflection config.',
+      ],
+      tip: 'Try the AOT cache before reaching for native image. It is just a couple of JVM flags and needs no code changes.',
     },
     {
       title: 'Diagnostic Tools',

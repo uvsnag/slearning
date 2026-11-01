@@ -37,6 +37,8 @@ Object.getPrototypeOf(dog) === animal;     // true</code></pre>`,
       level: 'intermediate',
       summary:
         'Before classes, a function called with new created objects and linked them to its prototype.',
+      simple:
+        'A constructor is a factory worker. Say "new" and the worker builds a fresh object, stamps your details on it and links it to the shared instruction manual.',
       points: [
         '<code>new F()</code> creates an empty object, links it to <code>F.prototype</code>, runs F with this = the object, then returns it.',
         'Methods put on <code>F.prototype</code> are shared by all instances (saves memory).',
@@ -74,6 +76,8 @@ Cart.empty().add({ price: 5 }).total; // 5</code></pre>`,
       level: 'intermediate',
       summary:
         'extends makes one class build on another; super calls the parent constructor or methods.',
+      simple:
+        'A child class is a new phone model built on the old one: it keeps every feature, adds a few, and can still call the old version of a feature with super.',
       points: [
         'In a child constructor, call <code>super()</code> before using <code>this</code>.',
         '<code>super.method()</code> calls the parent version of a method.',

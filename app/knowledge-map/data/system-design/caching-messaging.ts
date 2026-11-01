@@ -62,6 +62,20 @@ export const caching: KmNode = {
       ],
     },
     {
+      title: 'Redis',
+      level: 'intermediate',
+      summary:
+        'An in-memory data store used as a cache, session store, rate limiter, queue and more.',
+      simple: 'A super-fast shared whiteboard that every server can read and write.',
+      points: [
+        'Data types: strings, hashes, lists, sets, sorted sets, streams.',
+        'Sorted sets make leaderboards easy; atomic <code>INCR</code> makes counters and rate limits easy.',
+        'Mostly single-threaded command execution, so each command is atomic.',
+        'Persistence (RDB snapshots, AOF log) is optional; treat a cache as losable.',
+        'Valkey is the open-source fork many clouds now offer.',
+      ],
+    },
+    {
       title: 'Cache Invalidation',
       level: 'advanced',
       summary: 'Making sure the cache doesn’t keep serving data that changed in the database.',
@@ -82,20 +96,6 @@ export const caching: KmNode = {
         'Request coalescing: only one request rebuilds the value; others wait for it.',
         'Refresh popular keys a little before they expire.',
         'Serve the stale value while one worker refreshes in the background.',
-      ],
-    },
-    {
-      title: 'Redis',
-      level: 'intermediate',
-      summary:
-        'An in-memory data store used as a cache, session store, rate limiter, queue and more.',
-      simple: 'A super-fast shared whiteboard that every server can read and write.',
-      points: [
-        'Data types: strings, hashes, lists, sets, sorted sets, streams.',
-        'Sorted sets make leaderboards easy; atomic <code>INCR</code> makes counters and rate limits easy.',
-        'Mostly single-threaded command execution, so each command is atomic.',
-        'Persistence (RDB snapshots, AOF log) is optional; treat a cache as losable.',
-        'Valkey is the open-source fork many clouds now offer.',
       ],
     },
   ],
@@ -139,18 +139,6 @@ export const messaging: KmNode = {
       ],
     },
     {
-      title: 'Delivery Guarantees',
-      level: 'advanced',
-      summary:
-        'At-most-once, at-least-once, and "exactly-once" — and why consumers must be idempotent.',
-      points: [
-        'At-least-once is the practical default: no loss, but duplicates happen.',
-        'Make consumers idempotent: handling a message twice has the same effect as once.',
-        'Ordering is usually only guaranteed per queue partition or message group.',
-        'Failed messages go to a dead-letter queue (DLQ) for inspection.',
-      ],
-    },
-    {
       title: 'Background Jobs',
       level: 'intermediate',
       summary:
@@ -161,6 +149,18 @@ export const messaging: KmNode = {
         'Scheduled jobs (cron) must handle running twice or overlapping.',
         'Store job state so a crashed worker’s job can be picked up again.',
         'Workflow engines (Temporal, Step Functions) handle long multi-step processes.',
+      ],
+    },
+    {
+      title: 'Delivery Guarantees',
+      level: 'advanced',
+      summary:
+        'At-most-once, at-least-once, and "exactly-once" — and why consumers must be idempotent.',
+      points: [
+        'At-least-once is the practical default: no loss, but duplicates happen.',
+        'Make consumers idempotent: handling a message twice has the same effect as once.',
+        'Ordering is usually only guaranteed per queue partition or message group.',
+        'Failed messages go to a dead-letter queue (DLQ) for inspection.',
       ],
     },
     {

@@ -30,6 +30,8 @@ export const modern: KmNode = {
       title: 'ES2016 – ES2020',
       level: 'intermediate',
       summary: 'Yearly additions that made async code and safe property access easy.',
+      simple:
+        'After the big ES6 move, these were the small yearly upgrades: a nicer kettle here, a better lamp there. Each one made daily life a bit easier.',
       points: [
         'ES2016: <code>includes</code>, <code>**</code>. ES2017: <code>async</code>/<code>await</code>, <code>Object.entries</code>/<code>values</code>, <code>padStart</code>.',
         'ES2018: object rest/spread, <code>for await</code>, <code>Promise.finally</code>.',
@@ -41,6 +43,8 @@ export const modern: KmNode = {
       title: 'ES2021 – ES2023',
       level: 'intermediate',
       summary: 'Class privacy, top-level await and copy-instead-of-mutate array methods.',
+      simple:
+        'These versions gave classes a real locked drawer (#private) and gave arrays "make a copy" buttons, so you stop changing data by accident.',
       points: [
         'ES2021: <code>??=</code>, <code>||=</code>, <code>&amp;&amp;=</code>, <code>replaceAll</code>, <code>Promise.any</code>, <code>1_000_000</code>, WeakRef.',
         'ES2022: class fields, <code>#private</code>, static blocks, top-level await, <code>.at()</code>, <code>Object.hasOwn</code>, <code>error.cause</code>.',
@@ -51,11 +55,14 @@ export const modern: KmNode = {
       title: 'ES2024 and Newer',
       level: 'intermediate',
       summary: 'Grouping, Set math, lazy iterator helpers and more — the latest additions.',
+      simple:
+        'The newest tools in the box. Many replace small helper functions you used to copy from lodash or write yourself.',
       points: [
         'ES2024: <code>Object.groupBy</code>, <code>Map.groupBy</code>, <code>Promise.withResolvers</code>, regex <code>v</code> flag.',
         'ES2025: iterator helpers, Set methods (<code>union</code>, <code>intersection</code>…), JSON imports, <code>Promise.try</code>, <code>RegExp.escape</code>.',
-        'Newer, rolling out: <code>Array.fromAsync</code>, <code>Error.isError</code>, Temporal (a modern replacement for <code>Date</code>).',
-        '<code>using</code> declarations (automatic clean-up of resources) are also on the way.',
+        'ES2026 and rolling out: <code>Array.fromAsync</code>, <code>Error.isError</code>, <code>Math.sumPrecise</code>, Uint8Array base64 helpers.',
+        'Temporal (a modern replacement for <code>Date</code>) ships in recent Firefox and Chrome.',
+        '<code>using</code> declarations (automatic clean-up) already work in Chrome 134+ and Node 24+.',
       ],
       detail: `<pre><code>const byStatus = Object.groupBy(orders, (o) =&gt; o.status);
 // { paid: [...], pending: [...] }
@@ -87,6 +94,7 @@ new Set([1, 2, 3]).intersection(new Set([2, 3, 4])); // Set {2, 3}</code></pre>`
         'Most JS "puzzles" come from four things: coercion, scope, this and the event loop. Explain which one is at play and you have the answer.',
       points: [
         'Think out loud: name the rule first, then walk through the code.',
+        'Ask yourself: is it coercion, scope (var/let), this, or the event loop?',
         'Know the classics below by heart; they cover most puzzle questions.',
       ],
       children: [
@@ -95,6 +103,8 @@ new Set([1, 2, 3]).intersection(new Set([2, 3, 4])); // Set {2, 3}</code></pre>`
           level: 'intermediate',
           summary:
             'Callbacks in a var loop all see the final value, because there is only one shared variable.',
+          simple:
+            'With var, all the timers share one whiteboard; by the time they read it, it says 3. With let, each round gets its own little whiteboard.',
           points: [
             '<code>var</code> creates one variable for the whole function.',
             'By the time the timers run, the loop is done and <code>i</code> is 3.',
@@ -107,6 +117,8 @@ for (let j = 0; j &lt; 3; j++) setTimeout(() =&gt; console.log(j)); // 0 1 2</co
           title: '0.1 + 0.2',
           level: 'intermediate',
           summary: '0.1 + 0.2 is 0.30000000000000004 because numbers are binary floating point.',
+          simple:
+            'Try writing 1/3 as a decimal: 0.3333… never ends, so you cut it off. Computers have the same problem with 0.1 in binary.',
           points: [
             'Like 1/3 in decimal, 0.1 cannot be stored exactly in binary.',
             'Compare with a tolerance: <code>Math.abs(a - b) &lt; Number.EPSILON</code>.',

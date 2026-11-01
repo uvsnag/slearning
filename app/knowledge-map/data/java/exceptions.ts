@@ -60,6 +60,7 @@ export const exceptions: KmNode = {
         '<code>finally</code> runs even after <code>return</code> or an exception.',
         'Never <code>return</code> from <code>finally</code>; it hides the original exception.',
       ],
+      tip: 'Interview classic: final is a keyword (cannot change), finally is the cleanup block, finalize() is an old Object method, deprecated for removal since Java 18.',
       detail: `<pre><code>try {
   int n = Integer.parseInt(input);
   process(n);
@@ -68,6 +69,22 @@ export const exceptions: KmNode = {
 } finally {
   metrics.increment("parsed");
 }</code></pre>`,
+    },
+    {
+      title: 'NullPointerException',
+      level: 'beginner',
+      summary: 'Thrown when you use a null reference as if it pointed to an object.',
+      simple:
+        'You try to call a phone number from an empty contact. There is nobody to call, so Java complains.',
+      points: [
+        'Causes: calling a method on null, unboxing a null wrapper, reading a field of null.',
+        'Helpful NPE messages (Java 14+, on by default since 15) say exactly which part was null.',
+        'Prevent with <code>Objects.requireNonNull</code>, Optional returns, and empty collections instead of null.',
+        'Other common ones: <code>IllegalArgumentException</code>, <code>IllegalStateException</code>, <code>IndexOutOfBoundsException</code>, <code>ClassCastException</code>.',
+      ],
+      detail: `<pre><code>user.getAddress().getCity();
+// Exception: Cannot invoke "Address.getCity()"
+//   because the return value of "User.getAddress()" is null</code></pre>`,
     },
     {
       title: 'try-with-resources',
@@ -106,22 +123,6 @@ export const exceptions: KmNode = {
     this.missing = missing;
   }
 }</code></pre>`,
-    },
-    {
-      title: 'NullPointerException',
-      level: 'beginner',
-      summary: 'Thrown when you use a null reference as if it pointed to an object.',
-      simple:
-        'You try to call a phone number from an empty contact. There is nobody to call, so Java complains.',
-      points: [
-        'Causes: calling a method on null, unboxing a null wrapper, reading a field of null.',
-        'Helpful NPE messages (Java 14+, on by default since 15) say exactly which part was null.',
-        'Prevent with <code>Objects.requireNonNull</code>, Optional returns, and empty collections instead of null.',
-        'Other common ones: <code>IllegalArgumentException</code>, <code>IllegalStateException</code>, <code>IndexOutOfBoundsException</code>, <code>ClassCastException</code>.',
-      ],
-      detail: `<pre><code>user.getAddress().getCity();
-// Exception: Cannot invoke "Address.getCity()"
-//   because the return value of "User.getAddress()" is null</code></pre>`,
     },
     {
       title: 'Best Practices',

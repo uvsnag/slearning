@@ -28,6 +28,7 @@ export const testing: KmNode = {
         '<code>webEnvironment = RANDOM_PORT</code> starts a real server. Call it with a test HTTP client.',
         'Slower than slices. Use it for a few end-to-end paths.',
         'Spring caches the context between tests with the same config, so reuse configs.',
+        'Boot 4 adds <code>RestTestClient</code>. <code>TestRestTemplate</code> now needs <code>@AutoConfigureTestRestTemplate</code>.',
       ],
       tip: 'Every different @MockitoBean set or property creates a new context. Many variants = very slow test suites.',
     },

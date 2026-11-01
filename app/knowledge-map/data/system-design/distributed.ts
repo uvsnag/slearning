@@ -26,17 +26,6 @@ export const distributed: KmNode = {
       tip: 'Don’t say "pick 2 of 3". Say "when the network partitions, choose between consistency and availability".',
     },
     {
-      title: 'PACELC',
-      level: 'expert',
-      summary: 'Extends CAP: if Partitioned choose A or C, Else choose Latency or Consistency.',
-      points: [
-        'Even with no failures, strong consistency costs latency (waiting for replicas).',
-        'DynamoDB/Cassandra defaults: PA/EL (available and fast, eventually consistent).',
-        'Traditional relational clusters with sync replication: PC/EC.',
-        'Many stores let you tune it per request (e.g. consistent read option).',
-      ],
-    },
-    {
       title: 'Consistency Models',
       level: 'advanced',
       summary: 'Promises about what a read can return after a write, from strict to loose.',
@@ -60,6 +49,28 @@ export const distributed: KmNode = {
       ],
     },
     {
+      title: 'Leader Election',
+      level: 'advanced',
+      summary: 'Choosing one node to coordinate work so only one does a job at a time.',
+      points: [
+        'Usually done with a lease in a consensus store (etcd, ZooKeeper) or the database.',
+        'A lease expires if the leader stops renewing it, so another node can take over.',
+        'Danger: an old leader paused by GC may still think it’s the leader ("split brain").',
+        'Protect writes with fencing tokens (see Distributed Locks).',
+      ],
+    },
+    {
+      title: 'PACELC',
+      level: 'expert',
+      summary: 'Extends CAP: if Partitioned choose A or C, Else choose Latency or Consistency.',
+      points: [
+        'Even with no failures, strong consistency costs latency (waiting for replicas).',
+        'DynamoDB/Cassandra defaults: PA/EL (available and fast, eventually consistent).',
+        'Traditional relational clusters with sync replication: PC/EC.',
+        'Many stores let you tune it per request (e.g. consistent read option).',
+      ],
+    },
+    {
       title: 'Consensus (Raft, Paxos)',
       level: 'expert',
       summary:
@@ -69,17 +80,6 @@ export const distributed: KmNode = {
         'Raft: elect a leader, the leader replicates a log, entries commit once a majority has them.',
         'Used in etcd (Kubernetes), Consul, CockroachDB, Kafka KRaft.',
         'Expensive per write, so used for metadata and coordination, not every request.',
-      ],
-    },
-    {
-      title: 'Leader Election',
-      level: 'advanced',
-      summary: 'Choosing one node to coordinate work so only one does a job at a time.',
-      points: [
-        'Usually done with a lease in a consensus store (etcd, ZooKeeper) or the database.',
-        'A lease expires if the leader stops renewing it, so another node can take over.',
-        'Danger: an old leader paused by GC may still think it’s the leader ("split brain").',
-        'Protect writes with fencing tokens (see Distributed Locks).',
       ],
     },
     {
@@ -103,6 +103,30 @@ export const distributed: KmNode = {
         '"Last write wins" by timestamp can silently lose updates.',
         'Lamport clocks give a consistent order; vector clocks also detect concurrent writes.',
         'Hybrid logical clocks and Google’s TrueTime combine physical and logical time.',
+      ],
+    },
+    {
+      title: 'Two-Phase Commit',
+      level: 'expert',
+      summary: 'A protocol to commit one transaction across several databases: all commit or all abort.',
+      points: [
+        'Phase 1 (prepare): the coordinator asks everyone "can you commit?" and they lock the data.',
+        'Phase 2 (commit): if all said yes, everyone commits; otherwise everyone rolls back.',
+        'If the coordinator dies mid-way, participants wait with locks held (blocking).',
+        'Slow and fragile across services, so microservices usually prefer sagas.',
+      ],
+      tip: 'Asked "2PC or saga?": 2PC gives strong consistency inside one system; sagas give availability across services, with compensating steps.',
+    },
+    {
+      title: 'Gossip & Anti-Entropy',
+      level: 'expert',
+      summary: 'How large clusters share membership and repair data without a central boss.',
+      points: [
+        'Gossip: each node regularly swaps state with a few random nodes; news spreads like a rumour.',
+        'Used for failure detection and cluster membership (Cassandra, Consul).',
+        'Anti-entropy: replicas compare data in the background and fix differences.',
+        'Merkle trees (trees of hashes) find the different parts without sending all data.',
+        'Read repair and hinted handoff fix stale replicas during normal traffic.',
       ],
     },
   ],

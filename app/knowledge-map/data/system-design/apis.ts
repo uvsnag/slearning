@@ -63,6 +63,21 @@ export const apis: KmNode = {
 });</code></pre>`,
     },
     {
+      title: 'Authentication at Scale',
+      level: 'intermediate',
+      summary: 'How servers know who is calling: sessions, tokens (JWT) and OAuth/OIDC login.',
+      simple:
+        'A session is a coat-check ticket: the server keeps your coat and checks its list. A JWT is a signed wristband: any guard can check it without calling the front desk.',
+      points: [
+        'Session: random ID in a cookie; data in a shared store like Redis. Easy to revoke.',
+        'JWT: a signed token with user info; any server can verify it with no lookup.',
+        'JWTs are hard to revoke, so keep them short-lived and use refresh tokens.',
+        'OAuth 2.0 lets apps act for a user; OpenID Connect (OIDC) adds "log in with Google".',
+        'Check auth once at the edge (API gateway), but still check permissions in each service.',
+      ],
+      tip: 'Authentication = who you are. Authorization = what you may do. Interviewers like you to keep them apart.',
+    },
+    {
       title: 'Rate Limiting Algorithms',
       level: 'advanced',
       summary: 'Ways to cap how many requests a client may send in a time window.',

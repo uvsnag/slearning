@@ -49,6 +49,21 @@ export const gettingStarted: KmNode = {
       tip: 'Classes outside the main class package are not scanned. "My bean is not found" is very often this.',
     },
     {
+      title: 'Layered architecture',
+      level: 'beginner',
+      summary: 'Split your code into controller, service and repository layers, each with one job.',
+      simple:
+        'Like a restaurant: the waiter takes orders (controller), the cook makes the food (service), and the storeroom keeps the ingredients (repository).',
+      points: [
+        '<b>Controller</b>: handles HTTP, reads input, returns a response. No business rules.',
+        '<b>Service</b>: business logic and transactions.',
+        '<b>Repository</b>: reads and writes the database.',
+        'Calls go one way: controller → service → repository.',
+        'Pass DTOs (small plain data classes, often records) to the web layer, not JPA entities.',
+      ],
+      tip: 'Interview answer: layers keep classes small and easy to test, and you can change the API or database without touching business rules.',
+    },
+    {
       title: '@SpringBootApplication',
       level: 'beginner',
       summary: 'The one annotation on your main class that turns on Boot.',
@@ -79,6 +94,34 @@ public class ShopApplication {
         'Versions are managed by Boot, so libraries do not clash.',
         'A starter brings jars. Auto-configuration then sees those jars and sets them up.',
         'Third-party starters use the pattern <code>xyz-spring-boot-starter</code>.',
+        'Boot 4 renamed a few: <code>web</code> → <code>webmvc</code>, <code>aop</code> → <code>aspectj</code>. The old names are deprecated.',
+      ],
+    },
+    {
+      title: 'Embedded server',
+      level: 'beginner',
+      summary:
+        'The web server (Tomcat by default) runs inside your app, so no separate server is needed.',
+      simple:
+        'Old way: you rent a restaurant (an app server) and bring your food. New way: your food truck has its own kitchen built in.',
+      points: [
+        'The web starter brings Tomcat. Jetty is the other option.',
+        'Change the port with <code>server.port=8081</code>. Use <code>0</code> for a random port.',
+        'Run with <code>java -jar app.jar</code>. The jar holds the app, libraries and server.',
+        'Undertow support was removed in Spring Boot 4.0.',
+      ],
+    },
+    {
+      title: 'DevTools',
+      level: 'beginner',
+      summary: 'A dev-only helper that restarts your app for you when you change code.',
+      simple:
+        'Like a game that reloads only the level you are in after you change something, instead of sending you back to the start menu.',
+      points: [
+        'Add <code>spring-boot-devtools</code> as a development-only dependency.',
+        'Fast restart: only your own classes reload, the libraries stay loaded.',
+        'Turns off template caching and can refresh the browser for you (LiveReload).',
+        'Switched off on its own when you run the packaged jar with <code>java -jar</code>.',
       ],
     },
     {
@@ -123,17 +166,18 @@ public class JsonAutoConfig {
       ],
     },
     {
-      title: 'Embedded server',
-      level: 'beginner',
+      title: 'Docker Compose support',
+      level: 'intermediate',
       summary:
-        'The web server (Tomcat by default) runs inside your app, so no separate server is needed.',
+        'Boot starts the containers from your compose.yaml (database, Redis…) when you run the app.',
       simple:
-        'Old way: you rent a restaurant (an app server) and bring your food. New way: your food truck has its own kitchen built in.',
+        'Like a stage crew that sets up lights and sound before the actor walks on. You just press play.',
       points: [
-        'The web starter brings Tomcat. Jetty is the other option.',
-        'Change the port with <code>server.port=8081</code>. Use <code>0</code> for a random port.',
-        'Run with <code>java -jar app.jar</code>. The jar holds the app, libraries and server.',
-        'Undertow support was removed in Spring Boot 4.0.',
+        'Add <code>spring-boot-docker-compose</code> (Boot 3.1+) as a development-only dependency.',
+        'On start, Boot runs <code>docker compose up</code> for the <code>compose.yaml</code> in your project.',
+        'It sets the connection details (URL, user, password) for you. No URLs in your config.',
+        'By default the containers are stopped again when the app shuts down.',
+        'Needs Docker on your machine. For automated tests, Testcontainers fits better.',
       ],
     },
   ],

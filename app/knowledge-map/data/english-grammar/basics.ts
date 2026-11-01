@@ -84,6 +84,7 @@ export const sentenceBasics: KmNode = {
         'After <em>do/does/did</em>, use the base verb: ❌ <em>Did it worked?</em> ✅ <em>Did it work?</em>',
         'Questions about the subject need no "do": <em>Who broke the build?</em>',
         'Indirect questions keep normal order: <em>Do you know why it failed?</em> (not <em>why did it fail</em>).',
+        "Question tags check something you think is true: <em>It works, doesn't it? You merged it, didn't you?</em>",
       ],
       tip: 'In chat, a soft question like "Could you take a look when you have time?" sounds much nicer than "Review this."',
     },
@@ -94,7 +95,7 @@ export const sentenceBasics: KmNode = {
       simple:
         'Same trick as questions: find the helper verb and put "not" after it. No helper? Bring in "do".',
       points: [
-        '<em>It is not ready. It can not (cannot) connect. It has not started.</em>',
+        '<em>It is not ready. It cannot connect. It has not started.</em>',
         'No helper: <em>It does not work. It did not compile.</em>',
         "Short forms in chat: <em>isn't, can't, doesn't, didn't, won't</em> (= will not).",
         "Avoid double negatives: ❌ <em>I don't have no access</em> ✅ <em>I don't have any access</em>.",
@@ -104,7 +105,7 @@ export const sentenceBasics: KmNode = {
       title: 'Capitals & Full Stops',
       level: 'beginner',
       summary:
-        'Start a sentence with a capital letter, end it with a period, and capitalize names.',
+        'Start a sentence with a capital letter, end it with a period (UK: full stop), and capitalize names.',
       simple:
         'Capital letter = "start of sentence", full stop = "end of sentence". Like opening and closing braces.',
       points: [

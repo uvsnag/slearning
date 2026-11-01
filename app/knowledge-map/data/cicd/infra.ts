@@ -40,6 +40,21 @@ export const infraAndData: KmNode = {
       ],
     },
     {
+      title: 'Migration Tools',
+      level: 'intermediate',
+      summary:
+        'Flyway and Liquibase apply versioned database changes in order and track which ran.',
+      simple:
+        'A numbered list of renovation steps for the database. The tool remembers which steps are done and only runs the new ones.',
+      points: [
+        'Flyway: SQL files like <code>V3__add_email.sql</code>, run in version order.',
+        'Liquibase: changelogs in XML/YAML/SQL with rollback support.',
+        'Both keep a history table in the database.',
+        'Never edit a migration that already ran; add a new one.',
+        'Spring Boot runs Flyway or Liquibase on startup if it’s on the classpath.',
+      ],
+    },
+    {
       title: 'Infrastructure as Code',
       level: 'advanced',
       summary:
@@ -49,6 +64,17 @@ export const infraAndData: KmNode = {
         'Others: Pulumi (in JavaScript, Java and more), AWS CDK, CloudFormation, Bicep.',
         'Run <code>plan</code> on the PR so reviewers see the real change.',
         'Store state remotely with locking; never edit resources by hand ("drift").',
+      ],
+    },
+    {
+      title: 'Helm & Kustomize',
+      level: 'advanced',
+      summary: 'Tools that package and customize Kubernetes config files for each environment.',
+      points: [
+        'Helm: a package manager for Kubernetes; a "chart" is templated config plus default values.',
+        'Kustomize: no templates; a base config plus small patches per environment (built into <code>kubectl</code>).',
+        'The pipeline (or GitOps agent) renders the config with the new image tag and applies it.',
+        'Run <code>kubectl diff</code> or the helm-diff plugin on the PR so reviewers see what will change.',
       ],
     },
     {
@@ -62,21 +88,6 @@ export const infraAndData: KmNode = {
         'The agent notices the change and syncs the cluster; drift is reverted automatically.',
         'Pull-based: CI never needs cluster admin credentials.',
         'Rollback = revert the Git commit.',
-      ],
-    },
-    {
-      title: 'Migration Tools',
-      level: 'intermediate',
-      summary:
-        'Flyway and Liquibase apply versioned database changes in order and track which ran.',
-      simple:
-        'A numbered list of renovation steps for the database. The tool remembers which steps are done and only runs the new ones.',
-      points: [
-        'Flyway: SQL files like <code>V3__add_email.sql</code>, run in version order.',
-        'Liquibase: changelogs in XML/YAML/SQL with rollback support.',
-        'Both keep a history table in the database.',
-        'Never edit a migration that already ran; add a new one.',
-        'Spring Boot runs Flyway or Liquibase on startup if it’s on the classpath.',
       ],
     },
     {

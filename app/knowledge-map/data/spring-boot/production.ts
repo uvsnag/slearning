@@ -8,6 +8,38 @@ export const production: KmNode = {
     'Building the car is half the job. You also need a dashboard with gauges, and a way to deliver the car to customers.',
   children: [
     {
+      title: 'Logging',
+      level: 'beginner',
+      summary:
+        'Boot sets up SLF4J with Logback, so you can log right away and tune levels in config.',
+      simple:
+        'Logs are your app’s diary. The level decides how chatty it is: only big news (ERROR) or every little thing (DEBUG).',
+      points: [
+        'Log through the SLF4J API. Logback does the actual writing.',
+        'Levels: TRACE, DEBUG, INFO, WARN, ERROR. The default is INFO.',
+        'Change one package: <code>logging.level.com.shop=DEBUG</code>.',
+        'Logs go to the console only. Add <code>logging.file.name</code> to also write a file.',
+        'Use placeholders (<code>{}</code>), not string concatenation, so unused messages cost nothing.',
+      ],
+      detail: `<pre><code>private static final Logger log = LoggerFactory.getLogger(OrderService.class);
+
+public void pay(long id) {
+  log.info("Paying order {}", id);
+}</code></pre>`,
+    },
+    {
+      title: 'Executable fat jar',
+      level: 'beginner',
+      summary: 'One jar file that contains your code, all libraries and the server.',
+      simple: 'A lunchbox with everything inside. Just open it (java -jar) and eat.',
+      points: [
+        'Built by the Maven or Gradle Spring Boot plugin.',
+        'Nested jars sit in <code>BOOT-INF/lib</code>. Your classes in <code>BOOT-INF/classes</code>.',
+        'A special launcher class loads the nested jars, which plain Java cannot do alone.',
+        'Override any setting at start: <code>java -jar app.jar --server.port=9090</code>.',
+      ],
+    },
+    {
       title: 'Actuator',
       level: 'intermediate',
       summary:
@@ -55,33 +87,6 @@ export const production: KmNode = {
 paid.increment();</code></pre>`,
     },
     {
-      title: 'Tracing & logging',
-      level: 'advanced',
-      summary:
-        'Follow one request across services with Micrometer Tracing and correlate logs by trace id.',
-      simple:
-        'Each request gets a tracking number, like a parcel. Every service and every log line writes it down, so you can follow the whole trip.',
-      points: [
-        'Micrometer Tracing (Boot 3) replaced Spring Cloud Sleuth.',
-        'Bridges for OpenTelemetry or Brave. Export to Zipkin, Tempo, Jaeger and others.',
-        'Trace and span ids are added to log lines automatically.',
-        'Structured JSON logs (Boot 3.4+): <code>logging.structured.format.console=ecs</code>.',
-        'Cross-service design is covered in the Microservices topic.',
-      ],
-    },
-    {
-      title: 'Executable fat jar',
-      level: 'beginner',
-      summary: 'One jar file that contains your code, all libraries and the server.',
-      simple: 'A lunchbox with everything inside. Just open it (java -jar) and eat.',
-      points: [
-        'Built by the Maven or Gradle Spring Boot plugin.',
-        'Nested jars sit in <code>BOOT-INF/lib</code>. Your classes in <code>BOOT-INF/classes</code>.',
-        'A special launcher class loads the nested jars, which plain Java cannot do alone.',
-        'Override any setting at start: <code>java -jar app.jar --server.port=9090</code>.',
-      ],
-    },
-    {
       title: 'Docker images',
       level: 'intermediate',
       summary: 'Ship the app as a container image, ideally with layered jars or Buildpacks.',
@@ -104,6 +109,21 @@ paid.increment();</code></pre>`,
         'Graceful is the default since Boot 3.4 (<code>server.shutdown=graceful</code>).',
         'Wait time: <code>spring.lifecycle.timeout-per-shutdown-phase</code> (30 s by default).',
         'In Kubernetes, the readiness probe turns DOWN first so no new traffic arrives.',
+      ],
+    },
+    {
+      title: 'Tracing & logging',
+      level: 'advanced',
+      summary:
+        'Follow one request across services with Micrometer Tracing and correlate logs by trace id.',
+      simple:
+        'Each request gets a tracking number, like a parcel. Every service and every log line writes it down, so you can follow the whole trip.',
+      points: [
+        'Micrometer Tracing (Boot 3) replaced Spring Cloud Sleuth.',
+        'Bridges for OpenTelemetry or Brave. Export to Zipkin, Tempo, Jaeger and others.',
+        'Trace and span ids are added to log lines automatically.',
+        'Structured JSON logs (Boot 3.4+): <code>logging.structured.format.console=ecs</code>.',
+        'Cross-service design is covered in the Microservices topic.',
       ],
     },
     {

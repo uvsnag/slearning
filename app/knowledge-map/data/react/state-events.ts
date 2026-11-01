@@ -36,6 +36,37 @@ function Counter() {
 }</code></pre>`,
     },
     {
+      title: 'Event Handlers',
+      level: 'beginner',
+      summary: 'Functions you pass to props like onClick or onChange to respond to the user.',
+      simple:
+        'An event handler is a doorbell wire: you connect a function, and it rings when the user clicks or types.',
+      points: [
+        'Pass the function, don’t call it: <code>onClick={handleClick}</code>, not <code>onClick={handleClick()}</code>.',
+        'Need arguments? Wrap it: <code>onClick={() =&gt; remove(id)}</code>.',
+        'Handlers get an event object; <code>e.preventDefault()</code> stops default browser actions.',
+        'Events bubble up to parents; <code>e.stopPropagation()</code> stops that.',
+        'Name custom handler props <code>onSomething</code>, e.g. <code>onSelect</code>.',
+      ],
+      tip: 'Event handlers are the best place for side effects like saving or sending data, not effects.',
+    },
+    {
+      title: 'Synthetic Events',
+      level: 'intermediate',
+      summary:
+        'React wraps browser events in its own event object that works the same in every browser.',
+      simple:
+        'Like a translator at a meeting: every browser speaks a bit differently, and React hands you one clean version of what happened.',
+      points: [
+        'Same API as native events: <code>e.target</code>, <code>e.preventDefault()</code>, <code>e.stopPropagation()</code>.',
+        'Since React 17, React listens on your root element, not on <code>document</code>.',
+        'The real browser event is in <code>e.nativeEvent</code> if you need it.',
+        '<code>onChange</code> fires on every keystroke, like the native <code>input</code> event.',
+        'Add <code>Capture</code> to listen in the capture phase: <code>onClickCapture</code>.',
+      ],
+      tip: 'Interview: "React uses event delegation: one listener per event type at the root, not one per element."',
+    },
+    {
       title: 'State as a Snapshot',
       level: 'intermediate',
       summary:
@@ -85,21 +116,6 @@ setCount((c) =&gt; c + 1); // count goes up by 2</code></pre>`,
         'Avoid <code>push</code>, <code>splice</code>, <code>sort()</code> in place; use <code>toSorted()</code> or copy first.',
       ],
       tip: 'For deeply nested state, flatten it or use Immer (built into Redux Toolkit) to write "mutating" code safely.',
-    },
-    {
-      title: 'Event Handlers',
-      level: 'beginner',
-      summary: 'Functions you pass to props like onClick or onChange to respond to the user.',
-      simple:
-        'An event handler is a doorbell wire: you connect a function, and it rings when the user clicks or types.',
-      points: [
-        'Pass the function, don’t call it: <code>onClick={handleClick}</code>, not <code>onClick={handleClick()}</code>.',
-        'Need arguments? Wrap it: <code>onClick={() =&gt; remove(id)}</code>.',
-        'Handlers get an event object; <code>e.preventDefault()</code> stops default browser actions.',
-        'Events bubble up to parents; <code>e.stopPropagation()</code> stops that.',
-        'Name custom handler props <code>onSomething</code>, e.g. <code>onSelect</code>.',
-      ],
-      tip: 'Event handlers are the best place for side effects like saving or sending data, not effects.',
     },
     {
       title: 'Controlled Inputs',

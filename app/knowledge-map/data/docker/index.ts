@@ -19,9 +19,9 @@ export const docker: KmTopic = {
     'Containers with Docker — from your first docker run to Dockerfiles, Compose, production, security and how containers really work.',
   image: {
     src: overview.src,
-    alt: 'Docker overview: a Dockerfile is built into a layered image, stored in a registry and run as containers on the Docker engine',
+    alt: 'Docker overview (Vietnamese labels): a developer writes a Dockerfile and runs docker build; the Docker client talks to the daemon (dockerd), which manages containers, images, networks and volumes; images are pushed to and pulled from a registry like Docker Hub, and docker run starts a container',
     caption:
-      'Note: parts of this picture are wrong. Docker has no "brokers", "offsets", "controller" or "consumers" (those are Kafka terms), and the file is named Dockerfile, not ".dockerfile". The real flow: Dockerfile → docker build → image → registry → docker run → container.',
+      'Note: some labels are garbled ("Cáom tác", "Sog ciem", "Bläy rm") and the section numbers (3, 5) don’t match anything. Docker Engine is not a "virtualization OS" — containers share the host’s kernel. docker push sends your local image to the registry. Docker Swarm orchestrates many containers across machines; it is not part of a single container.',
   },
   root: {
     title: 'Docker',

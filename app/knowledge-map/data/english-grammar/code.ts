@@ -133,7 +133,7 @@ Optional&lt;User&gt; findById(long id);</code></pre>`,
         'An error message is a tiny note to a tired person at 3 am. Make it clear what broke and what to do.',
       points: [
         'Say what failed and why: <em>Failed to load config: file not found at /etc/app.yml</em>.',
-        'Use past tense for events: <em>User created</em>, <em>Connection closed</em>.',
+        'Use the past participle for finished events: <em>User created</em>, <em>Connection closed</em> (short for "was created").',
         'User-facing errors: explain the fix, no blame: <em>Enter a valid email address.</em>',
         'Avoid "Error: error occurred" — it says nothing.',
       ],

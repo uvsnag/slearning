@@ -158,5 +158,53 @@ export default function App() {
       detail: `<pre><code>// Switching contacts gives a fresh, empty form
 &lt;EditContact key={contact.id} contact={contact} /&gt;</code></pre>`,
     },
+    {
+      title: 'Portals',
+      level: 'intermediate',
+      summary:
+        'createPortal renders a child into a different DOM node, like document.body, while it stays in your tree.',
+      simple:
+        'Like a TV showing a live feed from another room. The modal is drawn somewhere else on the page, but it still belongs to its parent component.',
+      points: [
+        'Used for modals, tooltips and toasts that must escape <code>overflow: hidden</code> or z-index traps.',
+        'Props, state and context still flow as normal; only the DOM position changes.',
+        'Events bubble through the React tree, not the DOM tree, so a parent still gets the click.',
+        'For simple modals, the native <code>&lt;dialog&gt;</code> element may be enough.',
+      ],
+      detail: `<pre><code>import { createPortal } from 'react-dom';
+
+function Modal({ children }) {
+  return createPortal(
+    &lt;div className="modal"&gt;{children}&lt;/div&gt;,
+    document.body
+  );
+}</code></pre>`,
+    },
+    {
+      title: 'Class Components',
+      level: 'intermediate',
+      summary:
+        'The older way to write components, with this.state and lifecycle methods instead of hooks.',
+      simple:
+        'Like an old car model: it still drives and you’ll meet it in older garages (codebases), but new cars are built differently.',
+      points: [
+        'State lives in <code>this.state</code> and changes with <code>this.setState()</code>.',
+        'Lifecycle: <code>componentDidMount</code>, <code>componentDidUpdate</code>, <code>componentWillUnmount</code>.',
+        'Hooks map to them: an effect with cleanup covers mount, update and unmount.',
+        'Still needed for error boundaries; otherwise use function components.',
+      ],
+      detail: `<pre><code>class Counter extends React.Component {
+  state = { count: 0 };
+  componentDidMount() { document.title = 'Ready'; }
+  render() {
+    return (
+      &lt;button onClick={() =&gt; this.setState({ count: this.state.count + 1 })}&gt;
+        {this.state.count}
+      &lt;/button&gt;
+    );
+  }
+}</code></pre>`,
+      tip: 'Interview: "useEffect is not a lifecycle method. Think of it as syncing with something outside, not as mount/update events."',
+    },
   ],
 };

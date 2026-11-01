@@ -55,6 +55,20 @@ PreparedStatement ps = conn.prepareStatement(
 ps.setString(1, email);</code></pre>`,
     },
     {
+      title: 'Roles & Permissions',
+      level: 'intermediate',
+      summary: 'Give each app or person only the rights they need with users, roles and GRANT.',
+      simple:
+        'Hotel key cards: the guest’s card opens one room, the cleaner’s opens a floor, only the manager’s opens everything.',
+      points: [
+        'Least privilege: the app user can read and write its tables, not DROP them or create users.',
+        'Run migrations with a separate, stronger user than the app.',
+        'Grant to roles, then put users in roles: <code>GRANT SELECT ON orders TO reporting</code>.',
+        'Row-level security: PostgreSQL <code>CREATE POLICY</code>, SQL Server security policies; great for multi-tenant apps.',
+      ],
+      tip: 'Never let the app connect as postgres or sa. One injection bug then owns the whole server.',
+    },
+    {
       title: 'Connection Pools',
       level: 'intermediate',
       summary:
@@ -68,6 +82,33 @@ ps.setString(1, email);</code></pre>`,
         'SQL Server uses threads and copes with more connections, but pools still matter.',
         'Always return the connection (try-with-resources / <code>finally</code>), or the pool runs dry.',
       ],
+    },
+    {
+      title: 'Transactions from Code',
+      level: 'intermediate',
+      summary: 'Turn off auto-commit, run your statements on one connection, then commit or roll back.',
+      simple:
+        'You hold one phone line for the whole conversation. Hang up halfway, and nothing you said counts.',
+      points: [
+        'All statements of a transaction must use the same connection.',
+        'JDBC: <code>setAutoCommit(false)</code>, then <code>commit()</code> or <code>rollback()</code> in catch.',
+        'Spring: <code>@Transactional</code> does this for you; it rolls back on unchecked exceptions by default.',
+        'Node: take one client from the pool (<code>pool.connect()</code>), run BEGIN … COMMIT, then release it.',
+      ],
+      detail: `<pre><code>try (Connection c = dataSource.getConnection()) {
+    c.setAutoCommit(false);
+    try (PreparedStatement debit = c.prepareStatement(
+            "UPDATE accounts SET balance = balance - ? WHERE id = ?")) {
+        debit.setBigDecimal(1, amount); debit.setLong(2, fromId);
+        debit.executeUpdate();
+        // ... credit the other account the same way
+        c.commit();
+    } catch (SQLException e) {
+        c.rollback();
+        throw e;
+    }
+}</code></pre>`,
+      tip: 'Spring gotcha: calling a @Transactional method from the same class skips the proxy, so no transaction starts.',
     },
     {
       title: 'N+1 Query Problem',
@@ -93,6 +134,32 @@ for (const o of orders.rows) {
 const ids = orders.rows.map((o) =&gt; o.id);
 const items = await db.query(
   'SELECT * FROM order_items WHERE order_id = ANY($1)', [ids]);</code></pre>`,
+    },
+    {
+      title: 'Batch & Bulk Writes',
+      level: 'intermediate',
+      summary: 'Send many rows in one go instead of one INSERT round trip per row.',
+      simple:
+        'Carry the groceries in one big box instead of walking to the car for every apple.',
+      points: [
+        'JDBC: <code>addBatch()</code> + <code>executeBatch()</code>, in chunks of a few hundred to a few thousand.',
+        'pgjdbc: <code>reWriteBatchedInserts=true</code> turns a batch into multi-row INSERTs.',
+        'mssql-jdbc: <code>useBulkCopyForBatchInsert=true</code>, or <code>SQLServerBulkCopy</code>.',
+        'Huge loads: PostgreSQL <code>COPY</code> (pg-copy-streams in Node, <code>CopyManager</code> in Java), SQL Server <code>BULK INSERT</code>.',
+        'Wrap the batch in one transaction; committing every row is very slow.',
+      ],
+      detail: `<pre><code>conn.setAutoCommit(false);
+try (PreparedStatement ps = conn.prepareStatement(
+        "INSERT INTO events (type, payload) VALUES (?, ?)")) {
+    for (Event e : events) {
+        ps.setString(1, e.type());
+        ps.setString(2, e.json());
+        ps.addBatch();
+    }
+    ps.executeBatch();
+}
+conn.commit();</code></pre>`,
+      tip: 'With JPA/Hibernate, IDENTITY ids disable insert batching; use a sequence and hibernate.jdbc.batch_size.',
     },
     {
       title: 'Keyset Pagination',
@@ -139,6 +206,19 @@ ORDER BY created_at DESC, id DESC;</code></pre>`,
         'Async replicas lag: a user may not see their own write right away.',
         'Send heavy reports to a replica to protect the primary.',
       ],
+    },
+    {
+      title: 'Backup & Restore',
+      level: 'advanced',
+      summary: 'Take backups you have actually tested, and restore to any moment with the log.',
+      points: [
+        'Replicas are not backups: a bad DELETE is copied to them instantly.',
+        'Full backup + continuous log archive gives point-in-time recovery (PITR): "restore to 10:41, just before the mistake".',
+        'PostgreSQL: <code>pg_dump</code> (logical, one DB) vs base backup + WAL archive (pgBackRest, Barman; PG 17 adds incremental backups).',
+        'SQL Server: full, differential and transaction-log backups; needs the FULL recovery model for PITR.',
+        'Know your RPO (how much data you may lose) and RTO (how long a restore may take).',
+      ],
+      tip: 'A backup you’ve never restored is only a hope. Practise restores on a schedule.',
     },
     {
       title: 'Partitioning',

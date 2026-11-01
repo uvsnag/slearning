@@ -84,17 +84,6 @@ function Button() {
 }</code></pre>`,
     },
     {
-      title: 'Context Re-renders',
-      level: 'advanced',
-      summary: 'When the provided value changes, every component reading that context re-renders.',
-      points: [
-        'A new object as value (<code>value={{ user, setUser }}</code>) is "changed" on every parent render.',
-        'Wrap the value in <code>useMemo</code> (or let React Compiler do it).',
-        'Split fast-changing and slow-changing data into separate contexts.',
-        'Context isn’t a state manager; for frequent updates to big shared state, use a store like Zustand.',
-      ],
-    },
-    {
       title: 'useReducer',
       level: 'intermediate',
       summary:
@@ -119,6 +108,29 @@ function Button() {
 }</code></pre>`,
     },
     {
+      title: 'useId',
+      level: 'intermediate',
+      summary: 'Generates a unique, stable id, mainly to link labels and inputs for accessibility.',
+      simple:
+        'A label needs to point to its input by id. useId gives each component instance its own id so two forms never clash.',
+      points: [
+        'Same id on server and client, so it’s safe with SSR and hydration.',
+        'Use for <code>htmlFor</code>, <code>aria-describedby</code> and similar.',
+        'Not for list keys; keys should come from your data.',
+      ],
+    },
+    {
+      title: 'Context Re-renders',
+      level: 'advanced',
+      summary: 'When the provided value changes, every component reading that context re-renders.',
+      points: [
+        'A new object as value (<code>value={{ user, setUser }}</code>) is "changed" on every parent render.',
+        'Wrap the value in <code>useMemo</code> (or let React Compiler do it).',
+        'Split fast-changing and slow-changing data into separate contexts.',
+        'Context isn’t a state manager; for frequent updates to big shared state, use a store like Zustand.',
+      ],
+    },
+    {
       title: 'Reducer + Context',
       level: 'advanced',
       summary:
@@ -131,16 +143,27 @@ function Button() {
       ],
     },
     {
-      title: 'useId',
-      level: 'intermediate',
-      summary: 'Generates a unique, stable id, mainly to link labels and inputs for accessibility.',
-      simple:
-        'A label needs to point to its input by id. useId gives each component instance its own id so two forms never clash.',
+      title: 'HOCs & Render Props',
+      level: 'advanced',
+      summary:
+        'Older patterns for sharing logic between components; custom hooks replaced most of them.',
       points: [
-        'Same id on server and client, so it’s safe with SSR and hydration.',
-        'Use for <code>htmlFor</code>, <code>aria-describedby</code> and similar.',
-        'Not for list keys; keys should come from your data.',
+        'HOC (higher-order component): a function that takes a component and returns a new, wrapped one.',
+        'Example HOC: <code>withAuth(Profile)</code> renders <code>Profile</code> only for logged-in users.',
+        'Render prop: a prop that is a function returning JSX, e.g. <code>&lt;Mouse render={(pos) =&gt; …} /&gt;</code>.',
+        'Downsides: "wrapper hell" in DevTools and props clashing by name.',
+        'You still see them in older libraries; for new code, write a custom hook.',
+        'Compound components (<code>&lt;Tabs&gt;</code> + <code>&lt;Tabs.Tab&gt;</code> sharing context) are still popular for UI kits.',
       ],
+      detail: `<pre><code>function withAuth(Component) {
+  return function WithAuth(props) {
+    const user = useUser();
+    return user ? &lt;Component {...props} user={user} /&gt; : &lt;Login /&gt;;
+  };
+}
+
+const SecureProfile = withAuth(Profile);</code></pre>`,
+      tip: 'Interview: "Custom hooks share logic without adding extra components to the tree, which is why they replaced HOCs and render props."',
     },
     {
       title: 'useSyncExternalStore',
