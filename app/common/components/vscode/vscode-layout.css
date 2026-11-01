@@ -1,0 +1,312 @@
+/* ==========================================================================
+   VS Code layout mode — disguises the whole app as a VS Code (Dark+) window.
+   Chrome reuses the Code Studio `cs-*` classes; this file adds the shell,
+   re-themes the real pages (rendered under .vsc-content.dark-90) and the
+   floating sticky tools.
+   ========================================================================== */
+
+/* Normal mode: wrappers vanish from layout so the page renders as before. */
+.vsc-pass {
+  display: contents;
+}
+
+.vsc-hidden {
+  display: none !important;
+}
+
+/* Hide the page until React mounts when VS Code mode is stored (no flash). */
+html.vsc-preload body {
+  background: #1e1e1e;
+}
+html.vsc-preload body > * {
+  visibility: hidden;
+}
+
+body.vsc-body {
+  overflow: hidden;
+  background: #1e1e1e;
+}
+
+.vsc-root {
+  /* Code Studio tokens (normally declared on .cs-root) */
+  --cs-titlebar: #3c3c3c;
+  --cs-activitybar: #333333;
+  --cs-sidebar: #252526;
+  --cs-sidebar-header: #cccccc;
+  --cs-editor: #1e1e1e;
+  --cs-tabbar: #252526;
+  --cs-tab-inactive: #2d2d2d;
+  --cs-statusbar: #007acc;
+  --cs-border: #3c3c3c;
+  --cs-text: #cccccc;
+  --cs-text-dim: #969696;
+  --cs-hover: #2a2d2e;
+  --cs-selected: #094771;
+  --cs-accent: #007fd4;
+  --cs-mono: 'Cascadia Code', 'JetBrains Mono', Consolas, 'Courier New', monospace;
+
+  /* App theme tokens → VS Code Dark+ palette (dark-90 rules read these) */
+  --color-dark-bg-start: #1e1e1e;
+  --color-dark-bg-end: #1e1e1e;
+  --color-dark-bg-accent: transparent;
+  --color-dark-surface: #252526;
+  --color-dark-surface-alt: #2d2d2d;
+  --color-dark-header-start: #2d2d2d;
+  --color-dark-header-end: #2d2d2d;
+  --color-dark-panel-start: #252526;
+  --color-dark-panel-end: #252526;
+  --color-dark-border: #3c3c3c;
+  --color-dark-text: #cccccc;
+  --color-dark-text-muted: #9d9d9d;
+  --color-dark-hover: #2a2d2e;
+  --color-dark-card-accent: transparent;
+  --color-dark-card-accent-alt: transparent;
+  --color-range-track-dark: #3c3c3c;
+  --studio-dark-border: #3c3c3c;
+  --studio-dark-text: #cccccc;
+  --studio-dark-link: #3794ff;
+  --shadow-dark-color: transparent;
+  --shadow-dark-strong-color: transparent;
+
+  /* Light-theme tokens too, for rules that have no dark-90 variant */
+  --color-text: #cccccc;
+  --color-text-strong: #cccccc;
+  --color-text-muted: #9d9d9d;
+  --color-text-accent: #9d9d9d;
+  --color-link: #3794ff;
+  --color-primary: #007acc;
+  --studio-primary: #007acc;
+  --studio-text: #cccccc;
+  --studio-border: #3c3c3c;
+  --color-border: #3c3c3c;
+  --color-border-soft: #3c3c3c;
+  --color-border-subtle: #3c3c3c;
+  --color-border-strong: #555555;
+  --color-surface-soft: #252526;
+  --color-surface-soft-2: #252526;
+  --color-surface-hover: #2a2d2e;
+  --color-surface-highlight: #2a2d2e;
+  --color-surface-badge: #37373d;
+  --color-surface-selected: #094771;
+  --color-surface-code: #1e1e1e;
+  --color-surface-header-start: #252526;
+  --color-surface-header-end: #252526;
+  --color-surface-panel-start: #252526;
+  --color-surface-panel-end: #252526;
+  --studio-panel-bg: #252526;
+  --studio-title-bg: #2d2d2d;
+  --studio-shadow: none;
+  --color-focus-ring: rgba(0, 127, 212, 0.35);
+
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--cs-editor);
+  color: var(--cs-text);
+  font-family:
+    'Segoe UI',
+    -apple-system,
+    BlinkMacSystemFont,
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+  font-size: 13px;
+  text-align: left;
+}
+
+/* Chrome only — the real pages keep their own button / box styles. */
+.vsc-chrome,
+.vsc-chrome *,
+.vsc-chrome *::before,
+.vsc-chrome *::after {
+  box-sizing: border-box;
+}
+
+.vsc-chrome button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+/* ---------------- title bar ---------------- */
+
+.vsc-menu,
+.vsc-menu-spacer {
+  flex: 0 0 320px;
+  display: inline-flex;
+  gap: 2px;
+  font-size: 12.5px;
+  color: #cccccc;
+}
+
+.vsc-menu span {
+  padding: 3px 7px;
+  border-radius: 4px;
+  cursor: default;
+}
+
+.vsc-menu span:hover {
+  background: #505050;
+}
+
+/* ---------------- editor area ---------------- */
+
+.vsc-editor {
+  position: relative;
+}
+
+.vsc-content {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  background: #1e1e1e;
+  color: #cccccc;
+  scrollbar-color: #424242 transparent;
+}
+
+.vsc-code {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.vsc-code .cs-editor-scroll {
+  scrollbar-color: #424242 transparent;
+}
+
+.vsc-root kbd {
+  font-family: var(--cs-mono);
+  font-size: 11px;
+  padding: 1px 5px;
+  border: 1px solid #555;
+  border-bottom-width: 2px;
+  border-radius: 3px;
+  background: #2d2d2d;
+}
+
+/* ---------------- re-theme the real pages: flat IDE look ---------------- */
+
+.vsc-content .ui-page-shell,
+.vsc-content .ui-panel,
+.vsc-content .ui-collapse-panel.open,
+.vsc-content .ui-sub-panel.open,
+.vsc-content .popup {
+  border-radius: 4px;
+  box-shadow: none;
+  background: #252526;
+}
+
+.vsc-content .ui-title {
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.vsc-content button,
+.vsc-content .common-btn,
+.vsc-content .common-btn2,
+.vsc-content .home-nav-link,
+.vsc-content .home-menu-button,
+.vsc-content .common-toggle,
+.vsc-content .title-board {
+  border-radius: 2px;
+  box-shadow: none;
+  background: #2d2d2d;
+}
+
+.vsc-content .ui-input,
+.vsc-content .common-input,
+.vsc-content input[type='text'],
+.vsc-content input[type='number'],
+.vsc-content select,
+.vsc-content textarea:not(.no-darkmode) {
+  border-radius: 2px;
+  border-color: #3c3c3c;
+  background: #3c3c3c;
+  color: #cccccc;
+}
+
+.vsc-content .ui-input:focus,
+.vsc-content .common-input:focus,
+.vsc-content textarea:focus {
+  outline: 1px solid #007fd4;
+  outline-offset: -1px;
+  box-shadow: none;
+}
+
+.vsc-content a {
+  color: #3794ff;
+}
+
+/* ---------------- floating sticky tools: small & quiet ---------------- */
+
+.vsc-tools .sticky-ai-float {
+  right: 22px;
+}
+
+.vsc-tools .sticky-ai-toggle,
+.vsc-tools .speak-practice-toggle {
+  width: 30px;
+  min-width: 30px;
+  height: 30px;
+  border-radius: 4px;
+  border-color: #3c3c3c;
+  background: #2d2d2d;
+  color: #c5c5c5;
+  box-shadow: none;
+  opacity: 0.75;
+}
+
+.vsc-tools .sticky-ai-toggle:hover,
+.vsc-tools .sticky-ai-toggle.open,
+.vsc-tools .speak-practice-toggle:hover,
+.vsc-tools .speak-practice-toggle.open {
+  opacity: 1;
+  background: #37373d;
+}
+
+.vsc-tools .sticky-ai-toggle svg {
+  max-width: 16px;
+  max-height: 16px;
+}
+
+.vsc-tools .sticky-home-toggle {
+  filter: grayscale(1) brightness(1.4);
+  font-size: 14px;
+}
+
+.vsc-tools .sticky-close-all-toggle {
+  color: #c5c5c5;
+}
+
+.vsc-tools .sticky-ai-pop-wrap.open,
+.vsc-tools .sticky-config-pop-wrap.open,
+.vsc-tools .sticky-nav-pop-wrap.open {
+  border-radius: 4px;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.6);
+  background: #252526;
+}
+
+/* ---------------- status bar ---------------- */
+
+.vsc-status-btn {
+  font-family: var(--cs-mono);
+  font-size: 11px;
+}
+
+.vsc-status-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+@media (max-width: 900px) {
+  .vsc-menu,
+  .vsc-menu-spacer {
+    display: none;
+  }
+}

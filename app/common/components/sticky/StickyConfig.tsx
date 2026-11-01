@@ -27,6 +27,7 @@ import {
 } from '@/app/common/hooks/useSheetData';
 import { SHEET_AUTO } from '../SheetDataEditor';
 import Notify from '@/app/notify/Notify';
+import { setLayoutMode, useLayoutMode } from '../../layoutMode';
 
 const THEME_STORAGE_KEY = 'sl_theme_mode';
 const THEME_1 = 'current';
@@ -81,6 +82,7 @@ const StickyConfig = forwardRef<StickyConfigHandle, StickyConfigProps>(
       reloadSheet: practiceReload,
     } = usePracticeContext();
     const [isOpen, setIsOpen] = useState(false);
+    const layoutMode = useLayoutMode();
 
     // ── API Key states (multiple keys separated by ';') ──
     const [gemKey, setGemKey] = useState<string | null>(() => getStoredValue(KEY_GEMINI_NM));
@@ -88,9 +90,7 @@ const StickyConfig = forwardRef<StickyConfigHandle, StickyConfigProps>(
     const [openRouterKey, setOpenRouterKey] = useState<string | null>(() =>
       getStoredValue(KEY_OPENROUTER_NM),
     );
-    const [disabledModelIds, setDisabledModelIds] = useState<string[]>(() =>
-      getDisabledModelIds(),
-    );
+    const [disabledModelIds, setDisabledModelIds] = useState<string[]>(() => getDisabledModelIds());
     const [googleSheetKey, setGoogleSheetKey] = useState<string | null>(() =>
       getStoredValue(KEY_GOOGLE_SHEET_NM),
     );
@@ -328,6 +328,19 @@ const StickyConfig = forwardRef<StickyConfigHandle, StickyConfigProps>(
                   >
                     <option value={THEME_1}>Theme 1</option>
                     <option value={THEME_2}>Theme 2</option>
+                  </select>
+                </label>
+                <label className="app-theme-switch" title="Shortcut: Alt+Shift+V · Boss key: Alt+Q">
+                  Layout
+                  <select
+                    className="app-theme-select"
+                    value={layoutMode}
+                    onChange={(e: ChangeEvent<HTMLSelectElement>) =>
+                      setLayoutMode(e.target.value === 'vscode' ? 'vscode' : 'normal')
+                    }
+                  >
+                    <option value="normal">Normal</option>
+                    <option value="vscode">VS Code</option>
                   </select>
                 </label>
                 <label className="home-config-field">
