@@ -293,6 +293,79 @@ body.vsc-body {
   background: #252526;
 }
 
+/* ---------------- split editor (2 columns) ---------------- */
+
+.vsc-tab-actions {
+  position: sticky;
+  right: 0;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  padding: 0 6px;
+  background: var(--cs-tabbar);
+}
+
+.vsc-tab-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 4px;
+  color: var(--cs-text-dim);
+}
+
+.vsc-tab-actions button:hover {
+  background: #4d4d4d;
+  color: #ffffff;
+}
+
+/* The group without focus: its active tab loses the blue top line. */
+.vsc-group-inactive .cs-tab-active {
+  border-top-color: transparent;
+  color: var(--cs-text-dim);
+}
+
+.vsc-split-resizer {
+  flex: none;
+  position: relative;
+  width: 4px;
+  cursor: col-resize;
+  background: var(--cs-editor);
+  transition: background 0.15s ease 0.1s;
+}
+
+.vsc-split-resizer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 1.5px;
+  width: 1px;
+  background: var(--cs-border);
+}
+
+.vsc-split-resizer:hover,
+.cs-resizing .vsc-split-resizer {
+  background: #007fd4;
+}
+
+.vsc-split-frame {
+  display: block;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  border: 0;
+  background: #1e1e1e;
+}
+
+@media (max-width: 760px) {
+  .vsc-split-resizer,
+  .vsc-group-right {
+    display: none;
+  }
+}
+
 /* ---------------- status bar ---------------- */
 
 .vsc-status-btn {

@@ -1,6 +1,13 @@
 'use client';
 
-import React, { ReactNode, useEffect, useMemo, useState } from 'react';
+import React, {
+  ReactNode,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { NAV_SECTIONS } from '../../navLinks';
 import { setLayoutMode, toggleLayoutMode, useLayoutMode } from '../../layoutMode';
@@ -17,6 +24,7 @@ import {
 import CodeEditor from '@/app/source-code/components/CodeEditor';
 import FileTree from '@/app/source-code/components/FileTree';
 import SearchPanel from '@/app/source-code/components/SearchPanel';
+import { useResizableSidebar } from '@/app/source-code/components/useResizableSidebar';
 import {
   BranchIcon,
   CloseIcon,
@@ -65,6 +73,35 @@ const componentFileName = (text: string) =>
   }.tsx`;
 
 const HOME_FILE = 'index.tsx';
+
+const KEY_SIDEBAR_WIDTH = 'sl_vsc_sidebar_width';
+
+/* Split editor: the right group shows another page in a same-origin iframe. */
+const KEY_SPLIT_HREF = 'sl_vsc_split_href';
+const KEY_SPLIT_RATIO = 'sl_vsc_split_ratio';
+const BASE_PATH = '/slearning'; // keep in sync with next.config.ts basePath
+const pageUrl = (href: string) => `${BASE_PATH}${href === '/' ? '' : href}/`;
+type EditorGroup = 'left' | 'right';
+
+/** True when this app instance is the page inside the split editor's iframe. */
+const subscribeNoop = () => () => {};
+const isFramed = () => {
+  try {
+    return window.self !== window.top;
+  } catch {
+    return true;
+  }
+};
+const postToParent = (data: object) => window.parent.postMessage(data, window.location.origin);
+
+function SplitIcon() {
+  return (
+    <svg width={16} height={16} viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <rect x="1.5" y="2.5" width="13" height="11" rx="1" stroke="currentColor" />
+      <path d="M8 2.5v11" stroke="currentColor" />
+    </svg>
+  );
+}
 
 interface PageEntry {
   href: string;
@@ -153,12 +190,24 @@ export default function VSCodeLayout({ children, tools }: VSCodeLayoutProps) {
   const pathname = normalizePath(usePathname());
   // Code Studio project pages already look like VS Code — never double-wrap them.
   const isStudioPage = pathname.startsWith('/source-code/');
-  const vsc = mode === 'vscode' && !isStudioPage;
+  const embedded = useSyncExternalStore(subscribeNoop, isFramed, () => false);
+  const vsc = mode === 'vscode' && !isStudioPage && !embedded;
 
   const [decoy, setDecoy] = useState<StudioProject | null>(null);
   const [edits, setEdits] = useState<Record<string, string>>({});
   const [sideView, setSideView] = useState<SideView>('explorer');
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const sidebarResize = useResizableSidebar(KEY_SIDEBAR_WIDTH);
+  const [splitResizing, setResizing] = useState(false);
+  const resizing = sidebarResize.resizing || splitResizing;
+  // Split editor (right group). `split.n` remounts the iframe when a new page is opened in it.
+  const [split, setSplit] = useState<{ src: string; n: number } | null>(null);
+  const [splitHref, setSplitHref] = useState('/');
+  const [splitRatio, setSplitRatio] = useState(0.5);
+  const [activeGroup, setActiveGroup] = useState<EditorGroup>('left');
+  const leftGroupRef = useRef<HTMLDivElement>(null);
+  const rightGroupRef = useRef<HTMLDivElement>(null);
+  const splitFrameRef = useRef<HTMLIFrameElement>(null);
   const [expanded, setExpanded] = useState<Set<string>>(
     () => new Set(collectFolderPaths(PAGES.tree)),
   );
@@ -254,17 +303,104 @@ export default function VSCodeLayout({ children, tools }: VSCodeLayoutProps) {
         toggleLayoutMode();
       } else if (!e.shiftKey && (key === 'q' || e.code === 'KeyQ')) {
         e.preventDefault();
-        togglePanic();
+        // Inside the split iframe the boss key must act on the outer window.
+        if (embedded) postToParent({ type: 'vsc-boss' });
+        else togglePanic();
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   });
 
+  /* ----- split editor ----- */
+
+  const openSplit = (href: string) => {
+    setActiveGroup('right');
+    localStorage.setItem(KEY_SPLIT_HREF, href);
+    if (split && href === splitHref) return;
+    setSplit((prev) => ({ src: href, n: (prev?.n ?? 0) + 1 }));
+    setSplitHref(href);
+  };
+
+  const closeSplit = () => {
+    setSplit(null);
+    setActiveGroup('left');
+    localStorage.removeItem(KEY_SPLIT_HREF);
+  };
+
+  // Messages from the page inside the split iframe.
+  useEffect(() => {
+    if (embedded) return;
+    const onMessage = (e: MessageEvent) => {
+      if (e.origin !== window.location.origin) return;
+      if (e.source !== splitFrameRef.current?.contentWindow) return;
+      const data = e.data as { type?: string; href?: string };
+      if (data?.type === 'vsc-embed-nav' && typeof data.href === 'string') {
+        setSplitHref(data.href);
+        localStorage.setItem(KEY_SPLIT_HREF, data.href);
+      } else if (data?.type === 'vsc-embed-focus') {
+        setActiveGroup('right');
+      } else if (data?.type === 'vsc-boss') {
+        togglePanic();
+      }
+    };
+    window.addEventListener('message', onMessage);
+    return () => window.removeEventListener('message', onMessage);
+  });
+
+  // Inside the iframe: report navigation and clicks to the outer window.
+  useEffect(() => {
+    if (embedded) postToParent({ type: 'vsc-embed-nav', href: pathname });
+  }, [embedded, pathname]);
+  useEffect(() => {
+    if (!embedded) return;
+    const onDown = () => postToParent({ type: 'vsc-embed-focus' });
+    window.addEventListener('pointerdown', onDown, true);
+    return () => window.removeEventListener('pointerdown', onDown, true);
+  }, [embedded]);
+
+  /** Drag the line between the two editor groups. */
+  const startSplitResize = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.button !== 0) return;
+    const left = leftGroupRef.current?.getBoundingClientRect();
+    const right = rightGroupRef.current?.getBoundingClientRect();
+    if (!left || !right) return;
+    e.preventDefault();
+    const total = right.right - left.left;
+    let latest = splitRatio;
+    setResizing(true);
+    const onMove = (ev: PointerEvent) => {
+      latest = Math.min(Math.max((ev.clientX - left.left) / total, 0), 1);
+      setSplitRatio(latest);
+    };
+    const onUp = () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      setResizing(false);
+      localStorage.setItem(KEY_SPLIT_RATIO, String(latest));
+    };
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+  };
+
+  const resetSplitRatio = () => {
+    setSplitRatio(0.5);
+    localStorage.setItem(KEY_SPLIT_RATIO, '0.5');
+  };
+
   // Reveal the page once React has mounted (see LAYOUT_PRELOAD_SCRIPT).
   useEffect(() => {
     document.documentElement.classList.remove('vsc-preload');
+    if (isFramed()) return;
+    const storedRatio = Number(localStorage.getItem(KEY_SPLIT_RATIO) ?? NaN);
+    if (Number.isFinite(storedRatio)) setSplitRatio(Math.min(Math.max(storedRatio, 0), 1));
+    const storedSplit = localStorage.getItem(KEY_SPLIT_HREF);
+    if (storedSplit) {
+      setSplit({ src: storedSplit, n: 1 });
+      setSplitHref(storedSplit);
+    }
   }, []);
+
 
   /* ----- window title + favicon ----- */
   const activeName = activeCode
@@ -300,16 +436,31 @@ export default function VSCodeLayout({ children, tools }: VSCodeLayoutProps) {
 
   const onOpenTreeFile = (path: string) => {
     const href = PAGES.byPath.get(path);
-    if (href) openPage(href);
-    else openCode(path);
+    if (!href) openCode(path);
+    else if (split && activeGroup === 'right') openSplit(href);
+    else openPage(href);
   };
+
+  // The right group is hidden (kept mounted) while a source file is shown — e.g. the boss key.
+  const showSplit = vsc && split !== null;
+  const splitVisible = showSplit && !activeCode;
+  const splitInfo = pageInfo(splitHref);
+
+  if (embedded) {
+    // Page inside the split iframe: just the themed page, no chrome / sticky tools.
+    return (
+      <div className="vsc-root vsc-embed">
+        <div className="vsc-content dark-90">{children}</div>
+      </div>
+    );
+  }
 
   const treeActivePath = activeCode ?? (pageVisible ? PAGES.byHref.get(pathname)?.path : undefined);
 
   const pass = 'vsc-pass';
 
   return (
-    <div className={vsc ? 'vsc-root' : pass}>
+    <div className={vsc ? `vsc-root ${resizing ? 'cs-resizing' : ''}` : pass}>
       {vsc && (
         <div className="vsc-chrome cs-titlebar">
           <span className="vsc-menu">
@@ -358,7 +509,8 @@ export default function VSCodeLayout({ children, tools }: VSCodeLayoutProps) {
         )}
 
         {vsc && sidebarOpen && (
-          <div className="vsc-chrome cs-sidebar">
+          <div className="vsc-chrome cs-sidebar" {...sidebarResize.sidebarProps}>
+            <div className="cs-sidebar-resizer" {...sidebarResize.resizerProps} />
             <div className="cs-sidebar-header">
               <span>{sideView === 'explorer' ? 'Explorer' : 'Search'}</span>
               {sideView === 'explorer' && (
@@ -402,9 +554,19 @@ export default function VSCodeLayout({ children, tools }: VSCodeLayoutProps) {
           </div>
         )}
 
-        <div className={vsc ? 'cs-editor-area vsc-editor' : pass}>
+        <div
+          ref={leftGroupRef}
+          className={vsc ? 'cs-editor-area vsc-editor' : pass}
+          style={vsc && splitVisible ? { flex: `${splitRatio} 1 0` } : undefined}
+          onPointerDownCapture={vsc && showSplit ? () => setActiveGroup('left') : undefined}
+        >
           {vsc && tabs.length > 0 && (
-            <div className="vsc-chrome cs-tabbar" role="tablist">
+            <div
+              className={`vsc-chrome cs-tabbar ${
+                splitVisible && activeGroup === 'right' ? 'vsc-group-inactive' : ''
+              }`}
+              role="tablist"
+            >
               {tabs.map((id) => {
                 const tab = parseTab(id);
                 const isActive = id === activeTabId;
@@ -441,6 +603,15 @@ export default function VSCodeLayout({ children, tools }: VSCodeLayoutProps) {
                   </div>
                 );
               })}
+              <span className="vsc-tab-actions">
+                <button
+                  type="button"
+                  title="Split Editor Right — open this page in a second column"
+                  onClick={() => openSplit(pathname)}
+                >
+                  <SplitIcon />
+                </button>
+              </span>
             </div>
           )}
 
@@ -488,6 +659,66 @@ export default function VSCodeLayout({ children, tools }: VSCodeLayoutProps) {
             </div>
           )}
         </div>
+
+        {showSplit && split && (
+          <>
+            <div
+              className={`vsc-split-resizer ${splitVisible ? '' : 'vsc-hidden'}`}
+              role="separator"
+              aria-orientation="vertical"
+              aria-label="Resize editor groups"
+              title="Drag to resize · double-click to reset"
+              onPointerDown={startSplitResize}
+              onDoubleClick={resetSplitRatio}
+            />
+            <div
+              ref={rightGroupRef}
+              className={`cs-editor-area vsc-editor vsc-group-right ${
+                splitVisible ? '' : 'vsc-hidden'
+              }`}
+              style={{ flex: `${1 - splitRatio} 1 0` }}
+              onPointerDownCapture={() => setActiveGroup('right')}
+            >
+              <div
+                className={`vsc-chrome cs-tabbar ${activeGroup === 'left' ? 'vsc-group-inactive' : ''}`}
+                role="tablist"
+              >
+                <div
+                  role="tab"
+                  aria-selected
+                  className="cs-tab cs-tab-active"
+                  title={splitInfo.path}
+                >
+                  <FileBadge language="javascript" />
+                  <span className="cs-tab-label">{splitInfo.name}</span>
+                  <button
+                    type="button"
+                    className="cs-tab-close"
+                    aria-label={`Close ${splitInfo.name}`}
+                    onClick={closeSplit}
+                  >
+                    <CloseIcon />
+                  </button>
+                </div>
+              </div>
+              <div className="vsc-chrome cs-breadcrumbs">
+                {splitInfo.path.split('/').map((part, i) => (
+                  <React.Fragment key={i}>
+                    {i > 0 && <span className="cs-breadcrumb-sep">›</span>}
+                    <span>{part}</span>
+                  </React.Fragment>
+                ))}
+              </div>
+              <iframe
+                key={split.n}
+                ref={splitFrameRef}
+                className="vsc-split-frame"
+                src={pageUrl(split.src)}
+                title={splitInfo.name}
+              />
+            </div>
+          </>
+        )}
       </div>
 
       <div className={vsc ? `vsc-tools dark-90 ${activeCode ? 'vsc-hidden' : ''}` : pass}>

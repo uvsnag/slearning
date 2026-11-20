@@ -18,6 +18,7 @@ import CodeEditor from './CodeEditor';
 import DatabaseExplorer, { tableKey } from './DatabaseExplorer';
 import FileTree from './FileTree';
 import RunConsole from './RunConsole';
+import { useResizableSidebar } from './useResizableSidebar';
 import SearchPanel from './SearchPanel';
 import TableViewer from './TableViewer';
 import {
@@ -78,6 +79,7 @@ export default function CodeStudio({ project }: { project: StudioProject }) {
 
   const [activeView, setActiveView] = useState<SideView>('explorer');
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const sidebarResize = useResizableSidebar('sl_cs_sidebar_width');
   /** Playground mode: unsaved buffer per file path (undefined = pristine). */
   const [edits, setEdits] = useState<Record<string, string>>({});
   const [consoleLines, setConsoleLines] = useState<RunLog[]>([]);
@@ -222,7 +224,10 @@ export default function CodeStudio({ project }: { project: StudioProject }) {
   };
 
   return (
-    <div className="cs-root" data-view={activeView}>
+    <div
+      className={`cs-root ${sidebarResize.resizing ? 'cs-resizing' : ''}`}
+      data-view={activeView}
+    >
       {/* ---------- title bar ---------- */}
       <div className="cs-titlebar">
         <span className="cs-dots" aria-hidden="true">
@@ -271,7 +276,8 @@ export default function CodeStudio({ project }: { project: StudioProject }) {
 
         {/* ---------- sidebar ---------- */}
         {sidebarOpen && (
-          <div className="cs-sidebar">
+          <div className="cs-sidebar" {...sidebarResize.sidebarProps}>
+            <div className="cs-sidebar-resizer" {...sidebarResize.resizerProps} />
             <div className="cs-sidebar-header">
               <span>{VIEW_TITLES[activeView]}</span>
               {activeView === 'explorer' && (

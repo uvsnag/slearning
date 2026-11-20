@@ -164,13 +164,44 @@
 /* ---------------- sidebar ---------------- */
 
 .cs-sidebar {
-  width: 280px;
+  position: relative;
+  width: var(--cs-sidebar-w, 280px);
   flex: none;
   background: var(--cs-sidebar);
   border-right: 1px solid var(--cs-border);
   display: flex;
   flex-direction: column;
   min-height: 0;
+}
+
+/* Drag handle on the sidebar's right edge (see useResizableSidebar). */
+.cs-sidebar-resizer {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: -3px;
+  width: 6px;
+  z-index: 20;
+  cursor: col-resize;
+  background: transparent;
+  transition: background 0.15s ease 0.1s;
+}
+
+.cs-sidebar-resizer:hover,
+.cs-resizing .cs-sidebar-resizer {
+  background: var(--cs-accent, #007fd4);
+}
+
+/* While dragging: col-resize cursor everywhere; iframes / text selection
+   must not swallow the drag. */
+.cs-resizing,
+.cs-resizing * {
+  cursor: col-resize !important;
+  user-select: none !important;
+}
+
+.cs-resizing iframe {
+  pointer-events: none;
 }
 
 .cs-sidebar-header {
@@ -1290,6 +1321,10 @@
     z-index: 30;
     width: min(78vw, 300px);
     box-shadow: 6px 0 18px rgba(0, 0, 0, 0.45);
+  }
+
+  .cs-sidebar-resizer {
+    display: none;
   }
 
   .cs-root {
