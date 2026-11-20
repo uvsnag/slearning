@@ -21,7 +21,12 @@ interface YouTubePlayer {
   loadVideoById: (videoId: string, startSeconds: number) => void;
   seekTo: (seconds: number, allowSeekAhead: boolean) => void;
   getVideoUrl: () => string;
+  destroy: () => void;
+  getVideoData?: () => { video_id?: string };
+  setOption?: (module: string, option: string, value: unknown) => void;
+  loadModule?: (module: string) => void;
 }
+
 
 interface WindowWithYT extends Window {
   YT?: {
@@ -51,6 +56,33 @@ let arrTime: string[] = [];
 const urlCookieNm: string = 'lis-url';
 const subCookieNm: string = 'lis-sub';
 const KEY_YT_PLAYER_SIZE: string = 'yt-player-size';
+const KEY_YT_HIDE_CONTROLS: string = 'yt-hide-controls';
+const isHideControlsStored = (): boolean => localStorage.getItem(KEY_YT_HIDE_CONTROLS) === 'Y';
+const KEY_YT_TIME_STEPS: string = 'yt-time-steps';
+const DEFAULT_TIME_STEPS: string = '2, 3, 5';
+// Parse "2, 5, 10" -> [2, 5, 10]; ignores invalid / non-positive entries.
+const parseTimeSteps = (text: string): number[] => {
+  const steps = text
+    .split(/[,\s]+/)
+    .map((s) => Number(s))
+    .filter((n) => Number.isFinite(n) && n > 0);
+  return steps.length > 0 ? steps : parseTimeSteps(DEFAULT_TIME_STEPS);
+};
+let captionVideoId: string = ''; // video for which English captions were already applied
+
+// Turn on English captions.
+// NOTE: use only { languageCode: 'en' } — passing a track object taken from 'tracklist' stops captions
+// from rendering (verified in Chrome). loadModule() is called only here, never from onApiChange.
+const applyEnglishCaptions = (p: YouTubePlayer): void => {
+  captionVideoId = p.getVideoData?.()?.video_id || '';
+  try {
+    p.loadModule?.('captions');
+    p.setOption?.('captions', 'track', { languageCode: 'en' });
+  } catch (e) {
+    console.error(e);
+  }
+};
+
 const SOURCE_RANGE = SHEET_AUTO.find((item) => item.name === 'ABoard6')?.range || 'AUTO!U2:W500';
 
 const YoutubeSub: FC = () => {
@@ -94,6 +126,8 @@ const YoutubeSub: FC = () => {
   const [height, setHeight] = useState<number>(10);
   const [top, setTop] = useState<number>(0);
   const [subHeight, setSubHeight] = useState<number>(300);
+  const [hideControls, setHideControls] = useState<boolean>(false);
+  const [timeStepsText, setTimeStepsText] = useState<string>(DEFAULT_TIME_STEPS);
 
   const [modeReplay, setModeReplay] = useState<string>(REPLAY_NO);
   const [modeKara, setModeKara] = useState<string>('N');
@@ -115,6 +149,11 @@ const YoutubeSub: FC = () => {
       const storedSize = Number(localStorage.getItem(KEY_YT_PLAYER_SIZE));
       if (Number.isFinite(storedSize) && storedSize > 0) {
         setSize(storedSize);
+      }
+      setHideControls(isHideControlsStored());
+      const storedSteps = localStorage.getItem(KEY_YT_TIME_STEPS);
+      if (storedSteps) {
+        setTimeStepsText(storedSteps);
       }
     }
 
@@ -145,7 +184,7 @@ const YoutubeSub: FC = () => {
     }
     const timemisuEl = document.getElementById(`timemisus`) as HTMLInputElement;
     if (timemisuEl) {
-      timemisuEl.value = '2';
+      timemisuEl.value = String(parseTimeSteps(localStorage.getItem(KEY_YT_TIME_STEPS) || DEFAULT_TIME_STEPS)[0]);
     }
     customLoopMode = LOOP_CUSTOM;
     customLoopAVal = NOT_VALUE_TIME;
@@ -268,28 +307,76 @@ const YoutubeSub: FC = () => {
       div.style.top = `-${valueSz}px`;
     }
   };
-  const onYouTubeIframeAPIReady = (): void => {
+  const onYouTubeIframeAPIReady = (resume?: { videoId: string; startSeconds: number }): void => {
     const windowWithYT = window as WindowWithYT;
     if (!windowWithYT.YT) return;
-    const DEFAULT_HEIGHT = Number(localStorage.getItem(KEY_YT_PLAYER_SIZE)) ?? 729;
+    const DEFAULT_HEIGHT = Number(localStorage.getItem(KEY_YT_PLAYER_SIZE)) || 729;
+    const playerVars: Record<string, unknown> = {
+      fs: 0,
+      iv_load_policy: 3,
+      playsinline: 1,
+      modestbranding: 0,
+      // English subtitles on by default
+      cc_load_policy: 1,
+      cc_lang_pref: 'en',
+      hl: 'en',
+    };
+    if (isHideControlsStored()) {
+      playerVars.controls = 0;
+    }
+    if (resume?.videoId) {
+      // give the video to the constructor so cc_load_policy applies to it
+      playerVars.start = Math.floor(resume.startSeconds);
+    }
+    captionVideoId = '';
     player = new windowWithYT.YT.Player('player', {
       height: DEFAULT_HEIGHT,
       width: DEFAULT_HEIGHT * (16 / 9),
-      videoId: '',
-      playerVars: {
-        fs: 0,
-        iv_load_policy: 3,
-        playsinline: 1,
-        modestbranding: 0,
-        // controls: 0
-      },
+      videoId: resume?.videoId || '',
+      playerVars,
       events: {
-        onReady: onPlayerReady,
+        onReady: (event: { target: YouTubePlayer }) => {
+          onPlayerReady(event);
+          if (resume?.videoId) {
+            event.target.seekTo(resume.startSeconds, true);
+          }
+        },
+        onStateChange: (event: { target: YouTubePlayer; data: number }) => {
+          // 1 = playing: apply English captions once per video (incl. videos loaded via Load)
+          if (event.data !== 1) return;
+          const vid = event.target.getVideoData?.()?.video_id || '';
+          if (vid && vid !== captionVideoId) applyEnglishCaptions(event.target);
+        },
       },
     });
   };
+  const toggleHideControls = (): void => {
+    const next = !hideControls;
+    setHideControls(next);
+    localStorage.setItem(KEY_YT_HIDE_CONTROLS, next ? 'Y' : 'N');
+    // controls can only be set at creation time -> rebuild the player, keeping video + position
+    let resume: { videoId: string; startSeconds: number } | undefined;
+    if (player) {
+      try {
+        const videoId = player.getVideoData?.()?.video_id || '';
+        resume = { videoId, startSeconds: player.getCurrentTime() || 0 };
+        player.destroy();
+      } catch (e) {
+        console.error(e);
+      }
+      player = null;
+    }
+    if (interval) clearInterval(interval);
+    if (!document.getElementById('player')) {
+      const holder = document.createElement('div');
+      holder.id = 'player';
+      document.getElementById('vd-control')?.prepend(holder);
+    }
+    onYouTubeIframeAPIReady(resume);
+  };
   const onPlayerReady = (event: { target: YouTubePlayer }): void => {
     event.target.playVideo();
+    if (interval) clearInterval(interval);
 
     interval = setInterval((): void => {
       if (!player || player?.getPlayerState() !== 1) return;
@@ -572,16 +659,14 @@ const YoutubeSub: FC = () => {
   const changeTime = (): void => {
     let timemisuEl = document.getElementById('timemisus') as HTMLInputElement;
     if (!timemisuEl) return;
-    let timemisus = timemisuEl.value;
-    if (timemisus == '5') {
-      timemisuEl.value = '2';
-    } else if (timemisus == '2') {
-      timemisuEl.value = '3';
-    } else if (timemisus == '3') {
-      timemisuEl.value = '5';
-    } else {
-      timemisuEl.value = '3';
-    }
+    // Cycle through the configured steps (e.g. 2 -> 3 -> 5 -> 2 ...)
+    const steps = parseTimeSteps(timeStepsText);
+    const idx = steps.indexOf(Number(timemisuEl.value));
+    timemisuEl.value = String(steps[(idx + 1) % steps.length]);
+  };
+  const onChangeTimeSteps = (text: string): void => {
+    setTimeStepsText(text);
+    localStorage.setItem(KEY_YT_TIME_STEPS, text);
   };
   const onControlKey = (e: React.KeyboardEvent<HTMLDivElement>): void => {
     console.log(e.key);
@@ -708,7 +793,22 @@ const YoutubeSub: FC = () => {
           <br />
           <span className="yts-toggle-link" onClick={() => toggleCollapse('hide-control-frame')}>
             +/-
-          </span>
+          </span>{' '}
+          <span
+            className="yts-toggle-link"
+            title="Hide/show YouTube player controls (hidden = English subtitles on)"
+            onClick={() => toggleHideControls()}
+          >
+            {hideControls ? 'Show control' : 'Hide control'}
+          </span>{' '}
+          <input
+            type="text"
+            className="width-60 common-input"
+            title="Time steps (seconds) cycled with ArrowUp, comma separated, e.g. 2, 5, 10"
+            value={timeStepsText}
+            onChange={(e) => onChangeTimeSteps(e.target.value)}
+            onKeyDown={(e) => e.stopPropagation()}
+          />
           <div id="hide-control-frame" className="collapse-content ui-sub-panel yts-resize-panel">
             <input
               type="range"
