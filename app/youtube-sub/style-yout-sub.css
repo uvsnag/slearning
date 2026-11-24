@@ -112,6 +112,21 @@
   float: right;
 }
 
+/* our own fullscreen (toggleFullscreen): stretch the player iframe to the screen */
+#vd-control:fullscreen {
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#vd-control:fullscreen iframe {
+  width: 100vw !important;
+  height: 100vh !important;
+}
+#vd-control:fullscreen br {
+  display: none;
+}
+
 #mobile-control {
   /* height: 120px; */
 }
@@ -159,3 +174,4 @@
   background-color: var(--color-dark-surface-alt) !important;
   color: var(--color-dark-text);
 }
+

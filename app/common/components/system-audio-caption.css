@@ -1,0 +1,62 @@
+/* ---- SystemAudioCaption: live auto subtitle over the video ---- */
+.sys-caption-overlay {
+  position: absolute;
+  left: 50%;
+  bottom: 12%;
+  transform: translateX(-50%);
+  width: max-content; /* keep full width even when moved near/outside the right edge */
+  max-width: 90%;
+  z-index: 20;
+  text-align: center;
+  pointer-events: none; /* the empty area around the text never blocks clicks on the video */
+  line-height: 1.35;
+  touch-action: none;
+}
+.sys-caption-overlay > span {
+  pointer-events: auto; /* only the text box itself can be dragged */
+  cursor: move;
+  user-select: none;
+  background: rgba(0, 0, 0, 0.72);
+  color: #fff;
+  padding: 2px 10px;
+  border-radius: 4px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+.sys-caption-word {
+  cursor: pointer;
+  border-radius: 3px;
+}
+.sys-caption-word:hover {
+  background: rgba(255, 213, 79, 0.35);
+}
+.sys-caption-select {
+  width: auto;
+  margin: 0 4px;
+}
+.sys-caption-on {
+  background: #c62828 !important;
+  color: #fff !important;
+}
+.sys-caption-status {
+  font-size: 12px;
+  opacity: 0.75;
+}
+
+/* standalone pill button (same look as .yts-toggle-link) so the component works on any page */
+.sys-caption-btn {
+  display: inline-block;
+  margin: 4px 2px;
+  padding: 2px 10px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 999px;
+  background: var(--color-surface-badge);
+  color: var(--color-link);
+  cursor: pointer;
+  user-select: none;
+}
+.dark-90 .sys-caption-btn {
+  border-color: var(--color-dark-border);
+  background: var(--color-dark-surface-alt);
+  color: var(--color-dark-text);
+}

@@ -28,6 +28,18 @@ import {
 import { SHEET_AUTO } from '../SheetDataEditor';
 import Notify from '@/app/notify/Notify';
 import { setLayoutMode, useLayoutMode } from '../../layoutMode';
+import {
+  PROVIDERS,
+  type ProviderSetting,
+  getProviderSettings,
+  saveProviderSettings,
+  getTranslateTimeout,
+  saveTranslateTimeout,
+  getTranslateCacheSize,
+  clearTranslateCache,
+  getProviderDownSeconds,
+  resetProviderHealth,
+} from '../../utils/translator';
 
 const THEME_STORAGE_KEY = 'sl_theme_mode';
 const THEME_1 = 'current';
@@ -109,6 +121,16 @@ const StickyConfig = forwardRef<StickyConfigHandle, StickyConfigProps>(
     );
     const [newStoreName, setNewStoreName] = useState<string>('');
 
+    // ── Translate providers (order = priority, fallback to the next on failure) ──
+    const [translateProviders, setTranslateProviders] = useState<ProviderSetting[]>(() =>
+      typeof window === 'undefined' ? [] : getProviderSettings(),
+    );
+    const [translateTimeout, setTranslateTimeout] = useState<string>(() =>
+      typeof window === 'undefined' ? '' : String(getTranslateTimeout()),
+    );
+    const [translateCacheSize, setTranslateCacheSize] = useState<number>(0);
+    const [providerDown, setProviderDown] = useState<Partial<Record<string, number>>>({});
+
     // ── Persist API keys to localStorage ────────────────
     useEffect(() => {
       if (gemKey) localStorage.setItem(KEY_GEMINI_NM, gemKey);
@@ -147,6 +169,22 @@ const StickyConfig = forwardRef<StickyConfigHandle, StickyConfigProps>(
         localStorage.setItem(KEY_DARK_MODE, 'N');
       }
     }, [isDark]);
+
+    const updateTranslateProviders = (next: ProviderSetting[]) => {
+      setTranslateProviders(next);
+      saveProviderSettings(next);
+    };
+    const moveTranslateProvider = (index: number, delta: number) => {
+      const target = index + delta;
+      if (target < 0 || target >= translateProviders.length) return;
+      const next = [...translateProviders];
+      [next[index], next[target]] = [next[target], next[index]];
+      updateTranslateProviders(next);
+    };
+    const refreshTranslateStatus = () => {
+      setTranslateCacheSize(getTranslateCacheSize());
+      setProviderDown(getProviderDownSeconds());
+    };
 
     useImperativeHandle(ref, () => ({
       close: () => {
@@ -383,6 +421,104 @@ const StickyConfig = forwardRef<StickyConfigHandle, StickyConfigProps>(
                 </label>
               </div>
             </div>
+            {/* ─── Translate Providers Section ─── */}
+            <div className="sticky-config-section">
+              <div
+                className="common-toggle"
+                onClick={() => {
+                  refreshTranslateStatus();
+                  toggleCollapse('sticky-translate-config');
+                }}
+              >
+                Translate
+              </div>
+              <div className="collapse-content" id="sticky-translate-config">
+                <div className="sticky-config-row">
+                  <span className="sticky-config-label">
+                    Word meaning (EN → VI): tried top to bottom, next one is used if a service fails
+                  </span>
+                </div>
+                {translateProviders.map((p, i) => (
+                  <div className="sticky-config-row" key={p.id}>
+                    <label style={{ flex: 1 }}>
+                      <input
+                        type="checkbox"
+                        checked={p.enabled}
+                        onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                          updateTranslateProviders(
+                            translateProviders.map((x) =>
+                              x.id === p.id ? { ...x, enabled: e.target.checked } : x,
+                            ),
+                          )
+                        }
+                      />{' '}
+                      {i + 1}. {PROVIDERS[p.id].label}
+                      {providerDown[p.id] ? (
+                        <span className="sticky-config-count" title="Failed recently, tried last">
+                          {' '}
+                          ⚠ skipped {providerDown[p.id]}s
+                        </span>
+                      ) : null}
+                    </label>
+                    <button
+                      className="common-btn"
+                      title="Move up"
+                      disabled={i === 0}
+                      onClick={() => moveTranslateProvider(i, -1)}
+                    >
+                      ↑
+                    </button>
+                    <button
+                      className="common-btn"
+                      title="Move down"
+                      disabled={i === translateProviders.length - 1}
+                      onClick={() => moveTranslateProvider(i, 1)}
+                    >
+                      ↓
+                    </button>
+                  </div>
+                ))}
+                <div className="sticky-config-row">
+                  <label className="sticky-config-label">Timeout (ms)</label>
+                  <input
+                    className="common-input inline"
+                    type="number"
+                    min="1000"
+                    max="20000"
+                    step="500"
+                    value={translateTimeout}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                      setTranslateTimeout(e.target.value);
+                      const ms = Number(e.target.value);
+                      if (ms >= 1000 && ms <= 20000) saveTranslateTimeout(ms);
+                    }}
+                  />
+                </div>
+                <div className="sticky-config-row">
+                  <span className="sticky-config-label">Cached words</span>
+                  <span className="sticky-config-count">{translateCacheSize}</span>
+                  <button
+                    className="common-btn"
+                    onClick={() => {
+                      clearTranslateCache();
+                      refreshTranslateStatus();
+                    }}
+                  >
+                    Clear cache
+                  </button>
+                  <button
+                    className="common-btn"
+                    title="Retry skipped services now"
+                    onClick={() => {
+                      resetProviderHealth();
+                      refreshTranslateStatus();
+                    }}
+                  >
+                    Reset ⚠
+                  </button>
+                </div>
+              </div>
+            </div>
             {/* ─── Practice Config Section ─── */}
             {
               <div className="sticky-config-section">
@@ -607,6 +743,7 @@ const StickyConfig = forwardRef<StickyConfigHandle, StickyConfigProps>(
           aria-controls="sticky-config-panel"
           onClick={() => {
             const nextIsOpen = !isOpen;
+            if (nextIsOpen) refreshTranslateStatus();
             onOpen?.(nextIsOpen);
             setIsOpen(nextIsOpen);
           }}

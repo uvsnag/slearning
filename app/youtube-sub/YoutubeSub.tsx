@@ -10,6 +10,7 @@ import PracticeWords from '../practice-word/PracticeWords';
 import { DataItem, getDataFromExcel } from '@/app/common/hooks/useSheetData';
 import { SHEET_AUTO } from '@/app/common/components/SheetDataEditor';
 import TranslateVieEngInput from '../common/components/TranslateVieEngInput';
+import SystemAudioCaption from '@/app/common/components/SystemAudioCaption';
 
 // Type definitions
 interface YouTubePlayer {
@@ -194,6 +195,39 @@ const YoutubeSub: FC = () => {
       if (intervalCusLoop) clearInterval(intervalCusLoop);
     };
   }, []);
+  // The YouTube player is a cross-origin iframe: once it has focus, key events never reach
+  // this page, so onControlKey stops working. When the iframe steals focus (e.g. user clicks
+  // the video), give focus back to #main-content so the arrow-key controls keep working.
+  useEffect(() => {
+    const reclaimFocus = (): void => {
+      setTimeout(() => {
+        const active = document.activeElement;
+        if (active && active.tagName === 'IFRAME' && document.getElementById('vd-control')?.contains(active)) {
+          (document.getElementById('main-content') as HTMLElement | null)?.focus({ preventScroll: true });
+        }
+      }, 0);
+    };
+    // entering/leaving fullscreen (YouTube's button or ours) can leave focus in the iframe -> reclaim it
+    const onFullscreenChange = (): void => {
+      (document.getElementById('main-content') as HTMLElement | null)?.focus({ preventScroll: true });
+      reclaimFocus();
+    };
+    window.addEventListener('blur', reclaimFocus);
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    return () => {
+      window.removeEventListener('blur', reclaimFocus);
+      document.removeEventListener('fullscreenchange', onFullscreenChange);
+    };
+  }, []);
+  // Fullscreen the wrapper (not the iframe) so the page keeps keyboard focus -> onControlKey keeps working
+  const toggleFullscreen = (): void => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(console.error);
+      return;
+    }
+    // requestFullscreen is missing on iPhone Safari for non-video elements
+    document.getElementById('vd-control')?.requestFullscreen?.()?.catch(console.error);
+  };
   useEffect((): void => {
     if (_.isEmpty(arrSub)) {
       const sublineControl = document.getElementById('subline-control');
@@ -312,7 +346,7 @@ const YoutubeSub: FC = () => {
     if (!windowWithYT.YT) return;
     const DEFAULT_HEIGHT = Number(localStorage.getItem(KEY_YT_PLAYER_SIZE)) || 729;
     const playerVars: Record<string, unknown> = {
-      fs: 0,
+      fs: 0, // hide YouTube's fullscreen button (use our "Fullscreen" link so key controls keep working)
       iv_load_policy: 3,
       playsinline: 1,
       modestbranding: 0,
@@ -801,6 +835,14 @@ const YoutubeSub: FC = () => {
           >
             {hideControls ? 'Show control' : 'Hide control'}
           </span>{' '}
+          <span
+            className="yts-toggle-link"
+            title="Fullscreen video (arrow-key controls keep working, Esc to exit)"
+            onClick={() => toggleFullscreen()}
+          >
+            Fullscreen
+          </span>{' '}
+          <SystemAudioCaption overlayContainerId="vd-control" language="en-US" />{' '}
           <input
             type="text"
             className="width-60 common-input"

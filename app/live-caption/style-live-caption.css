@@ -1,0 +1,83 @@
+.lc-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 8px 12px 24px;
+}
+.lc-title {
+  font-size: 20px;
+  margin: 4px 0 8px;
+}
+.lc-toolbar {
+  margin-bottom: 8px;
+}
+
+/* caption stage: SystemAudioCaption renders its overlay in here (portal) */
+.lc-stage {
+  position: relative;
+  min-height: 220px;
+  border-radius: 8px;
+  background: #111;
+  /* no overflow:hidden -> the subtitle can be dragged outside the stage */
+}
+.lc-stage .sys-caption-overlay {
+  bottom: auto;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 92%;
+}
+.lc-stage-hint {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #555;
+  font-size: 14px;
+}
+
+.lc-transcript-head {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+.lc-count {
+  opacity: 0.6;
+  margin-right: 8px;
+}
+.lc-transcript {
+  max-height: 45vh;
+  overflow-y: auto;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 8px;
+  padding: 8px 10px;
+  margin-top: 4px;
+}
+.lc-line {
+  display: flex;
+  gap: 10px;
+  padding: 3px 0;
+  line-height: 1.5;
+}
+.lc-time {
+  flex: none;
+  font-family: monospace;
+  font-size: 12px;
+  opacity: 0.55;
+  padding-top: 3px;
+}
+.lc-empty {
+  opacity: 0.5;
+}
+.lc-help {
+  margin-top: 12px;
+  font-size: 14px;
+}
+.lc-help summary {
+  cursor: pointer;
+}
+
+.dark-90 .lc-transcript {
+  border-color: var(--color-dark-border);
+}

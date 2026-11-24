@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { FaVolumeUp } from 'react-icons/fa';
 import { useSpeechSynthesis } from '../hooks/useSpeechSynthesis';
+import { translateText } from '../utils/translator';
 
 interface TranslatePopupProps {
   open: boolean;
@@ -13,55 +14,37 @@ interface TranslatePopupProps {
 
 const TranslatePopup = ({ open, word, onClose, onSpeakProp }: TranslatePopupProps) => {
   const [meaning, setMeaning] = useState<string>('');
+  const [provider, setProvider] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
-  const meaningCacheRef = useRef<Record<string, string>>({});
   const requestIdRef = useRef<number>(0);
-  const { speakText, voices, cancel, speaking } = useSpeechSynthesis();
+  const { speakText } = useSpeechSynthesis();
 
   useEffect(() => {
     if (!open || !word) return;
-    const normalizedWord = word.toLowerCase();
-    if (meaningCacheRef.current[normalizedWord]) {
-      setMeaning(meaningCacheRef.current[normalizedWord]);
-      setLoading(false);
-      setError('');
-      return;
-    }
-
     const requestId = requestIdRef.current + 1;
     requestIdRef.current = requestId;
+    const ctrl = new AbortController();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMeaning('');
+    setProvider('');
     setLoading(true);
     setError('');
 
-    const fetchMeaning = async (): Promise<void> => {
-      try {
-        const response = await fetch(
-          `https://api.mymemory.translated.net/get?q=${encodeURIComponent(
-            normalizedWord,
-          )}&langpair=en|vi`,
-        );
-        const data = await response.json();
-        const translated = data?.responseData?.translatedText;
-        const resolvedMeaning =
-          typeof translated === 'string' && translated.trim()
-            ? translated.trim()
-            : 'No meaning found.';
+    // providers are tried in the order set in Config > Translate, with automatic fallback + cache
+    translateText(word, { from: 'en', to: 'vi', signal: ctrl.signal })
+      .then((res) => {
         if (requestIdRef.current !== requestId) return;
-        meaningCacheRef.current[normalizedWord] = resolvedMeaning;
-        setMeaning(resolvedMeaning);
+        setMeaning(res.text);
+        setProvider(res.provider);
         setLoading(false);
-        setError('');
-      } catch (err) {
+      })
+      .catch((err: unknown) => {
         if (requestIdRef.current !== requestId) return;
-        setMeaning('');
         setLoading(false);
-        setError(String(err));
-      }
-    };
-
-    void fetchMeaning();
+        setError((err as Error)?.message || String(err));
+      });
+    return () => ctrl.abort();
   }, [open, word]);
 
   if (!open) return null;
@@ -104,11 +87,14 @@ const TranslatePopup = ({ open, word, onClose, onSpeakProp }: TranslatePopupProp
             <FaVolumeUp />
           </button>
         </div>
-        <div style={{ marginTop: '8px' }}>
+        <div style={{ marginTop: '8px', whiteSpace: 'pre-line' }}>
           {loading && 'Loading Vietnamese meaning...'}
           {!loading && !error && meaning}
-          {!loading && error && `Error: ${error}`}
+          {!loading && error && `All translate services failed: ${error}`}
         </div>
+        {!loading && provider && (
+          <div style={{ marginTop: '4px', fontSize: '11px', opacity: 0.6 }}>via {provider}</div>
+        )}
         <button onClick={onClose} className="common-btn" style={{ marginTop: '12px' }}>
           Close
         </button>

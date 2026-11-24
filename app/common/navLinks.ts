@@ -19,6 +19,7 @@ const SINGLE_PRACT_LINKS: NavLink[] = [
   { href: '/listen', label: 'Word (Listen)' },
   { href: '/next-sentence', label: 'Sentence' },
   { href: '/listen-mp3', label: 'Listen MP3' },
+  { href: '/live-caption', label: 'Live Caption (Voice to Text)' },
   { href: '/store-editor', label: 'Store Editor' },
 ];
 
