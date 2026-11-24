@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState, ReactNode, FC, JSXElementConstructor } from 'react';
+import { useEffect, useRef, useState, ReactNode, FC, JSXElementConstructor } from 'react';
 import './style-yout-sub.css';
 import _ from 'lodash';
 import { Sub } from './Subtitle';
@@ -195,28 +195,45 @@ const YoutubeSub: FC = () => {
       if (intervalCusLoop) clearInterval(intervalCusLoop);
     };
   }, []);
+  // latest onControlKey, for the document-level keydown listener used in fullscreen
+  const controlKeyRef = useRef<((e: React.KeyboardEvent<HTMLDivElement>) => void) | null>(null);
   // The YouTube player is a cross-origin iframe: once it has focus, key events never reach
   // this page, so onControlKey stops working. When the iframe steals focus (e.g. user clicks
   // the video), give focus back to #main-content so the arrow-key controls keep working.
   useEffect(() => {
+    // in fullscreen, focus must stay inside the fullscreen element (#vd-control), otherwise use #main-content
+    const focusKeyTarget = (): void => {
+      const fs = document.fullscreenElement as HTMLElement | null;
+      const target = fs && fs.tagName !== 'IFRAME' ? fs : document.getElementById('main-content');
+      target?.focus({ preventScroll: true });
+    };
     const reclaimFocus = (): void => {
       setTimeout(() => {
         const active = document.activeElement;
         if (active && active.tagName === 'IFRAME' && document.getElementById('vd-control')?.contains(active)) {
-          (document.getElementById('main-content') as HTMLElement | null)?.focus({ preventScroll: true });
+          focusKeyTarget();
         }
       }, 0);
     };
-    // entering/leaving fullscreen (YouTube's button or ours) can leave focus in the iframe -> reclaim it
+    // entering/leaving fullscreen can leave focus in the iframe / outside the fullscreen element -> reclaim it
     const onFullscreenChange = (): void => {
-      (document.getElementById('main-content') as HTMLElement | null)?.focus({ preventScroll: true });
+      focusKeyTarget();
       reclaimFocus();
+    };
+    // In fullscreen, key events don't reliably reach #main-content's onKeyDown -> listen on the document
+    const onDocKeyDown = (e: KeyboardEvent): void => {
+      if (!document.fullscreenElement) return; // normal mode is handled by onKeyDown on #main-content
+      const tag = (e.target as HTMLElement | null)?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+      controlKeyRef.current?.(e as unknown as React.KeyboardEvent<HTMLDivElement>);
     };
     window.addEventListener('blur', reclaimFocus);
     document.addEventListener('fullscreenchange', onFullscreenChange);
+    document.addEventListener('keydown', onDocKeyDown);
     return () => {
       window.removeEventListener('blur', reclaimFocus);
       document.removeEventListener('fullscreenchange', onFullscreenChange);
+      document.removeEventListener('keydown', onDocKeyDown);
     };
   }, []);
   // Fullscreen the wrapper (not the iframe) so the page keeps keyboard focus -> onControlKey keeps working
@@ -745,6 +762,7 @@ const YoutubeSub: FC = () => {
       changeTimeLoop(true, true);
     }
   };
+  controlKeyRef.current = onControlKey;
 
   const onClearCusLoop = (): void => {
     customLoopAVal = NOT_VALUE_TIME;
@@ -815,10 +833,14 @@ const YoutubeSub: FC = () => {
       className="yt-sub yts-page"
       id="main-content"
       tabIndex={0}
-      onKeyDown={(e) => onControlKey(e)}
+      onKeyDown={(e) => {
+        // in fullscreen the document-level listener handles keys (avoid running twice)
+        if (document.fullscreenElement) return;
+        onControlKey(e);
+      }}
     >
       <div id="maincontent-yt" className="media-left yts-shell">
-        <div id="vd-control">
+        <div id="vd-control" tabIndex={-1}>
           <div id="player"></div>
           <br />
         </div>
