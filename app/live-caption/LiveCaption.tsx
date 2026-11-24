@@ -121,9 +121,8 @@ const LiveCaption: FC = () => {
           </li>
           <li>Play the video. Text shows on the stage above and finished sentences are saved to the transcript.</li>
           <li>
-            Engine <b>Browser (Chrome)</b>: free, real-time, needs a recent Chrome. If it transcribes your microphone
-            instead of the video, your browser is too old – switch to <b>Gemini AI</b> (uses the Gemini key saved in
-            AI Board, text arrives every few seconds).
+            Needs a recent Chrome or Edge. If the text follows your microphone instead of the video, update the
+            browser.
           </li>
         </ol>
       </details>

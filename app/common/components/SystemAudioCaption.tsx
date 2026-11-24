@@ -12,7 +12,14 @@
  *              (uses the Gemini key stored in localStorage, same as AI Board). Works in any Chromium/Edge.
  * The text is shown as a subtitle overlay inside `overlayContainerId` (portal), so it also works in fullscreen.
  */
-import { FC, PointerEvent as ReactPointerEvent, useCallback, useEffect, useRef, useState } from 'react';
+import {
+  FC,
+  PointerEvent as ReactPointerEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { createPortal } from 'react-dom';
 import { GoogleGenAI } from '@google/genai';
 import { KEY_GEMINI_NM } from '@/common/common.js';
@@ -65,6 +72,14 @@ const getSpeechRecognitionCtor = (): SpeechRecognitionCtor | null => {
 };
 
 const KEY_ENGINE = 'sys-caption-engine';
+/**
+ * Engine selector is hidden: only the free, real-time Browser engine is used.
+ * The Gemini engine code is kept – set this to true to show the Browser/Gemini choice again.
+ */
+const SHOW_ENGINE_SELECT = false;
+const NO_BROWSER_ENGINE_MSG = SHOW_ENGINE_SELECT
+  ? 'switch engine to Gemini'
+  : 'please use the latest Chrome or Edge';
 const KEY_FONT = 'sys-caption-font';
 const KEY_CHUNK = 'sys-caption-chunk';
 const KEY_POS_PREFIX = 'sys-caption-pos-'; // + overlayContainerId -> {x,y} in % of the container
@@ -110,7 +125,11 @@ const blobToBase64 = (blob: Blob): Promise<string> =>
     reader.readAsDataURL(blob);
   });
 
-const SystemAudioCaption: FC<SystemAudioCaptionProps> = ({ overlayContainerId, language = 'en-US', onFinalText }) => {
+const SystemAudioCaption: FC<SystemAudioCaptionProps> = ({
+  overlayContainerId,
+  language = 'en-US',
+  onFinalText,
+}) => {
   const [active, setActive] = useState(false);
   const [engine, setEngine] = useState<Engine>('browser');
   const [fontSize, setFontSize] = useState(24);
@@ -143,9 +162,11 @@ const SystemAudioCaption: FC<SystemAudioCaptionProps> = ({ overlayContainerId, l
 
   // ---- restore settings & find overlay container ----
   useEffect(() => {
-    const e = readLS(KEY_ENGINE);
-    if (e === 'browser' || e === 'gemini') setEngine(e);
-    else if (!getSpeechRecognitionCtor()) setEngine('gemini');
+    if (SHOW_ENGINE_SELECT) {
+      const e = readLS(KEY_ENGINE);
+      if (e === 'browser' || e === 'gemini') setEngine(e);
+      else if (!getSpeechRecognitionCtor()) setEngine('gemini');
+    }
     const f = Number(readLS(KEY_FONT));
     if (f >= 12 && f <= 60) setFontSize(f);
     const c = Number(readLS(KEY_CHUNK));
@@ -154,7 +175,9 @@ const SystemAudioCaption: FC<SystemAudioCaptionProps> = ({ overlayContainerId, l
   useEffect(() => {
     setOverlayEl(document.getElementById(overlayContainerId));
     try {
-      const p = JSON.parse(readLS(KEY_POS_PREFIX + overlayContainerId) || 'null') as CaptionPos | null;
+      const p = JSON.parse(
+        readLS(KEY_POS_PREFIX + overlayContainerId) || 'null',
+      ) as CaptionPos | null;
       if (p && typeof p.x === 'number' && typeof p.y === 'number') setPos(p);
     } catch {
       /* ignore */
@@ -213,7 +236,7 @@ const SystemAudioCaption: FC<SystemAudioCaptionProps> = ({ overlayContainerId, l
   const startBrowserEngine = (track: MediaStreamTrack): void => {
     const Ctor = getSpeechRecognitionCtor();
     if (!Ctor) {
-      setStatus('Browser has no SpeechRecognition - switch engine to Gemini');
+      setStatus(`Browser has no SpeechRecognition - ${NO_BROWSER_ENGINE_MSG}`);
       stop();
       return;
     }
@@ -258,7 +281,7 @@ const SystemAudioCaption: FC<SystemAudioCaptionProps> = ({ overlayContainerId, l
       setStatus('Listening (browser)');
     } catch (err) {
       console.error(err);
-      setStatus('This browser cannot recognize a tab audio track - switch engine to Gemini');
+      setStatus(`This browser cannot recognize a tab audio track - ${NO_BROWSER_ENGINE_MSG}`);
       stop();
     }
   };
@@ -267,7 +290,10 @@ const SystemAudioCaption: FC<SystemAudioCaptionProps> = ({ overlayContainerId, l
   const transcribeChunk = async (blob: Blob, seq: number, mimeType: string): Promise<void> => {
     if (blob.size < 2000) return; // basically silence / empty
     const raw = readLS(KEY_GEMINI_NM) || '';
-    const apiKey = raw.split(/[;,]/).map((k) => k.trim()).filter(Boolean)[0]; // config stores key1;key2
+    const apiKey = raw
+      .split(/[;,]/)
+      .map((k) => k.trim())
+      .filter(Boolean)[0]; // config stores key1;key2
     if (!apiKey) {
       setStatus('No Gemini key - set it in AI Board first');
       return;
@@ -284,7 +310,12 @@ const SystemAudioCaption: FC<SystemAudioCaptionProps> = ({ overlayContainerId, l
           : '');
       const res = await ai.models.generateContent({
         model: GEMINI_MODEL,
-        contents: [{ role: 'user', parts: [{ inlineData: { mimeType: mimeType.split(';')[0], data } }, { text: prompt }] }],
+        contents: [
+          {
+            role: 'user',
+            parts: [{ inlineData: { mimeType: mimeType.split(';')[0], data } }, { text: prompt }],
+          },
+        ],
       });
       const text = (res.text || '').replace(/^["']|["']$/g, '').trim();
       if (!activeRef.current || seq < shownSeqRef.current) return; // stale reply
@@ -328,7 +359,10 @@ const SystemAudioCaption: FC<SystemAudioCaptionProps> = ({ overlayContainerId, l
         void transcribeChunk(new Blob(parts, { type: mimeType }), seq, mimeType);
       };
       rec.start();
-      chunkTimerRef.current = setTimeout(() => rec.state === 'recording' && rec.stop(), seconds * 1000);
+      chunkTimerRef.current = setTimeout(
+        () => rec.state === 'recording' && rec.stop(),
+        seconds * 1000,
+      );
     };
     recordChunk();
     setStatus('Listening (Gemini)');
@@ -462,7 +496,12 @@ const SystemAudioCaption: FC<SystemAudioCaptionProps> = ({ overlayContainerId, l
   // in fullscreen only the video is visible -> pull an outside position back onto it
   const shownPos = pos && inFullscreen ? { x: clamp(pos.x, 5, 95), y: clamp(pos.y, 5, 95) } : pos;
   const posStyle = shownPos
-    ? { left: `${shownPos.x}%`, top: `${shownPos.y}%`, bottom: 'auto', transform: 'translate(-50%, -50%)' }
+    ? {
+        left: `${shownPos.x}%`,
+        top: `${shownPos.y}%`,
+        bottom: 'auto',
+        transform: 'translate(-50%, -50%)',
+      }
     : {};
 
   return (
@@ -474,16 +513,18 @@ const SystemAudioCaption: FC<SystemAudioCaptionProps> = ({ overlayContainerId, l
       >
         {active ? '■ Stop auto sub' : 'CC Auto sub'}
       </span>{' '}
-      <select
-        className="common-input sys-caption-select"
-        value={engine}
-        title="Recognition engine"
-        onChange={(e) => onChangeEngine(e.target.value as Engine)}
-      >
-        <option value="browser">Browser (Chrome)</option>
-        <option value="gemini">Gemini AI</option>
-      </select>
-      {engine === 'gemini' && (
+      {SHOW_ENGINE_SELECT && (
+        <select
+          className="common-input sys-caption-select"
+          value={engine}
+          title="Recognition engine"
+          onChange={(e) => onChangeEngine(e.target.value as Engine)}
+        >
+          <option value="browser">Browser (Chrome)</option>
+          <option value="gemini">Gemini AI</option>
+        </select>
+      )}
+      {SHOW_ENGINE_SELECT && engine === 'gemini' && (
         <select
           className="common-input sys-caption-select"
           value={chunkSec}
@@ -504,7 +545,11 @@ const SystemAudioCaption: FC<SystemAudioCaptionProps> = ({ overlayContainerId, l
         A+
       </span>
       {pos && (
-        <span className="sys-caption-btn" title="Put the subtitle back to the default position" onClick={resetPos}>
+        <span
+          className="sys-caption-btn"
+          title="Put the subtitle back to the default position"
+          onClick={resetPos}
+        >
           ↺ Pos
         </span>
       )}
@@ -532,7 +577,10 @@ const SystemAudioCaption: FC<SystemAudioCaptionProps> = ({ overlayContainerId, l
           overlayEl,
         )}
       {popupHost &&
-        createPortal(<TranslatePopup open={!!popupWord} word={popupWord} onClose={closePopup} />, popupHost)}
+        createPortal(
+          <TranslatePopup open={!!popupWord} word={popupWord} onClose={closePopup} />,
+          popupHost,
+        )}
     </span>
   );
 };
